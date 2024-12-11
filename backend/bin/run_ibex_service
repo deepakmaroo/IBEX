@@ -1,0 +1,17 @@
+#!/bin/env python3
+# -*- coding: utf-8 -*-
+
+from ibex.endpoints.data_entry import router as data_entry_router
+from ibex.endpoints.ids_info import router as ids_info_router
+from ibex.endpoints.data import router as data_router
+from fastapi import FastAPI # type: ignore
+import uvicorn # type: ignore
+
+app = FastAPI()
+
+app.include_router(data_entry_router)
+app.include_router(ids_info_router)
+app.include_router(data_router)
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="127.0.0.1", port=8000)
