@@ -1,12 +1,12 @@
-from ibex.data_source.data_source_interface import DataSourceInterface
-from ibex.data_source.exception import *
-
 import re  # type: ignore
-import numpy as np  # type: ignore
 
 import imaspy  # type: ignore
+import numpy as np  # type: ignore
+from imaspy.ids_primitive import IDSString1D  # type: ignore
 from imaspy.ids_struct_array import IDSStructArray  # type: ignore
-from imaspy.ids_primitive import IDSNumericArray, IDSString1D  # type: ignore
+
+from ibex.data_source.data_source_interface import DataSourceInterface
+from ibex.data_source.exception import NodeNotFoundException, NotALeafNodeException
 
 
 class IMASPySource(DataSourceInterface):
@@ -117,7 +117,8 @@ class IMASPySource(DataSourceInterface):
         :param uri: pulsefile uri - used only to get proper DD version
         :param ids: name of ids e.g. core_profiles
         :param node_path: path to ids node e.g. ids_properties/version_put
-        :param recursive: if True, creates node_info tree. if False, returns only pointed node and it's children node_info
+        :param recursive: if True, creates node_info tree.
+            if False, returns only pointed node and it's children node_info
         :return:
         """
 

@@ -1,0 +1,107 @@
+[build-system]
+# Minimum requirements for the build system to execute.
+requires = ["setuptools>=61", "wheel", "packaging", "tomli;python_version<'3.11'", "versioneer[toml]"]
+
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ibex"
+authors = [
+  {name = "IBEX Developers"},
+  {name = "Olivier Hoenen", email = "olivier.hoenen@iter.org"},
+]
+description = "Data visualization for IMAS IDS data"
+readme = {file = "README.md", content-type = "text/markdown"}
+requires-python = ">=3.7"
+license = {file = "LICENSE.md"}
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Framework :: FastAPI",
+    "Framework :: Flake8",
+    "Framework :: Pytest",
+    "Framework :: Sphinx",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: System Administrators",
+    "Natural Language :: English",
+    "Operating System :: POSIX",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dynamic = ["version"]
+dependencies = [
+    "fastapi[standard]",
+    "packaging",
+    "imaspy",
+]
+
+[project.optional-dependencies]
+# these self-dependencies are available since pip 21.2
+all = [
+    "ibex[linting]"
+]
+
+linting = [
+    "black>=24,<25",
+    "flake8",
+    "mypy",
+    "isort",
+]
+
+[project.urls]
+homepage = "https://git.iter.org/projects/IMEX/repos/ibex"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["ibex*"]
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "--strict-markers"
+testpaths = "tests"
+
+[tool.versioneer]
+VCS = "git"
+style = "pep440"
+versionfile_source = "ibex/_version.py"
+versionfile_build = "ibex/_version.py"
+tag_prefix = ""
+parentdir_prefix = ""
+
+[tool.black]
+# Exclude versioneer-generated file
+force-exclude = "ids_validator/_version.py"
+
+[tool.mypy]
+packages = "ibex"
+disallow_untyped_calls = true
+disallow_untyped_defs = true
+disallow_untyped_decorators = true
+
+[[tool.mypy.overrides]]
+module = [
+    "tests.*",
+]
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = [
+    "imaspy.*",
+    "numpy.*",
+    "rich.*",
+]
+ignore_missing_imports = true
+
+[tool.isort]
+profile = "black"

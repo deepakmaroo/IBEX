@@ -1,5 +1,7 @@
-from ibex.data_source.imaspy_source import IMASPySource
+import time
 from functools import wraps  # for measure_execution_time()
+
+from ibex.data_source.imaspy_source import IMASPySource
 
 data_source = IMASPySource()
 

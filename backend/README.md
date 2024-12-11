@@ -7,14 +7,15 @@
 ```commandline
 python -m venv venv
 . venv/bin/activate
-pip install fastapi[standard]
 
-# in backend directory
-# add backend to PYTHONPATH
-export PYTHONPATH=`pwd`:$PYTHONPATH
+# in `backend` directory
+pip install . -e # editable mode allows changes to have instant impact
 ```
 
 ## Development run
 ```commandline
-   ./bin/run_ibex_service
+./bin/run_ibex_service
+
+# after server is running, open localhost:8000/docs in web browser to explore endpoints
 ```
+

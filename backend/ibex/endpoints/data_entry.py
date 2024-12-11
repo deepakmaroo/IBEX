@@ -1,6 +1,5 @@
-# TODO split this file into separate files for each route (/data_entry/, /ids_info/, /data/)
+from fastapi import APIRouter  # type: ignore
 
-from fastapi import APIRouter, HTTPException  # type: ignore
 import ibex.core.ibex_service as lib
 
 router = APIRouter()
