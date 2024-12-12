@@ -91,7 +91,7 @@ ENV/
 *.swo
 
 # SCM setuptools
-imaspy/version.py
+backend/ibex/version.py
 
 # Saxon symlink or downloaded file
 saxon*.jar

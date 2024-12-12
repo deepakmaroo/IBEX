@@ -7,14 +7,13 @@ router = APIRouter()
 
 @router.get("/data_entry/exists/")
 @lib.measure_execution_time
-async def exists(uri: str):
-    entry_exists = lib.data_entry_exists(uri)
-    return {"exists": entry_exists}
+async def exists(uri: str) -> dict:
+    return lib.data_entry_exists(uri)
 
 
 @router.get("/data_entry/list_idses/")
 @lib.measure_execution_time
-async def list_idses(uri: str):
+async def list_idses(uri: str) -> dict:
     return lib.list_idses(uri)
 
 
@@ -22,7 +21,7 @@ async def list_idses(uri: str):
 @lib.measure_execution_time
 async def available_entries(
     user: str = "", backend: str = "", database: str = "", version: str = ""
-):
+) -> dict:
     return {
         "entries": [
             "imas:hdf5?user=public;pulse=135011;run=7;database=iterdb;version=3",

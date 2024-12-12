@@ -1,9 +1,11 @@
 import re  # type: ignore
+from typing import Sequence, Tuple
 
 import imaspy  # type: ignore
 import numpy as np  # type: ignore
-from imaspy.ids_primitive import IDSString1D  # type: ignore
+from imaspy.ids_primitive import IDSPrimitive, IDSString1D  # type: ignore
 from imaspy.ids_struct_array import IDSStructArray  # type: ignore
+from imaspy.ids_structure import IDSStructure
 
 from ibex.data_source.data_source_interface import DataSourceInterface
 from ibex.data_source.exception import NodeNotFoundException, NotALeafNodeException
@@ -11,7 +13,7 @@ from ibex.data_source.exception import NodeNotFoundException, NotALeafNodeExcept
 
 class IMASPySource(DataSourceInterface):
 
-    def data_entry_exists(self, uri: str):
+    def data_entry_exists(self, uri: str) -> bool:
         """
 
         :param uri:
@@ -25,7 +27,7 @@ class IMASPySource(DataSourceInterface):
             return False
         return True
 
-    def list_idses(self, uri: str):
+    def list_idses(self, uri: str) -> dict:
         """
 
         :param uri:
@@ -33,7 +35,7 @@ class IMASPySource(DataSourceInterface):
         """
         entry = imaspy.DBEntry(uri, mode="r")
         ids_list = entry.factory.ids_names()
-        result = {"idses": []}
+        result: dict = {"idses": []}
 
         # if "/uda?" in uri:
         #    return result
@@ -65,8 +67,8 @@ class IMASPySource(DataSourceInterface):
             entry.factory
         )  # get factory from entry to make sure we use proper dd version
         entry.close()
-        ids = ids_factory.new(ids)
-        metadata = ids.metadata
+        ids_obj = ids_factory.new(ids)
+        metadata = ids_obj.metadata
 
         # if node_path is empty, return metadata of root
         if not node_path:
@@ -85,7 +87,7 @@ class IMASPySource(DataSourceInterface):
         return metadata
 
     def _jsonify_metadata(
-        self, metadata: imaspy.ids_metadata.IDSMetadata, recursive=False
+        self, metadata: imaspy.ids_metadata.IDSMetadata, recursive: bool = False
     ) -> dict:
         """
 
@@ -111,7 +113,9 @@ class IMASPySource(DataSourceInterface):
             ]
         return result
 
-    def get_node_info(self, uri: str, ids: str, node_path: str, recursive=False):
+    def get_node_info(
+        self, uri: str, ids: str, node_path: str, recursive: bool = False
+    ) -> dict:
         """
 
         :param uri: pulsefile uri - used only to get proper DD version
@@ -136,7 +140,9 @@ class IMASPySource(DataSourceInterface):
 
         return metadata_dict
 
-    def _extract_path_array_operator(self, single_node_path: str):
+    def _extract_path_array_operator(
+        self, single_node_path: str
+    ) -> Tuple[str, int | None]:
         """
 
         :param single_node_path:
@@ -150,16 +156,27 @@ class IMASPySource(DataSourceInterface):
 
         index = None
         # search for index to extract it
-        if re.search(pattern, single_node_path):
-            array_index_string = re.search(pattern, single_node_path).group()
-            index = int(re.search(r"-?\d+", array_index_string).group())
+        index_search = re.search(pattern, single_node_path)
+        if index_search:
+            assert (
+                index_search is not None
+            )  # This will supress mypy error when calling group() function
+            array_index_string = index_search.group()
+
+            index_search = re.search(r"-?\d+", array_index_string)
+            assert (
+                index_search is not None
+            )  # This will supress mypy error when calling group() function
+            index = int(index_search.group())
 
             if index < 0:
                 raise IndexError("node_path index cannot be negative")
 
         return (path_without_index, index)
 
-    def _get_raw_data(self, uri: str, ids: str, node_path: str):
+    def _get_raw_data(
+        self, uri: str, ids: str, node_path: str
+    ) -> IDSStructure | IDSPrimitive:
         """
 
         :param uri:
@@ -169,9 +186,7 @@ class IMASPySource(DataSourceInterface):
         """
 
         entry = imaspy.DBEntry(uri, mode="r")
-        ids = entry.get(ids, lazy=True)
-
-        ids_data = ids
+        ids_data = entry.get(ids, lazy=True)
 
         if not node_path:
             return ids_data
@@ -202,7 +217,9 @@ class IMASPySource(DataSourceInterface):
         # entry.close()
         return ids_data
 
-    def get_data(self, uri: str, ids: str, node_path: str, range):
+    def get_data(
+        self, uri: str, ids: str, node_path: str, range: Sequence[int] | None = None
+    ) -> dict:
         """
 
         :param uri:
