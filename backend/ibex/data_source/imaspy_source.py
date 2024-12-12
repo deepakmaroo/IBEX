@@ -1,5 +1,4 @@
-import re  # type: ignore
-from typing import Sequence, Tuple
+from typing import Sequence
 
 import imaspy  # type: ignore
 import numpy as np  # type: ignore
@@ -8,7 +7,7 @@ from imaspy.ids_struct_array import IDSStructArray  # type: ignore
 from imaspy.ids_structure import IDSStructure
 
 from ibex.data_source.data_source_interface import DataSourceInterface
-from ibex.data_source.exception import NodeNotFoundException, NotALeafNodeException
+from ibex.data_source.exception import NotALeafNodeException
 
 
 class IMASPySource(DataSourceInterface):
@@ -50,41 +49,6 @@ class IMASPySource(DataSourceInterface):
 
         entry.close()
         return result
-
-    def _get_node_metadata(
-        self, uri: str, ids: str, node_path: str
-    ) -> imaspy.ids_metadata.IDSMetadata:
-        """
-        Returns metadata attribute of ids node
-        :param uri: pulsefile uri - used only to get proper DD version
-        :param ids: name of ids e.g. core_profiles
-        :param node_path: path to ids node e.g. ids_properties/version_put
-        :return: node metadata attribute
-        """
-
-        entry = imaspy.DBEntry(uri, mode="r")
-        ids_factory = (
-            entry.factory
-        )  # get factory from entry to make sure we use proper dd version
-        entry.close()
-        ids_obj = ids_factory.new(ids)
-        metadata = ids_obj.metadata
-
-        # if node_path is empty, return metadata of root
-        if not node_path:
-            return metadata
-
-        # traverse through metadata to find node pointed by node_path
-        for node in node_path.split("/"):
-            for child_node in metadata:
-                if child_node.name == node:
-                    metadata = child_node
-                    break
-            else:
-                raise Exception(
-                    f"cannot find node {node} in {metadata.name}"
-                )  # TODO use proper exception/error
-        return metadata
 
     def _jsonify_metadata(
         self, metadata: imaspy.ids_metadata.IDSMetadata, recursive: bool = False
@@ -140,40 +104,6 @@ class IMASPySource(DataSourceInterface):
 
         return metadata_dict
 
-    def _extract_path_array_operator(
-        self, single_node_path: str
-    ) -> Tuple[str, int | None]:
-        """
-
-        :param single_node_path:
-        :return:
-        """
-
-        # pattern of code_parameters array access operator
-        pattern = r"\[-?\d+\]"
-        # first element of path with removed index (if existed)
-        path_without_index = re.sub(pattern=pattern, repl="", string=single_node_path)
-
-        index = None
-        # search for index to extract it
-        index_search = re.search(pattern, single_node_path)
-        if index_search:
-            assert (
-                index_search is not None
-            )  # This will supress mypy error when calling group() function
-            array_index_string = index_search.group()
-
-            index_search = re.search(r"-?\d+", array_index_string)
-            assert (
-                index_search is not None
-            )  # This will supress mypy error when calling group() function
-            index = int(index_search.group())
-
-            if index < 0:
-                raise IndexError("node_path index cannot be negative")
-
-        return (path_without_index, index)
-
     def _get_raw_data(
         self, uri: str, ids: str, node_path: str
     ) -> IDSStructure | IDSPrimitive:
@@ -188,33 +118,9 @@ class IMASPySource(DataSourceInterface):
         entry = imaspy.DBEntry(uri, mode="r")
         ids_data = entry.get(ids, lazy=True)
 
-        if not node_path:
-            return ids_data
+        data_path = imaspy.ids_path.IDSPath(node_path)
+        ids_data = data_path.goto(ids_data, from_root=True)
 
-        for node_name in node_path.split("/"):
-
-            # extract array access operator from node_name
-            (node_name_without_index, index) = self._extract_path_array_operator(
-                node_name
-            )
-
-            for child in ids_data:
-                if child.metadata.name == node_name_without_index:
-                    ids_data = child
-                    break
-            else:
-                raise NodeNotFoundException(
-                    f"Cannot find node {node_name_without_index} in {ids_data.metadata.name}"
-                )
-
-            if index is not None and index > len(ids_data) - 1:
-                raise IndexError(
-                    f"Tried to access index [{index}] of {len(ids_data)}-element array (Node {ids_data.metadata.name})."
-                )
-            if index is not None:
-                ids_data = ids_data[index]
-
-        # entry.close()
         return ids_data
 
     def get_data(
