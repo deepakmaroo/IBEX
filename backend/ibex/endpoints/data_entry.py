@@ -28,6 +28,5 @@ async def available_entries(
             "imas:hdf5?user=public;pulse=135012;run=2;database=iterdb;version=3",
             "imas:mdsplus?user=public;pulse=400;run=20;database=validation;version=3",
             "imas:mdsplus?user=public;pulse=53223;run=0;database=validation;version=3",
-            (1, 2, 3),
         ]
     }
