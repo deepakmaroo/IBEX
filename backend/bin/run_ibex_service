@@ -6,6 +6,8 @@ from ibex.endpoints.ids_info import router as ids_info_router
 from ibex.endpoints.data import router as data_router
 from fastapi import FastAPI # type: ignore
 import uvicorn # type: ignore
+import argparse # type: ignore
+import sys
 
 app = FastAPI()
 
@@ -14,4 +16,19 @@ app.include_router(ids_info_router)
 app.include_router(data_router)
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-p",
+        "--port",
+        type=int,
+        help="""Specify port number to start server on {0..65535}""",
+    )
+    args = parser.parse_args(args=sys.argv[1:])
+
+
+    if args.port and (args.port <0 or args.port > 65535):
+        print(f"Provided port number was {args.port} while it has to be in range (0..65535).", file=sys.stderr)
+        exit(-1)
+
+    uvicorn.run(app, host="127.0.0.1", port=args.port if args.port else 0)
