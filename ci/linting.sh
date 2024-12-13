@@ -25,7 +25,7 @@ python -m venv venv
 # Install and run linters
 pip install --upgrade backend[linting]
 
-black --check bakcend/ibex
-flake8 bakcend/ibex
-mypy bakcend/ibex
-isort --check-only bakcend/ibex
+black --check backend/ibex
+flake8 backend/ibex
+mypy backend/ibex
+isort --check-only backend/ibex
