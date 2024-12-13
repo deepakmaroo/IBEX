@@ -1,24 +1,24 @@
 from fastapi import APIRouter  # type: ignore
 
-import ibex.core.ibex_service as lib
+from ibex.core import ibex_service
 
 router = APIRouter()
 
 
 @router.get("/data_entry/exists/")
-@lib.measure_execution_time
+@ibex_service.measure_execution_time
 async def exists(uri: str) -> dict:
-    return lib.data_entry_exists(uri)
+    return ibex_service.data_entry_exists(uri)
 
 
 @router.get("/data_entry/list_idses/")
-@lib.measure_execution_time
+@ibex_service.measure_execution_time
 async def list_idses(uri: str) -> dict:
-    return lib.list_idses(uri)
+    return ibex_service.list_idses(uri)
 
 
 @router.get("/data_entry/available_entries/")
-@lib.measure_execution_time
+@ibex_service.measure_execution_time
 async def available_entries(
     user: str = "", backend: str = "", database: str = "", version: str = ""
 ) -> dict:

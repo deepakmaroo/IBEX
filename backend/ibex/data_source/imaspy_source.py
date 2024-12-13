@@ -148,3 +148,17 @@ class IMASPySource(DataSourceInterface):
             return {"value": ids_data.value.tolist()}
 
         return {"value": ids_data.value}
+
+    def find_paths(self, uri: str, ids: str, node_path: str) -> dict:
+        """
+
+        :param uri:
+        :param ids:
+        :param node_path:
+        :return:
+        """
+        entry = imaspy.DBEntry(uri, mode="r")
+        ids_obj = entry.get(ids)
+        found_paths = imaspy.util.find_paths(ids_obj, node_path)
+
+        return {"paths": found_paths}

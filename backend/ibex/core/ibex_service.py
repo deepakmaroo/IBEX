@@ -40,3 +40,7 @@ def get_data(
 
 def list_idses(uri: str) -> dict:
     return data_source.list_idses(uri)
+
+
+def find_paths(uri: str, ids: str, node_path: str) -> dict:
+    return data_source.find_paths(uri, ids, node_path)
