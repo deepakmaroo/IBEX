@@ -6,15 +6,11 @@
 set -e -o pipefail
 echo "Loading modules..."
 
-# Set up environment such that module files can be loaded
-source /etc/profile.d/modules.sh
-module purge
-# Load modules required for linting
-# Modules are supplied as arguments in the CI job:
-module load $@
+# Set up environment s
+source backend/ci/configure_env.sh
 
-# Debuggging:
-echo "Done loading modules"
+
+
 set -x
 
 # Create a venv
