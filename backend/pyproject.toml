@@ -53,10 +53,15 @@ all = [
 ]
 
 linting = [
+    "pytest",
     "black>=24,<25",
+    "pytest-black",
     "flake8",
+    "pytest-flake8",
     "mypy",
+    "pytest-mypy",
     "isort",
+    "pytest-isort",
 ]
 
 [project.urls]

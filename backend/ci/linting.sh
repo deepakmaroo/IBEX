@@ -9,19 +9,29 @@ echo "Loading modules..."
 # Set up environment s
 source backend/ci/configure_env.sh
 
-
-
 set -x
 
 # Create a venv
-rm -rf venv
-python -m venv venv
-. venv/bin/activate
+rm -rf venv4linting
+python -m venv venv4linting
+. venv4linting/bin/activate
 
 # Install and run linters
-pip install --upgrade backend[linting]
+pip install --upgrade ./backend[linting]
 
-black --check backend/ibex
-flake8 backend/ibex
-mypy backend/ibex
-isort --check-only backend/ibex
+
+# Static code analysis
+rm -rf test-reports
+mkdir test-reports
+
+# Black: The code formatter
+python -m pytest backend/ibex --black --maxfail=1 --disable-warnings --junitxml=test-reports/black-report.xml
+
+# isort: a Python utility to sort imports alphabetically
+python -m pytest backend/ibex --isort --maxfail=1 --disable-warnings --junitxml=test-reports/isort-report.xml
+
+# Mypy:  a static type checker for Python
+python -m pytest backend/ibex --mypy --maxfail=1 --disable-warnings --junitxml=test-reports/mypy-report.xml
+
+# Flake8: linting and style checking
+python -m pytest backend/ibex --flake8 --maxfail=1 --disable-warnings --junitxml=test-reports/flake8-report.xml
