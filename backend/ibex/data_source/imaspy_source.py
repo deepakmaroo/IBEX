@@ -116,7 +116,7 @@ class IMASPySource(DataSourceInterface):
         """
 
         entry = imaspy.DBEntry(uri, mode="r")
-        ids_data = entry.get(ids, lazy=True)
+        ids_data = entry.get(ids, lazy=True, autoconvert=False)
 
         data_path = imaspy.ids_path.IDSPath(node_path)
         ids_data = data_path.goto(ids_data, from_root=True)
@@ -158,7 +158,7 @@ class IMASPySource(DataSourceInterface):
         :return:
         """
         entry = imaspy.DBEntry(uri, mode="r")
-        ids_obj = entry.get(ids)
+        ids_obj = entry.get(ids, autoconvert=False)
         found_paths = imaspy.util.find_paths(ids_obj, node_path)
 
         return {"paths": found_paths}
