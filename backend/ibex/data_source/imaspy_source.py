@@ -4,7 +4,7 @@ import imaspy  # type: ignore
 import numpy as np  # type: ignore
 from imaspy.ids_primitive import IDSPrimitive, IDSString1D  # type: ignore
 from imaspy.ids_struct_array import IDSStructArray  # type: ignore
-from imaspy.ids_structure import IDSStructure
+from imaspy.ids_structure import IDSStructure  # type: ignore
 
 from ibex.data_source.data_source_interface import DataSourceInterface
 from ibex.data_source.exception import NotALeafNodeException
