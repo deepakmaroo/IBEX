@@ -3,6 +3,11 @@ class NotALeafNodeException(Exception):
     pass
 
 
+class NotAnArrayException(Exception):
+    "Raised when requested data-node is not an array, but it should be (when getting array summary)"
+    pass
+
+
 class NodeNotFoundException(Exception):
     "Raised when requested data-node cannot be found"
     pass

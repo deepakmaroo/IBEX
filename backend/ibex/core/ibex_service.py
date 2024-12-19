@@ -44,3 +44,7 @@ def list_idses(uri: str) -> dict:
 
 def find_paths(uri: str, ids: str, node_path: str) -> dict:
     return data_source.find_paths(uri, ids, node_path)
+
+
+def array_summary(uri: str, ids: str, node_path: str) -> dict:
+    return data_source.array_summary(uri, ids, node_path)
