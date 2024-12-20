@@ -58,6 +58,7 @@ linting = [
     "pytest-black",
     "flake8",
     "pytest-flake8",
+    "flake8-pyprojecttoml",
     "mypy",
     "pytest-mypy",
     "isort",
