@@ -2,12 +2,17 @@ from typing import Sequence
 
 import imaspy  # type: ignore
 import numpy as np  # type: ignore
-from imaspy.ids_primitive import IDSPrimitive, IDSString1D  # type: ignore
+from imaspy.ids_metadata import IDSMetadata
+from imaspy.ids_primitive import (  # type: ignore
+    IDSNumericArray,
+    IDSPrimitive,
+    IDSString1D,
+)
 from imaspy.ids_struct_array import IDSStructArray  # type: ignore
 from imaspy.ids_structure import IDSStructure  # type: ignore
 
 from ibex.data_source.data_source_interface import DataSourceInterface
-from ibex.data_source.exception import NotALeafNodeException
+from ibex.data_source.exception import NotALeafNodeException, NotAnArrayException
 
 
 class IMASPySource(DataSourceInterface):
@@ -50,9 +55,7 @@ class IMASPySource(DataSourceInterface):
         entry.close()
         return result
 
-    def _jsonify_metadata(
-        self, metadata: imaspy.ids_metadata.IDSMetadata, recursive: bool = False
-    ) -> dict:
+    def _jsonify_metadata(self, metadata: IDSMetadata, recursive: bool = False) -> dict:
         """
 
         :param metadata:
@@ -99,7 +102,7 @@ class IMASPySource(DataSourceInterface):
         ):
             metadata_dict["shape"] = [len(target_node)]
 
-        elif isinstance(target_node, imaspy.ids_primitive.IDSNumericArray):
+        elif isinstance(target_node, IDSNumericArray):
             metadata_dict["shape"] = target_node.shape
 
         return metadata_dict
@@ -116,7 +119,7 @@ class IMASPySource(DataSourceInterface):
         """
 
         entry = imaspy.DBEntry(uri, mode="r")
-        ids_data = entry.get(ids, lazy=True)
+        ids_data = entry.get(ids, lazy=True, autoconvert=False)
 
         data_path = imaspy.ids_path.IDSPath(node_path)
         ids_data = data_path.goto(ids_data, from_root=True)
@@ -136,7 +139,7 @@ class IMASPySource(DataSourceInterface):
 
         ids_data = self._get_raw_data(uri, ids, node_path)
 
-        if isinstance(ids_data, imaspy.ids_structure.IDSStructure):
+        if isinstance(ids_data, IDSStructure):
             raise NotALeafNodeException(
                 f"Path {node_path} does not point to a leaf node"
             )
@@ -158,7 +161,35 @@ class IMASPySource(DataSourceInterface):
         :return:
         """
         entry = imaspy.DBEntry(uri, mode="r")
-        ids_obj = entry.get(ids)
+        ids_obj = entry.get(ids, autoconvert=False)
         found_paths = imaspy.util.find_paths(ids_obj, node_path)
 
         return {"paths": found_paths}
+
+    def array_summary(self, uri: str, ids: str, node_path: str) -> dict:
+        """
+
+        :param uri:
+        :param ids:
+        :param node_path:
+        :return:
+        """
+        ids_data = self._get_raw_data(uri, ids, node_path)
+
+        if isinstance(ids_data, IDSStructure) or isinstance(ids_data, IDSStructArray):
+            raise NotALeafNodeException(
+                f"Path {node_path} does not point to a leaf node"
+            )
+
+        if not isinstance(ids_data, IDSNumericArray):
+            raise NotAnArrayException("Cannot get array summary of non array node")
+
+        result = {}
+
+        result["shape"] = ids_data.shape
+        result["min"] = np.min(ids_data)
+        result["max"] = np.max(ids_data)
+        result["mean"] = np.mean(ids_data)
+        result["standard_deviation"] = np.std(ids_data)
+
+        return result
