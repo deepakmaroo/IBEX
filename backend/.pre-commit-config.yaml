@@ -1,15 +1,11 @@
 repos:
--   repo: https://github.com/psf/black
-    rev: 24.8.0
+  - repo: local
     hooks:
-    - id: black
-      language_version: python3.11
--   repo: https://github.com/pycqa/flake8
-    rev: 7.1.1
-    hooks:
-    - id: flake8
-      args: [--config, backend/setup.cfg]
--   repo: https://github.com/PyCQA/isort
-    rev: 5.13.2
-    hooks:
-    - id: isort
+      - id: linting
+        name: Run linting
+        entry: backend/ci/linting.sh
+        language: system
+        types: [python]
+        pass_filenames: false
+        always_run: true
+        verbose: true

@@ -8,7 +8,7 @@ build-backend = "setuptools.build_meta"
 name = "ibex"
 authors = [
   {name = "IBEX Developers"},
-  {name = "Olivier Hoenen", email = "olivier.hoenen@iter.org"},
+  {name = "Olivier Hoenen", email = "olivier.hoenen@iter.org"}
 ]
 description = "Data visualization for IMAS IDS data"
 readme = {file = "README.md", content-type = "text/markdown"}
@@ -37,7 +37,7 @@ classifiers = [
     "Topic :: Scientific/Engineering",
     "Topic :: Scientific/Engineering :: Physics",
     "Topic :: Software Development :: Libraries",
-    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Software Development :: Libraries :: Python Modules"
 ]
 dynamic = ["version"]
 dependencies = [
@@ -58,10 +58,11 @@ linting = [
     "pytest-black",
     "flake8",
     "pytest-flake8",
+    "flake8-pyprojecttoml",
     "mypy",
     "pytest-mypy",
     "isort",
-    "pytest-isort",
+    "pytest-isort"
 ]
 
 [project.urls]
@@ -99,16 +100,27 @@ disallow_untyped_decorators = false
 [[tool.mypy.overrides]]
 module = [
     "tests.*",
-]
-ignore_errors = true
-
-[[tool.mypy.overrides]]
-module = [
     "imaspy.*",
     "numpy.*",
     "rich.*",
 ]
+ignore_errors = true
+
 ignore_missing_imports = true
 
 [tool.isort]
 profile = "black"
+
+
+[tool.flake8]
+ignore = [ "E501",
+    "E302", # 2 blank lines
+    "W503",     # line break before binary operator
+    "E203", # space before :
+    "E701", # elipsis operator in the same line as class declaration
+    "E704" # elipsis operator in the same line as abstract function definition
+    ]
+exclude = [
+    ".eggs",
+    "docs" ]
+max-line-length = 120

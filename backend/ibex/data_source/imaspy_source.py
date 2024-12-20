@@ -9,7 +9,7 @@ from imaspy.ids_primitive import (  # type: ignore
     IDSString1D,
 )
 from imaspy.ids_struct_array import IDSStructArray  # type: ignore
-from imaspy.ids_structure import IDSStructure
+from imaspy.ids_structure import IDSStructure  # type: ignore
 
 from ibex.data_source.data_source_interface import DataSourceInterface
 from ibex.data_source.exception import NotALeafNodeException, NotAnArrayException
