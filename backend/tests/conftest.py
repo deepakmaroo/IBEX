@@ -1,7 +1,8 @@
-import pytest
 import imaspy
 import numpy as np
+import pytest
 from fastapi.testclient import TestClient
+
 from ibex.main import app
 
 pytest.test_client = TestClient(app)
