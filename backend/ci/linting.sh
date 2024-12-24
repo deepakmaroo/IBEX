@@ -30,7 +30,7 @@ mkdir -p test-reports
 
 # The code correctness check
 echo -e "Running code correctness check and fixes..."
-python -m ruff check  -n --select ALL --output-format junit --output-file test-reports/lint-report.xml ibex
+python -m ruff check  --no-cache --output-format junit --output-file test-reports/lint-report.xml ibex
 
 if [ $? -ne 0 ]; then
     echo -e "Code correctness check failed. Please fix the issues..."
@@ -38,7 +38,7 @@ if [ $? -ne 0 ]; then
 
 # The code formatting check
 echo -e "Running code formatting..."
-python -m ruff format -n --check --output-format junit --output-file test-reports/format-report.xml ibex
+python -m ruff format --no-cache --check --output-format junit --output-file test-reports/format-report.xml ibex
 
 if [ $? -ne 0 ]; then
     echo -e "Code formatting failed. Please fix the issues..."
