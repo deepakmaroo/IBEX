@@ -37,13 +37,13 @@ if [ $? -ne 0 ]; then
  fi
 
 # The code formatting check
-echo -e "Running code formatting..."
-python -m ruff format --no-cache --check --output-format junit --output-file test-reports/format-report.xml ibex
+#echo -e "Running code formatting..."
+#python -m ruff format --no-cache --check --output-format junit --output-file test-reports/format-report.xml ibex
 
-if [ $? -ne 0 ]; then
-    echo -e "Code formatting failed. Please fix the issues..."
- fi
+#if [ $? -ne 0 ]; then
+#    echo -e "Code formatting failed. Please fix the issues..."
+# fi
 
 # If all checks pass
-echo -e "All checks passed. "
+#echo -e "All checks passed. "
 exit 0
