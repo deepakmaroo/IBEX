@@ -11,6 +11,7 @@ BACKEND_ROOT_DIR=$(realpath "$(dirname "$(realpath "${BASH_SOURCE[0]}")")/..")
 source ${BACKEND_ROOT_DIR}/ci/configure_env.sh
 
 #set -x
+cd ${BACKEND_ROOT_DIR}
 
 # Create a venv
 python -m venv venv
@@ -20,7 +21,7 @@ echo "PWD: " `pwd`
 # PREPARE THE ENVIRONMENT
 time pip install --upgrade ./[linting]
 
-cd ${BACKEND_ROOT_DIR}
+
 
 rm -rf test-reports
 mkdir -p test-reports
