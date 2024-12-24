@@ -1,12 +1,10 @@
 #!/bin/bash
-# Exporting a variable without assigning a value
 
 # Bamboo CI script for linting
-# Note: this script should be run from the root of the git repository
 
 # Debuggging:
 set -e -o pipefail
-echo "Loading modules..."
+
 
 # Set up environment s
 BACKEND_ROOT_DIR=$(realpath "$(dirname "$(realpath "${BASH_SOURCE[0]}")")/..")
@@ -14,75 +12,37 @@ source ${BACKEND_ROOT_DIR}/ci/configure_env.sh
 
 #set -x
 
-cd ${BACKEND_ROOT_DIR}
-
-
-if [[ "${RUN_MODE_HOOK}" == "true" ]]; then
-    TO_BE_CHECKED=${FILES}
-else
-    TO_BE_CHECKED=ibex
-fi
-
 # Create a venv
 python -m venv venv
 . venv/bin/activate
 echo "PWD: " `pwd`
+
 # PREPARE THE ENVIRONMENT
-pip install --upgrade ./[linting]
+time pip install --upgrade ./[linting]
+
+cd ${BACKEND_ROOT_DIR}
 
 rm -rf test-reports
 mkdir -p test-reports
 
-
-
-
 # STATIC CODE ANALYSIS
-# Black: The code formatter
-echo -e "${GREEN}Running black...${NC}"
-python -m pytest  --black --config-file=pyproject.toml --junitxml=test-reports/black-report.xml ${TO_BE_CHECKED}
-#black --check $FILES
+
+# The code correctness check
+echo -e "Running code correctness check and fixes..."
+python -m ruff check  -n --select ALL --output-format junit --output-file test-reports/lint-report.xml ibex
+
 if [ $? -ne 0 ]; then
-    echo -e "${RED}black check failed. Please fix the issues...${NC}"
-    if [[ "${RUN_MODE_HOOK}" == "true" ]]; then
-        exit 1
-    fi
-fi
+    echo -e "Code correctness check failed. Please fix the issues..."
+ fi
 
-# isort: a Python utility to sort imports alphabetically
-echo -e "${GREEN}Running isort...${NC}"
-python -m pytest --isort --config-file=pyproject.toml --junitxml=test-reports/isort-report.xml ${TO_BE_CHECKED}
-# isort --check-only $FILES
+# The code formatting check
+echo -e "Running code formatting..."
+python -m ruff format -n --check --output-format junit --output-file test-reports/format-report.xml ibex
+
 if [ $? -ne 0 ]; then
-    echo -e "${RED}isort check failed. Please fix the issues...${NC}"
-    if [[ "${RUN_MODE_HOOK}" == "true" ]]; then
-        exit 1
-    fi
-fi
-
-# Flake8: linting and style checking
-echo -e "${GREEN}Running flake8...${NC}"
-
-python -m pytest --flake8 --config-file=pyproject.toml --junitxml=test-reports/flake8-report.xml ${TO_BE_CHECKED}
-
-#flake8 $FILES
-if [ $? -ne 0 ]; then
-    echo -e "${RED}flake8 check failed. Please fix the issues...${NC}"
-    if [[ "${RUN_MODE_HOOK}" == "true" ]]; then
-        exit 1
-    fi
-fi
-
-# Mypy:  a static type checker for Python
-echo -e "${GREEN}Running mypy...${NC}"
-#mypy $FILES
-python -m pytest --mypy --config-file=pyproject.toml --junitxml=test-reports/mypy-report.xml ${TO_BE_CHECKED}
-if [ $? -ne 0 ]; then
-    echo -e "${RED}mypy check failed. Please fix the issues ...${NC}"
-    if [[ "${RUN_MODE_HOOK}" == "true" ]]; then
-        exit 1
-    fi
-fi
+    echo -e "Code formatting failed. Please fix the issues..."
+ fi
 
 # If all checks pass
-echo -e "${GREEN}All checks passed. Proceeding with commit...${NC}"
+echo -e "All checks passed. "
 exit 0

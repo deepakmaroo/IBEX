@@ -1,5 +1,7 @@
 #!/bin/sh --login
 
+echo "Loading modules..."
+
 # Set up ITER modules environment
 source /etc/profile.d/modules.sh
 module purge
