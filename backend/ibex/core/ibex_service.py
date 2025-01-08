@@ -1,6 +1,6 @@
 import time
 from functools import wraps  # for measure_execution_time()
-from typing import Any, Callable, Sequence
+from typing import Any, Callable, Optional, Sequence
 
 from ibex.data_source.imaspy_source import IMASPySource
 
@@ -16,9 +16,7 @@ def measure_execution_time(func: Callable[..., Any]) -> Callable[..., Any]:
         response = await func(*args, **kwargs)
         end_time = time.perf_counter()
         execution_time = end_time - start_time
-        print(
-            f"==========> Endpoint '{func.__name__}' executed in {execution_time:.4f} seconds"
-        )
+        print(f"==========> Endpoint '{func.__name__}' executed in {execution_time:.4f} seconds")
         return response
 
     return wrapper
@@ -32,9 +30,7 @@ def get_node_info(uri: str, ids: str, node_path: str, recursive: bool = False) -
     return data_source.get_node_info(uri, ids, node_path, recursive)
 
 
-def get_data(
-    uri: str, ids: str, node_path: str, range: Sequence[int] | None = None
-) -> dict:
+def get_data(uri: str, ids: str, node_path: str, range: Sequence[int] | None = None) -> dict:
     return data_source.get_data(uri, ids, node_path, range)
 
 
@@ -48,3 +44,12 @@ def find_paths(uri: str, ids: str, node_path: str) -> dict:
 
 def array_summary(uri: str, ids: str, node_path: str) -> dict:
     return data_source.array_summary(uri, ids, node_path)
+
+
+def list_db_entries(
+    user: str,
+    backends: Optional[Sequence[str]] = None,
+    database: Optional[str] = None,
+    version: Optional[int] = None,
+) -> dict:
+    return data_source.list_db_entries(user, backends, database, version)

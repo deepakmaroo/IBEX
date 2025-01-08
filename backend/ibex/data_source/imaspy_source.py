@@ -1,13 +1,11 @@
-from typing import Sequence
+from typing import Optional, Sequence
 
 import imaspy  # type: ignore
 import numpy as np  # type: ignore
-from imaspy.ids_metadata import IDSMetadata
-from imaspy.ids_primitive import (  # type: ignore
-    IDSNumericArray,
-    IDSPrimitive,
-    IDSString1D,
-)
+from idstools.database import DBMaster  # type: ignore
+from imaspy.ids_metadata import IDSMetadata  # type: ignore
+from imaspy.ids_primitive import IDSNumericArray  # type: ignore
+from imaspy.ids_primitive import IDSPrimitive, IDSString1D  # type: ignore
 from imaspy.ids_struct_array import IDSStructArray  # type: ignore
 from imaspy.ids_structure import IDSStructure  # type: ignore
 
@@ -16,7 +14,6 @@ from ibex.data_source.exception import NotALeafNodeException, NotAnArrayExceptio
 
 
 class IMASPySource(DataSourceInterface):
-
     def data_entry_exists(self, uri: str) -> bool:
         """
 
@@ -48,9 +45,7 @@ class IMASPySource(DataSourceInterface):
             filled_occurrences = entry.list_all_occurrences(ids_name=ids_name)
             # filled_occurrences contains numpy.int32 types that have to be converted into int
             filled_occurrences = list(map(int, filled_occurrences))
-            result["idses"].append(
-                {"name": ids_name, "occurrences": filled_occurrences}
-            )
+            result["idses"].append({"name": ids_name, "occurrences": filled_occurrences})
 
         entry.close()
         return result
@@ -70,19 +65,14 @@ class IMASPySource(DataSourceInterface):
         result["shape"] = []  # empty for 0D data
 
         if recursive:
-            result["children"] = [
-                self._jsonify_metadata(child, recursive) for child in metadata
-            ]
+            result["children"] = [self._jsonify_metadata(child, recursive) for child in metadata]
         else:
             result["children"] = [
-                {"name": child.name, "type": child.data_type, "ndim": child.ndim}
-                for child in metadata
+                {"name": child.name, "type": child.data_type, "ndim": child.ndim} for child in metadata
             ]
         return result
 
-    def get_node_info(
-        self, uri: str, ids: str, node_path: str, recursive: bool = False
-    ) -> dict:
+    def get_node_info(self, uri: str, ids: str, node_path: str, recursive: bool = False) -> dict:
         """
 
         :param uri: pulsefile uri - used only to get proper DD version
@@ -97,9 +87,7 @@ class IMASPySource(DataSourceInterface):
         metadata = target_node.metadata
         metadata_dict = self._jsonify_metadata(metadata, recursive)
 
-        if isinstance(target_node, IDSStructArray) or isinstance(
-            target_node, IDSString1D
-        ):
+        if isinstance(target_node, IDSStructArray) or isinstance(target_node, IDSString1D):
             metadata_dict["shape"] = [len(target_node)]
 
         elif isinstance(target_node, IDSNumericArray):
@@ -107,9 +95,7 @@ class IMASPySource(DataSourceInterface):
 
         return metadata_dict
 
-    def _get_raw_data(
-        self, uri: str, ids: str, node_path: str
-    ) -> IDSStructure | IDSPrimitive:
+    def _get_raw_data(self, uri: str, ids: str, node_path: str) -> IDSStructure | IDSPrimitive:
         """
 
         :param uri:
@@ -126,9 +112,7 @@ class IMASPySource(DataSourceInterface):
 
         return ids_data
 
-    def get_data(
-        self, uri: str, ids: str, node_path: str, range: Sequence[int] | None = None
-    ) -> dict:
+    def get_data(self, uri: str, ids: str, node_path: str, range: Sequence[int] | None = None) -> dict:
         """
 
         :param uri:
@@ -140,9 +124,7 @@ class IMASPySource(DataSourceInterface):
         ids_data = self._get_raw_data(uri, ids, node_path)
 
         if isinstance(ids_data, IDSStructure):
-            raise NotALeafNodeException(
-                f"Path {node_path} does not point to a leaf node"
-            )
+            raise NotALeafNodeException(f"Path {node_path} does not point to a leaf node")
 
         if isinstance(ids_data, str):
             return {"value": ids_data}
@@ -177,9 +159,7 @@ class IMASPySource(DataSourceInterface):
         ids_data = self._get_raw_data(uri, ids, node_path)
 
         if isinstance(ids_data, IDSStructure) or isinstance(ids_data, IDSStructArray):
-            raise NotALeafNodeException(
-                f"Path {node_path} does not point to a leaf node"
-            )
+            raise NotALeafNodeException(f"Path {node_path} does not point to a leaf node")
 
         if not isinstance(ids_data, IDSNumericArray):
             raise NotAnArrayException("Cannot get array summary of non array node")
@@ -192,4 +172,45 @@ class IMASPySource(DataSourceInterface):
         result["mean"] = np.mean(ids_data)
         result["standard_deviation"] = np.std(ids_data)
 
+        return result
+
+    def list_db_entries(
+        self,
+        user: str,
+        backends: Optional[Sequence[str]] = None,
+        database: Optional[str] = None,
+        version: Optional[int] = None,
+    ) -> dict:
+        """
+
+        :param user:
+        :param backends:
+        :param database:
+        :param version:
+        :return:
+        """
+
+        result: dict[str, list[str]] = {}
+        result["entries"] = []
+
+        try:
+            dbs = DBMaster.get_database_files(user, database, version, backends)
+        except FileNotFoundError as e:
+            raise e  # TODO: return HTTP error to client
+
+        for dbname, dvs in dbs:
+            if database and database not in dbname:
+                continue
+            for dv, dbbackends in dvs:
+                if version and dv != version:
+                    continue
+                for backend, dbs in dbbackends:
+                    if backends and backend not in backends:
+                        continue
+                    for pulse, runs in sorted(dbs.items()):
+                        for r in sorted(runs, key=lambda x: x[1]):
+                            result["entries"].append(
+                                f"imas:{backend.lower()}?user={user};pulse={pulse};"
+                                f"run={r[1]};database={dbname};version={dv}"
+                            )
         return result
