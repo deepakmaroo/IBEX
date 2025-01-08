@@ -10,7 +10,6 @@ pytest.test_client = TestClient(app)
 
 @pytest.fixture(scope="session")
 def entry_path(tmp_path_factory):
-
     tmp_path = tmp_path_factory.mktemp("testdb")
 
     entry = imaspy.DBEntry(f"imas:mdsplus?path={tmp_path}", mode="w")

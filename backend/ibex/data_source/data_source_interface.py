@@ -22,9 +22,7 @@ class DataSourceInterface(ABC):
         ...
 
     @abstractmethod
-    def get_node_info(
-        self, uri: str, ids: str, node_path: str, recursive: bool = False
-    ) -> dict:
+    def get_node_info(self, uri: str, ids: str, node_path: str, recursive: bool = False) -> dict:
         """
 
         :param uri: pulsefile uri - used only to get proper DD version
@@ -37,9 +35,7 @@ class DataSourceInterface(ABC):
         ...
 
     @abstractmethod
-    def get_data(
-        self, uri: str, ids: str, node_path: str, range: Sequence | None
-    ) -> dict:
+    def get_data(self, uri: str, ids: str, node_path: str, range: Sequence | None) -> dict:
         """
 
         :param uri:

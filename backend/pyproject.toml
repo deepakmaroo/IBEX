@@ -44,6 +44,7 @@ dependencies = [
     "fastapi[standard]",
     "packaging",
     "imaspy",
+    "idstools",
 ]
 
 [project.optional-dependencies]
