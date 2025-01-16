@@ -26,12 +26,12 @@ def data_entry_exists(uri: str) -> dict:
     return {"exists": data_source.data_entry_exists(uri)}
 
 
-def get_node_info(uri: str, ids: str, node_path: str, recursive: bool = False) -> dict:
-    return data_source.get_node_info(uri, ids, node_path, recursive)
+def get_node_info(uri: str, ids: str, node_path: str, occurrence: int, recursive: bool = False) -> dict:
+    return data_source.get_node_info(uri, ids, node_path, occurrence, recursive)
 
 
-def get_data(uri: str, ids: str, node_path: str, range: Sequence[int] | None = None) -> dict:
-    return data_source.get_data(uri, ids, node_path, range)
+def get_data(uri: str, ids: str, node_path: str, occurrence: int, range: Sequence[int] | None = None) -> dict:
+    return data_source.get_data(uri, ids, node_path, occurrence, range)
 
 
 def list_idses(uri: str) -> dict:
@@ -42,8 +42,8 @@ def find_paths(uri: str, ids: str, node_path: str) -> dict:
     return data_source.find_paths(uri, ids, node_path)
 
 
-def array_summary(uri: str, ids: str, node_path: str) -> dict:
-    return data_source.array_summary(uri, ids, node_path)
+def array_summary(uri: str, ids: str, node_path: str, occurrence: int) -> dict:
+    return data_source.array_summary(uri, ids, node_path, occurrence)
 
 
 def list_db_entries(

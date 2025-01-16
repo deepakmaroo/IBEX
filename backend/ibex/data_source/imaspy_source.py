@@ -72,7 +72,7 @@ class IMASPySource(DataSourceInterface):
             ]
         return result
 
-    def get_node_info(self, uri: str, ids: str, node_path: str, recursive: bool = False) -> dict:
+    def get_node_info(self, uri: str, ids: str, node_path: str, occurrence: int = 0, recursive: bool = False) -> dict:
         """
 
         :param uri: pulsefile uri - used only to get proper DD version
@@ -83,7 +83,7 @@ class IMASPySource(DataSourceInterface):
         :return:
         """
 
-        target_node = self._get_raw_data(uri, ids, node_path)
+        target_node = self._get_raw_data(uri, ids, node_path, occurrence)
         metadata = target_node.metadata
         metadata_dict = self._jsonify_metadata(metadata, recursive)
 
@@ -95,7 +95,7 @@ class IMASPySource(DataSourceInterface):
 
         return metadata_dict
 
-    def _get_raw_data(self, uri: str, ids: str, node_path: str) -> IDSStructure | IDSPrimitive:
+    def _get_raw_data(self, uri: str, ids: str, node_path: str, occurrence: int = 0) -> IDSStructure | IDSPrimitive:
         """
 
         :param uri:
@@ -105,14 +105,16 @@ class IMASPySource(DataSourceInterface):
         """
 
         entry = imaspy.DBEntry(uri, mode="r")
-        ids_data = entry.get(ids, lazy=True, autoconvert=False)
+        ids_data = entry.get(ids, lazy=True, autoconvert=False, occurrence=occurrence)
 
         data_path = imaspy.ids_path.IDSPath(node_path)
         ids_data = data_path.goto(ids_data, from_root=True)
 
         return ids_data
 
-    def get_data(self, uri: str, ids: str, node_path: str, range: Sequence[int] | None = None) -> dict:
+    def get_data(
+        self, uri: str, ids: str, node_path: str, occurrence: int = 0, range: Sequence[int] | None = None
+    ) -> dict:
         """
 
         :param uri:
@@ -121,7 +123,7 @@ class IMASPySource(DataSourceInterface):
         :return:
         """
 
-        ids_data = self._get_raw_data(uri, ids, node_path)
+        ids_data = self._get_raw_data(uri, ids, node_path, occurrence)
 
         if isinstance(ids_data, IDSStructure):
             raise NotALeafNodeException(f"Path {node_path} does not point to a leaf node")
@@ -148,7 +150,7 @@ class IMASPySource(DataSourceInterface):
 
         return {"paths": found_paths}
 
-    def array_summary(self, uri: str, ids: str, node_path: str) -> dict:
+    def array_summary(self, uri: str, ids: str, node_path: str, occurrence: int = 0) -> dict:
         """
 
         :param uri:
@@ -156,7 +158,7 @@ class IMASPySource(DataSourceInterface):
         :param node_path:
         :return:
         """
-        ids_data = self._get_raw_data(uri, ids, node_path)
+        ids_data = self._get_raw_data(uri, ids, node_path, occurrence)
 
         if isinstance(ids_data, IDSStructure) or isinstance(ids_data, IDSStructArray):
             raise NotALeafNodeException(f"Path {node_path} does not point to a leaf node")
