@@ -14,15 +14,6 @@ async def node_info(uri: str, ids: str, node_path: str = "", occurrence: int = 0
         raise HTTPException(status_code=404, detail=f"{e}")
 
 
-@router.get("/ids_info/ids_tree/")
-@ibex_service.measure_execution_time
-async def ids_tree(uri: str, ids: str, occurrence: int = 0) -> dict:
-    try:
-        return ibex_service.get_node_info(uri, ids, "", occurrence, recursive=True)
-    except Exception as e:
-        raise HTTPException(status_code=404, detail=f"{e}")
-
-
 @router.get("/ids_info/find_paths/")
 @ibex_service.measure_execution_time
 async def find_field(uri: str, ids: str, node_regex: str) -> dict:
