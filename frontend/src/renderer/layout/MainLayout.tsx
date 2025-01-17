@@ -1,0 +1,89 @@
+import { AppShell, Text } from '@mantine/core';
+import { Outlet } from 'react-router-dom';
+import { useIbexState } from '../stores';
+import { useDisclosure } from '@mantine/hooks';
+import { ConfigForm, Configuration } from '../types';
+import { ConfigCreateModal, ConfirmModal, Header } from '../components';
+
+export function MainLayout() {
+  const {
+    active,
+    configurations,
+    addConfiguration,
+    removeConfiguration,
+    setActive,
+  } = useIbexState();
+  const [
+    isConfigCreateModalOpen,
+    { open: openConfigCreateModal, close: closeConfigCreateModal },
+  ] = useDisclosure(false);
+
+  const [
+    isConfigDeleteModalOpen,
+    { open: openConfigDeleteModal, close: closeConfigDeleteModal },
+  ] = useDisclosure(false);
+
+  const handleAddConfiguration = (config: ConfigForm) => {
+    const newConfig: Configuration = {
+      name: config.name,
+      dataIDS: [],
+    };
+    addConfiguration(newConfig);
+    setActive(newConfig.name);
+  };
+
+  const handleRemoveConfiguration = () => {
+    removeConfiguration(active?.name);
+    closeConfigDeleteModal();
+  };
+
+  const handleSaveConfiguration = () => {
+    console.log('Save configuration');
+  };
+
+  const handleLoadConfiguration = () => {
+    console.log('Load configuration');
+  };
+
+  const handleSelectConfiguration = (value: string) => {
+    setActive(value);
+  };
+
+  return (
+    <AppShell header={{ height: 70 }}>
+      <AppShell.Header>
+        <Header
+          active={active}
+          configurations={configurations.map((configuration) => ({
+            value: configuration?.name,
+            label: configuration?.name,
+          }))}
+          handleAddConfiguration={openConfigCreateModal}
+          handleRemoveConfiguration={openConfigDeleteModal}
+          handleSaveConfiguration={handleSaveConfiguration}
+          handleLoadConfiguration={handleLoadConfiguration}
+          handleSelectConfiguration={handleSelectConfiguration}
+        />
+      </AppShell.Header>
+      <AppShell.Main>
+        <Outlet />
+        <ConfigCreateModal
+          isOpen={isConfigCreateModalOpen}
+          configurationsNames={configurations.map((c) => c?.name)}
+          onClose={closeConfigCreateModal}
+          handleAddConfiguration={handleAddConfiguration}
+        />
+
+        <ConfirmModal
+          isOpen={isConfigDeleteModalOpen}
+          onClose={closeConfigDeleteModal}
+          onConfirm={handleRemoveConfiguration}
+        >
+          <Text size="sm">
+            Are you sure you want to delete the configuration?
+          </Text>
+        </ConfirmModal>
+      </AppShell.Main>
+    </AppShell>
+  );
+}

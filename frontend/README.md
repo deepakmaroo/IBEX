@@ -1,0 +1,97 @@
+# Ibex Frontend
+
+Ibex frontend is an Electron application designed to deliver a rich and seamless user experience. Ibex is an application to create and manage configurations for visualizing **HDF5 (H5)** data files from IDS imaspy. It enables users to generate a file tree structure, select data, and plot graphs based on the selected data.
+
+## Key Features
+
+- **React** for building modular and responsive user interfaces.
+- **Mantine** for powerful UI components and advanced theming.
+- **Electron** for packaging and deploying a cross-platform desktop application.
+- **Zustand** for simple and efficient state management.
+- Modern development tools: ESLint, Prettier, TypeScript, and Webpack.
+
+## Prerequisites
+
+- Node.js >= 16
+- npm
+
+## Installation
+
+Clone this repository and install the dependencies:
+
+HTTPS : `git clone https://git.iter.org/scm/imex/ibex.git`
+
+or
+
+SSH : `git clone ssh://git@git.iter.org/imex/ibex.git`
+
+
+```
+cd frontend
+```
+
+### Install Packages 
+
+Install the dependencies using npm:
+
+```
+npm install
+```
+
+## Available Commands
+
+Here are the commands you can use to manage the project:
+
+### Development Commands
+
+- Start the application
+
+Starts the Electron application in development mode with hot-reloading:
+```
+npm run start 
+```
+
+- Lint the code 
+
+Checks the code for style and syntax issues using ESLint:
+```
+npm run lint 
+```
+
+- Format the code 
+
+Automatically formats the codebase using Prettier:
+```
+npm run format 
+```
+
+### Build and Packaging Commands
+
+- Build the application
+
+Prepares the application for production by bundling the code:
+```
+npm run build 
+```
+
+- Package the application
+
+Packages the application into a distributable format (e.g., .exe, .deb, .dmg):
+```
+npm run package 
+```
+
+- Generate platform-specific binaries
+
+Creates platform-specific builds for your application:
+```
+npm run make 
+```
+
+
+- Publish the application
+
+Publishes the application to a distribution platform:
+```
+npm run publish 
+```
