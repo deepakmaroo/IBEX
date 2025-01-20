@@ -105,7 +105,6 @@ npm run make
 Publishes the application to a distribution platform:
 ```
 npm run publish 
-<<<<<<< HEAD
 ```
 
 - Run app with debug mode
@@ -113,6 +112,4 @@ npm run publish
 Run the application with debug mode, enable logs details to understand the application flow:
 ```
 npm run debug 
-=======
->>>>>>> 1c84631 (feat: initial frontend)
 ```
