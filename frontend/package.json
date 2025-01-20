@@ -10,7 +10,8 @@
     "make": "electron-forge make",
     "publish": "electron-forge publish",
     "lint": "eslint --ext .ts,.tsx .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "debug": "DEBUG=electron-forge:* electron-forge start"
   },
   "devDependencies": {
     "@electron-forge/cli": "^7.6.0",
@@ -57,6 +58,7 @@
     "@mantine/modals": "^7.15.3",
     "@mantine/notifications": "^7.15.3",
     "@tabler/icons-react": "^3.23.0",
+    "dotenv": "^16.4.7",
     "electron-squirrel-startup": "^1.0.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

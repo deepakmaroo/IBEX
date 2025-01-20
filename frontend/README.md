@@ -15,6 +15,12 @@ Ibex frontend is an Electron application designed to deliver a rich and seamless
 - Node.js >= 16
 - npm
 
+You can load the module on ITER cluster by running the following command:
+
+```
+module load nodejs
+```
+
 ## Installation
 
 Clone this repository and install the dependencies:
@@ -94,4 +100,11 @@ npm run make
 Publishes the application to a distribution platform:
 ```
 npm run publish 
+```
+
+- Run app with debug mode
+
+Run the application with debug mode, enable logs details to understand the application flow:
+```
+npm run debug 
 ```
