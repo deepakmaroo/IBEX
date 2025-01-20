@@ -60,7 +60,7 @@ class IMASPySource(DataSourceInterface):
 
         result = {}
         result["name"] = metadata.name
-        result["type"] = metadata.data_type
+        result["type"] = metadata.data_type or "structure"
         result["ndim"] = metadata.ndim
         result["shape"] = []  # empty for 0D data
 

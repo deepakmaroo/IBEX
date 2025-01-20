@@ -3,6 +3,59 @@ from functools import wraps  # for measure_execution_time()
 from typing import Any, Callable, Optional, Sequence
 
 from ibex.data_source.imaspy_source import IMASPySource
+from dataclassess import dataclass
+
+
+@dataclass
+class URI:
+    full_uri: str = ""
+
+    uri_entry_identifiers: str = ""
+    uri_fragment: str = ""
+
+    ids_name: str = ""
+    node_path: str = ""
+    occurrence: int = 0
+
+    def __init__(self, full_uri):
+        self.full_uri = full_uri
+
+        if "#" not in full_uri:
+            self.uri_entry_identifiers = full_uri
+            return
+
+        # Split the URI into base and fragment parts
+        base_uri, fragment = full_uri.split("#", 1)
+        self.uri_entry_identifiers = base_uri
+        self.uri_fragment = fragment
+
+        if ":" in fragment:
+            # Split the fragment into ids_name and the rest of the string after the colon
+            ids_name, remaining = fragment.split(":", 1)
+            self.ids_name = ids_name
+
+            # If the remaining part contains a slash, split it into occurrence and node_path
+            if "/" in remaining:
+                self.occurrence, self.node_path = remaining.split("/", 1)
+            else:
+                self.occurrence = remaining
+        else:
+            # If the fragment contains a slash, split it into ids_name and node_path
+            if "/" in fragment:
+                self.ids_name, self.node_path = fragment.split("/", 1)
+            else:
+                self.ids_name = fragment
+
+    def __str__(self):
+        return (
+            f"FULL URI   : {self.full_uri}\n"
+            f"URI        : {self.uri_entry_identifiers}\n"
+            f"FRAGMENT   : {self.uri_fragment}\n"
+            f"IDS        : {self.ids_name}\n"
+            f"OCCURRENCE : {self.occurrence}\n"
+            f"NODE_PATH  : {self.node_path}\n"
+        )
+
 
 data_source = IMASPySource()
 
