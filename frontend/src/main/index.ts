@@ -1,6 +1,9 @@
 import { app, BrowserWindow, session } from 'electron';
 import { createWindow } from './window';
 import ipc from './ipc';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
@@ -21,6 +24,8 @@ app.on('ready', () => {
       },
     });
   });
+
+  console.log('App is ready', process.env.API_PORT);
 
 
 });

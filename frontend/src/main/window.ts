@@ -12,7 +12,8 @@ export const createWindow = (): void => {
     width: 1920,
     webPreferences: {
       preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
-      webSecurity: false
+      webSecurity: false,
+      contextIsolation: true,
     },
   });
   

@@ -9,4 +9,9 @@ export const API = {
   },
 };
 
+export const ENV = {
+  API_PORT: process.env.API_PORT,
+};
+
 contextBridge.exposeInMainWorld('api', API);
+contextBridge.exposeInMainWorld('env', ENV);
