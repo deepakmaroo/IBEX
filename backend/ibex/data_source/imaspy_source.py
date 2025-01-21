@@ -45,7 +45,8 @@ class IMASPySource(DataSourceInterface):
             filled_occurrences = entry.list_all_occurrences(ids_name=ids_name)
             # filled_occurrences contains numpy.int32 types that have to be converted into int
             filled_occurrences = list(map(int, filled_occurrences))
-            result["idses"].append({"name": ids_name, "occurrences": filled_occurrences})
+            if filled_occurrences:
+                result["idses"].append({"name": ids_name, "occurrences": filled_occurrences})
 
         entry.close()
         return result
