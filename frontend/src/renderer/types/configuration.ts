@@ -5,6 +5,8 @@ export interface Configuration {
   url?: string;
   saved?: boolean;
   dataIDS: IDSData[];
+  lastLocalDataSetSelected?: string;
+  lastURIInput?: string;
 }
 
 export interface ConfigForm {

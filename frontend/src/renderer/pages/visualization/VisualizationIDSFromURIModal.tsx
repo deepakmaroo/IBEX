@@ -1,8 +1,19 @@
-import { Button, Checkbox, Group, Modal, Table } from '@mantine/core';
+import {
+  ActionIcon,
+  Button,
+  Checkbox,
+  FileInput,
+  Group,
+  Modal,
+  Table,
+  Text,
+  TextInput,
+} from '@mantine/core';
 import { useIbexState } from '../../stores';
-import { temporaryDataIDSLoaded } from './data.temp';
 import { IDSData } from 'src/renderer/types';
 import { useEffect, useState } from 'react';
+import { IconSearch } from '@tabler/icons-react';
+import { showNotification } from '@mantine/notifications';
 
 interface VisualizationSelectIDSModalProps {
   opened: boolean;
@@ -16,22 +27,13 @@ export const VisualizationIDSFromURIModal = ({
   const { active, updatedConfiguration } = useIbexState();
   const [dataIDS, setDataIDS] = useState<IDSData[]>([]);
   const [dataIDSLoaded, setDataIDSLoaded] = useState<IDSData[]>([]);
+  const [uri, setUri] = useState<string>('');
 
   useEffect(() => {
     if (active?.dataIDS) {
       setDataIDS(active?.dataIDS);
     }
   }, [active?.dataIDS]);
-
-  useEffect(() => {
-    /**
-     * Here we can load the data IDS from backend api
-     * and set the dataIDSLoaded state
-     * 
-     * Actually we are using a temporary data from data.temp.ts
-     */
-    setDataIDSLoaded(temporaryDataIDSLoaded);
-  }, []);
 
   const tableHeaders = (
     <Table.Tr>
@@ -71,6 +73,41 @@ export const VisualizationIDSFromURIModal = ({
     close();
   };
 
+  async function seachDataIDSFromURI(){
+    if (!uri) {
+      console.error('URI is empty.');
+      return;
+    }
+
+    try {
+        const response = await fetch(`http://127.0.0.1:38259/data_entry/list_idses/?uri=${encodeURIComponent(uri)}`, {
+            method: "GET",
+        });
+
+        console.log(response);
+      
+      //   if (response.ok) {
+      //     const res = await response.json();
+      //     setSavedSearch([...res])
+      // } else {
+      //     const res = await response.json();
+      //     console.error("Promise resolved but HTTP status failed:", res)
+      //     notifications.show({
+      //         title: `Le serveur a retourné une erreur ${response.status}`,
+      //         message: res.error,
+      //         color: 'red',
+      //     })
+      // }
+    } catch (error) {
+        console.error("Promise rejected:",error);
+        showNotification({
+            title: "Error",
+            message: "Error to search IDS",
+            color: "red",
+          });
+    }
+}
+
   return (
     <Modal
       opened={opened}
@@ -79,6 +116,32 @@ export const VisualizationIDSFromURIModal = ({
       size="70%"
       centered
     >
+      <Group justify="space-between" mb={10}>
+        <FileInput
+          label="Load local dataset"
+          placeholder="Select local imas file"
+          onChange={(files) => console.log(files)}
+          w="calc(50% - 30px)"
+          clearable
+        />
+        <Text>or</Text>
+        <TextInput
+          label="Write/Paste your URI"
+          placeholder="Enter your uri"
+          onChange={(event) => setUri(event.currentTarget.value)}
+          value={uri}
+          w="calc(50% - 30px)"
+          rightSection={
+            <ActionIcon variant="filled" aria-label="Settings">
+              <IconSearch
+                style={{ width: '70%', height: '70%' }}
+                stroke={1.5}
+                onClick={seachDataIDSFromURI}
+              />
+            </ActionIcon>
+          }
+        />
+      </Group>
       <Table withTableBorder>
         <Table.Thead>{tableHeaders}</Table.Thead>
         <Table.Tbody>{tableRows}</Table.Tbody>
