@@ -82,9 +82,12 @@ export const VisualizationIDSFromURIModal = ({
     try {
         const response = await fetch(`http://127.0.0.1:38259/data_entry/list_idses/?uri=${encodeURIComponent(uri)}`, {
             method: "GET",
+            headers: {
+              "Content-Type":"application/json"
+            }
         });
 
-        console.log(response);
+        console.log("hello",response);
       
       //   if (response.ok) {
       //     const res = await response.json();

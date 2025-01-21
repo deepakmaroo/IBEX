@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, session } from 'electron';
 import { createWindow } from './window';
 import ipc from './ipc';
 
@@ -12,6 +12,17 @@ if (require('electron-squirrel-startup')) {
 // Some APIs can only be used after this event occurs.
 app.on('ready', () => {
   createWindow();
+
+  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        'Content-Security-Policy': ''
+      },
+    });
+  });
+
+
 });
 
 // Quit when all windows are closed, except on macOS. There, it's common

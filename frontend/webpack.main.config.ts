@@ -7,6 +7,12 @@ export const mainConfig: Configuration = {
   module: {
     rules,
   },
+  devServer: {
+    allowedHosts: 'all',
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+    },
+  },
   resolve: {
     alias: {
       src: path.resolve(__dirname, 'src'),
