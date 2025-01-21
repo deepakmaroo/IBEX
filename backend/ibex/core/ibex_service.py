@@ -1,6 +1,6 @@
 import time
 from functools import wraps  # for measure_execution_time()
-from typing import Any, Callable, Optional, Sequence
+from typing import Any, Callable, Optional, Sequence, List
 
 from ibex.data_source.imaspy_source import IMASPySource
 from dataclasses import dataclass
@@ -87,7 +87,7 @@ def get_node_info(uri: str, recursive: bool = False) -> dict:
     )
 
 
-def get_data(uri: str, range: Sequence[int] | None = None) -> dict:
+def get_data(uri: str, range: List[int]) -> dict:
     uri_obj = URI(uri)
     return data_source.get_data(
         uri_obj.uri_entry_identifiers, uri_obj.ids_name, uri_obj.node_path, uri_obj.occurrence, range

@@ -1,4 +1,4 @@
-from typing import Optional, Sequence
+from typing import Optional, Sequence, List
 
 import imaspy  # type: ignore
 import numpy as np  # type: ignore
@@ -112,9 +112,7 @@ class IMASPySource(DataSourceInterface):
 
         return ids_data
 
-    def get_data(
-        self, uri: str, ids: str, node_path: str, occurrence: int = 0, range: Sequence[int] | None = None
-    ) -> dict:
+    def get_data(self, uri: str, ids: str, node_path: str, occurrence: int = 0, range: List[int] | None = None) -> dict:
         """
 
         :param uri:
