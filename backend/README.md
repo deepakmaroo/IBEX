@@ -34,3 +34,7 @@ pip install -e . # editable mode allows changes to have instant impact
 ./bin/run_ibex_service -p 8000
 ```
 
+## Testing
+```commandline
+python -m pytest tests/ #make sure to run pythest with python -m. Otherwise it won't see installed fastapi packages
+```

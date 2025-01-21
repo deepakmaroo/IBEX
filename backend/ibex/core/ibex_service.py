@@ -3,7 +3,7 @@ from functools import wraps  # for measure_execution_time()
 from typing import Any, Callable, Optional, Sequence
 
 from ibex.data_source.imaspy_source import IMASPySource
-from dataclassess import dataclass
+from dataclasses import dataclass
 
 
 @dataclass
@@ -76,27 +76,39 @@ def measure_execution_time(func: Callable[..., Any]) -> Callable[..., Any]:
 
 
 def data_entry_exists(uri: str) -> dict:
-    return {"exists": data_source.data_entry_exists(uri)}
+    uri_obj = URI(uri)
+    return {"exists": data_source.data_entry_exists(uri_obj.uri_entry_identifiers)}
 
 
-def get_node_info(uri: str, ids: str, node_path: str, occurrence: int, recursive: bool = False) -> dict:
-    return data_source.get_node_info(uri, ids, node_path, occurrence, recursive)
+def get_node_info(uri: str, recursive: bool = False) -> dict:
+    uri_obj = URI(uri)
+    return data_source.get_node_info(
+        uri_obj.uri_entry_identifiers, uri_obj.ids_name, uri_obj.node_path, uri_obj.occurrence, recursive
+    )
 
 
-def get_data(uri: str, ids: str, node_path: str, occurrence: int, range: Sequence[int] | None = None) -> dict:
-    return data_source.get_data(uri, ids, node_path, occurrence, range)
+def get_data(uri: str, range: Sequence[int] | None = None) -> dict:
+    uri_obj = URI(uri)
+    return data_source.get_data(
+        uri_obj.uri_entry_identifiers, uri_obj.ids_name, uri_obj.node_path, uri_obj.occurrence, range
+    )
 
 
 def list_idses(uri: str) -> dict:
-    return data_source.list_idses(uri)
+    uri_obj = URI(uri)
+    return data_source.list_idses(uri_obj.uri_entry_identifiers)
 
 
-def find_paths(uri: str, ids: str, node_path: str) -> dict:
-    return data_source.find_paths(uri, ids, node_path)
+def find_paths(uri: str, searched_node: str) -> dict:
+    uri_obj = URI(uri)
+    return data_source.find_paths(uri_obj.uri_entry_identifiers, uri_obj.ids_name, searched_node)
 
 
-def array_summary(uri: str, ids: str, node_path: str, occurrence: int) -> dict:
-    return data_source.array_summary(uri, ids, node_path, occurrence)
+def array_summary(uri: str) -> dict:
+    uri_obj = URI(uri)
+    return data_source.array_summary(
+        uri_obj.uri_entry_identifiers, uri_obj.ids_name, uri_obj.node_path, uri_obj.occurrence
+    )
 
 
 def list_db_entries(
