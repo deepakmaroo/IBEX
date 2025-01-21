@@ -4,7 +4,7 @@ import { VisualizationHeader } from './VisualizationHeader';
 import { useDisclosure } from '@mantine/hooks';
 import { TreeLibrariesAccordion } from '../../components';
 import { CustomTreeData, DataTreeSelected } from 'src/renderer/types';
-import { VisualizationSelectIDSModal } from './VisualizationSelectIDSModal';
+import { VisualizationIDSFromURIModal } from './VisualizationIDSFromURIModal';
 import { customData } from './data.temp';
 import { useEffect, useState } from 'react';
 
@@ -69,7 +69,7 @@ export const Visualization = () => {
         </Center>
       )}
 
-      <VisualizationSelectIDSModal
+      <VisualizationIDSFromURIModal
         opened={isAddTreeModalOpen}
         close={closeAddTreeModal}
       />

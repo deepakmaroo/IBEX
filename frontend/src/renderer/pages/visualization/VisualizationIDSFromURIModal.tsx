@@ -9,7 +9,7 @@ interface VisualizationSelectIDSModalProps {
   close: () => void;
 }
 
-export const VisualizationSelectIDSModal = ({
+export const VisualizationIDSFromURIModal = ({
   opened,
   close,
 }: VisualizationSelectIDSModalProps) => {
