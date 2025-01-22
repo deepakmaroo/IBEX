@@ -100,48 +100,79 @@ export const VisualizationIDSFromURIModal = ({
   async function fetchDataIDSFromURI() {
     if (!formIDS.values.uri) {
       console.error('URI is empty.');
+      formIDS.setFieldError('uri', 'Please provide a valid URI');
       return;
     }
-
+  
     try {
       setIsLoading(true);
-      const response = await fetch(
+  
+      // Vérification si l'URI existe
+      const responseURIExists = await fetch(
+        `${window.env.API_URL}/data_entry/exists/?uri=${encodeURIComponent(formIDS.values.uri)}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+  
+      if (!responseURIExists.ok) {
+        const error = await responseURIExists.json();
+        throw new Error(error.detail || 'Failed to verify URI existence');
+      }
+  
+      const existsResult = await responseURIExists.json();
+      if (!existsResult.exists) {
+        formIDS.setFieldError('uri', 'URI does not exist');
+        showNotification({
+          title: 'Error',
+          message: 'URI does not exist',
+          color: 'red',
+        });
+        return;
+      }
+  
+      // Récupération des IDS associés à l'URI
+      const responseListIds = await fetch(
         `${window.env.API_URL}/data_entry/list_idses/?uri=${encodeURIComponent(formIDS.values.uri)}`,
         {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
           },
-        },
+        }
       );
-      if (response.ok) {
-        const res = await response.json();
-        setDataIDSLoaded(res.idses);
-        setFromURIisSuccess(true);
-        setFromFileisSuccess(false);
-      } else {
-        const res = await response.json();
-        console.error('Promise resolved but HTTP status failed:', res.detail);
-        formIDS.setFieldError(
-          'uri',
-          'Failed to fetch data for the provided URI',
-        );
-        showNotification({
-          title: 'Error',
-          message: res.detail,
-          color: 'red',
-        });
+  
+      if (!responseListIds.ok) {
+        const error = await responseListIds.json();
+        throw new Error(error.detail || 'Failed to fetch IDS data');
       }
-    } catch (error) {
-      console.error('Promise rejected:', error);
-      formIDS.setFieldError('uri', 'Error occurred while fetching data');
+  
+      const listIdsResult = await responseListIds.json();
+      setDataIDSLoaded(listIdsResult.idses);
+  
+      // Indication de succès
+      setFromURIisSuccess(true);
+      setFromFileisSuccess(false);
+      showNotification({
+        title: 'Success',
+        message: 'Data successfully fetched from URI',
+        color: 'green',
+      });
+  
+    } catch (error: any) {
+      console.error('Error:', error.message || error);
+      formIDS.setFieldError('uri', error.message || 'An error occurred');
       showNotification({
         title: 'Error',
-        message: 'Error to search IDS',
+        message: error.message || 'Failed to fetch data',
         color: 'red',
       });
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }
 
   async function fetchDataIDSFromFile() {
@@ -155,6 +186,8 @@ export const VisualizationIDSFromURIModal = ({
 
     try {
       setIsLoading(true);
+
+
       const response = await fetch(
         `${window.env.API_URL}/data_entry/list_idses_from_file/`,
         {
@@ -221,7 +254,7 @@ export const VisualizationIDSFromURIModal = ({
             input: {
               //green if success else default
               borderColor: fromFileisSuccess ? '#00FF00' : '',
-            }
+            },
           }}
         />
         <Text>or</Text>
@@ -254,7 +287,7 @@ export const VisualizationIDSFromURIModal = ({
               input: {
                 //green if success else default
                 borderColor: fromURIisSuccess ? '#00FF00' : '',
-              }
+              },
             }}
           />
         </form>
@@ -272,7 +305,7 @@ export const VisualizationIDSFromURIModal = ({
         <Table.Tbody>{tableRows}</Table.Tbody>
       </Table>
 
-       <Group justify="center" mt={20}>
+      <Group justify="center" mt={20}>
         <Pagination
           total={Math.ceil(dataIDSLoaded.length / itemsPerPage)}
           value={activePage}
