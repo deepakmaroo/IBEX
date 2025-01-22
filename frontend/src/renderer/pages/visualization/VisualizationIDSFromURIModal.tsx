@@ -36,8 +36,10 @@ export const VisualizationIDSFromURIModal = ({
   const [dataIDS, setDataIDS] = useState<IDSData[]>([]);
   const [dataIDSLoaded, setDataIDSLoaded] = useState<IDSData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [activePage, setPage] = useState(1); // Page active
-  const [itemsPerPage] = useState(3); // Nombre d'éléments par page
+  const [activePage, setPage] = useState(1);
+  const [itemsPerPage] = useState(3);
+  const [fromURIisSuccess, setFromURIisSuccess] = useState(false);
+  const [fromFileisSuccess, setFromFileisSuccess] = useState(false);
 
   const formIDS = useForm<FormIDS>({
     initialValues: {
@@ -115,6 +117,8 @@ export const VisualizationIDSFromURIModal = ({
       if (response.ok) {
         const res = await response.json();
         setDataIDSLoaded(res.idses);
+        setFromURIisSuccess(true);
+        setFromFileisSuccess(false);
       } else {
         const res = await response.json();
         console.error('Promise resolved but HTTP status failed:', res.detail);
@@ -162,6 +166,8 @@ export const VisualizationIDSFromURIModal = ({
       if (response.ok) {
         const res = await response.json();
         setDataIDSLoaded(res.idses);
+        setFromURIisSuccess(false);
+        setFromFileisSuccess(true);
       } else {
         const res = await response.json();
         console.error('Promise resolved but HTTP status failed:', res);
@@ -211,6 +217,12 @@ export const VisualizationIDSFromURIModal = ({
             }
           }}
           w="calc(50% - 30px)"
+          styles={{
+            input: {
+              //green if success else default
+              borderColor: fromFileisSuccess ? '#00FF00' : '',
+            }
+          }}
         />
         <Text>or</Text>
         <form
@@ -238,6 +250,12 @@ export const VisualizationIDSFromURIModal = ({
                 />
               </ActionIcon>
             }
+            styles={{
+              input: {
+                //green if success else default
+                borderColor: fromURIisSuccess ? '#00FF00' : '',
+              }
+            }}
           />
         </form>
       </Group>
