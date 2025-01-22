@@ -1,9 +1,9 @@
 import { app, BrowserWindow, session } from 'electron';
 import { createWindow } from './window';
 import ipc from './ipc';
-import dotenv from 'dotenv';
+import { config } from 'dotenv';
 
-dotenv.config();
+config();
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
@@ -24,7 +24,6 @@ app.on('ready', () => {
       },
     });
   });
-
 });
 
 // Quit when all windows are closed, except on macOS. There, it's common

@@ -4,6 +4,7 @@ import {
   Checkbox,
   FileInput,
   Group,
+  Loader,
   Modal,
   Table,
   Text,
@@ -33,12 +34,13 @@ export const VisualizationIDSFromURIModal = ({
   const { active, updatedConfiguration } = useIbexState();
   const [dataIDS, setDataIDS] = useState<IDSData[]>([]);
   const [dataIDSLoaded, setDataIDSLoaded] = useState<IDSData[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const formIDS = useForm<FormIDS>({
     initialValues: {
       file: null,
       uri: '',
-    }
+    },
   });
 
   useEffect(() => {
@@ -92,6 +94,7 @@ export const VisualizationIDSFromURIModal = ({
     }
 
     try {
+      setIsLoading(true);
       const response = await fetch(
         `${window.env.API_URL}/data_entry/list_idses/?uri=${encodeURIComponent(formIDS.values.uri)}`,
         {
@@ -106,14 +109,14 @@ export const VisualizationIDSFromURIModal = ({
         setDataIDSLoaded(res.idses);
       } else {
         const res = await response.json();
-        console.error('Promise resolved but HTTP status failed:', res);
+        console.error('Promise resolved but HTTP status failed:', res.detail);
         formIDS.setFieldError(
           'uri',
           'Failed to fetch data for the provided URI',
         );
         showNotification({
           title: 'Error',
-          message: res.error,
+          message: res.detail,
           color: 'red',
         });
       }
@@ -126,11 +129,10 @@ export const VisualizationIDSFromURIModal = ({
         color: 'red',
       });
     }
+    setIsLoading(false);
   }
 
   async function fetchDataIDSFromFile() {
-
-
     const formData = new FormData();
     formData.append('file', formIDS.values.file);
 
@@ -140,6 +142,7 @@ export const VisualizationIDSFromURIModal = ({
     });
 
     try {
+      setIsLoading(true);
       const response = await fetch(
         `${window.env.API_URL}/data_entry/list_idses_from_file/`,
         {
@@ -160,7 +163,7 @@ export const VisualizationIDSFromURIModal = ({
         );
         showNotification({
           title: 'Error',
-          message: res.error,
+          message: res.datail,
           color: 'red',
         });
       }
@@ -173,6 +176,7 @@ export const VisualizationIDSFromURIModal = ({
         color: 'red',
       });
     }
+    setIsLoading(false);
   }
 
   return (
@@ -199,7 +203,6 @@ export const VisualizationIDSFromURIModal = ({
             }
           }}
           w="calc(50% - 30px)"
-
         />
         <Text>or</Text>
         <form
@@ -215,7 +218,12 @@ export const VisualizationIDSFromURIModal = ({
             placeholder="Enter your uri"
             {...formIDS.getInputProps('uri')}
             rightSection={
-              <ActionIcon variant="filled" aria-label="Settings" component='button' type='submit'>
+              <ActionIcon
+                variant="filled"
+                aria-label="Settings"
+                component="button"
+                type="submit"
+              >
                 <IconSearch
                   style={{ width: '70%', height: '70%' }}
                   stroke={1.5}
@@ -227,11 +235,17 @@ export const VisualizationIDSFromURIModal = ({
       </Group>
       <Table withTableBorder>
         <Table.Thead>{tableHeaders}</Table.Thead>
-        {dataIDSLoaded.length === 0 && (
-          <Table.Caption>No IDS found</Table.Caption>
-        )}
+
+        <Table.Caption>
+          {isLoading && <Loader color="blue" />}
+          {dataIDSLoaded.length === 0 && !isLoading && (
+            <Text>No data found</Text>
+          )}
+        </Table.Caption>
+
         <Table.Tbody>{tableRows}</Table.Tbody>
       </Table>
+
       <Group justify="flex-end" mt={20}>
         <Button disabled={!dataIDS.length} onClick={updateDataIDS}>
           Validate
