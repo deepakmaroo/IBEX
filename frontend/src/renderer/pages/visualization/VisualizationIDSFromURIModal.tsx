@@ -92,20 +92,20 @@ export const VisualizationIDSFromURIModal = ({
             }
         });
 
-        console.log("hello",response);
-      
-      //   if (response.ok) {
-      //     const res = await response.json();
-      //     setSavedSearch([...res])
-      // } else {
-      //     const res = await response.json();
-      //     console.error("Promise resolved but HTTP status failed:", res)
-      //     notifications.show({
-      //         title: `Le serveur a retourné une erreur ${response.status}`,
-      //         message: res.error,
-      //         color: 'red',
-      //     })
-      // }
+        if (response.ok){
+          const res = await response.json();
+          setDataIDSLoaded(res.idses);
+
+        }else {
+          const res = await response.json();
+          console.error("Promise resolved but HTTP status failed:", res)
+          showNotification({
+            title: "Error",
+            message: res.error,
+            color: "red",
+          });
+        }
+
     } catch (error) {
         console.error("Promise rejected:",error);
         showNotification({
