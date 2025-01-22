@@ -2,6 +2,7 @@
 // https://www.electronjs.org/docs/latest/tutorial/process-model#preload-scripts
 
 import { contextBridge } from 'electron';
+import { ENV_VARIABLE } from './config';
 
 export const API = {
   electron: {
@@ -10,7 +11,8 @@ export const API = {
 };
 
 export const ENV = {
-  API_PORT: process.env.API_PORT,
+  API_PORT: ENV_VARIABLE.API_PORT,
+  API_HOST: ENV_VARIABLE.API_HOST,
 };
 
 contextBridge.exposeInMainWorld('api', API);

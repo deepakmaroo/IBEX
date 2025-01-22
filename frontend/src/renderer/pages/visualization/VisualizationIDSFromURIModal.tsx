@@ -80,7 +80,7 @@ export const VisualizationIDSFromURIModal = ({
     }
 
     try {
-        const response = await fetch(`http://127.0.0.1:38259/data_entry/list_idses/?uri=${encodeURIComponent(uri)}`, {
+        const response = await fetch(`${window.env.API_HOST}:${window.env.API_PORT}/data_entry/list_idses/?uri=${encodeURIComponent(uri)}`, {
             method: "GET",
             headers: {
               "Content-Type":"application/json"
