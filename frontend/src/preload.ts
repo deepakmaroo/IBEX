@@ -11,8 +11,7 @@ export const API = {
 };
 
 export const ENV = {
-  API_PORT: ENV_VARIABLE.API_PORT,
-  API_HOST: ENV_VARIABLE.API_HOST,
+  API_URL: ENV_VARIABLE.API_URL,
 };
 
 contextBridge.exposeInMainWorld('api', API);

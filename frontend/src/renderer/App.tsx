@@ -5,9 +5,7 @@ import { Notifications } from '@mantine/notifications';
 import { ModalsProvider } from '@mantine/modals';
 
 export function App() {
-  useEffect(() => {
-    console.log('BACKEND_Port:', window.env.API_PORT);
-  }, []);
+
   return (
     <div>
       <StrictMode>

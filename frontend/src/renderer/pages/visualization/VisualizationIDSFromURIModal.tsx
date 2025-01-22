@@ -73,6 +73,11 @@ export const VisualizationIDSFromURIModal = ({
     close();
   };
 
+
+  useEffect(() => {
+    console.log('BACKEND_API_URL', window.env.API_URL);
+  }, []);
+
   async function seachDataIDSFromURI(){
     if (!uri) {
       console.error('URI is empty.');
@@ -80,7 +85,7 @@ export const VisualizationIDSFromURIModal = ({
     }
 
     try {
-        const response = await fetch(`${window.env.API_HOST}:${window.env.API_PORT}/data_entry/list_idses/?uri=${encodeURIComponent(uri)}`, {
+        const response = await fetch(`${window.env.API_URL}/data_entry/list_idses/?uri=${encodeURIComponent(uri)}`, {
             method: "GET",
             headers: {
               "Content-Type":"application/json"
