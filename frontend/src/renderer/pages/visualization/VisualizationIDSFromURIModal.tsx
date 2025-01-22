@@ -6,6 +6,7 @@ import {
   Group,
   Loader,
   Modal,
+  Pagination,
   Table,
   Text,
   TextInput,
@@ -35,6 +36,8 @@ export const VisualizationIDSFromURIModal = ({
   const [dataIDS, setDataIDS] = useState<IDSData[]>([]);
   const [dataIDSLoaded, setDataIDSLoaded] = useState<IDSData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [activePage, setPage] = useState(1); // Page active
+  const [itemsPerPage] = useState(3); // Nombre d'éléments par page
 
   const formIDS = useForm<FormIDS>({
     initialValues: {
@@ -56,7 +59,12 @@ export const VisualizationIDSFromURIModal = ({
     </Table.Tr>
   );
 
-  const tableRows = dataIDSLoaded.map((element) => (
+  // Pagination logic: calculate rows for the current page
+  const startIndex = (activePage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentPageData = dataIDSLoaded.slice(startIndex, endIndex);
+
+  const tableRows = currentPageData.map((element) => (
     <Table.Tr key={`table-${element.name}`}>
       <Table.Td>
         <Checkbox
@@ -245,6 +253,14 @@ export const VisualizationIDSFromURIModal = ({
 
         <Table.Tbody>{tableRows}</Table.Tbody>
       </Table>
+
+       <Group justify="center" mt={20}>
+        <Pagination
+          total={Math.ceil(dataIDSLoaded.length / itemsPerPage)}
+          value={activePage}
+          onChange={setPage}
+        />
+      </Group>
 
       <Group justify="flex-end" mt={20}>
         <Button disabled={!dataIDS.length} onClick={updateDataIDS}>
