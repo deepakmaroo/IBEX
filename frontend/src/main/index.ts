@@ -25,7 +25,6 @@ app.on('ready', () => {
     });
   });
 
-  console.log('App is ready', process.env.API_PORT);
 });
 
 // Quit when all windows are closed, except on macOS. There, it's common

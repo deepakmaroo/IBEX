@@ -101,7 +101,6 @@ export const VisualizationIDSFromURIModal = ({
           },
         },
       );
-
       if (response.ok) {
         const res = await response.json();
         setDataIDSLoaded(res.idses);
@@ -216,11 +215,10 @@ export const VisualizationIDSFromURIModal = ({
             placeholder="Enter your uri"
             {...formIDS.getInputProps('uri')}
             rightSection={
-              <ActionIcon variant="filled" aria-label="Settings">
+              <ActionIcon variant="filled" aria-label="Settings" component='button' type='submit'>
                 <IconSearch
                   style={{ width: '70%', height: '70%' }}
                   stroke={1.5}
-                  onSubmit={fetchDataIDSFromURI}
                 />
               </ActionIcon>
             }
