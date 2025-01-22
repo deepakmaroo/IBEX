@@ -31,12 +31,11 @@ or
 
 SSH : `git clone ssh://git@git.iter.org/imex/ibex.git`
 
-
 ```
 cd frontend
 ```
 
-### Install Packages 
+### Install Packages
 
 Install the dependencies using npm:
 
@@ -58,22 +57,25 @@ Here are the commands you can use to manage the project:
 - Start the application
 
 Starts the Electron application in development mode with hot-reloading:
+
 ```
-npm run start 
+npm run start
 ```
 
-- Lint the code 
+- Lint the code
 
 Checks the code for style and syntax issues using ESLint:
+
 ```
-npm run lint 
+npm run lint
 ```
 
-- Format the code 
+- Format the code
 
 Automatically formats the codebase using Prettier:
+
 ```
-npm run format 
+npm run format
 ```
 
 ### Build and Packaging Commands
@@ -81,35 +83,39 @@ npm run format
 - Build the application
 
 Prepares the application for production by bundling the code:
+
 ```
-npm run build 
+npm run build
 ```
 
 - Package the application
 
 Packages the application into a distributable format (e.g., .exe, .deb, .dmg):
+
 ```
-npm run package 
+npm run package
 ```
 
 - Generate platform-specific binaries
 
 Creates platform-specific builds for your application:
-```
-npm run make 
-```
 
+```
+npm run make
+```
 
 - Publish the application
 
 Publishes the application to a distribution platform:
+
 ```
-npm run publish 
+npm run publish
 ```
 
 - Run app with debug mode
 
 Run the application with debug mode, enable logs details to understand the application flow:
+
 ```
-npm run debug 
+npm run debug
 ```

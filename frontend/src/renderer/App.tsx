@@ -5,7 +5,6 @@ import { Notifications } from '@mantine/notifications';
 import { ModalsProvider } from '@mantine/modals';
 
 export function App() {
-
   return (
     <div>
       <StrictMode>

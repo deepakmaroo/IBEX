@@ -26,8 +26,8 @@ const config: ForgeConfig = {
     new AutoUnpackNativesPlugin({}),
     new WebpackPlugin({
       mainConfig,
-      port:  parseInt(process.env.WEBPACK_PORT || '3001', 10),
-      loggerPort:  parseInt(process.env.LOGGER_PORT || '9013', 10),
+      port: parseInt(process.env.WEBPACK_PORT || '3001', 10),
+      loggerPort: parseInt(process.env.LOGGER_PORT || '9013', 10),
       renderer: {
         config: rendererConfig,
         entryPoints: [

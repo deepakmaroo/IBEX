@@ -13,15 +13,13 @@
     "plugin:import/typescript"
   ],
   "parser": "@typescript-eslint/parser",
-  
-    "settings": {
-      "import/resolver": {
-        "typescript": {
-          "alwaysTryTypes": true,
-          "project": "./tsconfig.json"
-        }
+
+  "settings": {
+    "import/resolver": {
+      "typescript": {
+        "alwaysTryTypes": true,
+        "project": "./tsconfig.json"
       }
     }
-  
-  
+  }
 }

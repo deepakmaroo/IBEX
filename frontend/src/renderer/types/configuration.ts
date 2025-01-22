@@ -1,4 +1,4 @@
-import { IDSData } from "./ids";
+import { IDSData } from './ids';
 
 export interface Configuration {
   name: string;

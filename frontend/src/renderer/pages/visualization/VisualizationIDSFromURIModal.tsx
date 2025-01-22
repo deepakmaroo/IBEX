@@ -73,48 +73,48 @@ export const VisualizationIDSFromURIModal = ({
     close();
   };
 
-
   useEffect(() => {
     console.log('BACKEND_API_URL', window.env.API_URL);
   }, []);
 
-  async function seachDataIDSFromURI(){
+  async function seachDataIDSFromURI() {
     if (!uri) {
       console.error('URI is empty.');
       return;
     }
 
     try {
-        const response = await fetch(`${window.env.API_URL}/data_entry/list_idses/?uri=${encodeURIComponent(uri)}`, {
-            method: "GET",
-            headers: {
-              "Content-Type":"application/json"
-            }
-        });
+      const response = await fetch(
+        `${window.env.API_URL}/data_entry/list_idses/?uri=${encodeURIComponent(uri)}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      );
 
-        if (response.ok){
-          const res = await response.json();
-          setDataIDSLoaded(res.idses);
-
-        }else {
-          const res = await response.json();
-          console.error("Promise resolved but HTTP status failed:", res)
-          showNotification({
-            title: "Error",
-            message: res.error,
-            color: "red",
-          });
-        }
-
-    } catch (error) {
-        console.error("Promise rejected:",error);
+      if (response.ok) {
+        const res = await response.json();
+        setDataIDSLoaded(res.idses);
+      } else {
+        const res = await response.json();
+        console.error('Promise resolved but HTTP status failed:', res);
         showNotification({
-            title: "Error",
-            message: "Error to search IDS",
-            color: "red",
-          });
+          title: 'Error',
+          message: res.error,
+          color: 'red',
+        });
+      }
+    } catch (error) {
+      console.error('Promise rejected:', error);
+      showNotification({
+        title: 'Error',
+        message: 'Error to search IDS',
+        color: 'red',
+      });
     }
-}
+  }
 
   return (
     <Modal
