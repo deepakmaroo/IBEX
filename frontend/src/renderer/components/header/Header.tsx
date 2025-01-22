@@ -10,7 +10,7 @@ import {
   Title,
   Tooltip,
 } from '@mantine/core';
-import logoPath from '../../assets/cea.png';
+import logoPath from '../../assets/imas_extra.png';
 import { Configuration } from 'src/renderer/types';
 
 interface HeaderProps {
