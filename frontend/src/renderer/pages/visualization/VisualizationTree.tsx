@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { TreeLibrariesAccordion } from '../../components';
 import { useIbexState } from '../../stores';
-import { CustomTreeData, DataTreeSelected } from 'src/renderer/types';
+import { CustomTreeData, DataTreeSelected, IDSData } from 'src/renderer/types';
+import { TreeNodeData } from '@mantine/core';
 
 interface VisualizationTreeProps {
   height: string;
@@ -21,6 +22,27 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
      */
     if (active && active.dataIDS) {
       const newCustomDataTree: CustomTreeData[] = [];
+
+      console.log("IDS",active.dataIDS);
+
+      for (const ids of active.dataIDS) {
+        const dataTreeIds: TreeNodeData[] = [
+          {
+            label: ids.name,
+            value: ids.name,
+            children: [],
+          },
+        ];
+
+        const customData: CustomTreeData = {
+          name: ids.name,
+          data: dataTreeIds,
+        };
+
+        newCustomDataTree.push(customData);
+      }
+
+
 
       
 

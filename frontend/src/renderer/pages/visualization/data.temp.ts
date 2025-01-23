@@ -183,15 +183,3 @@ export const customData: CustomTreeData[] = [
     data: data2,
   },
 ];
-
-export const temporaryDataIDSLoaded: IDSData[] = [
-  {
-    name: 'external_case',
-  },
-  {
-    name: 'hotline',
-  },
-  {
-    name: 'internal_case',
-  },
-];

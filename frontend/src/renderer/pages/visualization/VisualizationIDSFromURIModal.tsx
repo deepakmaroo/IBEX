@@ -89,8 +89,6 @@ export const VisualizationIDSFromURIModal = ({
         ? dataIDS?.filter((d: IDSData) => d.name !== name)
         : [...dataIDS, dataIDSLoaded.find((d: IDSData) => d.name === name)];
 
-    console.log(updateDataIDS);
-
     setDataIDS(updateDataIDS);
   };
 
@@ -103,7 +101,7 @@ export const VisualizationIDSFromURIModal = ({
    * Fetch IDS data from URI
    * @returns {Promise<void>}
    * Return data uri with name and occurrences
-   * 
+   *
    */
   async function fetchDataIDSFromURI() {
     if (!formIDS.values.uri) {
@@ -111,10 +109,10 @@ export const VisualizationIDSFromURIModal = ({
       formIDS.setFieldError('uri', 'Please provide a valid URI');
       return;
     }
-  
+
     try {
       setIsLoading(true);
-  
+
       // Vérification si l'URI existe
       const responseURIExists = await fetch(
         `${window.env.API_URL}/data_entry/exists/?uri=${encodeURIComponent(formIDS.values.uri)}`,
@@ -123,14 +121,14 @@ export const VisualizationIDSFromURIModal = ({
           headers: {
             'Content-Type': 'application/json',
           },
-        }
+        },
       );
-  
+
       if (!responseURIExists.ok) {
         const error = await responseURIExists.json();
         throw new Error(error.detail || 'Failed to verify URI existence');
       }
-  
+
       const existsResult = await responseURIExists.json();
       if (!existsResult.exists) {
         formIDS.setFieldError('uri', 'URI does not exist');
@@ -141,7 +139,7 @@ export const VisualizationIDSFromURIModal = ({
         });
         return;
       }
-  
+
       // Récupération des IDS associés à l'URI
       const responseListIds = await fetch(
         `${window.env.API_URL}/data_entry/list_idses/?uri=${encodeURIComponent(formIDS.values.uri)}`,
@@ -150,16 +148,16 @@ export const VisualizationIDSFromURIModal = ({
           headers: {
             'Content-Type': 'application/json',
           },
-        }
+        },
       );
-  
+
       if (!responseListIds.ok) {
         const error = await responseListIds.json();
         throw new Error(error.detail || 'Failed to fetch IDS data');
       }
-  
+
       const listIdsResult = await responseListIds.json();
-      
+
       const newDataLoaded: IDSData[] = [];
       for (const ids of listIdsResult.idses) {
         newDataLoaded.push({
@@ -167,7 +165,7 @@ export const VisualizationIDSFromURIModal = ({
           occurrences: ids.occurrences,
         });
       }
-  
+
       setDataIDSLoaded(newDataLoaded);
       setFromURIisSuccess(true);
       setFromFileisSuccess(false);
@@ -176,7 +174,6 @@ export const VisualizationIDSFromURIModal = ({
         message: 'Data successfully fetched from URI',
         color: 'green',
       });
-  
     } catch (error: any) {
       console.error('Error:', error.message || error);
       formIDS.setFieldError('uri', error.message || 'An error occurred');
@@ -201,7 +198,6 @@ export const VisualizationIDSFromURIModal = ({
 
     try {
       setIsLoading(true);
-
 
       const response = await fetch(
         `${window.env.API_URL}/data_entry/list_idses_from_file/`,
