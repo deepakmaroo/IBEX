@@ -22,35 +22,31 @@ interface FileIconProps {
 }
 
 interface TreeLibraryProps {
-  getDataSelected: (data: DataTreeSelected) => void;
   treeData: TreeNodeData[];
   height?: string;
+  loadChildren: (node: TreeNodeData) => Promise<TreeNodeData[]>;
 }
 
 export const TreeLibrary = ({
-  getDataSelected,
   treeData,
   height,
+  loadChildren,
 }: TreeLibraryProps) => {
   const tree = useTree();
-  const [selectedNode, setSelectedNode] = useState(null);
+  const [treeDataState, setTreeDataState] = useState(treeData);
 
-  useEffect(() => {
-    if (selectedNode) {
-      const handleAdd = (): void => {
-        const dataGrid: DataTreeSelected = {
-          path: selectedNode.value,
-        };
-        getDataSelected(dataGrid);
-      };
-
-      handleAdd();
-
-      tree.deselect(selectedNode.value);
-      tree.clearSelected();
-      setSelectedNode(null);
+  const handleNodeExpand = async (node: TreeNodeData) => {
+    // Vérifie si les enfants sont déjà chargés
+    if (!node.children || node.children.length === 0) {
+      const children = await loadChildren(node);
+      const updatedTreeData = treeDataState.map((item) =>
+        item.value === node.value
+          ? { ...item, children }
+          : item
+      );
+      setTreeDataState(updatedTreeData);
     }
-  }, [selectedNode]);
+  };
 
   function FileIcon({ isFolder, expanded }: FileIconProps) {
     if (isFolder) {
@@ -80,10 +76,10 @@ export const TreeLibrary = ({
     selected,
   }: RenderTreeNodePayload) {
     useEffect(() => {
-      if (selected && !hasChildren && node.label !== undefined) {
-        setSelectedNode(node);
+      if (expanded && hasChildren) {
+        handleNodeExpand(node);
       }
-    }, [selected, node]);
+    }, [expanded]);
 
     return (
       <Group gap={5} {...elementProps}>
@@ -97,7 +93,7 @@ export const TreeLibrary = ({
     <ScrollArea h={height}>
       <Tree
         tree={tree}
-        data={treeData}
+        data={treeDataState}
         className={classes}
         selectOnClick
         renderNode={(payload) => <Element {...payload} />}

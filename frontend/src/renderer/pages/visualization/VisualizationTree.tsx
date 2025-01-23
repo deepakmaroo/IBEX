@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { TreeLibrariesAccordion } from '../../components';
 import { useIbexState } from '../../stores';
-import { CustomTreeData, DataTreeSelected, IDSData } from 'src/renderer/types';
+import { CustomTreeData, DataTreeSelected } from 'src/renderer/types';
 import { TreeNodeData } from '@mantine/core';
 
 interface VisualizationTreeProps {
@@ -10,51 +10,33 @@ interface VisualizationTreeProps {
 
 export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
   const { active } = useIbexState();
-
   const [customDataTree, setCustomDataTree] = useState<CustomTreeData[]>([]);
 
   useEffect(() => {
-    /**
-     * Here we can load the data tree from backend api
-     * and set the customDataTree state
-     *
-     * Actually we are using a temporary data from data.temp.ts
-     */
     if (active && active.dataIDS) {
-      const newCustomDataTree: CustomTreeData[] = [];
-
-      console.log("IDS",active.dataIDS);
-
-      for (const ids of active.dataIDS) {
-        const dataTreeIds: TreeNodeData[] = [
+      const newCustomDataTree: CustomTreeData[] = active.dataIDS.map((ids) => ({
+        name: ids.name,
+        data: [
           {
             label: ids.name,
             value: ids.name,
-            children: [],
+            children: [], // Les enfants seront ajoutés dynamiquement
           },
-        ];
-
-        const customData: CustomTreeData = {
-          name: ids.name,
-          data: dataTreeIds,
-        };
-
-        newCustomDataTree.push(customData);
-      }
-
-
-
-      
-
-      // for (const ids of active.dataIDS) {
-      //   const data = customData.find((d) => d.name === ids.name);
-      //   if (data) {
-      //     newCustomDataTree.push(data);
-      //   }
-      // }
+        ],
+      }));
       setCustomDataTree(newCustomDataTree);
     }
   }, [active]);
+
+  const loadChildren = async (node: TreeNodeData): Promise<TreeNodeData[]> => {
+    // Exemple de chargement de données enfants (remplacez par un appel API réel)
+    console.log('Chargement des enfants pour le nœud :', node.label);
+
+    return [
+      { label: `${node.label} - Child 1`, value: `${node.value}-child1` },
+      { label: `${node.label} - Child 2`, value: `${node.value}-child2` },
+    ];
+  };
 
   const getDataSelected = (data: DataTreeSelected) => {
     console.log(data);
@@ -65,6 +47,8 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
       dataTree={customDataTree}
       getDataSelected={getDataSelected}
       height={height}
+      loadChildren={loadChildren}
     />
   );
 };
+
