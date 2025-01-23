@@ -89,6 +89,8 @@ export const VisualizationIDSFromURIModal = ({
         ? dataIDS?.filter((d: IDSData) => d.name !== name)
         : [...dataIDS, dataIDSLoaded.find((d: IDSData) => d.name === name)];
 
+    console.log(updateDataIDS);
+
     setDataIDS(updateDataIDS);
   };
 
@@ -97,6 +99,12 @@ export const VisualizationIDSFromURIModal = ({
     close();
   };
 
+  /**
+   * Fetch IDS data from URI
+   * @returns {Promise<void>}
+   * Return data uri with name and occurrences
+   * 
+   */
   async function fetchDataIDSFromURI() {
     if (!formIDS.values.uri) {
       console.error('URI is empty.');
