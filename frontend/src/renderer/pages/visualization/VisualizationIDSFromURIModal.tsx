@@ -159,9 +159,16 @@ export const VisualizationIDSFromURIModal = ({
       }
   
       const listIdsResult = await responseListIds.json();
-      setDataIDSLoaded(listIdsResult.idses);
+      
+      const newDataLoaded: IDSData[] = [];
+      for (const ids of listIdsResult.idses) {
+        newDataLoaded.push({
+          name: ids.name,
+          occurrences: ids.occurrences,
+        });
+      }
   
-      // Indication de succès
+      setDataIDSLoaded(newDataLoaded);
       setFromURIisSuccess(true);
       setFromFileisSuccess(false);
       showNotification({
