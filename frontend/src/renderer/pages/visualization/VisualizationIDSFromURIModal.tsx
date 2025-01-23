@@ -37,7 +37,7 @@ export const VisualizationIDSFromURIModal = ({
   const [dataIDSLoaded, setDataIDSLoaded] = useState<IDSData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [activePage, setPage] = useState(1);
-  const [itemsPerPage] = useState(3);
+  const [itemsPerPage] = useState(10);
   const [fromURIisSuccess, setFromURIisSuccess] = useState(false);
   const [fromFileisSuccess, setFromFileisSuccess] = useState(false);
 
