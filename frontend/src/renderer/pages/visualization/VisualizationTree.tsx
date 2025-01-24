@@ -17,6 +17,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
       const newCustomDataTree: CustomTreeData[] = active.dataIDS.map((ids) => ({
         name: ids.name,
         uri: ids.uri,
+        occurrences: ids.occurrences,
         data: [
           {
             label: ids.name,

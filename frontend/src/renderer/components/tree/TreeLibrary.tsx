@@ -70,7 +70,7 @@ export const TreeLibrary = ({
           setSelectedNode({ path: node.value });
 
           try {
-
+            
             
             const responseNodeInfo= await fetch(
               `${window.env.API_URL}/ids_info/node_info/?uri=${encodeURIComponent(`${uri}/${node.value}`)}`,

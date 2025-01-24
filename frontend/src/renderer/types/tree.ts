@@ -8,5 +8,6 @@ export type DataTreeSelected = {
 export type CustomTreeData = {
   name: string;
   uri: string;
+  occurrences?: number[];
   data: TreeNodeData[];
 };
