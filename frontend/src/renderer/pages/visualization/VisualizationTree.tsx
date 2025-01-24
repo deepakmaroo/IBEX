@@ -16,6 +16,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
     if (active && active.dataIDS) {
       const newCustomDataTree: CustomTreeData[] = active.dataIDS.map((ids) => ({
         name: ids.name,
+        uri: ids.uri,
         data: [
           {
             label: ids.name,
@@ -28,16 +29,6 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
     }
   }, [active]);
 
-  const loadChildren = async (node: TreeNodeData): Promise<TreeNodeData[]> => {
-    // Exemple de chargement de données enfants (remplacez par un appel API réel)
-    console.log('Chargement des enfants pour le nœud :', node.label);
-
-    return [
-      { label: `${node.label} - Child 1`, value: `${node.value}-child1` },
-      { label: `${node.label} - Child 2`, value: `${node.value}-child2` },
-    ];
-  };
-
   const getDataSelected = (data: DataTreeSelected) => {
     console.log(data);
   };
@@ -47,7 +38,6 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
       dataTree={customDataTree}
       getDataSelected={getDataSelected}
       height={height}
-      loadChildren={loadChildren}
     />
   );
 };

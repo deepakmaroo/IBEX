@@ -24,29 +24,18 @@ interface FileIconProps {
 interface TreeLibraryProps {
   treeData: TreeNodeData[];
   height?: string;
-  loadChildren: (node: TreeNodeData) => Promise<TreeNodeData[]>;
+  uri?: string;
 }
 
 export const TreeLibrary = ({
   treeData,
   height,
-  loadChildren,
+  uri,
 }: TreeLibraryProps) => {
   const tree = useTree();
-  const [treeDataState, setTreeDataState] = useState(treeData);
-
-  const handleNodeExpand = async (node: TreeNodeData) => {
-    // Vérifie si les enfants sont déjà chargés
-    if (!node.children || node.children.length === 0) {
-      const children = await loadChildren(node);
-      const updatedTreeData = treeDataState.map((item) =>
-        item.value === node.value
-          ? { ...item, children }
-          : item
-      );
-      setTreeDataState(updatedTreeData);
-    }
-  };
+  const [selectedNode, setSelectedNode] = useState<DataTreeSelected | null>(
+    null,
+  );
 
   function FileIcon({ isFolder, expanded }: FileIconProps) {
     if (isFolder) {
@@ -76,10 +65,40 @@ export const TreeLibrary = ({
     selected,
   }: RenderTreeNodePayload) {
     useEffect(() => {
-      if (expanded && hasChildren) {
-        handleNodeExpand(node);
-      }
-    }, [expanded]);
+      const fetchData = async () => {
+        if (selected && selectedNode?.path !== node.value) {
+          setSelectedNode({ path: node.value });
+
+          try {
+
+            
+            const responseNodeInfo= await fetch(
+              `${window.env.API_URL}/ids_info/node_info/?uri=${encodeURIComponent(`${uri}/${node.value}`)}`,
+              {
+                method: 'GET',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+              },
+            );
+
+            if (!responseNodeInfo.ok) {
+              const error = await responseNodeInfo.json();
+              throw new Error(error.detail || 'Failed to fetch IDS data');
+            }
+      
+            const nodeInfos = await responseNodeInfo.json();
+
+            console.log("nodeInfos", nodeInfos);
+
+            
+          } catch (error) {
+            console.error(error);
+          }
+        }
+      };
+      fetchData();
+    }, [selected, node.value, selectedNode]);
 
     return (
       <Group gap={5} {...elementProps}>
@@ -93,10 +112,10 @@ export const TreeLibrary = ({
     <ScrollArea h={height}>
       <Tree
         tree={tree}
-        data={treeDataState}
+        data={treeData}
         className={classes}
         selectOnClick
-        renderNode={(payload) => <Element {...payload} />}
+        renderNode={(payload) => <Element {...payload}  />}
       />
     </ScrollArea>
   );

@@ -6,19 +6,17 @@ interface VisualizationTreeProps {
   dataTree: CustomTreeData[];
   height: string;
   getDataSelected: (data: DataTreeSelected) => void;
-  loadChildren: (node: TreeNodeData) => Promise<TreeNodeData[]>;
 }
 
 export const TreeLibrariesAccordion = ({
   dataTree,
   height,
-  loadChildren
 }: VisualizationTreeProps) => {
   const items = dataTree.map((item) => (
     <Accordion.Item key={`accodion-${item.name}`} value={item.name}>
       <Accordion.Control>{item.name}</Accordion.Control>
       <Accordion.Panel>
-        <TreeLibrary treeData={item.data} loadChildren={loadChildren}/>
+        <TreeLibrary treeData={item.data} uri={item.uri}/>
       </Accordion.Panel>
     </Accordion.Item>
   ));

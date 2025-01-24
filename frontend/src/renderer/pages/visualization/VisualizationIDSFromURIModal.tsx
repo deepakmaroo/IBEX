@@ -163,6 +163,7 @@ export const VisualizationIDSFromURIModal = ({
         newDataLoaded.push({
           name: ids.name,
           occurrences: ids.occurrences,
+          uri: formIDS.values.uri,
         });
       }
 
