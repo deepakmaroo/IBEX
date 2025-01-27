@@ -56,7 +56,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
           nodeInfos.children.map((child: any) => {
             newChildren.push({
               label: child.name,
-              value: child.name,
+              value: `#${value}:0/${child.name}`,
               children: [],
             });
           });

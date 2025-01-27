@@ -17,7 +17,7 @@ export const TreeLibrariesAccordion = ({
     <Accordion.Item key={`accodion-${item.name}`} value={item.name}>
       <Accordion.Control>{item.name}</Accordion.Control>
       <Accordion.Panel>
-        <TreeLibrary treeData={item.data} uriWithParent={item.uri} />
+        <TreeLibrary treeData={item.data} uri={item.uri} />
       </Accordion.Panel>
     </Accordion.Item>
   ));
