@@ -24,13 +24,17 @@ interface FileIconProps {
 interface TreeLibraryProps {
   treeData: TreeNodeData[];
   height?: string;
-  uri?: string;
+  uriWithParent?: string;
+}
+
+interface ElementProps extends RenderTreeNodePayload {
+  uriWithParent: string;
 }
 
 export const TreeLibrary = ({
   treeData,
   height,
-  uri,
+  uriWithParent,
 }: TreeLibraryProps) => {
   const tree = useTree();
   const [selectedNode, setSelectedNode] = useState<DataTreeSelected | null>(
@@ -63,33 +67,33 @@ export const TreeLibrary = ({
     hasChildren,
     elementProps,
     selected,
-  }: RenderTreeNodePayload) {
+    uriWithParent
+  }: ElementProps) {
     useEffect(() => {
       const fetchData = async () => {
         if (selected && selectedNode?.path !== node.value) {
           setSelectedNode({ path: node.value });
 
           try {
-            
-            
-            const responseNodeInfo= await fetch(
-              `${window.env.API_URL}/ids_info/node_info/?uri=${encodeURIComponent(`${uri}/${node.value}`)}`,
-              {
-                method: 'GET',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-              },
-            );
+            console.log("uriWithParent", uriWithParent);
+            // const responseNodeInfo= await fetch(
+            //   `${window.env.API_URL}/ids_info/node_info/?uri=${encodeURIComponent(`${uriWithParent}/${node.value}`)}`,
+            //   {
+            //     method: 'GET',
+            //     headers: {
+            //       'Content-Type': 'application/json',
+            //     },
+            //   },
+            // );
 
-            if (!responseNodeInfo.ok) {
-              const error = await responseNodeInfo.json();
-              throw new Error(error.detail || 'Failed to fetch IDS data');
-            }
+            // if (!responseNodeInfo.ok) {
+            //   const error = await responseNodeInfo.json();
+            //   throw new Error(error.detail || 'Failed to fetch IDS data');
+            // }
       
-            const nodeInfos = await responseNodeInfo.json();
+            // const nodeInfos = await responseNodeInfo.json();
 
-            console.log("nodeInfos", nodeInfos);
+            // console.log("nodeInfos", nodeInfos);
 
             
           } catch (error) {
@@ -115,7 +119,7 @@ export const TreeLibrary = ({
         data={treeData}
         className={classes}
         selectOnClick
-        renderNode={(payload) => <Element {...payload}  />}
+        renderNode={(payload) => <Element {...payload}  uriWithParent={uriWithParent}/>}
       />
     </ScrollArea>
   );

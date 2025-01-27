@@ -23,6 +23,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
       setCustomDataTree(newCustomDataTree);
     }
   }, [active]);
+
   const handleAccordionChange =  useCallback(async(value: string) => {
     if (value) {
       /**
@@ -59,27 +60,27 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
               children: [],
             });
           });
-          // selectedDataTree.data.push(...newChildren);
-
-          const updatedCustomDataTree = customDataTree.map((item) => {
-            if (item.name === value) {
-              return {
-                ...item,
-                data: selectedDataTree.data,
-              };
-            }
-            return item;
-          });
-          console.log('updatedCustomDataTree', updatedCustomDataTree);
-
-          setCustomDataTree(updatedCustomDataTree);
-
+          
+          // Add children to the selectedDataTree if not exists
+          if (!selectedDataTree.data.length) {
+            const updatedCustomDataTree = customDataTree.map((item) => {
+              if (item.name === value) {
+                return {
+                  ...item,
+                  data: newChildren,
+                };
+              }
+              return item;
+            });
+            
+            setCustomDataTree(updatedCustomDataTree);
+          }
         }
       } catch (error) {
         console.error(error);
       }
     }
-  }, [customDataTree]);
+  }, [customDataTree, setCustomDataTree]);
 
 
   return (

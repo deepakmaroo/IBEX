@@ -175,7 +175,7 @@ export const VisualizationIDSFromURIModal = ({
         message: 'Data successfully fetched from URI',
         color: 'green',
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error:', error.message || error);
       formIDS.setFieldError('uri', error.message || 'An error occurred');
       showNotification({
