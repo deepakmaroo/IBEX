@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { TreeLibrariesAccordion } from '../../components';
 import { useIbexState } from '../../stores';
-import { CustomTreeData, DataTreeSelected } from 'src/renderer/types';
+import { CustomTreeData } from 'src/renderer/types';
 import { TreeNodeData } from '@mantine/core';
 
 interface VisualizationTreeProps {
@@ -14,25 +14,16 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
 
   useEffect(() => {
     if (active && active.dataIDS) {
-      const newCustomDataTree: CustomTreeData[] = [];
-
-      // active.dataIDS.map((ids) => ({
-      //   name: ids.name,
-      //   uri: ids.uri,
-      //   occurrences: ids.occurrences,
-      //   data: [
-      //     {
-      //       label: ids.name,
-      //       value: ids.name,
-      //       children: [], // Les enfants seront ajoutés dynamiquement
-      //     },
-      //   ],
-      // }));
+      const newCustomDataTree: CustomTreeData[] = active.dataIDS.map((ids) => ({
+        name: ids.name,
+        uri: ids.uri,
+        occurrences: ids.occurrences,
+        data: [],
+      }));
       setCustomDataTree(newCustomDataTree);
     }
   }, [active]);
-
-  const handleAccordionChange = async (value: string) => {
+  const handleAccordionChange =  useCallback(async(value: string) => {
     if (value) {
       /**
        * Fetch ids children
@@ -56,8 +47,10 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
         }
 
         const nodeInfos = await responseNodeInfo.json();
+        console.log('nodeInfos', nodeInfos);
+        console.log('nodeInfos children', nodeInfos.children);
 
-        if (nodeInfos.children.lenght > 0) {
+        if (nodeInfos.children.length > 0) {
           const newChildren: TreeNodeData[] = [];
           nodeInfos.children.map((child: any) => {
             newChildren.push({
@@ -66,7 +59,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
               children: [],
             });
           });
-          selectedDataTree.data.push(...newChildren);
+          // selectedDataTree.data.push(...newChildren);
 
           const updatedCustomDataTree = customDataTree.map((item) => {
             if (item.name === value) {
@@ -77,16 +70,17 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
             }
             return item;
           });
+          console.log('updatedCustomDataTree', updatedCustomDataTree);
 
           setCustomDataTree(updatedCustomDataTree);
 
         }
-        console.log('nodeInfos', nodeInfos);
       } catch (error) {
         console.error(error);
       }
     }
-  };
+  }, [customDataTree]);
+
 
   return (
     <TreeLibrariesAccordion
