@@ -1,4 +1,5 @@
 import { IDSData } from './ids';
+import { CustomTreeData } from './tree';
 
 export interface Configuration {
   name: string;
@@ -7,6 +8,7 @@ export interface Configuration {
   dataIDS: IDSData[];
   lastLocalDataSetSelected?: string;
   lastURIInput?: string;
+  customDataTree: CustomTreeData[];
 }
 
 export interface ConfigForm {

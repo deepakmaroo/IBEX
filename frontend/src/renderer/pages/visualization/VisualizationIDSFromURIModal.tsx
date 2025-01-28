@@ -11,7 +11,7 @@ import {
   Text,
   TextInput,
 } from '@mantine/core';
-import { useIbexState } from '../../stores';
+import { useIbexStore } from '../../stores';
 import { IDSData } from 'src/renderer/types';
 import { useEffect, useState } from 'react';
 import { IconSearch } from '@tabler/icons-react';
@@ -32,7 +32,7 @@ export const VisualizationIDSFromURIModal = ({
   opened,
   close,
 }: VisualizationSelectIDSModalProps) => {
-  const { active, updatedConfiguration } = useIbexState();
+  const { active, updatedConfiguration } = useIbexStore();
   const [dataIDS, setDataIDS] = useState<IDSData[]>([]);
   const [dataIDSLoaded, setDataIDSLoaded] = useState<IDSData[]>([]);
   const [isLoading, setIsLoading] = useState(false);

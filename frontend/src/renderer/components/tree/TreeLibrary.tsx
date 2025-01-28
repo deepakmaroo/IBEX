@@ -25,6 +25,7 @@ interface TreeLibraryProps {
   treeData: TreeNodeData[];
   height?: string;
   uri?: string;
+  fetchChildrenNodeInfos: (nodeValue: string) => void;
 }
 
 interface ElementProps extends RenderTreeNodePayload {
@@ -35,11 +36,26 @@ export const TreeLibrary = ({
   treeData,
   height,
   uri,
+  fetchChildrenNodeInfos
 }: TreeLibraryProps) => {
   const tree = useTree();
   const [selectedNode, setSelectedNode] = useState<DataTreeSelected | null>(
     null,
   );
+
+  const [loadingNodes, setLoadingNodes] = useState<Set<string>>(new Set());
+
+  const handleFetchChildren = async (nodeValue: string) => {
+    if (loadingNodes.has(nodeValue)) return; // Avoid duplicate fetches
+
+    setLoadingNodes((prev) => new Set(prev).add(nodeValue));
+    await fetchChildrenNodeInfos(nodeValue);
+    setLoadingNodes((prev) => {
+      const updated = new Set(prev);
+      updated.delete(nodeValue);
+      return updated;
+    });
+  };
 
   function FileIcon({ isFolder, expanded }: FileIconProps) {
     if (isFolder) {
@@ -73,32 +89,10 @@ export const TreeLibrary = ({
       const fetchData = async () => {
         if (selected && selectedNode?.path !== node.value) {
           setSelectedNode({ path: node.value });
+          console.log("nodes", node)
+          await fetchChildrenNodeInfos(node.value);
 
-          try {
-            console.log("node", node)
-            const responseNodeInfo= await fetch(
-              `${window.env.API_URL}/ids_info/node_info/?uri=${encodeURIComponent(`${uri}/${node.value}`)}`,
-              {
-                method: 'GET',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-              },
-            );
 
-            if (!responseNodeInfo.ok) {
-              const error = await responseNodeInfo.json();
-              throw new Error(error.detail || 'Failed to fetch IDS data');
-            }
-      
-            const nodeInfos = await responseNodeInfo.json();
-
-            console.log("nodeInfos", nodeInfos);
-
-            
-          } catch (error) {
-            console.error(error);
-          }
         }
       };
       fetchData();

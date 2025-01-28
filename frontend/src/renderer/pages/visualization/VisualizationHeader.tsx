@@ -1,6 +1,6 @@
 import { Button, Container, Group } from '@mantine/core';
 import { IconPlus } from '@tabler/icons-react';
-import { useIbexState } from '../../stores';
+import { useIbexStore } from '../../stores';
 
 interface VisualizationHeaderProps {
   handleAddTree: () => void;
@@ -9,7 +9,7 @@ interface VisualizationHeaderProps {
 export const VisualizationHeader = ({
   handleAddTree,
 }: VisualizationHeaderProps) => {
-  const { active } = useIbexState();
+  const { active } = useIbexStore();
 
   return (
     <Container fluid pb={10}>

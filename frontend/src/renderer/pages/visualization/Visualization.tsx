@@ -1,12 +1,12 @@
 import { Center, Container, Grid, Paper, Text } from '@mantine/core';
-import { useIbexState } from '../../stores';
+import { useIbexStore } from '../../stores';
 import { VisualizationHeader } from './VisualizationHeader';
 import { useDisclosure } from '@mantine/hooks';
 import { VisualizationIDSFromURIModal } from './VisualizationIDSFromURIModal';
 import { VisualizationTree } from './VisualizationTree';
 
 export const Visualization = () => {
-  const { configurations } = useIbexState();
+  const { configurations } = useIbexStore();
 
   const [
     isAddTreeModalOpen,

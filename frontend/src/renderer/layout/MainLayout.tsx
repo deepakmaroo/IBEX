@@ -1,6 +1,6 @@
 import { AppShell, Text } from '@mantine/core';
 import { Outlet } from 'react-router-dom';
-import { useIbexState } from '../stores';
+import { useIbexStore } from '../stores';
 import { useDisclosure } from '@mantine/hooks';
 import { ConfigForm, Configuration } from '../types';
 import { ConfigCreateModal, ConfirmModal, Header } from '../components';
@@ -12,7 +12,7 @@ export function MainLayout() {
     addConfiguration,
     removeConfiguration,
     setActive,
-  } = useIbexState();
+  } = useIbexStore();
   const [
     isConfigCreateModalOpen,
     { open: openConfigCreateModal, close: closeConfigCreateModal },
@@ -27,6 +27,7 @@ export function MainLayout() {
     const newConfig: Configuration = {
       name: config.name,
       dataIDS: [],
+      customDataTree: []
     };
     addConfiguration(newConfig);
     setActive(newConfig.name);
