@@ -1,13 +1,15 @@
 import {
+  Box,
   Group,
   RenderTreeNodePayload,
   ScrollArea,
   Text,
+  Tooltip,
   Tree,
   TreeNodeData,
   useTree,
 } from '@mantine/core';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import classes from './TreeLibrary.module.css';
 import {
   IconCirclePlus,
@@ -36,7 +38,7 @@ export const TreeLibrary = ({
   treeData,
   height,
   uri,
-  fetchChildrenNodeInfos
+  fetchChildrenNodeInfos,
 }: TreeLibraryProps) => {
   const tree = useTree();
   const [selectedNode, setSelectedNode] = useState<DataTreeSelected | null>(
@@ -77,31 +79,41 @@ export const TreeLibrary = ({
     return <IconCirclePlus size={14} color="var(--mantine-color-blue-8)" />;
   }
 
-  function Element({
-    node,
-    expanded,
-    hasChildren,
-    elementProps,
-    selected,
-    uri
-  }: ElementProps) {
+  function Element({ node, expanded, elementProps, selected }: ElementProps) {
+    const textRef = useRef<HTMLDivElement>(null);
+    const [isTextOverflowing, setIsTextOverflowing] = useState(false);
+
     useEffect(() => {
       const fetchData = async () => {
         if (selected && selectedNode?.path !== node.value) {
           setSelectedNode({ path: node.value });
-          console.log("nodes", node)
           await fetchChildrenNodeInfos(node.value);
-
-
         }
       };
       fetchData();
     }, [selected, node.value, selectedNode]);
-
+  
+    useEffect(() => {
+      if (textRef.current) {
+        const { scrollWidth, offsetWidth } = textRef.current;
+        setIsTextOverflowing(scrollWidth > offsetWidth);
+      }
+    }, [node.label]);
+  
     return (
       <Group gap={5} {...elementProps}>
         <FileIcon isFolder={true} expanded={expanded} />
-        <Text>{node.label}</Text>
+        {isTextOverflowing ? (
+          <Tooltip label={node.label} position="left">
+            <Text truncate="end" w={125} ref={textRef}>
+              {node.label}
+            </Text>
+          </Tooltip>
+        ) : (
+          <Text truncate="end" w={125} ref={textRef}>
+            {node.label}
+          </Text>
+        )}
       </Group>
     );
   }
@@ -113,7 +125,7 @@ export const TreeLibrary = ({
         data={treeData}
         className={classes}
         selectOnClick
-        renderNode={(payload) => <Element {...payload}  uri={uri}/>}
+        renderNode={(payload) => <Element {...payload} uri={uri} />}
       />
     </ScrollArea>
   );
