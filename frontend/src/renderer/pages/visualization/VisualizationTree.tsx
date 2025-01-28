@@ -159,10 +159,11 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
       };
       updatedConfiguration(updatedActive);
       setActive(updatedActive.name);
+      console.log("active", active)
     } catch (error) {
       console.error(error);
     }
-  }, [active, setActive, updatedConfiguration]);
+  }, [active]);
 
   return (
     <TreeLibrariesAccordion
