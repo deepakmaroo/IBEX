@@ -27,7 +27,7 @@ interface TreeLibraryProps {
   treeData: TreeNodeData[];
   height?: string;
   uri?: string;
-  fetchChildrenNodeInfos: (nodeValue: string) => void;
+  handleSelectChildren: (nodeValue: string) => void;
 }
 
 interface ElementProps extends RenderTreeNodePayload {
@@ -38,26 +38,12 @@ export const TreeLibrary = ({
   treeData,
   height,
   uri,
-  fetchChildrenNodeInfos,
+  handleSelectChildren,
 }: TreeLibraryProps) => {
   const tree = useTree();
   const [selectedNode, setSelectedNode] = useState<DataTreeSelected | null>(
     null,
   );
-
-  const [loadingNodes, setLoadingNodes] = useState<Set<string>>(new Set());
-
-  const handleFetchChildren = async (nodeValue: string) => {
-    if (loadingNodes.has(nodeValue)) return; // Avoid duplicate fetches
-
-    setLoadingNodes((prev) => new Set(prev).add(nodeValue));
-    await fetchChildrenNodeInfos(nodeValue);
-    setLoadingNodes((prev) => {
-      const updated = new Set(prev);
-      updated.delete(nodeValue);
-      return updated;
-    });
-  };
 
   function FileIcon({ isFolder, expanded }: FileIconProps) {
     if (isFolder) {
@@ -87,7 +73,7 @@ export const TreeLibrary = ({
       const fetchData = async () => {
         if (selected && selectedNode?.path !== node.value) {
           setSelectedNode({ path: node.value });
-          await fetchChildrenNodeInfos(node.value);
+          await handleSelectChildren(node.value);
         }
       };
       fetchData();

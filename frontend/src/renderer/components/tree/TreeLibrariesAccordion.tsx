@@ -6,14 +6,14 @@ interface VisualizationTreeProps {
   customDataTree: CustomTreeData[];
   height: string;
   handleAccordionChange: (value: string) => void;
-  fetchChildrenNodeInfos: (uri: string, nodeValue: string) => void;
+  handleSelectChildren: (uri: string, nodeValue: string) => void;
 }
 
 export const TreeLibrariesAccordion = ({
   customDataTree,
   height,
   handleAccordionChange,
-  fetchChildrenNodeInfos
+  handleSelectChildren
 }: VisualizationTreeProps) => {
 
 
@@ -24,8 +24,8 @@ export const TreeLibrariesAccordion = ({
         <TreeLibrary
           treeData={item.data}
           uri={item.uri}
-          fetchChildrenNodeInfos={(nodeValue) =>
-            fetchChildrenNodeInfos(item.uri, nodeValue)
+          handleSelectChildren={(nodeValue) =>
+            handleSelectChildren(item.uri, nodeValue)
           }
         />
       </Accordion.Panel>
