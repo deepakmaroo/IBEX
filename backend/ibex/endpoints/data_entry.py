@@ -24,7 +24,7 @@ async def list_idses(uri: str) -> dict:
 
 @router.get("/data_entry/available_entries/")
 @ibex_service.measure_execution_time
-async def list_db_entries(
+async def available_entries(
     user: str = "public",
     backend: Optional[str] = "",
     database: Optional[str] = None,

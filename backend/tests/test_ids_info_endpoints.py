@@ -2,11 +2,7 @@ import pytest
 
 
 def test_node_info_empty_path(entry_path):
-    parameters = {
-        "uri": f"imas:mdsplus?path={entry_path}",
-        "ids": "core_profiles",
-        "node_path": "",
-    }
+    parameters = {"uri": f"imas:mdsplus?path={entry_path}#core_profiles"}
     response = pytest.test_client.get("/ids_info/node_info", params=parameters)
 
     # test some core_profiles nodes
@@ -24,11 +20,7 @@ def test_node_info_empty_path(entry_path):
 
 
 def test_find_paths(entry_path):
-    parameters = {
-        "uri": f"imas:mdsplus?path={entry_path}",
-        "ids": "core_profiles",
-        "node_regex": "version_put",
-    }
+    parameters = {"uri": f"imas:mdsplus?path={entry_path}#core_profiles", "searched_node": "version_put"}
     response = pytest.test_client.get("/ids_info/find_paths", params=parameters)
 
     assert response.status_code == 200
@@ -41,11 +33,7 @@ def test_find_paths(entry_path):
 
 
 def test_array_summary(entry_path):
-    parameters = {
-        "uri": f"imas:mdsplus?path={entry_path}",
-        "ids": "core_profiles",
-        "node_path": "time",
-    }
+    parameters = {"uri": f"imas:mdsplus?path={entry_path}#core_profiles/time"}
     response = pytest.test_client.get("/ids_info/array_summary", params=parameters)
 
     assert response.status_code == 200

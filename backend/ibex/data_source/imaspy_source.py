@@ -8,6 +8,7 @@ from imaspy.ids_primitive import IDSNumericArray  # type: ignore
 from imaspy.ids_primitive import IDSPrimitive, IDSString1D  # type: ignore
 from imaspy.ids_struct_array import IDSStructArray  # type: ignore
 from imaspy.ids_structure import IDSStructure  # type: ignore
+from imaspy.ids_base import IDSBase  # type: ignore
 
 from ibex.data_source.data_source_interface import DataSourceInterface
 from ibex.data_source.exception import NotALeafNodeException, NotAnArrayException
@@ -214,4 +215,77 @@ class IMASPySource(DataSourceInterface):
                                 f"imas:{backend.lower()}?user={user};pulse={pulse};"
                                 f"run={r[1]};database={dbname};version={dv}"
                             )
+        return result
+
+    def _expand_single_path_element(self, ids_root: IDSBase, current_node_path, parent_paths=None):
+        """
+
+        :param ids_root: The root of the IDS data structure.
+        :param current_node_path: The current path to start from.
+        :param parent_paths: List of parent paths to consider. Defaults to [""].
+        :return: list of str - A list of expanded paths.
+        """
+        ids_path = imaspy.ids_path.IDSPath(current_node_path)
+
+        if parent_paths is None:
+            parent_paths = [""]
+
+        result = []
+
+        for parent_path in parent_paths:
+            element, element_index = next(ids_path.items())
+
+            # Handle case where the index is a slice (e.g., element[start:stop:step])
+            if isinstance(element_index, slice):
+                # Evaluate start, stop and step parameters
+                start = element_index.start if element_index.start else 0
+                if element_index.stop:
+                    stop = element_index.stop
+                else:
+                    full_current_path_without_index = imaspy.ids_path.IDSPath(
+                        f"{parent_path}/{next(ids_path.items())[0]}"
+                    )
+                    ids_data = full_current_path_without_index.goto(ids_root, from_root=True)
+                    stop = len(ids_data)
+                step = element_index.step if element_index.step else 1
+
+                # Append paths to result
+                result += [f"{parent_path}/{element}[{x}]" for x in range(start, stop, step)]
+
+            # Handle case where element_index is None (indicating no specific index)
+            elif element_index is None:
+                return [f"{x}/{element}" for x in parent_paths]
+
+            # Handle case where element_index is a specific index (not a slice)
+            else:
+                return [f"{x}/{element}[{element_index}]" for x in parent_paths]
+
+        return result
+
+    def get_multiple_node_data(self, uri: str, ids: str, node_path: str, occurrence: int = 0):
+        """
+
+        :param ids:
+        :param occurrence:
+        :param node_path:
+        :return:
+        """
+        parent_paths = [""]
+
+        entry = imaspy.DBEntry(uri, mode="r")
+        ids_root = entry.get(ids, occurrence=occurrence)
+
+        for path_element in node_path.split("/"):
+            parent_paths = self._expand_single_path_element(ids_root, path_element, parent_paths)
+            if not parent_paths:
+                raise Exception(
+                    f"Cannot evaluate path. Path element: {path_element} from path: {node_path} returned empty list."
+                )
+
+            result = {}
+        for path in parent_paths:
+            if path[0] == "/":
+                path = path[1:]
+            # TODO: optimize usage of get_data() not to open entry for every call
+            result[path] = self.get_data(uri, ids, path, occurrence)
         return result

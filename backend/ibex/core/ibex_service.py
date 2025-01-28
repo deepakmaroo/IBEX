@@ -1,4 +1,5 @@
 import time
+import re
 from functools import wraps  # for measure_execution_time()
 from typing import Any, Callable, Optional, Sequence, List
 
@@ -12,7 +13,6 @@ class URI:
 
     uri_entry_identifiers: str = ""
     uri_fragment: str = ""
-
     ids_name: str = ""
     node_path: str = ""
     occurrence: int = 0
@@ -20,31 +20,22 @@ class URI:
     def __init__(self, full_uri):
         self.full_uri = full_uri
 
-        if "#" not in full_uri:
-            self.uri_entry_identifiers = full_uri
+        if "#" not in self.full_uri:
+            self.uri_entry_identifiers = self.full_uri
             return
 
-        # Split the URI into base and fragment parts
-        base_uri, fragment = full_uri.split("#", 1)
-        self.uri_entry_identifiers = base_uri
-        self.uri_fragment = fragment
+        self.uri_entry_identifiers, self.uri_fragment = self.full_uri.split("#", 1)
 
-        if ":" in fragment:
-            # Split the fragment into ids_name and the rest of the string after the colon
-            ids_name, remaining = fragment.split(":", 1)
-            self.ids_name = ids_name
+        pattern = r"^(?P<idsname>[^:/]+)(?::(?P<occurrence>[^/]*))?(?:/(?P<node_path>.*))?$"
 
-            # If the remaining part contains a slash, split it into occurrence and node_path
-            if "/" in remaining:
-                self.occurrence, self.node_path = remaining.split("/", 1)
-            else:
-                self.occurrence = remaining
-        else:
-            # If the fragment contains a slash, split it into ids_name and node_path
-            if "/" in fragment:
-                self.ids_name, self.node_path = fragment.split("/", 1)
-            else:
-                self.ids_name = fragment
+        match = re.match(pattern, self.uri_fragment)
+
+        if not match:
+            return
+
+        self.ids_name = match.group("idsname") if match.group("idsname") else ""
+        self.occurrence = match.group("occurrence") if match.group("occurrence") else 0
+        self.node_path = match.group("node_path") if match.group("node_path") else ""
 
     def __str__(self):
         return (
@@ -118,3 +109,10 @@ def list_db_entries(
     version: Optional[int] = None,
 ) -> dict:
     return data_source.list_db_entries(user, backends, database, version)
+
+
+def get_multiple_node_data(uri: str) -> dict:
+    uri_obj = URI(uri)
+    return data_source.get_multiple_node_data(
+        uri_obj.uri_entry_identifiers, uri_obj.ids_name, uri_obj.node_path, uri_obj.occurrence
+    )
