@@ -9,15 +9,19 @@ import {
 } from '@mantine/core';
 import { useEffect, useRef, useState } from 'react';
 import {
-  IconCirclePlus,
+  IconBrackets,
+  IconFileUnknown,
   IconFolder,
   IconFolderOpen,
+  IconHash,
+  IconRipple,
+  IconTypography,
 } from '@tabler/icons-react';
 import classes from './TreeLibrary.module.css';
-import { CustomTreeNodeData, NodeInfoTypeEnum } from 'src/renderer/types';
+import { CustomTreeNodeData, NodeInfoTypeEnum } from '../../types';
 
-interface FileIconProps {
-  isFolder: boolean;
+interface NodeIconProps {
+  type: NodeInfoTypeEnum;
   expanded: boolean;
 }
 
@@ -39,24 +43,31 @@ export const TreeLibrary = ({
   const tree = useTree();
   const [selectedNode, setSelectedNode] = useState<string>(null);
 
-  function FileIcon({ isFolder, expanded }: FileIconProps) {
-    return isFolder ? (
+  function NodeIcon({ type, expanded }: NodeIconProps) {
+
+    const getNodeIcon = (type: NodeInfoTypeEnum) => {
+      switch (type) {
+        case NodeInfoTypeEnum.STRUCTURE:
+          return <IconFolder size={16} color="var(--mantine-color-blue-8)" />;
+        case NodeInfoTypeEnum.ARRAY:
+          return <IconBrackets size={16} color="var(--mantine-color-blue-8)" />;
+        case NodeInfoTypeEnum.INTEGER:
+          return <IconHash size={16} color="var(--mantine-color-blue-8)" />;
+        case NodeInfoTypeEnum.FLOAT:
+          return <IconRipple size={16} color="var(--mantine-color-blue-8)" />;
+        case NodeInfoTypeEnum.STRING:
+          return <IconTypography size={16} color="var(--mantine-color-blue-8)" />;
+      }
+    }
+
+        
+    return (
       expanded ? (
-        <IconFolderOpen
-          color="var(--mantine-color-blue-8)"
-          size={14}
-          stroke={2.5}
-        />
+        <IconFolderOpen size={16} color="var(--mantine-color-blue-8)" />
       ) : (
-        <IconFolder
-          color="var(--mantine-color-blue-8)"
-          size={14}
-          stroke={2.5}
-        />
+        type ? getNodeIcon(type) : <IconFileUnknown size={16} color="var(--mantine-color-blue-8)" />
       )
-    ) : (
-      <IconCirclePlus size={14} color="var(--mantine-color-blue-8)" />
-    );
+    )
   }
 
   function Element({
@@ -90,7 +101,7 @@ export const TreeLibrary = ({
 
     return (
       <Group gap={5} {...elementProps}>
-        <FileIcon isFolder={true} expanded={expanded} />
+        <NodeIcon type={type} expanded={expanded} />
         {isTextOverflowing ? (
           <Tooltip label={node.label} position="left">
             <Text truncate="end" w={125} ref={textRef}>
