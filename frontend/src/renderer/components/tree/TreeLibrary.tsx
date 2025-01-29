@@ -10,6 +10,7 @@ import {
 import { useEffect, useRef, useState } from 'react';
 import {
   IconBrackets,
+  IconBracketsContain,
   IconFileUnknown,
   IconFolder,
   IconFolderOpen,
@@ -44,10 +45,16 @@ export const TreeLibrary = ({
   const [selectedNode, setSelectedNode] = useState<string>(null);
 
   function NodeIcon({ type, expanded }: NodeIconProps) {
-    const getNodeIcon = (type: NodeInfoTypeEnum) => {
+    const getNodeIcon = (type: NodeInfoTypeEnum, expanded: boolean) => {
       switch (type) {
         case NodeInfoTypeEnum.STRUCTURE:
-          return (
+          return expanded ? (
+            <IconFolderOpen
+              size={14}
+              stroke={2.5}
+              color="var(--mantine-color-blue-8)"
+            />
+          ) : (
             <IconFolder
               size={14}
               stroke={2.5}
@@ -55,7 +62,13 @@ export const TreeLibrary = ({
             />
           );
         case NodeInfoTypeEnum.ARRAY:
-          return (
+          return expanded ? (
+            <IconBracketsContain
+              size={14}
+              stroke={2.5}
+              color="var(--mantine-color-blue-8)"
+            />
+          ) : (
             <IconBrackets
               size={14}
               stroke={2.5}
@@ -97,14 +110,8 @@ export const TreeLibrary = ({
       }
     };
 
-    return expanded ? (
-      <IconFolderOpen
-        size={14}
-        stroke={2.5}
-        color="var(--mantine-color-blue-8)"
-      />
-    ) : type ? (
-      getNodeIcon(type)
+    return type ? (
+      getNodeIcon(type, expanded)
     ) : (
       <IconFileUnknown
         size={14}
