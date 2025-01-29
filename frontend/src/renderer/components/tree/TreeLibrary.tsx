@@ -134,8 +134,6 @@ export const TreeLibrary = ({
     useEffect(() => {
       const fetchData = async () => {
         if (selected && selectedNode !== node.value) {
-          console.log('fetchData', node.value);
-          console.log('type', type);
           setSelectedNode(node.value);
           await handleSelectChildren(node.value);
         }
