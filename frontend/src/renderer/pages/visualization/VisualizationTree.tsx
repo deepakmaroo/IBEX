@@ -19,8 +19,9 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
       const newCustomDataTree: CustomTreeData[] = active.dataIDS.map((ids) => ({
         name: ids.name,
         uri: ids.uri,
-        occurrences: ids.occurrences,
+        occurrences: 0,
         data: [],
+        fullUri: ids.fullUri,
       }));
       const updatedActive: Configuration = {
         ...active,
@@ -36,12 +37,12 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
    * @param fullUri The full URI for fetching or updating node data
    */
   const fetchNodeInfos = useCallback(
-    async (fullUri: string) => {
-      if (!fullUri) return;
+    async (nodeUri: string) => {
+      if (!nodeUri) return;
 
       try {
         const responseNodeInfo = await fetch(
-          `${window.env.API_URL}/ids_info/node_info/?uri=${encodeURIComponent(fullUri)}`,
+          `${window.env.API_URL}/ids_info/node_info/?uri=${encodeURIComponent(nodeUri)}`,
           {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
@@ -53,45 +54,60 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
           throw new Error(error.detail || 'Failed to fetch IDS data');
         }
 
+        
+
         const nodeInfos = await responseNodeInfo.json();
-        const children = nodeInfos.children || [];
+        const nodeInfoschildren = nodeInfos.children || [];
 
-        if (children.length === 0) return;
+        if (nodeInfoschildren.length === 0) return;
 
-        const newChildren: TreeNodeData[] = children.map((child: any) => ({
+        const newChildren: TreeNodeData[] = nodeInfoschildren.map((child: any) => ({
           label: child.name,
-          value: `${fullUri}/${child.name}`,
+          value: `${nodeUri}/${child.name}`,
         }));
 
+        /**
+         * Update the children of the node
+         * @param nodes
+         * @param nodeValueToUpdate
+         * @returns
+         */
         const updateNodeChildren = (
           nodes: TreeNodeData[],
-          nodeValueToUpdate: string,
-        ): TreeNodeData[] =>
-          nodes.map((node) => {
-            if (node.value === nodeValueToUpdate) {
-              return { ...node, children: newChildren };
-            }
+          nodeUri: string,
+        ): TreeNodeData[] => {
+          if (nodes.length === 0) return newChildren;
 
-            if (node.children?.length) {
+          return nodes.map((node) => {
+            if (node.value === nodeUri) {
               return {
                 ...node,
-                children: updateNodeChildren(node.children, nodeValueToUpdate),
+                children: newChildren,
+              };
+            }
+
+            if (node.children) {
+              return {
+                ...node,
+                children: updateNodeChildren(node.children, nodeUri),
               };
             }
 
             return node;
           });
+        };
 
-        const updatedCustomDataTree = active.customDataTree.map((item) => {
-          if (item.uri && fullUri.startsWith(item.uri)) {
-            const nodeValue = fullUri.replace(`${item.uri}/`, '');
-            return {
-              ...item,
-              data: updateNodeChildren(item.data, nodeValue),
-            };
-          }
-          return item;
-        });
+        const updatedCustomDataTree = active.customDataTree.map(
+          (item: CustomTreeData) => {
+            if (item.fullUri && nodeUri.startsWith(item.fullUri)) {
+              return {
+                ...item,
+                data: updateNodeChildren(item.data, nodeUri),
+              };
+            }
+            return item;
+          },
+        );
 
         const updatedActive: Configuration = {
           ...active,
@@ -120,8 +136,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
         );
         if (selectedCustomData) {
           if (selectedCustomData.data.length === 0) {
-            const fullUri = `${selectedCustomData.uri}#${selectedCustomData.name}:${selectedCustomData.occurrences[0]}`;
-            fetchNodeInfos(fullUri);
+            fetchNodeInfos(selectedCustomData.fullUri);
           }
         }
       }
@@ -135,9 +150,8 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
    * @param nodeValue
    */
   const handleSelectChildren = useCallback(
-    (uri: string, nodeValue: string) => {
-      const fullUri = `${uri}/${nodeValue}`;
-      fetchNodeInfos(fullUri);
+    (nodeUri: string) => {
+      fetchNodeInfos(nodeUri);
     },
     [active],
   );

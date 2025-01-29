@@ -164,6 +164,7 @@ export const VisualizationIDSFromURIModal = ({
           name: ids.name,
           occurrences: ids.occurrences,
           uri: formIDS.values.uri,
+          fullUri: `${formIDS.values.uri}#${ids.name}:0`,
         });
       }
 

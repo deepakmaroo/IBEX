@@ -5,9 +5,6 @@ export type DataTreeSelected = {
 };
 
 
-export type CustomTreeData = {
-  name: string;
-  uri: string;
-  occurrences?: number[];
+export type CustomTreeData = IDSData & {
   data: TreeNodeData[];
 };

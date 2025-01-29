@@ -1,5 +1,6 @@
 export type IDSData = {
   name: string;
-  occurrences: number[];
+  occurrences: number;
   uri: string;
+  fullUri:string
 };
