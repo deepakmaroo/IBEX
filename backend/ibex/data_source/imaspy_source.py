@@ -17,9 +17,9 @@ from ibex.data_source.exception import NotALeafNodeException, NotAnArrayExceptio
 class IMASPySource(DataSourceInterface):
     def data_entry_exists(self, uri: str) -> bool:
         """
-
-        :param uri:
-        :return:
+        Check if data entry can be opened
+        :param uri: imas URI
+        :return: True if entry can be opened, False otherwise
         """
 
         try:
@@ -31,9 +31,9 @@ class IMASPySource(DataSourceInterface):
 
     def list_idses(self, uri: str) -> dict:
         """
-
-        :param uri:
-        :return:
+        Returns list of IDSes with occurrence numbers that are filled in given data entry uri
+        :param uri: imas URI
+        :return: dictionary: {'idses': [{'name':<name>, 'occurrences':[<0>,<1>,...]}, {'name': ...}]}
         """
         entry = imaspy.DBEntry(uri, mode="r")
         ids_list = entry.factory.ids_names()
@@ -54,10 +54,10 @@ class IMASPySource(DataSourceInterface):
 
     def _jsonify_metadata(self, metadata: IDSMetadata, recursive: bool = False) -> dict:
         """
-
-        :param metadata:
-        :param recursive:
-        :return:
+        Converts imaspy.ids_metadata.IDSMetadata into dictionary
+        :param metadata: imaspy.ids_metadata.IDSMetadata - metadata to be converted
+        :param recursive: if it should append recursively metadata of children, children of children and so on...
+        :return: metadata turned into dictionary with keys: `name`:str, `type`:str, `ndim`:str, `shape`:str, `children`:list[dict]
         """
 
         result = {}
@@ -76,10 +76,11 @@ class IMASPySource(DataSourceInterface):
 
     def get_node_info(self, uri: str, ids: str, node_path: str, occurrence: int = 0, recursive: bool = False) -> dict:
         """
-
+        Returns dictionary with basic info about IDS node pointed by `node_path` argument
         :param uri: pulsefile uri - used only to get proper DD version
         :param ids: name of ids e.g. core_profiles
         :param node_path: path to ids node e.g. ids_properties/version_put
+        :param occurrence: ids occurrence number
         :param recursive: if True, creates node_info tree.
             if False, returns only pointed node and it's children node_info
         :return:
@@ -99,11 +100,12 @@ class IMASPySource(DataSourceInterface):
 
     def _get_raw_data(self, uri: str, ids: str, node_path: str, occurrence: int = 0) -> IDSStructure | IDSPrimitive:
         """
-
-        :param uri:
-        :param ids:
-        :param node_path:
-        :return:
+        Internal function. Returns raw data extracted from IDS
+        :param uri: imas URI
+        :param ids: name of ids e.g. core_profiles
+        :param node_path: path to ids node e.g. ids_properties/version_put
+        :param occurrence: ids occurrence number
+        :return: IDSStructure or IDSPrimitive, depending on node's content
         """
 
         entry = imaspy.DBEntry(uri, mode="r")
@@ -116,11 +118,13 @@ class IMASPySource(DataSourceInterface):
 
     def get_data(self, uri: str, ids: str, node_path: str, occurrence: int = 0, range: List[int] | None = None) -> dict:
         """
-
-        :param uri:
-        :param ids:
-        :param node_path:
-        :return:
+        Returns data extracted from IDS, converted into dictionary
+        :param uri: imas URI
+        :param ids: name of ids e.g. core_profiles
+        :param node_path: path to ids node e.g. ids_properties/version_put
+        :param occurrence: ids occurrence number
+        :param range:
+        :return: dictionary {'value':<node_value>}, where <node_value> represents data extracted from IDS node
         """
 
         ids_data = self._get_raw_data(uri, ids, node_path, occurrence)
@@ -136,27 +140,29 @@ class IMASPySource(DataSourceInterface):
 
         return {"value": ids_data.value}
 
-    def find_paths(self, uri: str, ids: str, node_path: str) -> dict:
+    def find_paths(self, uri: str, ids: str, searched_node: str, occurrence: int = 0) -> dict:
         """
-
-        :param uri:
-        :param ids:
-        :param node_path:
-        :return:
+        Finds paths containing phrase passed in searched_node argument
+        :param uri: imas URI
+        :param ids: name of ids e.g. core_profiles
+        :param searched_node: searched text
+        :param occurrence: ids occurrence number
+        :return: dictionary {'paths': ['path/to/node1','path/to/node2', ...]}
         """
         entry = imaspy.DBEntry(uri, mode="r")
-        ids_obj = entry.get(ids, autoconvert=False)
-        found_paths = imaspy.util.find_paths(ids_obj, node_path)
+        ids_obj = entry.get(ids, occurrence=occurrence, autoconvert=False)
+        found_paths = imaspy.util.find_paths(ids_obj, searched_node)
 
         return {"paths": found_paths}
 
     def array_summary(self, uri: str, ids: str, node_path: str, occurrence: int = 0) -> dict:
         """
-
-        :param uri:
-        :param ids:
-        :param node_path:
-        :return:
+        Returns short summary of array node as a dictionary
+        :param uri: imas URI
+        :param ids: name of ids e.g. core_profiles
+        :param node_path: path to ids node e.g. ids_properties/version_put
+        :param occurrence: ids occurrence number
+        :return: dictionary {'shape': [<dim1>,<dim2>, ...], 'min':<min_value>, 'max':<max_value>, 'mean':<mean>, 'standard_deviation':<s_d>}
         """
         ids_data = self._get_raw_data(uri, ids, node_path, occurrence)
 
@@ -184,12 +190,12 @@ class IMASPySource(DataSourceInterface):
         version: Optional[int] = None,
     ) -> dict:
         """
-
-        :param user:
-        :param backends:
-        :param database:
-        :param version:
-        :return:
+        Returns list of available data entries
+        :param user: owner of searched data entry
+        :param backends: searched backends [<be1>, <be2>, ...]: default(None)
+        :param database: searched database name: default(None)
+        :param version: searched AL major version:
+        :return: dictionary {'entries': [<uri1>, <uri2>, ...]}
         """
 
         result: dict[str, list[str]] = {}
@@ -219,7 +225,7 @@ class IMASPySource(DataSourceInterface):
 
     def _expand_single_path_element(self, ids_root: IDSBase, current_node_path, parent_paths=None):
         """
-
+        Internal function. Expands single element of path
         :param ids_root: The root of the IDS data structure.
         :param current_node_path: The current path to start from.
         :param parent_paths: List of parent paths to consider. Defaults to [""].

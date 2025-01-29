@@ -8,7 +8,11 @@ from dataclasses import dataclass
 
 
 @dataclass
-class URI:
+class IMAS_URI:
+    """
+    Helper class to extract arguments from imas uri
+    """
+
     full_uri: str = ""
 
     uri_entry_identifiers: str = ""
@@ -67,36 +71,36 @@ def measure_execution_time(func: Callable[..., Any]) -> Callable[..., Any]:
 
 
 def data_entry_exists(uri: str) -> dict:
-    uri_obj = URI(uri)
+    uri_obj = IMAS_URI(uri)
     return {"exists": data_source.data_entry_exists(uri_obj.uri_entry_identifiers)}
 
 
 def get_node_info(uri: str, recursive: bool = False) -> dict:
-    uri_obj = URI(uri)
+    uri_obj = IMAS_URI(uri)
     return data_source.get_node_info(
         uri_obj.uri_entry_identifiers, uri_obj.ids_name, uri_obj.node_path, uri_obj.occurrence, recursive
     )
 
 
 def get_data(uri: str, range: List[int]) -> dict:
-    uri_obj = URI(uri)
+    uri_obj = IMAS_URI(uri)
     return data_source.get_data(
         uri_obj.uri_entry_identifiers, uri_obj.ids_name, uri_obj.node_path, uri_obj.occurrence, range
     )
 
 
 def list_idses(uri: str) -> dict:
-    uri_obj = URI(uri)
+    uri_obj = IMAS_URI(uri)
     return data_source.list_idses(uri_obj.uri_entry_identifiers)
 
 
 def find_paths(uri: str, searched_node: str) -> dict:
-    uri_obj = URI(uri)
+    uri_obj = IMAS_URI(uri)
     return data_source.find_paths(uri_obj.uri_entry_identifiers, uri_obj.ids_name, searched_node)
 
 
 def array_summary(uri: str) -> dict:
-    uri_obj = URI(uri)
+    uri_obj = IMAS_URI(uri)
     return data_source.array_summary(
         uri_obj.uri_entry_identifiers, uri_obj.ids_name, uri_obj.node_path, uri_obj.occurrence
     )
@@ -112,7 +116,7 @@ def list_db_entries(
 
 
 def get_multiple_node_data(uri: str) -> dict:
-    uri_obj = URI(uri)
+    uri_obj = IMAS_URI(uri)
     return data_source.get_multiple_node_data(
         uri_obj.uri_entry_identifiers, uri_obj.ids_name, uri_obj.node_path, uri_obj.occurrence
     )
