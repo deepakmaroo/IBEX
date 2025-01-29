@@ -44,30 +44,74 @@ export const TreeLibrary = ({
   const [selectedNode, setSelectedNode] = useState<string>(null);
 
   function NodeIcon({ type, expanded }: NodeIconProps) {
-
     const getNodeIcon = (type: NodeInfoTypeEnum) => {
       switch (type) {
         case NodeInfoTypeEnum.STRUCTURE:
-          return <IconFolder size={16} color="var(--mantine-color-blue-8)" />;
+          return (
+            <IconFolder
+              size={14}
+              stroke={2.5}
+              color="var(--mantine-color-blue-8)"
+            />
+          );
         case NodeInfoTypeEnum.ARRAY:
-          return <IconBrackets size={16} color="var(--mantine-color-blue-8)" />;
+          return (
+            <IconBrackets
+              size={14}
+              stroke={2.5}
+              color="var(--mantine-color-blue-8)"
+            />
+          );
         case NodeInfoTypeEnum.INTEGER:
-          return <IconHash size={16} color="var(--mantine-color-blue-8)" />;
+          return (
+            <IconHash
+              size={14}
+              stroke={2.5}
+              color="var(--mantine-color-blue-8)"
+            />
+          );
         case NodeInfoTypeEnum.FLOAT:
-          return <IconRipple size={16} color="var(--mantine-color-blue-8)" />;
+          return (
+            <IconRipple
+              size={14}
+              stroke={2.5}
+              color="var(--mantine-color-blue-8)"
+            />
+          );
         case NodeInfoTypeEnum.STRING:
-          return <IconTypography size={16} color="var(--mantine-color-blue-8)" />;
+          return (
+            <IconTypography
+              size={14}
+              stroke={2.5}
+              color="var(--mantine-color-blue-8)"
+            />
+          );
+        default:
+          return (
+            <IconFileUnknown
+              size={14}
+              stroke={2.5}
+              color="var(--mantine-color-blue-8)"
+            />
+          );
       }
-    }
+    };
 
-        
-    return (
-      expanded ? (
-        <IconFolderOpen size={16} color="var(--mantine-color-blue-8)" />
-      ) : (
-        type ? getNodeIcon(type) : <IconFileUnknown size={16} color="var(--mantine-color-blue-8)" />
-      )
-    )
+    return expanded ? (
+      <IconFolderOpen
+        size={14}
+        stroke={2.5}
+        color="var(--mantine-color-blue-8)"
+      />
+    ) : type ? (
+      getNodeIcon(type)
+    ) : (
+      <IconFileUnknown
+        size={14}
+        stroke={2.5}
+        color="var(--mantine-color-blue-8)"
+      />
+    );
   }
 
   function Element({

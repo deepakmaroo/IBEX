@@ -1,6 +1,6 @@
 
 export enum NodeInfoTypeEnum {
-  STRUCTURE = "strudture",
+  STRUCTURE = "structure",
   ARRAY= "struct_array",
   INTEGER="INT",
   FLOAT="FLT",
