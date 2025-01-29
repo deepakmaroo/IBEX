@@ -141,7 +141,7 @@ export const TreeLibrary = ({
         }
       };
       fetchData();
-    }, [selected, node.value, selectedNode, type]);
+    }, [selected, node.value, type]);
 
     useEffect(() => {
       if (textRef.current) {
