@@ -1,4 +1,4 @@
-import { Accordion, ScrollArea, TreeNodeData } from '@mantine/core';
+import { Accordion, ScrollArea } from '@mantine/core';
 import { CustomTreeData } from 'src/renderer/types';
 import { TreeLibrary } from '../../components';
 
@@ -13,10 +13,8 @@ export const TreeLibrariesAccordion = ({
   customDataTree,
   height,
   handleAccordionChange,
-  handleSelectChildren
+  handleSelectChildren,
 }: VisualizationTreeProps) => {
-
-
   const items = customDataTree.map((item) => (
     <Accordion.Item key={`accodion-${item.name}`} value={item.name}>
       <Accordion.Control>{item.name}</Accordion.Control>

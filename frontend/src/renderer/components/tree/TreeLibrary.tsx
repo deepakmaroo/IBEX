@@ -29,7 +29,7 @@ interface NodeIconProps {
 interface TreeLibraryProps {
   treeData: CustomTreeNodeData[];
   height?: string;
-  handleSelectChildren: (node: string) => void; // Passer l'objet complet du nœud
+  handleSelectChildren: (node: string) => void;
 }
 
 interface ElementProps extends RenderTreeNodePayload {

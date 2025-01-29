@@ -27,7 +27,7 @@ export function MainLayout() {
     const newConfig: Configuration = {
       name: config.name,
       dataIDS: [],
-      customDataTree: []
+      customDataTree: [],
     };
     addConfiguration(newConfig);
     setActive(newConfig.name);

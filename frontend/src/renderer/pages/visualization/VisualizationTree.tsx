@@ -1,8 +1,14 @@
 import { useCallback, useEffect } from 'react';
 import { TreeLibrariesAccordion } from '../../components';
 import { useIbexStore } from '../../stores';
-import { Configuration, CustomTreeData, CustomTreeNodeData, NodeInfo, NodeInfoChildren, NodeInfoTypeEnum } from 'src/renderer/types';
-import { TreeNodeData } from '@mantine/core';
+import {
+  Configuration,
+  CustomTreeData,
+  CustomTreeNodeData,
+  NodeInfo,
+  NodeInfoChildren,
+  NodeInfoTypeEnum,
+} from '../../types';
 
 interface VisualizationTreeProps {
   height: string;
@@ -59,15 +65,20 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
 
         if (nodeInfoschildren.length === 0) return;
 
-        const newChildren: CustomTreeNodeData[] = nodeInfoschildren.map((child: NodeInfoChildren) => {
-          const newValue = child.type === NodeInfoTypeEnum.STRUCTURE ? `${nodeUri}/${child.name}` : `${nodeUri}/${child.name}[0]`;
-          return {
-            label: child.name,
-            value: newValue,
-            type: child.type,
-            children: [],
-          }
-        })
+        const newChildren: CustomTreeNodeData[] = nodeInfoschildren.map(
+          (child: NodeInfoChildren) => {
+            const newValue =
+              child.type === NodeInfoTypeEnum.STRUCTURE
+                ? `${nodeUri}/${child.name}`
+                : `${nodeUri}/${child.name}[0]`;
+            return {
+              label: child.name,
+              value: newValue,
+              type: child.type,
+              children: [],
+            };
+          },
+        );
         /**
          * Update the children of the node
          * @param nodes

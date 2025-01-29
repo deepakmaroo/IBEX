@@ -9,7 +9,7 @@ export type DataTreeSelected = {
 export type CustomTreeNodeData = TreeNodeData & {
   type: NodeInfoTypeEnum;
   children: CustomTreeNodeData[];
-}
+};
 
 export type CustomTreeData = IDSData & {
   data: CustomTreeNodeData[];
