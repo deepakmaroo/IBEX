@@ -1,22 +1,20 @@
 import {
-  Box,
   Group,
   RenderTreeNodePayload,
   ScrollArea,
   Text,
   Tooltip,
   Tree,
-  TreeNodeData,
   useTree,
 } from '@mantine/core';
 import { useEffect, useRef, useState } from 'react';
-import classes from './TreeLibrary.module.css';
 import {
   IconCirclePlus,
   IconFolder,
   IconFolderOpen,
 } from '@tabler/icons-react';
-import { DataTreeSelected } from 'src/renderer/types';
+import classes from './TreeLibrary.module.css';
+import { CustomTreeNodeData, NodeInfoTypeEnum } from 'src/renderer/types';
 
 interface FileIconProps {
   isFolder: boolean;
@@ -24,30 +22,26 @@ interface FileIconProps {
 }
 
 interface TreeLibraryProps {
-  treeData: TreeNodeData[];
+  treeData: CustomTreeNodeData[];
   height?: string;
-  uri?: string;
-  handleSelectChildren: (nodeValue: string) => void;
+  handleSelectChildren: (node: string) => void; // Passer l'objet complet du nœud
 }
 
 interface ElementProps extends RenderTreeNodePayload {
-  uri: string;
+  type: NodeInfoTypeEnum;
 }
 
 export const TreeLibrary = ({
   treeData,
   height,
-  uri,
   handleSelectChildren,
 }: TreeLibraryProps) => {
   const tree = useTree();
-  const [selectedNode, setSelectedNode] = useState<DataTreeSelected | null>(
-    null,
-  );
+  const [selectedNode, setSelectedNode] = useState<string>(null);
 
   function FileIcon({ isFolder, expanded }: FileIconProps) {
-    if (isFolder) {
-      return expanded ? (
+    return isFolder ? (
+      expanded ? (
         <IconFolderOpen
           color="var(--mantine-color-blue-8)"
           size={14}
@@ -59,33 +53,41 @@ export const TreeLibrary = ({
           size={14}
           stroke={2.5}
         />
-      );
-    }
-
-    return <IconCirclePlus size={14} color="var(--mantine-color-blue-8)" />;
+      )
+    ) : (
+      <IconCirclePlus size={14} color="var(--mantine-color-blue-8)" />
+    );
   }
 
-  function Element({ node, expanded, elementProps, selected }: ElementProps) {
+  function Element({
+    node,
+    expanded,
+    elementProps,
+    selected,
+    type,
+  }: ElementProps) {
     const textRef = useRef<HTMLDivElement>(null);
     const [isTextOverflowing, setIsTextOverflowing] = useState(false);
 
     useEffect(() => {
       const fetchData = async () => {
-        if (selected && selectedNode?.path !== node.value) {
-          setSelectedNode({ path: node.value });
+        if (selected && selectedNode !== node.value) {
+          console.log('fetchData', node.value);
+          console.log('type', type);
+          setSelectedNode(node.value);
           await handleSelectChildren(node.value);
         }
       };
       fetchData();
-    }, [selected, node.value, selectedNode]);
-  
+    }, [selected, node.value, selectedNode, type]);
+
     useEffect(() => {
       if (textRef.current) {
         const { scrollWidth, offsetWidth } = textRef.current;
         setIsTextOverflowing(scrollWidth > offsetWidth);
       }
     }, [node.label]);
-  
+
     return (
       <Group gap={5} {...elementProps}>
         <FileIcon isFolder={true} expanded={expanded} />
@@ -111,7 +113,12 @@ export const TreeLibrary = ({
         data={treeData}
         className={classes}
         selectOnClick
-        renderNode={(payload) => <Element {...payload} uri={uri} />}
+        renderNode={(payload) => (
+          <Element
+            {...payload}
+            type={(payload.node as CustomTreeNodeData).type}
+          />
+        )}
       />
     </ScrollArea>
   );

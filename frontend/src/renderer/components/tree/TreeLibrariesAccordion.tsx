@@ -1,5 +1,5 @@
 import { Accordion, ScrollArea, TreeNodeData } from '@mantine/core';
-import { Configuration, CustomTreeData } from 'src/renderer/types';
+import { CustomTreeData } from 'src/renderer/types';
 import { TreeLibrary } from '../../components';
 
 interface VisualizationTreeProps {
@@ -23,7 +23,6 @@ export const TreeLibrariesAccordion = ({
       <Accordion.Panel>
         <TreeLibrary
           treeData={item.data}
-          uri={item.uri}
           handleSelectChildren={handleSelectChildren}
         />
       </Accordion.Panel>

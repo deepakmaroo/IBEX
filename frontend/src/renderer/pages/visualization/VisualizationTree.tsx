@@ -1,7 +1,7 @@
 import { useCallback, useEffect } from 'react';
 import { TreeLibrariesAccordion } from '../../components';
 import { useIbexStore } from '../../stores';
-import { Configuration, CustomTreeData } from 'src/renderer/types';
+import { Configuration, CustomTreeData, CustomTreeNodeData, NodeInfo, NodeInfoChildren } from 'src/renderer/types';
 import { TreeNodeData } from '@mantine/core';
 
 interface VisualizationTreeProps {
@@ -56,14 +56,16 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
 
         
 
-        const nodeInfos = await responseNodeInfo.json();
+        const nodeInfos: NodeInfo = await responseNodeInfo.json();
         const nodeInfoschildren = nodeInfos.children || [];
 
         if (nodeInfoschildren.length === 0) return;
 
-        const newChildren: TreeNodeData[] = nodeInfoschildren.map((child: any) => ({
+        const newChildren: CustomTreeNodeData[] = nodeInfoschildren.map((child: NodeInfoChildren) => ({
           label: child.name,
           value: `${nodeUri}/${child.name}`,
+          type: child.type,
+          children: [],
         }));
 
         /**
@@ -73,9 +75,9 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
          * @returns
          */
         const updateNodeChildren = (
-          nodes: TreeNodeData[],
+          nodes: CustomTreeNodeData[],
           nodeUri: string,
-        ): TreeNodeData[] => {
+        ): CustomTreeNodeData[] => {
           if (nodes.length === 0) return newChildren;
 
           return nodes.map((node) => {

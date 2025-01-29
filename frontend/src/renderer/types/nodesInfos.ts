@@ -15,4 +15,5 @@ export type NodeInfoChildren = {
 
 export type NodeInfo = NodeInfoChildren & {
   shapes: number[],
+  children: NodeInfoChildren[]
 }
