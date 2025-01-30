@@ -1,7 +1,9 @@
-export type IDSData = {
+type IDSData = {
   name: string;
   uri: string;
-  fullUri: string;
+};
+
+export type IDSDataSelected = IDSData & {
   occurrence?: number;
 };
 

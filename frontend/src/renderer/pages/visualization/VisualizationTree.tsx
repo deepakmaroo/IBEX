@@ -25,9 +25,9 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
       const newCustomDataTree: CustomTreeData[] = active.dataIDS.map((ids) => ({
         name: ids.name,
         uri: ids.uri,
-        occurrences: 0,
+        occurrence: ids.occurrence,
         data: [],
-        fullUri: ids.fullUri,
+        fullUri: `${ids.uri}#${ids.name}:${ids.occurrence}`,
       }));
       const updatedActive: Configuration = {
         ...active,
@@ -80,8 +80,6 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
           },
         );
 
-        console.log("newChildren", newChildren)
-
         /**
          * Update the children of the node
          * @param nodes
@@ -131,8 +129,6 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
             return dataTree;
           },
         );
-
-        console.log('updatedCustomDataTree', updatedCustomDataTree);
 
         const updatedActive: Configuration = {
           ...active,

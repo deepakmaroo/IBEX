@@ -13,7 +13,7 @@ import {
   TextInput,
 } from '@mantine/core';
 import { useIbexStore } from '../../stores';
-import { IDSData, IDSDataLoaded } from 'src/renderer/types';
+import { IDSDataSelected, IDSDataLoaded } from 'src/renderer/types';
 import { useEffect, useState } from 'react';
 import { IconSearch } from '@tabler/icons-react';
 import { showNotification } from '@mantine/notifications';
@@ -34,13 +34,15 @@ export const VisualizationIDSFromURIModal = ({
   close,
 }: VisualizationSelectIDSModalProps) => {
   const { active, updatedConfiguration } = useIbexStore();
-  const [dataIDS, setDataIDS] = useState<IDSData[]>([]);
+  const [dataIDS, setDataIDS] = useState<IDSDataSelected[]>([]);
   const [dataIDSLoaded, setDataIDSLoaded] = useState<IDSDataLoaded[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [activePage, setPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const [fromURIisSuccess, setFromURIisSuccess] = useState(false);
   const [fromFileisSuccess, setFromFileisSuccess] = useState(false);
+
+
 
   const formIDS = useForm<FormIDS>({
     initialValues: {
@@ -55,10 +57,13 @@ export const VisualizationIDSFromURIModal = ({
     }
   }, [active?.dataIDS]);
 
+
+
   const tableHeaders = (
     <Table.Tr>
       <Table.Th>Select</Table.Th>
       <Table.Th>Name</Table.Th>
+      <Table.Th>Occurrences</Table.Th>
     </Table.Tr>
   );
 
@@ -67,7 +72,7 @@ export const VisualizationIDSFromURIModal = ({
   const endIndex = startIndex + itemsPerPage;
   const currentPageData = dataIDSLoaded.slice(startIndex, endIndex);
 
-  const tableRows = currentPageData.map((element) => (
+  const tableRows = currentPageData.map((element, index) => (
     <Table.Tr key={`table-${element.name}`}>
       <Table.Td>
         <Checkbox
@@ -76,42 +81,63 @@ export const VisualizationIDSFromURIModal = ({
           w={50}
           onChange={() => handleCheckIds(element.name)}
           checked={
-            dataIDS?.findIndex((d: IDSData) => d.name === element.name) !== -1
+            dataIDS?.findIndex((d: IDSDataSelected) => d.name === element.name) !== -1
           }
         />
       </Table.Td>
       <Table.Td>{element.name}</Table.Td>
       <Table.Td>
-        <Group mt="xs">
-          <Radio.Group
-            name="occurrenceSelected"
-            withAsterisk
-          >
-            {element.occurrences.map((occurrence) => {
+        <Radio.Group
+          name={`occurence-${index}`}
+          onChange={(value) => {
+            const updatedDataIDS = dataIDS.map((d) => {
+              if (d.name === element.name) {
+                return { ...d, occurrence: parseInt(value) };
+              }
+              return d;
+            });
+            setDataIDS(updatedDataIDS);
+          }}
+          value={dataIDS.find((d) => d.name === element.name)?.occurrence?.toString() || ''}
+        >
+          <Group mt="xs">
+            {element.occurrences.map((occurrence, idx) => {
               return (
                 <Radio
-                  key={`${element.name}-${occurrence}`}
-                  value={occurrence}
-                  label={occurrence}
+                  key={idx} 
+                  value={`${occurrence}`}
+                  label={`${occurrence}`}
                 />
               );
             })}
-          </Radio.Group>
-        </Group>
+          </Group>
+        </Radio.Group>
       </Table.Td>
     </Table.Tr>
   ));
+  
 
   const handleCheckIds = (name: string): void => {
-    const updateDataIDS: IDSData[] =
-      dataIDS?.findIndex((d: IDSData) => d.name === name) !== -1
-        ? dataIDS?.filter((d: IDSData) => d.name !== name)
-        : [...dataIDS, dataIDSLoaded.find((d: IDSData) => d.name === name)];
+    const updateDataIDS: IDSDataSelected[] =
+      dataIDS?.findIndex((d: IDSDataSelected) => d.name === name) !== -1
+        ? dataIDS?.filter((d: IDSDataSelected) => d.name !== name)
+        : [...dataIDS, dataIDSLoaded.find((d: IDSDataSelected) => d.name === name)];
 
     setDataIDS(updateDataIDS);
   };
 
   const updateDataIDS = (): void => {
+
+    const allIdsWithOccurrence = dataIDS.every((d) => d.occurrence);
+    if (!allIdsWithOccurrence) {
+      showNotification({
+        title: 'Error',
+        message: 'Please select an occurrence for all IDS',
+        color: 'red',
+      });
+      return;
+    }
+
     updatedConfiguration({ ...active, dataIDS });
     close();
   };
@@ -183,7 +209,6 @@ export const VisualizationIDSFromURIModal = ({
           name: ids.name,
           occurrences: ids.occurrences,
           uri: formIDS.values.uri,
-          fullUri: `${formIDS.values.uri}#${ids.name}:0`,
         });
       }
 
