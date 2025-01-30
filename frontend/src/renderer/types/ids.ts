@@ -1,6 +1,11 @@
 export type IDSData = {
   name: string;
-  occurrences: number;
   uri: string;
   fullUri: string;
+  occurrence?: number;
+};
+
+export type IDSDataLoaded = IDSData & {
+  occurrences: number[];
+
 };

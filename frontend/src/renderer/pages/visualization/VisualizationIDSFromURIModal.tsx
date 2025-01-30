@@ -7,12 +7,13 @@ import {
   Loader,
   Modal,
   Pagination,
+  Radio,
   Table,
   Text,
   TextInput,
 } from '@mantine/core';
 import { useIbexStore } from '../../stores';
-import { IDSData } from 'src/renderer/types';
+import { IDSData, IDSDataLoaded } from 'src/renderer/types';
 import { useEffect, useState } from 'react';
 import { IconSearch } from '@tabler/icons-react';
 import { showNotification } from '@mantine/notifications';
@@ -34,7 +35,7 @@ export const VisualizationIDSFromURIModal = ({
 }: VisualizationSelectIDSModalProps) => {
   const { active, updatedConfiguration } = useIbexStore();
   const [dataIDS, setDataIDS] = useState<IDSData[]>([]);
-  const [dataIDSLoaded, setDataIDSLoaded] = useState<IDSData[]>([]);
+  const [dataIDSLoaded, setDataIDSLoaded] = useState<IDSDataLoaded[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [activePage, setPage] = useState(1);
   const [itemsPerPage] = useState(10);
@@ -80,6 +81,24 @@ export const VisualizationIDSFromURIModal = ({
         />
       </Table.Td>
       <Table.Td>{element.name}</Table.Td>
+      <Table.Td>
+        <Group mt="xs">
+          <Radio.Group
+            name="occurrenceSelected"
+            withAsterisk
+          >
+            {element.occurrences.map((occurrence) => {
+              return (
+                <Radio
+                  key={`${element.name}-${occurrence}`}
+                  value={occurrence}
+                  label={occurrence}
+                />
+              );
+            })}
+          </Radio.Group>
+        </Group>
+      </Table.Td>
     </Table.Tr>
   ));
 
@@ -113,7 +132,7 @@ export const VisualizationIDSFromURIModal = ({
     try {
       setIsLoading(true);
 
-      // Vérification si l'URI existe
+      // Verify if the URI exists
       const responseURIExists = await fetch(
         `${window.env.API_URL}/data_entry/exists/?uri=${encodeURIComponent(formIDS.values.uri)}`,
         {
@@ -140,7 +159,7 @@ export const VisualizationIDSFromURIModal = ({
         return;
       }
 
-      // Récupération des IDS associés à l'URI
+      // Fetch IDS data from URI
       const responseListIds = await fetch(
         `${window.env.API_URL}/data_entry/list_idses/?uri=${encodeURIComponent(formIDS.values.uri)}`,
         {
@@ -158,7 +177,7 @@ export const VisualizationIDSFromURIModal = ({
 
       const listIdsResult = await responseListIds.json();
 
-      const newDataLoaded: IDSData[] = [];
+      const newDataLoaded: IDSDataLoaded[] = [];
       for (const ids of listIdsResult.idses) {
         newDataLoaded.push({
           name: ids.name,
