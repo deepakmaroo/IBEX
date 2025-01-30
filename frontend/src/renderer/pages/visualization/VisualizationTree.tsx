@@ -68,9 +68,9 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
         const newChildren: CustomTreeNodeData[] = nodeInfoschildren.map(
           (child: NodeInfoChildren) => {
             const newValue =
-              child.type === NodeInfoTypeEnum.STRUCTURE
-                ? `${nodeUri}/${child.name}`
-                : `${nodeUri}/${child.name}[0]`;
+            nodeInfos.type === NodeInfoTypeEnum.ARRAY
+                ? `${nodeUri}[0]/${child.name}`
+                : `${nodeUri}/${child.name}`;
             return {
               label: child.name,
               value: newValue,
@@ -79,6 +79,9 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
             };
           },
         );
+
+        console.log("newChildren", newChildren)
+
         /**
          * Update the children of the node
          * @param nodes
@@ -86,41 +89,50 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
          * @returns
          */
         const updateNodeChildren = (
-          nodes: CustomTreeNodeData[],
-          nodeUri: string,
+          dataTree: CustomTreeNodeData[],
+          targetUri: string,
         ): CustomTreeNodeData[] => {
-          if (nodes.length === 0) return newChildren;
+          // If the data tree is empty
+          if (dataTree.length === 0) {
+            return newChildren;
+          }
 
-          return nodes.map((node) => {
-            if (node.value === nodeUri) {
+          return dataTree.map((node) => {
+            // If the node corresponds to the target, update its children
+            if (node.value === targetUri) {
               return {
                 ...node,
                 children: newChildren,
               };
             }
 
-            if (node.children) {
+            // If the node has children
+            if (node.children.length > 0) {
               return {
                 ...node,
-                children: updateNodeChildren(node.children, nodeUri),
+                children: updateNodeChildren(node.children, targetUri),
               };
             }
 
+            // Node no has children
             return node;
           });
+
         };
 
         const updatedCustomDataTree = active.customDataTree.map(
-          (item: CustomTreeData) => {
-            if (item.fullUri && nodeUri.startsWith(item.fullUri)) {
+          (dataTree: CustomTreeData) => {
+            if (dataTree.fullUri && nodeUri.startsWith(dataTree.fullUri)) {
               return {
-                ...item,
-                data: updateNodeChildren(item.data, nodeUri),
+                ...dataTree,
+                data: updateNodeChildren(dataTree.data, nodeUri),
               };
             }
-            return item;
+            return dataTree;
           },
         );
+
+        console.log('updatedCustomDataTree', updatedCustomDataTree);
 
         const updatedActive: Configuration = {
           ...active,

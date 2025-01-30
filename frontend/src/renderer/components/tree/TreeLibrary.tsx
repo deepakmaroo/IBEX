@@ -135,7 +135,10 @@ export const TreeLibrary = ({
       const fetchData = async () => {
         if (selected && selectedNode !== node.value) {
           setSelectedNode(node.value);
-          await handleSelectChildren(node.value);
+          if (type === NodeInfoTypeEnum.STRUCTURE || type === NodeInfoTypeEnum.ARRAY || !expanded){
+            await handleSelectChildren(node.value);
+          }
+
         }
       };
       fetchData();
