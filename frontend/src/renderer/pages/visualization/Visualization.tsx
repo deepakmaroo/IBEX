@@ -4,6 +4,7 @@ import { VisualizationHeader } from './VisualizationHeader';
 import { useDisclosure } from '@mantine/hooks';
 import { VisualizationIDSFromURIModal } from './VisualizationIDSFromURIModal';
 import { VisualizationTree } from './VisualizationTree';
+import { VisualizationPlot } from './VisualizationPlot';
 
 export const Visualization = () => {
   const { configurations } = useIbexStore();
@@ -27,7 +28,9 @@ export const Visualization = () => {
               </Paper>
             </Grid.Col>
             <Grid.Col span={10}>
-              <Paper shadow="md" h={height} radius="md"></Paper>
+              <Paper shadow="md" h={height} radius="md">
+                <VisualizationPlot />
+              </Paper>
             </Grid.Col>
           </Grid>
         </>
