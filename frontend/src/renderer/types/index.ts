@@ -3,3 +3,4 @@ export * from './ids';
 export * from './nodesInfos';
 export * from './stores';
 export * from './tree';
+export * from './plot';
