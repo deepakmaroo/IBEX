@@ -129,14 +129,14 @@ export const VisualizationIDSFromURIModal = ({
   const updateDataIDS = (): void => {
 
     const allIdsWithOccurrence = dataIDS.every((d) => d.occurrence);
-    if (!allIdsWithOccurrence) {
-      showNotification({
-        title: 'Error',
-        message: 'Please select an occurrence for all IDS',
-        color: 'red',
-      });
-      return;
-    }
+    // if (!allIdsWithOccurrence) {
+    //   showNotification({
+    //     title: 'Error',
+    //     message: 'Please select an occurrence for all IDS',
+    //     color: 'red',
+    //   });
+    //   return;
+    // }
 
     updatedConfiguration({ ...active, dataIDS });
     close();

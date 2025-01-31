@@ -27,7 +27,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
         uri: ids.uri,
         occurrence: ids.occurrence,
         data: [],
-        fullUri: `${ids.uri}#${ids.name}:${ids.occurrence}`,
+        fullUri: `${ids.uri}#${ids.name}:${0}`,
       }));
       const updatedActive: Configuration = {
         ...active,
