@@ -44,14 +44,14 @@ export const SimplePlot = ({
 
   const transformedData = data
     .map((node) => {
-      const maxLength = Math.max(node.valueX.length, node.valueY.length);
+      const maxLength = node.valueY.length;
       const result = [];
 
       for (let i = 0; i < maxLength; i++) {
         result.push({
           nameNode: node.nameNode,
-          x: node.valueX[i] !== undefined ? node.valueX[i] : node.valueX[0],
-          y: node.valueY[i] !== undefined ? node.valueY[i] : node.valueY[0],
+          x: node.valueX[i],
+          y: node.valueY[i]
         });
       }
 
@@ -158,6 +158,7 @@ export const SimplePlot = ({
 
           <YAxis
             dataKey="y"
+            type="number"
             label={{ value: yAxisName, angle: -90, position: "insideLeft" }}
           />
 

@@ -1,19 +1,20 @@
-import { Text } from "@mantine/core";
-import { SimplePlot } from "../../components";
-import { DataPlot } from "src/renderer/types";
-import { useEffect, useState } from "react";
+import { Text } from '@mantine/core';
+import { SimplePlot } from '../../components';
+import { DataPlot } from 'src/renderer/types';
+import { useEffect, useState } from 'react';
 
 export const VisualizationPlot = () => {
-
   const [rawData, setRawData] = useState<DataPlot[]>([]);
 
-  const uri1 = "imas:hdf5?user=public;pulse=135011;run=7;database=iterdb;version=3#core_profiles:0/global_quantities/ip"
-  const uri2 = "imas:hdf5?user=public;pulse=135011;run=7;database=iterdb;version=3#core_profiles:0/time"
+  const uri1_global_quantities =
+    'imas:hdf5?user=public;pulse=135011;run=7;database=iterdb;version=3#core_profiles:0/global_quantities/ip';
+  const uri2_time =
+    'imas:hdf5?user=public;pulse=135011;run=7;database=iterdb;version=3#core_profiles:0/time';
 
   const fetchFieldValue = async (uri: string) => {
     try {
       const response = await fetch(
-        `${window.env.API_URL}/ids_info/field_value/?uri=${encodeURIComponent(uri)}`,
+        `${window.env.API_URL}/data/field_value/?uri=${encodeURIComponent(uri)}`,
         {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
@@ -30,45 +31,34 @@ export const VisualizationPlot = () => {
     } catch (error) {
       console.error(error);
     }
-  }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
-      const data1 = await fetchFieldValue(uri1);
-      const data2 = await fetchFieldValue(uri2);
+      const data1_global = await fetchFieldValue(uri1_global_quantities);
+      const data2_time = await fetchFieldValue(uri2_time);
 
       const dataPlot: DataPlot = {
-        nameNode: "Node Exemple",
-        valueX: data1.value,
-        valueY: data2.value,
-      }
+        nameNode: 'Node Global Quantities / Time',
+        valueX: data2_time.value,
+        valueY: data1_global.value,
+      };
 
       setRawData([dataPlot]);
-    }
+    };
 
     fetchData();
-  }, [
-    uri1,
-    uri2,
-  ]);
-  
-// const rawData: DataPlot[] = [
-//   {
-//     nameNode: "Node1",
-//     valueX: [1000, 2000, 3000],
-//     valueY: [2400, 1398, 9800],
-//   }
-// ];
+  }, [uri1_global_quantities, uri2_time]);
 
-  return(
+  return (
     <div>
       <Text>VisualizationPlot</Text>
       <SimplePlot
-          data={rawData}
-          xAxisName="global_quantities/ip"
-          yAxisName="time"
-          height={400}
-        />
+        data={rawData}
+        xAxisName="time"
+        yAxisName="global_quantities/ip"
+        height={400}
+      />
     </div>
-  )
+  );
 };
