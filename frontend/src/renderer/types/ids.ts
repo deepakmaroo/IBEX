@@ -4,7 +4,7 @@ type IDSData = {
 };
 
 export type IDSDataSelected = IDSData & {
-  occurrence?: number;
+  occurrenceIndex?: number;
 };
 
 export type IDSDataLoaded = IDSData & {

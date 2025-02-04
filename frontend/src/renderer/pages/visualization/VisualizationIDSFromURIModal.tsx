@@ -42,8 +42,6 @@ export const VisualizationIDSFromURIModal = ({
   const [fromURIisSuccess, setFromURIisSuccess] = useState(false);
   const [fromFileisSuccess, setFromFileisSuccess] = useState(false);
 
-
-
   const formIDS = useForm<FormIDS>({
     initialValues: {
       file: null,
@@ -56,8 +54,6 @@ export const VisualizationIDSFromURIModal = ({
       setDataIDS(active?.dataIDS);
     }
   }, [active?.dataIDS]);
-
-
 
   const tableHeaders = (
     <Table.Tr>
@@ -81,62 +77,74 @@ export const VisualizationIDSFromURIModal = ({
           w={50}
           onChange={() => handleCheckIds(element.name)}
           checked={
-            dataIDS?.findIndex((d: IDSDataSelected) => d.name === element.name) !== -1
+            dataIDS?.findIndex(
+              (d: IDSDataSelected) => d.name === element.name,
+            ) !== -1
           }
         />
       </Table.Td>
       <Table.Td>{element.name}</Table.Td>
       <Table.Td>
-        <Radio.Group
-          name={`occurence-${index}`}
-          onChange={(value) => {
-            const updatedDataIDS = dataIDS.map((d) => {
-              if (d.name === element.name) {
-                return { ...d, occurrence: parseInt(value) };
-              }
-              return d;
-            });
-            setDataIDS(updatedDataIDS);
-          }}
-          value={dataIDS.find((d) => d.name === element.name)?.occurrence?.toString() || ''}
-        >
-          <Group mt="xs">
-            {element.occurrences.map((occurrence, idx) => {
-              return (
-                <Radio
-                  key={idx} 
-                  value={`${occurrence}`}
-                  label={`${occurrence}`}
-                />
-              );
-            })}
-          </Group>
-        </Radio.Group>
+        <Group mt="xs">
+          {element.occurrences.map((occurrence, idx) => {
+            return (
+              <Checkbox
+                radius="xs"
+                size="xs"
+                w={50}
+                label={`${occurrence}`}
+                onChange={() => {
+                  const updatedDataIDS = dataIDS.map((d) =>
+                    d.name === element.name
+                      ? { ...d, occurrenceIndex: idx }
+                      : d,
+                  );
+                  setDataIDS(updatedDataIDS);
+                }}
+                checked={
+                  dataIDS.find(
+                    (d) => d.name === element.name && d.occurrenceIndex === idx,
+                  )
+                    ? true
+                    : false
+                }
+                disabled={
+                  dataIDS.find((d) => d.name === element.name) ? false : true
+                }
+              />
+            );
+          })}
+        </Group>
       </Table.Td>
     </Table.Tr>
   ));
-  
+
 
   const handleCheckIds = (name: string): void => {
     const updateDataIDS: IDSDataSelected[] =
       dataIDS?.findIndex((d: IDSDataSelected) => d.name === name) !== -1
         ? dataIDS?.filter((d: IDSDataSelected) => d.name !== name)
-        : [...dataIDS, dataIDSLoaded.find((d: IDSDataSelected) => d.name === name)];
+        : [...dataIDS, {
+          name,
+          uri: dataIDSLoaded.find((d) => d.name === name)?.uri,
+        }];
 
     setDataIDS(updateDataIDS);
   };
 
-  const updateDataIDS = (): void => {
 
-    const allIdsWithOccurrence = dataIDS.every((d) => d.occurrence);
-    // if (!allIdsWithOccurrence) {
-    //   showNotification({
-    //     title: 'Error',
-    //     message: 'Please select an occurrence for all IDS',
-    //     color: 'red',
-    //   });
-    //   return;
-    // }
+
+  const updateDataIDS = (): void => {
+    console.log("dataids", dataIDS)
+    const allIdsWithOccurrence = dataIDS.every((d) => d.occurrenceIndex !== undefined && d.occurrenceIndex !== null);
+    if (!allIdsWithOccurrence) {
+      showNotification({
+        title: 'Error',
+        message: 'Please select an occurrence for all IDS',
+        color: 'red',
+      });
+      return;
+    }
 
     updatedConfiguration({ ...active, dataIDS });
     close();
