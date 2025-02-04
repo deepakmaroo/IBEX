@@ -5,6 +5,7 @@ import { useDisclosure } from '@mantine/hooks';
 import { VisualizationIDSFromURIModal } from './VisualizationIDSFromURIModal';
 import { VisualizationTree } from './VisualizationTree';
 import { VisualizationPlot } from './VisualizationPlot';
+import { VisualizationCustomPlotModal } from './VisualizationCustomPlotModal';
 
 export const Visualization = () => {
   const { configurations } = useIbexStore();
@@ -14,13 +15,18 @@ export const Visualization = () => {
     { open: openAddTreeModal, close: closeAddTreeModal },
   ] = useDisclosure(false);
 
+  const [
+    isCustomPlotModalOpen,
+    { open: openCustomPlotModal, close: closeCustomPlotModal },
+  ] = useDisclosure(false);
+
   const height = configurations.length > 0 ? '85vh' : '85vh';
 
   return (
     <Container fluid p={10}>
       {configurations.length > 0 ? (
         <>
-          <VisualizationHeader handleAddTree={openAddTreeModal} />
+          <VisualizationHeader handleAddTree={openAddTreeModal} handleNewPlot={openCustomPlotModal}/>
           <Grid grow type="container">
             <Grid.Col span={2}>
               <Paper shadow="md" h={height} radius="md">
@@ -43,6 +49,11 @@ export const Visualization = () => {
       <VisualizationIDSFromURIModal
         opened={isAddTreeModalOpen}
         close={closeAddTreeModal}
+      />
+
+      <VisualizationCustomPlotModal
+        opened={isCustomPlotModalOpen}
+        close={closeCustomPlotModal}
       />
     </Container>
   );

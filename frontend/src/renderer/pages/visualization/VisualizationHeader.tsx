@@ -4,10 +4,12 @@ import { useIbexStore } from '../../stores';
 
 interface VisualizationHeaderProps {
   handleAddTree: () => void;
+  handleNewPlot: () => void;
 }
 
 export const VisualizationHeader = ({
   handleAddTree,
+  handleNewPlot 
 }: VisualizationHeaderProps) => {
   const { active } = useIbexStore();
 
@@ -24,6 +26,7 @@ export const VisualizationHeader = ({
         <Button
           leftSection={<IconPlus size={20} />}
           disabled={!active.dataIDS.length}
+          onClick={handleNewPlot}
         >
           New Chart
         </Button>
