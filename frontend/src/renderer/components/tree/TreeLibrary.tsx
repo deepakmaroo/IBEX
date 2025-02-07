@@ -45,55 +45,19 @@ export const TreeLibrary = ({
   const [selectedNode, setSelectedNode] = useState<string>(null);
 
   function NodeIcon({ type, expanded }: NodeIconProps) {
+    
     const getNodeIcon = (type: NodeInfoTypeEnum, expanded: boolean) => {
-      switch (type) {
-        case NodeInfoTypeEnum.STRUCTURE || NodeInfoTypeEnum.ARRAY:
-          return expanded ? (
-            <IconFolderOpen
-              size={14}
-              stroke={2.5}
-              color="var(--mantine-color-blue-8)"
-            />
-          ) : (
-            <IconFolder
-              size={14}
-              stroke={2.5}
-              color="var(--mantine-color-blue-8)"
-            />
-          );
-        case NodeInfoTypeEnum.INTEGER:
-          return (
-            <IconHash
-              size={14}
-              stroke={2.5}
-              color="var(--mantine-color-blue-8)"
-            />
-          );
-        case NodeInfoTypeEnum.FLOAT:
-          return (
-            <IconRipple
-              size={14}
-              stroke={2.5}
-              color="var(--mantine-color-blue-8)"
-            />
-          );
-        case NodeInfoTypeEnum.STRING:
-          return (
-            <IconTypography
-              size={14}
-              stroke={2.5}
-              color="var(--mantine-color-blue-8)"
-            />
-          );
-        default:
-          return (
-            <IconFileUnknown
-              size={14}
-              stroke={2.5}
-              color="var(--mantine-color-blue-8)"
-            />
-          );
-      }
+      const commonProps = { size: 14, stroke: 2.5, color: "var(--mantine-color-blue-8)" };
+    
+      const icons: Record<NodeInfoTypeEnum, JSX.Element> = {
+        [NodeInfoTypeEnum.STRUCTURE]: expanded ? <IconFolderOpen {...commonProps} /> : <IconFolder {...commonProps} />,
+        [NodeInfoTypeEnum.ARRAY]: expanded ? <IconFolderOpen {...commonProps} /> : <IconFolder {...commonProps} />,
+        [NodeInfoTypeEnum.INTEGER]: <IconHash {...commonProps} />,
+        [NodeInfoTypeEnum.FLOAT]: <IconRipple {...commonProps} />,
+        [NodeInfoTypeEnum.STRING]: <IconTypography {...commonProps} />
+      };
+    
+      return icons[type] || <IconFileUnknown {...commonProps} />;
     };
 
     return type ? (
