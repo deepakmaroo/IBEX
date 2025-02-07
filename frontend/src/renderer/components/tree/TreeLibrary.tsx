@@ -11,8 +11,6 @@ import {
 } from '@mantine/core';
 import { useEffect, useRef, useState } from 'react';
 import {
-  IconBrackets,
-  IconBracketsContain,
   IconFileUnknown,
   IconFolder,
   IconFolderOpen,
@@ -32,7 +30,9 @@ interface NodeIconProps {
 interface TreeLibraryProps {
   treeData: CustomTreeNodeData[];
   height?: string;
+  checkedNodes?: string[];
   handleSelectChildren: (node: string) => void;
+  getCheckedNodes?: (nodes: string[]) => void;
 }
 
 interface ElementProps extends RenderTreeNodePayload {
@@ -42,12 +42,28 @@ interface ElementProps extends RenderTreeNodePayload {
 export const TreeLibrary = ({
   treeData,
   height,
+  checkedNodes,
   handleSelectChildren,
+  getCheckedNodes
 }: TreeLibraryProps) => {
   const tree = useTree();
   const [selectedNode, setSelectedNode] = useState<string>(null);
 
-  
+  //Update checked nodes and get the nodes checked
+  useEffect(() => {
+    if (!tree) return;
+
+    for (const node of checkedNodes) {
+      tree.checkNode(node);
+    }
+    
+    const newCheckedNodes = tree.getCheckedNodes();
+    console.log("checkedNodes", newCheckedNodes);
+    getCheckedNodes(newCheckedNodes.map((node) => node.value));
+    
+
+  }, [tree]);
+
 
   function NodeIcon({ node, type, expanded }: NodeIconProps) {
     const checked = tree.isNodeChecked(node.value);

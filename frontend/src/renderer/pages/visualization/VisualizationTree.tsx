@@ -181,8 +181,10 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
     <TreeLibrariesAccordion
       customDataTree={active.customDataTree}
       height={height}
+      checkedNodes={[]}
       handleAccordionChange={handleAccordionChange}
       handleSelectChildren={handleSelectChildren}
+      getNodesChecked={()=>{}}
     />
   );
 };
