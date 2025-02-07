@@ -89,6 +89,7 @@ export const VisualizationIDSFromURIModal = ({
           {element.occurrences.map((occurrence, idx) => {
             return (
               <Checkbox
+                key={`checkbox-${element.name}-${idx}`}
                 radius="xs"
                 size="xs"
                 w={50}
@@ -119,24 +120,26 @@ export const VisualizationIDSFromURIModal = ({
     </Table.Tr>
   ));
 
-
   const handleCheckIds = (name: string): void => {
     const updateDataIDS: IDSDataSelected[] =
       dataIDS?.findIndex((d: IDSDataSelected) => d.name === name) !== -1
         ? dataIDS?.filter((d: IDSDataSelected) => d.name !== name)
-        : [...dataIDS, {
-          name,
-          uri: dataIDSLoaded.find((d) => d.name === name)?.uri,
-        }];
+        : [
+            ...dataIDS,
+            {
+              name,
+              uri: dataIDSLoaded.find((d) => d.name === name)?.uri,
+            },
+          ];
 
     setDataIDS(updateDataIDS);
   };
 
-
-
   const updateDataIDS = (): void => {
-    console.log("dataids", dataIDS)
-    const allIdsWithOccurrence = dataIDS.every((d) => d.occurrenceIndex !== undefined && d.occurrenceIndex !== null);
+    console.log('dataids', dataIDS);
+    const allIdsWithOccurrence = dataIDS.every(
+      (d) => d.occurrenceIndex !== undefined && d.occurrenceIndex !== null,
+    );
     if (!allIdsWithOccurrence) {
       showNotification({
         title: 'Error',

@@ -1,4 +1,5 @@
 import {
+  Checkbox,
   Group,
   RenderTreeNodePayload,
   ScrollArea,
@@ -44,19 +45,45 @@ export const TreeLibrary = ({
   const tree = useTree();
   const [selectedNode, setSelectedNode] = useState<string>(null);
 
+
   function NodeIcon({ type, expanded }: NodeIconProps) {
-    
     const getNodeIcon = (type: NodeInfoTypeEnum, expanded: boolean) => {
-      const commonProps = { size: 14, stroke: 2.5, color: "var(--mantine-color-blue-8)" };
-    
-      const icons: Record<NodeInfoTypeEnum, JSX.Element> = {
-        [NodeInfoTypeEnum.STRUCTURE]: expanded ? <IconFolderOpen {...commonProps} /> : <IconFolder {...commonProps} />,
-        [NodeInfoTypeEnum.ARRAY]: expanded ? <IconFolderOpen {...commonProps} /> : <IconFolder {...commonProps} />,
-        [NodeInfoTypeEnum.INTEGER]: <IconHash {...commonProps} />,
-        [NodeInfoTypeEnum.FLOAT]: <IconRipple {...commonProps} />,
-        [NodeInfoTypeEnum.STRING]: <IconTypography {...commonProps} />
+      const commonProps = {
+        size: 14,
+        stroke: 2.5,
+        color: 'var(--mantine-color-blue-8)',
       };
-    
+
+      const icons: Record<NodeInfoTypeEnum, JSX.Element> = {
+        [NodeInfoTypeEnum.STRUCTURE]: expanded ? (
+          <IconFolderOpen {...commonProps} />
+        ) : (
+          <IconFolder {...commonProps} />
+        ),
+        [NodeInfoTypeEnum.ARRAY]: expanded ? (
+          <IconFolderOpen {...commonProps} />
+        ) : (
+          <IconFolder {...commonProps} />
+        ),
+        [NodeInfoTypeEnum.INTEGER]: (
+          <>
+            <Checkbox size="xs" checked/>
+            <IconHash {...commonProps} />
+          </>
+        ),
+        [NodeInfoTypeEnum.FLOAT]: (
+          <>
+            <Checkbox size="xs"/>
+            <IconRipple {...commonProps} />
+          </>
+        ),
+        [NodeInfoTypeEnum.STRING]: (
+          <>
+            <Checkbox size="xs" />
+            <IconTypography {...commonProps} />
+          </>
+        ),
+      };
       return icons[type] || <IconFileUnknown {...commonProps} />;
     };
 
@@ -70,6 +97,7 @@ export const TreeLibrary = ({
       />
     );
   }
+
 
   function Element({
     node,

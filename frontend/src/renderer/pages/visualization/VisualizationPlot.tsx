@@ -53,12 +53,12 @@ export const VisualizationPlot = () => {
   return (
     <div>
       <Text>VisualizationPlot</Text>
-      <SimplePlot
+      {/* <SimplePlot
         data={rawData}
         xAxisName="time"
         yAxisName="global_quantities/ip"
         height={400}
-      />
+      /> */}
     </div>
   );
 };
