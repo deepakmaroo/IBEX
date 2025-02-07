@@ -195,7 +195,9 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
     };
     updatedConfiguration(updatedActive);
     setActive(updatedActive.name);
-  }, []);
+  }, [
+    active,
+  ]);
 
   return (
     <TreeLibrariesAccordion

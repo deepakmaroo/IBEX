@@ -25,7 +25,7 @@ export const TreeLibrariesAccordion = ({
       <Accordion.Panel>
         <TreeLibrary
           treeData={item.data}
-          checkedNodes={[]}
+          checkedNodes={checkedNodes.find((node) => node.idsName === item.name)?.checkedNodes || []}
           handleSelectChildren={handleSelectChildren}
           getCheckedNodes={(nodesChecked) => {
             getNodesChecked(item.name, nodesChecked);
