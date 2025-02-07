@@ -47,7 +47,7 @@ export const TreeLibrary = ({
   function NodeIcon({ type, expanded }: NodeIconProps) {
     const getNodeIcon = (type: NodeInfoTypeEnum, expanded: boolean) => {
       switch (type) {
-        case NodeInfoTypeEnum.STRUCTURE:
+        case NodeInfoTypeEnum.STRUCTURE || NodeInfoTypeEnum.ARRAY:
           return expanded ? (
             <IconFolderOpen
               size={14}
@@ -56,20 +56,6 @@ export const TreeLibrary = ({
             />
           ) : (
             <IconFolder
-              size={14}
-              stroke={2.5}
-              color="var(--mantine-color-blue-8)"
-            />
-          );
-        case NodeInfoTypeEnum.ARRAY:
-          return expanded ? (
-            <IconBracketsContain
-              size={14}
-              stroke={2.5}
-              color="var(--mantine-color-blue-8)"
-            />
-          ) : (
-            <IconBrackets
               size={14}
               stroke={2.5}
               color="var(--mantine-color-blue-8)"
