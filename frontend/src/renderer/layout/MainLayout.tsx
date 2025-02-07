@@ -13,6 +13,8 @@ export function MainLayout() {
     removeConfiguration,
     setActive,
   } = useIbexStore();
+
+  
   const [
     isConfigCreateModalOpen,
     { open: openConfigCreateModal, close: closeConfigCreateModal },

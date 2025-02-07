@@ -6,6 +6,7 @@ import {
   Text,
   Tooltip,
   Tree,
+  TreeNodeData,
   useTree,
 } from '@mantine/core';
 import { useEffect, useRef, useState } from 'react';
@@ -23,6 +24,7 @@ import classes from './TreeLibrary.module.css';
 import { CustomTreeNodeData, NodeInfoTypeEnum } from '../../types';
 
 interface NodeIconProps {
+  node: TreeNodeData;
   type: NodeInfoTypeEnum;
   expanded: boolean;
 }
@@ -45,8 +47,11 @@ export const TreeLibrary = ({
   const tree = useTree();
   const [selectedNode, setSelectedNode] = useState<string>(null);
 
+  
 
-  function NodeIcon({ type, expanded }: NodeIconProps) {
+  function NodeIcon({ node, type, expanded }: NodeIconProps) {
+    const checked = tree.isNodeChecked(node.value);
+
     const getNodeIcon = (type: NodeInfoTypeEnum, expanded: boolean) => {
       const commonProps = {
         size: 14,
@@ -67,19 +72,40 @@ export const TreeLibrary = ({
         ),
         [NodeInfoTypeEnum.INTEGER]: (
           <>
-            <Checkbox size="xs" checked/>
+            <Checkbox
+              checked={checked}
+              onClick={() => {
+                !checked
+                  ? tree.checkNode(node.value)
+                  : tree.uncheckNode(node.value);
+              }}
+            />
             <IconHash {...commonProps} />
           </>
         ),
         [NodeInfoTypeEnum.FLOAT]: (
           <>
-            <Checkbox size="xs"/>
+            <Checkbox
+              checked={checked}
+              onClick={() => {
+                !checked
+                  ? tree.checkNode(node.value)
+                  : tree.uncheckNode(node.value);
+              }}
+            />
             <IconRipple {...commonProps} />
           </>
         ),
         [NodeInfoTypeEnum.STRING]: (
           <>
-            <Checkbox size="xs" />
+            <Checkbox
+              checked={checked}
+              onClick={() => {
+                !checked
+                  ? tree.checkNode(node.value)
+                  : tree.uncheckNode(node.value);
+              }}
+            />
             <IconTypography {...commonProps} />
           </>
         ),
@@ -98,7 +124,6 @@ export const TreeLibrary = ({
     );
   }
 
-
   function Element({
     node,
     expanded,
@@ -113,10 +138,13 @@ export const TreeLibrary = ({
       const fetchData = async () => {
         if (selected && selectedNode !== node.value) {
           setSelectedNode(node.value);
-          if (type === NodeInfoTypeEnum.STRUCTURE || type === NodeInfoTypeEnum.ARRAY || !expanded){
+          if (
+            type === NodeInfoTypeEnum.STRUCTURE ||
+            type === NodeInfoTypeEnum.ARRAY ||
+            !expanded
+          ) {
             await handleSelectChildren(node.value);
           }
-
         }
       };
       fetchData();
@@ -131,7 +159,7 @@ export const TreeLibrary = ({
 
     return (
       <Group gap={5} {...elementProps}>
-        <NodeIcon type={type} expanded={expanded} />
+        <NodeIcon type={type} expanded={expanded} node={node}/>
         {isTextOverflowing ? (
           <Tooltip label={node.label} position="left">
             <Text truncate="end" w={125} ref={textRef}>
@@ -154,6 +182,7 @@ export const TreeLibrary = ({
         data={treeData}
         className={classes}
         selectOnClick
+        onClick={(node) => console.log(node)}
         renderNode={(payload) => (
           <Element
             {...payload}
