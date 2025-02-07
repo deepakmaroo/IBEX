@@ -30,6 +30,7 @@ export function MainLayout() {
       name: config.name,
       dataIDS: [],
       customDataTree: [],
+      checkedNodes: []
     };
     addConfiguration(newConfig);
     setActive(newConfig.name);

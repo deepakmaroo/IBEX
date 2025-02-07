@@ -44,7 +44,7 @@ export const TreeLibrary = ({
   height,
   checkedNodes,
   handleSelectChildren,
-  getCheckedNodes
+  getCheckedNodes,
 }: TreeLibraryProps) => {
   const tree = useTree();
   const [selectedNode, setSelectedNode] = useState<string>(null);
@@ -58,13 +58,7 @@ export const TreeLibrary = ({
         tree.checkNode(node);
       });
     }
-
-    if (tree.getCheckedNodes().length !== checkedNodes.length) {
-      getCheckedNodes(tree.getCheckedNodes().map((node) => node.value));
-      console.log("checked nodes", tree.getCheckedNodes())
-    }
   }, [tree]);
-
 
   function NodeIcon({ node, type, expanded }: NodeIconProps) {
     const checked = tree.isNodeChecked(node.value);
@@ -75,6 +69,19 @@ export const TreeLibrary = ({
         stroke: 2.5,
         color: 'var(--mantine-color-blue-8)',
       };
+
+      // Check the node and get last checked nodes  
+      const handleCheckNode = () => {
+        if (type === NodeInfoTypeEnum.INTEGER || type === NodeInfoTypeEnum.FLOAT || type === NodeInfoTypeEnum.STRING) {
+          const checked = tree.isNodeChecked(node.value);
+          !checked ? tree.checkNode(node.value) : tree.uncheckNode(node.value);
+
+          const lastCheckedNodes = tree.getCheckedNodes().map((node) => node.value);
+
+          console.log('checked nodes', lastCheckedNodes);
+        }
+      };
+  
 
       const icons: Record<NodeInfoTypeEnum, JSX.Element> = {
         [NodeInfoTypeEnum.STRUCTURE]: expanded ? (
@@ -104,11 +111,7 @@ export const TreeLibrary = ({
           <>
             <Checkbox
               checked={checked}
-              onChange={() => {
-                !checked
-                  ? tree.checkNode(node.value)
-                  : tree.uncheckNode(node.value);
-              }}
+              onChange={handleCheckNode}
             />
             <IconRipple {...commonProps} />
           </>
@@ -117,11 +120,7 @@ export const TreeLibrary = ({
           <>
             <Checkbox
               checked={checked}
-              onChange={() => {
-                !checked
-                  ? tree.checkNode(node.value)
-                  : tree.uncheckNode(node.value);
-              }}
+              onChange={handleCheckNode}
             />
             <IconTypography {...commonProps} />
           </>
@@ -151,6 +150,7 @@ export const TreeLibrary = ({
     const textRef = useRef<HTMLDivElement>(null);
     const [isTextOverflowing, setIsTextOverflowing] = useState(false);
 
+
     useEffect(() => {
       const fetchData = async () => {
         if (selected && selectedNode !== node.value) {
@@ -167,6 +167,7 @@ export const TreeLibrary = ({
       fetchData();
     }, [selected, node.value, type]);
 
+
     useEffect(() => {
       if (textRef.current) {
         const { scrollWidth, offsetWidth } = textRef.current;
@@ -176,7 +177,7 @@ export const TreeLibrary = ({
 
     return (
       <Group gap={5} {...elementProps}>
-        <NodeIcon type={type} expanded={expanded} node={node}/>
+        <NodeIcon type={type} expanded={expanded} node={node} />
         {isTextOverflowing ? (
           <Tooltip label={node.label} position="left">
             <Text truncate="end" w={125} ref={textRef}>
