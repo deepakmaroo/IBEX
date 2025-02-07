@@ -177,14 +177,34 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
     [active],
   );
 
+  const getNodesChecked = useCallback((idsName: string, nodes: string[]) => {
+    const updatedCheckedNodes = active.checkedNodes.map((checkedNode) => {
+      if (checkedNode.idsName === idsName) {
+        return {
+          idsName: idsName,
+          checkedNodes: nodes,
+        };
+      }
+      return checkedNode;
+    }
+    );
+    const updatedActive: Configuration = {
+      ...active,
+      checkedNodes: updatedCheckedNodes,
+      
+    };
+    updatedConfiguration(updatedActive);
+    setActive(updatedActive.name);
+  }, []);
+
   return (
     <TreeLibrariesAccordion
       customDataTree={active.customDataTree}
       height={height}
-      checkedNodes={[]}
+      checkedNodes={active.checkedNodes}
       handleAccordionChange={handleAccordionChange}
       handleSelectChildren={handleSelectChildren}
-      getNodesChecked={()=>{}}
+      getNodesChecked={getNodesChecked}
     />
   );
 };

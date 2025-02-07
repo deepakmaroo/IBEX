@@ -53,15 +53,16 @@ export const TreeLibrary = ({
   useEffect(() => {
     if (!tree) return;
 
-    for (const node of checkedNodes) {
-      tree.checkNode(node);
+    if (checkedNodes) {
+      checkedNodes.forEach((node) => {
+        tree.checkNode(node);
+      });
     }
-    
-    const newCheckedNodes = tree.getCheckedNodes();
-    console.log("checkedNodes", newCheckedNodes);
-    getCheckedNodes(newCheckedNodes.map((node) => node.value));
-    
 
+    if (tree.getCheckedNodes().length !== checkedNodes.length) {
+      getCheckedNodes(tree.getCheckedNodes().map((node) => node.value));
+      console.log("checked nodes", tree.getCheckedNodes())
+    }
   }, [tree]);
 
 
@@ -90,7 +91,7 @@ export const TreeLibrary = ({
           <>
             <Checkbox
               checked={checked}
-              onClick={() => {
+              onChange={() => {
                 !checked
                   ? tree.checkNode(node.value)
                   : tree.uncheckNode(node.value);
@@ -103,7 +104,7 @@ export const TreeLibrary = ({
           <>
             <Checkbox
               checked={checked}
-              onClick={() => {
+              onChange={() => {
                 !checked
                   ? tree.checkNode(node.value)
                   : tree.uncheckNode(node.value);
@@ -116,7 +117,7 @@ export const TreeLibrary = ({
           <>
             <Checkbox
               checked={checked}
-              onClick={() => {
+              onChange={() => {
                 !checked
                   ? tree.checkNode(node.value)
                   : tree.uncheckNode(node.value);

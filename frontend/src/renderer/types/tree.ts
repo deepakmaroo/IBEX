@@ -15,3 +15,8 @@ export type CustomTreeData = IDSDataSelected & {
   fullUri: string;
   data: CustomTreeNodeData[];
 };
+
+export type CheckedNodeIds = {
+  idsName: string;
+  checkedNodes: string[];
+}

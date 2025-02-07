@@ -1,5 +1,5 @@
 import { IDSDataSelected } from './ids';
-import { CustomTreeData } from './tree';
+import { CheckedNodeIds, CustomTreeData } from './tree';
 
 export interface Configuration {
   name: string;
@@ -9,6 +9,7 @@ export interface Configuration {
   lastLocalDataSetSelected?: string;
   lastURIInput?: string;
   customDataTree: CustomTreeData[];
+  checkedNodes: CheckedNodeIds[]
 }
 
 export interface ConfigForm {
