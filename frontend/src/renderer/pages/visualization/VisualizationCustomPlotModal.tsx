@@ -17,7 +17,7 @@ export const VisualizationCustomPlotModal = ({
       opened={opened}
       onClose={close}
       title="Select IDS"
-      size="70%"
+      size="95%"
       centered
     >
       <Grid grow type="container">
