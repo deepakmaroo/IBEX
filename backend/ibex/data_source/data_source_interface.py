@@ -89,14 +89,3 @@ class DataSourceInterface(ABC):
         :return: dictionary {'entries': [<uri1>, <uri2>, ...]}
         """
         ...
-
-    @abstractmethod
-    def get_multiple_node_data(self, uri: str, ids: str, node_path: str, occurrence: int = 0):
-        """
-
-        :param ids:
-        :param occurrence:
-        :param node_path:
-        :return:
-        """
-        ...

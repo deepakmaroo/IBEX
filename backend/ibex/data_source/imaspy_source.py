@@ -98,23 +98,29 @@ class IMASPySource(DataSourceInterface):
 
         return metadata_dict
 
-    def _get_raw_data(self, uri: str, ids: str, node_path: str, occurrence: int = 0) -> IDSStructure | IDSPrimitive:
+    def _get_raw_data(
+        self, uri: str, ids: str, node_paths: List[str], occurrence: int = 0
+    ) -> List[IDSStructure | IDSPrimitive]:
         """
         Internal function. Returns raw data extracted from IDS
         :param uri: imas URI
         :param ids: name of ids e.g. core_profiles
-        :param node_path: path to ids node e.g. ids_properties/version_put
+        :param node_path: list of paths to ids nodes e.g. ['ids_properties/version_put']
         :param occurrence: ids occurrence number
-        :return: IDSStructure or IDSPrimitive, depending on node's content
+        :return: List[IDSStructure | IDSPrimitive], depending on node's content
         """
 
+        result = []
         entry = imaspy.DBEntry(uri, mode="r")
-        ids_data = entry.get(ids, lazy=True, autoconvert=False, occurrence=occurrence)
+        ids_obj = entry.get(ids, lazy=True, autoconvert=False, occurrence=occurrence)
 
-        data_path = imaspy.ids_path.IDSPath(node_path)
-        ids_data = data_path.goto(ids_data, from_root=True)
+        for node_path in node_paths:
+            data_path = imaspy.ids_path.IDSPath(node_path)
+            ids_data = data_path.goto(ids_obj, from_root=True)
+            result.append(ids_data)
+            print(f">>> {node_path}, {ids_data} --> {type(ids_data)}")
 
-        return ids_data
+        return result
 
     def get_data(self, uri: str, ids: str, node_path: str, occurrence: int = 0, range: List[int] | None = None) -> dict:
         """
@@ -127,18 +133,25 @@ class IMASPySource(DataSourceInterface):
         :return: dictionary {'value':<node_value>}, where <node_value> represents data extracted from IDS node
         """
 
-        ids_data = self._get_raw_data(uri, ids, node_path, occurrence)
+        result = []
+        node_paths = self._expand_node_path(uri, ids, node_path, occurrence)
+        ids_data = self._get_raw_data(uri, ids, node_paths, occurrence)
 
-        if isinstance(ids_data, IDSStructure):
-            raise NotALeafNodeException(f"Path {node_path} does not point to a leaf node")
+        for data in ids_data:
+            if isinstance(data, IDSStructure):
+                raise NotALeafNodeException(
+                    f"Path {node_path} does not point to a leaf node. Cannot extract data from it."
+                )
 
-        if isinstance(ids_data, str):
-            return {"value": ids_data}
+            if isinstance(data, str):
+                result.append(data)
 
-        if isinstance(ids_data.value, np.ndarray):
-            return {"value": ids_data.value.tolist()}
+            elif isinstance(data.value, np.ndarray):
+                result.append(data.tolist())
+            else:
+                result.append(data.value)
 
-        return {"value": ids_data.value}
+        return {"value": result}
 
     def find_paths(self, uri: str, ids: str, searched_node: str, occurrence: int = 0) -> dict:
         """
@@ -268,7 +281,7 @@ class IMASPySource(DataSourceInterface):
 
         return result
 
-    def get_multiple_node_data(self, uri: str, ids: str, node_path: str, occurrence: int = 0):
+    def _expand_node_path(self, uri: str, ids: str, node_path: str, occurrence: int = 0):
         """
 
         :param ids:
@@ -279,7 +292,7 @@ class IMASPySource(DataSourceInterface):
         parent_paths = [""]
 
         entry = imaspy.DBEntry(uri, mode="r")
-        ids_root = entry.get(ids, occurrence=occurrence)
+        ids_root = entry.get(ids, occurrence=occurrence, lazy=True)
 
         for path_element in node_path.split("/"):
             parent_paths = self._expand_single_path_element(ids_root, path_element, parent_paths)
@@ -288,10 +301,4 @@ class IMASPySource(DataSourceInterface):
                     f"Cannot evaluate path. Path element: {path_element} from path: {node_path} returned empty list."
                 )
 
-            result = {}
-        for path in parent_paths:
-            if path[0] == "/":
-                path = path[1:]
-            # TODO: optimize usage of get_data() not to open entry for every call
-            result[path] = self.get_data(uri, ids, path, occurrence)
-        return result
+        return parent_paths
