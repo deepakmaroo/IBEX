@@ -20,6 +20,8 @@ import {
 } from '@tabler/icons-react';
 import classes from './TreeLibrary.module.css';
 import { CustomTreeNodeData, NodeInfoTypeEnum } from '../../types';
+import { useIbexStore } from '../../stores';
+import { Configuration } from '../../types';
 
 interface NodeIconProps {
   node: TreeNodeData;
@@ -48,17 +50,41 @@ export const TreeLibrary = ({
 }: TreeLibraryProps) => {
   const tree = useTree();
   const [selectedNode, setSelectedNode] = useState<string>(null);
+  const { active, setActive, updatedConfiguration } = useIbexStore();
 
-  //Update checked nodes and get the nodes checked
+  // Get the nodes checked
   useEffect(() => {
-    if (!tree) return;
+    console.log("_init TreeLibrary_");
+    console.log("active.checkedNodes : ",active.checkedNodes);
+    console.log("__________________");
+  }, [])
 
-    if (checkedNodes) {
-      checkedNodes.forEach((node) => {
-        tree.checkNode(node);
-      });
+  //Update checked nodes
+  useEffect(() => {
+    updateCheckedNodes();
+  }, [selectedNode])
+
+  function updateCheckedNodes(){
+    if(selectedNode){
+      const idsNameSelected:string = selectedNode.split("#")[1]?.split(":")[0]
+      const updatedCheckedNodes = active.checkedNodes;
+      const nodeToUpdate = active.checkedNodes.find((nodeToUpdate) => nodeToUpdate.idsName === idsNameSelected)
+      if(nodeToUpdate){
+        nodeToUpdate.checkedNodes = tree.getCheckedNodes().filter((node) => node.checked === true).map((node) => node.value)
+      } else {
+        updatedCheckedNodes.push({idsName:idsNameSelected, checkedNodes: tree.getCheckedNodes().map((node) => node.value)})
+      }
+      
+      const updatedActive: Configuration = {
+        ...active,
+        checkedNodes: updatedCheckedNodes,
+        
+      };
+      console.log("updatedActive : ",updatedActive);
+      updatedConfiguration(updatedActive);
+      setActive(updatedActive.name);
     }
-  }, [tree]);
+  }
 
   function NodeIcon({ node, type, expanded }: NodeIconProps) {
     const checked = tree.isNodeChecked(node.value);
@@ -75,10 +101,6 @@ export const TreeLibrary = ({
         if (type === NodeInfoTypeEnum.INTEGER || type === NodeInfoTypeEnum.FLOAT || type === NodeInfoTypeEnum.STRING) {
           const checked = tree.isNodeChecked(node.value);
           !checked ? tree.checkNode(node.value) : tree.uncheckNode(node.value);
-
-          const lastCheckedNodes = tree.getCheckedNodes().map((node) => node.value);
-
-          console.log('checked nodes', lastCheckedNodes);
         }
       };
   
@@ -98,11 +120,7 @@ export const TreeLibrary = ({
           <>
             <Checkbox
               checked={checked}
-              onChange={() => {
-                !checked
-                  ? tree.checkNode(node.value)
-                  : tree.uncheckNode(node.value);
-              }}
+              onChange={handleCheckNode}
             />
             <IconHash {...commonProps} />
           </>
@@ -200,7 +218,7 @@ export const TreeLibrary = ({
         data={treeData}
         className={classes}
         selectOnClick
-        onClick={(node) => console.log(node)}
+        onClick={(node) => console.log("node : ",node)}
         renderNode={(payload) => (
           <Element
             {...payload}
