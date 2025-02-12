@@ -52,13 +52,6 @@ export const TreeLibrary = ({
   const [selectedNode, setSelectedNode] = useState<string>(null);
   const { active, setActive, updatedConfiguration } = useIbexStore();
 
-  // Get the nodes checked
-  useEffect(() => {
-    console.log("_init TreeLibrary_");
-    console.log("active.checkedNodes : ",active.checkedNodes);
-    console.log("__________________");
-  }, [])
-
   //Update checked nodes
   useEffect(() => {
     updateCheckedNodes();
@@ -69,9 +62,10 @@ export const TreeLibrary = ({
       const idsNameSelected:string = selectedNode.split("#")[1]?.split(":")[0]
       const updatedCheckedNodes = active.checkedNodes;
       const nodeToUpdate = active.checkedNodes.find((nodeToUpdate) => nodeToUpdate.idsName === idsNameSelected)
-      if(nodeToUpdate){
-        nodeToUpdate.checkedNodes = tree.getCheckedNodes().filter((node) => node.checked === true).map((node) => node.value)
-      } else {
+      
+      if(nodeToUpdate?.checkedNodes){ // Update checkedNodes
+        nodeToUpdate.checkedNodes = checkedNodes
+      } else { // Init checkedNodes config
         updatedCheckedNodes.push({idsName:idsNameSelected, checkedNodes: tree.getCheckedNodes().map((node) => node.value)})
       }
       
@@ -80,15 +74,13 @@ export const TreeLibrary = ({
         checkedNodes: updatedCheckedNodes,
         
       };
-      console.log("updatedActive : ",updatedActive);
       updatedConfiguration(updatedActive);
       setActive(updatedActive.name);
     }
   }
 
   function NodeIcon({ node, type, expanded }: NodeIconProps) {
-    const checked = tree.isNodeChecked(node.value);
-
+    const [checked, setChecked] = useState<boolean>(checkedNodes.includes(node.value) ? (true) : (tree.isNodeChecked(node.value)));
     const getNodeIcon = (type: NodeInfoTypeEnum, expanded: boolean) => {
       const commonProps = {
         size: 14,
@@ -96,11 +88,21 @@ export const TreeLibrary = ({
         color: 'var(--mantine-color-blue-8)',
       };
 
-      // Check the node and get last checked nodes  
+      // Check the node and save config  
       const handleCheckNode = () => {
         if (type === NodeInfoTypeEnum.INTEGER || type === NodeInfoTypeEnum.FLOAT || type === NodeInfoTypeEnum.STRING) {
-          const checked = tree.isNodeChecked(node.value);
-          !checked ? tree.checkNode(node.value) : tree.uncheckNode(node.value);
+          // Fetch checkedNodes with Config
+          if(!checked === true){
+            tree.checkNode(node.value)
+            !checkedNodes.find((checkedNode) => checkedNode === node.value) && (
+              checkedNodes.push(node.value)
+            )
+          } else {
+            tree.uncheckNode(node.value)
+            checkedNodes = checkedNodes.filter((uncheckedNode) => uncheckedNode !== node.value)
+          }
+          setChecked(!checked)
+          getCheckedNodes(checkedNodes) // Save checkedNodes in config
         }
       };
   
