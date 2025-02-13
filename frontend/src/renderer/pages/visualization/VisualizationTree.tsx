@@ -38,6 +38,13 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
     }
   }, [active.dataIDS]);
 
+  useEffect(() => {
+    // Refresh expanded root folder when click on New Chart
+    active?.lastURIInput && (
+      fetchNodeInfos(active.lastURIInput)
+    )
+  }, [active.lastURIInput])
+
   /**
    * Handle node update using full URI
    * @param fullUri The full URI for fetching or updating node data
@@ -133,6 +140,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
         const updatedActive: Configuration = {
           ...active,
           customDataTree: updatedCustomDataTree,
+          lastURIInput: nodeUri,
         };
 
         updatedConfiguration(updatedActive);
