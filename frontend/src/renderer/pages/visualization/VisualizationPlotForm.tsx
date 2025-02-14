@@ -12,7 +12,35 @@ interface FormPlot {
 export const VisualizationPlotForm = () => {
   const { active } = useIbexStore();
   const [totalCheckedNode, setTotalCheckedNode] = useState<string[]>([]);
-  const [formPlot, setFormPlot] = useState<FormPlot[]>([]);
+  const [selectableCheckedNode, setSelectableCheckedNode] = useState<string[]>([]);
+  const [formPlotList, setFormPlotList] = useState<FormPlot[]>([]);
+
+  function clearFormPlotAxe(id: number, field: string){
+    const formPlotToUpdate = JSON.parse(JSON.stringify(formPlotList))
+    if(formPlotToUpdate[id]){
+      field === "axeY" ? (
+        delete formPlotToUpdate[id].axeY
+      ) : field === "axeX" && (
+        delete formPlotToUpdate[id].axeX
+      )
+      setFormPlotList([...formPlotToUpdate])
+    }
+  }
+
+  function updateFormPlot(id: number, field: string, value: string){
+    const formPlotToUpdate = JSON.parse(JSON.stringify(formPlotList))
+    while (!formPlotToUpdate[id]) {
+      formPlotToUpdate.push({})
+    }
+    field === "nameNode" ? (
+      formPlotToUpdate[id].nameNode = value
+    ) : field === "axeY" ? (
+      formPlotToUpdate[id].axeY = value
+    ) : field === "axeX" && (
+      formPlotToUpdate[id].axeX = value
+    )
+    setFormPlotList([...formPlotToUpdate])
+  };
 
   function updateTotalCheckedNode(){
     if(active.checkedNodes){
@@ -24,65 +52,59 @@ export const VisualizationPlotForm = () => {
     }
   }
 
-  function clearFormPlotAxe(id: number, field: string){
-    const formPlotToUpdate = JSON.parse(JSON.stringify(formPlot))
-    if(formPlotToUpdate[id]){
-      field === "axeY" ? (
-        delete formPlotToUpdate[id].axeY
-      ) : field === "axeX" && (
-        delete formPlotToUpdate[id].axeX
-      )
-      setFormPlot([...formPlotToUpdate])
+  function updateSelectableCheckedNode(){
+    let selectableCheckedNodeToUpdate: string[] = JSON.parse(JSON.stringify(totalCheckedNode))
+    let index = 0;
+    for (const formPlot of formPlotList) {
+      if (formPlot.axeX || formPlot.axeY) {
+        // Remove axes already selected
+        selectableCheckedNodeToUpdate = selectableCheckedNodeToUpdate.filter((selectableAxe) => (selectableAxe !== formPlot?.axeX && selectableAxe !== formPlot?.axeY))
+        
+        // Clear axes unselected
+        if(formPlot.axeX && !totalCheckedNode.includes(formPlot.axeX)){
+          clearFormPlotAxe(index, "axeX")
+        }
+        if(formPlot.axeY && !totalCheckedNode.includes(formPlot.axeY)){
+          clearFormPlotAxe(index, "axeY")
+        }
+      }
+      index++
     }
-  }
-
-  function updateFormPlot(id: number, field: string, value: string){
-    const formPlotToUpdate = JSON.parse(JSON.stringify(formPlot))
-    if(!formPlotToUpdate[id]){
-      formPlotToUpdate.push({})
-    }
-    field === "nameNode" ? (
-      formPlotToUpdate[id].nameNode = value
-    ) : field === "axeY" ? (
-      formPlotToUpdate[id].axeY = value
-    ) : field === "axeX" && (
-      formPlotToUpdate[id].axeX = value
-    )
-    setFormPlot([...formPlotToUpdate])
+    setSelectableCheckedNode([...selectableCheckedNodeToUpdate])
   };
 
   const getPlotForms = useCallback(() => {
-    const plotForm: JSX.Element[] = []
+    const formsProps: JSX.Element[] = []
     const spanCol = totalCheckedNode.length === 1 ? (12) : (6)
 
     for (let index = 0; index < Math.ceil(totalCheckedNode.length / 2); index++) {
-      plotForm.push(
+      formsProps.push(
         <Grid.Col key={`plot_form_${index + 1}`} span={spanCol}>
           <Fieldset legend={`Data ${index + 1}`}>
             <TextInput
               label="Node name"
               placeholder="Enter plot name"
-              value={formPlot[index]?.nameNode}
+              value={formPlotList[index]?.nameNode}
               onChange={(event) => updateFormPlot(index, "nameNode", event.currentTarget.value)}
             />
             <Autocomplete
               label="Y Axis data"
               placeholder="Select Y Axis data"
-              data={totalCheckedNode}
+              data={selectableCheckedNode}
               rightSection={
                 <Button p="0" onClick={() => clearFormPlotAxe(index, "axeY")} variant='transparent'><IconX color='gray'/></Button>
               }
-              value={formPlot[index]?.axeY ? (formPlot[index]?.axeY) : ("")}
+              value={formPlotList[index]?.axeY ? (formPlotList[index]?.axeY) : ("")}
               onChange={(value) => updateFormPlot(index, "axeY", value)}
             />
             <Autocomplete
               label="X Axis data"
               placeholder="Select X Axis data"
-              data={totalCheckedNode}
+              data={selectableCheckedNode}
               rightSection={
                 <Button p="0" onClick={() => clearFormPlotAxe(index, "axeX")} variant='transparent'><IconX color='gray'/></Button>
               }
-              value={formPlot[index]?.axeX ? (formPlot[index]?.axeX) : ("")}
+              value={formPlotList[index]?.axeX ? (formPlotList[index]?.axeX) : ("")}
               onChange={(value) => updateFormPlot(index, "axeX", value)}
             />
           </Fieldset>
@@ -90,20 +112,17 @@ export const VisualizationPlotForm = () => {
       )
     }
 
-    return plotForm;
-  }, [totalCheckedNode, formPlot]);
+    return formsProps;
+  }, [selectableCheckedNode, formPlotList]);
 
   useEffect(() => {
     updateTotalCheckedNode()
   }, [active])
 
   useEffect(() => {
-    console.log("totalCheckedNode : ",totalCheckedNode);
-  }, [totalCheckedNode])
-
-  useEffect(() => {
-    console.log("formPlot : ",formPlot);
-  }, [formPlot])
+    // Update selectable axes when select/clear axes or check/uncheck data
+    updateSelectableCheckedNode()
+  }, [totalCheckedNode, formPlotList])
 
   return (
     <Grid grow type="container">
