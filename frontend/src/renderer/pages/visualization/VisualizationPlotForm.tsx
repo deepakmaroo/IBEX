@@ -1,4 +1,4 @@
-import { Alert, Autocomplete, Button, Fieldset, Grid, TextInput } from '@mantine/core';
+import { Alert, Autocomplete, Button, Fieldset, Grid, Group, TextInput } from '@mantine/core';
 import { useCallback, useEffect, useState } from 'react';
 import { IconInfoCircle, IconX } from '@tabler/icons-react';
 import { useIbexStore } from '../../stores';
@@ -129,10 +129,46 @@ export const VisualizationPlotForm = () => {
       {(totalCheckedNode.length) ? (
         getPlotForms()
       ) : (
-        <Alert variant="light" color="blue" title="Select a path" icon={<IconInfoCircle/>}>
+        <Alert w="100%" variant="light" color="blue" title="Select a path" icon={<IconInfoCircle/>}>
           Select minimun one path to generate the plot
         </Alert>
       )}
-      </Grid>
+      <Grid.Col span={12}>
+        <TextInput
+          label="Title"
+          placeholder="Enter title"
+          withAsterisk
+          disabled={!totalCheckedNode.length}
+          // value={formPlotList[index]?.nameNode}
+          // onChange={(event) => updateFormPlot(index, "nameNode", event.currentTarget.value)}
+        />
+      </Grid.Col>
+      <Grid.Col span={6}>
+        <TextInput
+          label="Y Axis name"
+          placeholder="Enter Y axis name"
+          withAsterisk
+          disabled={!totalCheckedNode.length}
+          // value={formPlotList[index]?.nameNode}
+          // onChange={(event) => updateFormPlot(index, "nameNode", event.currentTarget.value)}
+        />
+      </Grid.Col>
+      <Grid.Col span={6}>
+        <TextInput
+          label="X Axis name"
+          placeholder="Enter X axis name"
+          withAsterisk
+          disabled={!totalCheckedNode.length}
+          // value={formPlotList[index]?.nameNode}
+          // onChange={(event) => updateFormPlot(index, "nameNode", event.currentTarget.value)}
+        />
+      </Grid.Col>
+      <Grid.Col span={12}>
+        <Group justify='center' mt="2rem" align='flex-end'>
+          <Button onClick={() => console.log("Create Chart")}>Plot</Button>
+        </Group>
+      </Grid.Col>
+      
+    </Grid>
   );
 };

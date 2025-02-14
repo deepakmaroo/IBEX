@@ -23,12 +23,12 @@ export const VisualizationCustomPlotModal = ({
     >
       <Grid grow type="container">
         <Grid.Col span={2}>
-          <Paper shadow="md" h={height}>
+          <Paper shadow="md" h="100%">
             <VisualizationTree height={height} />
           </Paper>
         </Grid.Col>
         <Grid.Col span={10}>
-          <Paper shadow="md" h={height} p="1rem">
+          <Paper shadow="md" h="100%" p="1rem">
             <VisualizationPlotForm/>
           </Paper>
         </Grid.Col>
