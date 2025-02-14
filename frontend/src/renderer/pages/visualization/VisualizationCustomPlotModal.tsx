@@ -1,5 +1,6 @@
-import { Grid, Modal, Paper, Text } from '@mantine/core';
+import { Grid, Modal, Paper } from '@mantine/core';
 import { VisualizationTree } from './VisualizationTree';
+import { VisualizationPlotForm } from './VisualizationPlotForm';
 
 interface VisualizationCustomPlotModalProps {
   opened: boolean;
@@ -27,8 +28,8 @@ export const VisualizationCustomPlotModal = ({
           </Paper>
         </Grid.Col>
         <Grid.Col span={10}>
-          <Paper shadow="md" h={height}>
-            <Text>Form</Text>
+          <Paper shadow="md" h={height} p="1rem">
+            <VisualizationPlotForm/>
           </Paper>
         </Grid.Col>
       </Grid>
