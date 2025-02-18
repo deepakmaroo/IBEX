@@ -88,9 +88,6 @@ class IMASPySource(DataSourceInterface):
         metadata = self._get_metadata(uri, ids, node_path, occurrence)
         metadata_dict = self._jsonify_metadata(metadata, recursive)
 
-        print(f"=== TYPE {metadata_dict['type']} | {type(metadata_dict['type'])}")
-        print(f"=== NDIM: {metadata_dict['ndim']}")
-
         if metadata_dict["ndim"] > 0:
             target_node = self._get_raw_data(uri, ids, node_path, occurrence)
             if isinstance(target_node, IDSStructure):
