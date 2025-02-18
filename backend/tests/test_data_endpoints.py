@@ -1,11 +1,9 @@
 import pytest
 
 
-def test_array_summary(entry_path):
+def test_field_value(entry_path):
     parameters = {
-        "uri": f"imas:mdsplus?path={entry_path}",
-        "ids": "core_profiles",
-        "node_path": "time",
+        "uri": f"imas:mdsplus?path={entry_path}#core_profiles/time",
     }
     response = pytest.test_client.get("/data/field_value", params=parameters)
 

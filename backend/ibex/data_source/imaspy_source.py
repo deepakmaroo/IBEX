@@ -5,9 +5,10 @@ import numpy as np  # type: ignore
 from idstools.database import DBMaster  # type: ignore
 from imaspy.ids_metadata import IDSMetadata  # type: ignore
 from imaspy.ids_primitive import IDSNumericArray  # type: ignore
-from imaspy.ids_primitive import IDSPrimitive, IDSString1D  # type: ignore
+from imaspy.ids_primitive import IDSPrimitive  # type: ignore
 from imaspy.ids_struct_array import IDSStructArray  # type: ignore
 from imaspy.ids_structure import IDSStructure  # type: ignore
+from imaspy.ids_data_type import IDSDataType  # type: ignore
 
 from ibex.data_source.data_source_interface import DataSourceInterface
 from ibex.data_source.exception import NotALeafNodeException, NotAnArrayException
@@ -84,15 +85,21 @@ class IMASPySource(DataSourceInterface):
         :return:
         """
 
-        target_node = self._get_raw_data(uri, ids, node_path, occurrence)
-        metadata = target_node.metadata
+        metadata = self._get_metadata(uri, ids, node_path, occurrence)
         metadata_dict = self._jsonify_metadata(metadata, recursive)
 
-        if isinstance(target_node, IDSStructArray) or isinstance(target_node, IDSString1D):
-            metadata_dict["shape"] = [len(target_node)]
+        print(f"=== TYPE {metadata_dict['type']} | {type(metadata_dict['type'])}")
+        print(f"=== NDIM: {metadata_dict['ndim']}")
 
-        elif isinstance(target_node, IDSNumericArray):
-            metadata_dict["shape"] = target_node.shape
+        if metadata_dict["ndim"] > 0:
+            target_node = self._get_raw_data(uri, ids, node_path, occurrence)
+            if isinstance(target_node, IDSStructure):
+                return metadata_dict
+
+            if metadata_dict["type"] == IDSDataType.STRUCT_ARRAY or metadata_dict["type"] == IDSDataType.STR:
+                metadata_dict["shape"] = [len(target_node)]
+            else:  # Numeric array
+                metadata_dict["shape"] = target_node.shape
 
         return metadata_dict
 
@@ -102,6 +109,7 @@ class IMASPySource(DataSourceInterface):
         :param uri:
         :param ids:
         :param node_path:
+        :param occurrence:
         :return:
         """
 
@@ -112,6 +120,24 @@ class IMASPySource(DataSourceInterface):
         ids_data = data_path.goto(ids_data, from_root=True)
 
         return ids_data
+
+    def _get_metadata(self, uri: str, ids: str, node_path: str, occurrence: int = 0) -> IDSMetadata:
+        """
+
+        :param uri:
+        :param ids:
+        :param node_path:
+        :param occurrence:
+        :return:
+        """
+
+        entry = imaspy.DBEntry(uri, mode="r")
+        ids_metadata = entry.get(ids, lazy=True, autoconvert=False, occurrence=occurrence).metadata
+
+        data_path = imaspy.ids_path.IDSPath(node_path)
+        ids_metadata = data_path.goto_metadata(ids_metadata)
+
+        return ids_metadata
 
     def get_data(self, uri: str, ids: str, node_path: str, occurrence: int = 0, range: List[int] | None = None) -> dict:
         """
