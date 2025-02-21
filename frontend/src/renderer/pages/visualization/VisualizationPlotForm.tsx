@@ -70,16 +70,32 @@ export const VisualizationPlotForm = () => {
     setSelectableCheckedNode([...selectableCheckedNodeToUpdate])
   };
 
-  function updateDataFormPlot(){
+  function checkDataFormPlotCompletion(){
+    let isIncomplete: boolean = true
     if(dataFormPlot?.titleAxisX && dataFormPlot?.titleAxisY && dataFormPlot?.titleForm && formPlotList.length){
-      const dataFormPlotUpdated = {...dataFormPlot, dataPlot: [...formPlotList]}
-      const updatedActive: Configuration = {
-        ...active,
-        dataFormPlot: dataFormPlotUpdated,
-        
-      };
-      updatedConfiguration(updatedActive);
+      for (const formPlot of formPlotList) {
+        if(formPlot?.nameNode && formPlot?.axeX && formPlot?.axeY){
+          isIncomplete = false
+          break;
+        }
+      }
     }
+    return isIncomplete;
+  }
+
+  function updateDataFormPlot(){
+    const fromPlotListToSave: FormPlot[] = []
+    for (const formPlot of formPlotList) {
+      (formPlot?.nameNode && formPlot?.axeX && formPlot?.axeY) && (
+        fromPlotListToSave.push(formPlot)
+      )
+    }
+    const dataFormPlotUpdated = {...dataFormPlot, dataPlot: [...fromPlotListToSave]}
+    const updatedActive: Configuration = {
+      ...active,
+      dataFormPlot: dataFormPlotUpdated,
+    };
+    updatedConfiguration(updatedActive);
   }
 
   const getPlotForms = useCallback(() => {
@@ -174,7 +190,12 @@ export const VisualizationPlotForm = () => {
       </Grid.Col>
       <Grid.Col span={12}>
         <Group justify='center' mt="2rem" align='flex-end'>
-          <Button onClick={() => updateDataFormPlot()}>Plot</Button>
+          <Button 
+            onClick={() => updateDataFormPlot()}
+            disabled={checkDataFormPlotCompletion()}
+          >
+            Plot
+          </Button>
         </Group>
       </Grid.Col>
       

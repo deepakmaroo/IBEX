@@ -48,8 +48,8 @@ export const VisualizationPlot = ({closeCustomPlotModal}: VisualizationPlotProps
         };
         tempRawData.push(dataPlot)
       }
-        setRawData([...tempRawData]);
-        closeCustomPlotModal();
+      setRawData([...tempRawData]);
+      closeCustomPlotModal();
     }
   }
 
@@ -62,8 +62,8 @@ export const VisualizationPlot = ({closeCustomPlotModal}: VisualizationPlotProps
       <>
         <SimplePlot
           data={rawData}
-          xAxisName="time"
-          yAxisName="global_quantities/ip"
+          xAxisName={active.dataFormPlot.titleAxisX}
+          yAxisName={active.dataFormPlot.titleAxisY}
           height={400}
         />
       </>
