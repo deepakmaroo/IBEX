@@ -1,15 +1,16 @@
-import { Text } from '@mantine/core';
+import { Stack, Text } from '@mantine/core';
 import { SimplePlot } from '../../components';
 import { DataPlot } from 'src/renderer/types';
 import { useEffect, useState } from 'react';
+import { useIbexStore } from '../../stores';
 
-export const VisualizationPlot = () => {
+interface VisualizationPlotProps{
+  closeCustomPlotModal: () => void;
+}
+
+export const VisualizationPlot = ({closeCustomPlotModal}: VisualizationPlotProps) => {
+  const { active } = useIbexStore();
   const [rawData, setRawData] = useState<DataPlot[]>([]);
-
-  const uri1_global_quantities =
-    'imas:hdf5?user=public;pulse=135011;run=7;database=iterdb;version=3#core_profiles:0/global_quantities/ip';
-  const uri2_time =
-    'imas:hdf5?user=public;pulse=135011;run=7;database=iterdb;version=3#core_profiles:0/time';
 
   const fetchFieldValue = async (uri: string) => {
     try {
@@ -33,32 +34,43 @@ export const VisualizationPlot = () => {
     }
   };
 
+  async function fetchPlotData() {
+    if(active.dataFormPlot?.dataPlot){
+      const tempRawData: DataPlot[] = []
+      for (const dataInPlot of active.dataFormPlot.dataPlot) {
+        const data_axeY = await fetchFieldValue(dataInPlot.axeY);
+        const data_axeX = await fetchFieldValue(dataInPlot.axeX);
+
+        const dataPlot: DataPlot = {
+          nameNode: dataInPlot.nameNode,
+          valueX: data_axeX.value,
+          valueY: data_axeY.value,
+        };
+        tempRawData.push(dataPlot)
+      }
+        setRawData([...tempRawData]);
+        closeCustomPlotModal();
+    }
+  }
+
   useEffect(() => {
-    const fetchData = async () => {
-      const data1_global = await fetchFieldValue(uri1_global_quantities);
-      const data2_time = await fetchFieldValue(uri2_time);
-
-      const dataPlot: DataPlot = {
-        nameNode: 'Node Global Quantities / Time',
-        valueX: data2_time.value,
-        valueY: data1_global.value,
-      };
-
-      setRawData([dataPlot]);
-    };
-
-    fetchData();
-  }, [uri1_global_quantities, uri2_time]);
+    fetchPlotData()
+  }, [active.dataFormPlot])
 
   return (
-    <div>
-      <Text>VisualizationPlot</Text>
-      {/* <SimplePlot
-        data={rawData}
-        xAxisName="time"
-        yAxisName="global_quantities/ip"
-        height={400}
-      /> */}
-    </div>
+    rawData.length > 0 ? (
+      <>
+        <SimplePlot
+          data={rawData}
+          xAxisName="time"
+          yAxisName="global_quantities/ip"
+          height={400}
+        />
+      </>
+    ) : (
+      <Stack h="100%" align='center' w="100%" justify='center'>
+        <Text>No chart generates</Text>
+      </Stack>
+    )
   );
 };

@@ -1,5 +1,6 @@
 import { IDSDataSelected } from './ids';
 import { CheckedNodeIds, CustomTreeData } from './tree';
+import { DataFormPlot } from './plot';
 
 export interface Configuration {
   name: string;
@@ -9,7 +10,8 @@ export interface Configuration {
   lastLocalDataSetSelected?: string;
   lastURIInput?: string;
   customDataTree: CustomTreeData[];
-  checkedNodes: CheckedNodeIds[]
+  checkedNodes: CheckedNodeIds[];
+  dataFormPlot?: DataFormPlot;
 }
 
 export interface ConfigForm {

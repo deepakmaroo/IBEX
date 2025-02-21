@@ -74,7 +74,9 @@ export const SimplePlot = ({
         colors[node] = getRandomColor();
       }
     });
-    setNodeColors((prevColors) => ({ ...prevColors, ...colors }));
+    if(colors.length){
+      setNodeColors((prevColors) => ({ ...prevColors, ...colors }));
+    }
   }, [uniqueNodes, nodeColors]);
 
   const customTooltip = ({ payload }: any) => {

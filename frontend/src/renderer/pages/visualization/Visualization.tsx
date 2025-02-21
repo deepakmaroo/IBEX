@@ -35,7 +35,7 @@ export const Visualization = () => {
             </Grid.Col>
             <Grid.Col span={10}>
               <Paper shadow="md" h={height} radius="md">
-                <VisualizationPlot />
+                <VisualizationPlot closeCustomPlotModal={closeCustomPlotModal}/>
               </Paper>
             </Grid.Col>
           </Grid>

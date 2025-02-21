@@ -2,16 +2,13 @@ import { Alert, Autocomplete, Button, Fieldset, Grid, Group, TextInput } from '@
 import { useCallback, useEffect, useState } from 'react';
 import { IconInfoCircle, IconX } from '@tabler/icons-react';
 import { useIbexStore } from '../../stores';
+import { DataFormPlot, FormPlot, Configuration} from "src/renderer/types";
 
-interface FormPlot {
-  nameNode?: string;
-  axeX?: string;
-  axeY?: string;
-}
 
 export const VisualizationPlotForm = () => {
-  const { active } = useIbexStore();
+  const { active, updatedConfiguration } = useIbexStore();
   const [totalCheckedNode, setTotalCheckedNode] = useState<string[]>([]);
+  const [dataFormPlot, setDataFormPlot] = useState<DataFormPlot>({});
   const [selectableCheckedNode, setSelectableCheckedNode] = useState<string[]>([]);
   const [formPlotList, setFormPlotList] = useState<FormPlot[]>([]);
 
@@ -72,6 +69,18 @@ export const VisualizationPlotForm = () => {
     }
     setSelectableCheckedNode([...selectableCheckedNodeToUpdate])
   };
+
+  function updateDataFormPlot(){
+    if(dataFormPlot?.titleAxisX && dataFormPlot?.titleAxisY && dataFormPlot?.titleForm && formPlotList.length){
+      const dataFormPlotUpdated = {...dataFormPlot, dataPlot: [...formPlotList]}
+      const updatedActive: Configuration = {
+        ...active,
+        dataFormPlot: dataFormPlotUpdated,
+        
+      };
+      updatedConfiguration(updatedActive);
+    }
+  }
 
   const getPlotForms = useCallback(() => {
     const formsProps: JSX.Element[] = []
@@ -139,8 +148,8 @@ export const VisualizationPlotForm = () => {
           placeholder="Enter title"
           withAsterisk
           disabled={!totalCheckedNode.length}
-          // value={formPlotList[index]?.nameNode}
-          // onChange={(event) => updateFormPlot(index, "nameNode", event.currentTarget.value)}
+          value={dataFormPlot?.titleForm}
+          onChange={(event) => setDataFormPlot((prevDataFormPlot) => ({...prevDataFormPlot, titleForm: event.currentTarget.value}))}
         />
       </Grid.Col>
       <Grid.Col span={6}>
@@ -149,8 +158,8 @@ export const VisualizationPlotForm = () => {
           placeholder="Enter Y axis name"
           withAsterisk
           disabled={!totalCheckedNode.length}
-          // value={formPlotList[index]?.nameNode}
-          // onChange={(event) => updateFormPlot(index, "nameNode", event.currentTarget.value)}
+          value={dataFormPlot?.titleAxisY}
+          onChange={(event) => setDataFormPlot((prevDataFormPlot) => ({...prevDataFormPlot, titleAxisY: event.currentTarget.value}))}
         />
       </Grid.Col>
       <Grid.Col span={6}>
@@ -159,13 +168,13 @@ export const VisualizationPlotForm = () => {
           placeholder="Enter X axis name"
           withAsterisk
           disabled={!totalCheckedNode.length}
-          // value={formPlotList[index]?.nameNode}
-          // onChange={(event) => updateFormPlot(index, "nameNode", event.currentTarget.value)}
+          value={dataFormPlot?.titleAxisX}
+          onChange={(event) => setDataFormPlot((prevDataFormPlot) => ({...prevDataFormPlot, titleAxisX: event.currentTarget.value}))}
         />
       </Grid.Col>
       <Grid.Col span={12}>
         <Group justify='center' mt="2rem" align='flex-end'>
-          <Button onClick={() => console.log("Create Chart")}>Plot</Button>
+          <Button onClick={() => updateDataFormPlot()}>Plot</Button>
         </Group>
       </Grid.Col>
       
