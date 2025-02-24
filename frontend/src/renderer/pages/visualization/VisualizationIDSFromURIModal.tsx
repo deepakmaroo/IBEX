@@ -46,6 +46,7 @@ export const VisualizationIDSFromURIModal = ({
   const [dataIDS, setDataIDS] = useState<IDSDataSelected[]>([]);
   const [dataIDSLoaded, setDataIDSLoaded] = useState<IDSDataLoaded[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingDbEntries, setIsLoadingDbEntries] = useState(false);
   const [activePage, setPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const [fromURIisSuccess, setFromURIisSuccess] = useState(false);
@@ -314,7 +315,7 @@ export const VisualizationIDSFromURIModal = ({
 
   async function fetchDbEntries() {
     try {
-
+      setIsLoadingDbEntries(true);
       const response = await fetch(
         `${window.env.API_URL}/data_entry/available_entries/?user=${formDbEntries.values.user}&backend=${formDbEntries.values.backend}&database=${formDbEntries.values.database}&version=${formDbEntries.values.version}`,
         {
@@ -356,6 +357,8 @@ export const VisualizationIDSFromURIModal = ({
         message: 'Error to search IDS',
         color: 'red',
       });
+    } finally {
+      setIsLoadingDbEntries(false);
     }
   }
 
@@ -389,6 +392,7 @@ export const VisualizationIDSFromURIModal = ({
               borderColor: fromFileisSuccess ? '#00FF00' : '',
             },
           }}
+          disabled={isLoading || isLoadingDbEntries}
         />
 
         <form
@@ -422,6 +426,7 @@ export const VisualizationIDSFromURIModal = ({
                 borderColor: fromURIisSuccess ? '#00FF00' : '',
               },
             }}
+            disabled={isLoading || isLoadingDbEntries}
           />
         </form>
       </Group>
@@ -435,7 +440,12 @@ export const VisualizationIDSFromURIModal = ({
           fetchDbEntries();
         })}
       >
-        <Fieldset legend="Legacy parameters" w="100%" mb={10}>
+        <Fieldset
+          legend="Legacy parameters"
+          w="100%"
+          mb={10}
+          disabled={isLoading || isLoadingDbEntries}
+        >
           <Group justify="space-between">
             <TextInput
               label="User"
@@ -464,7 +474,12 @@ export const VisualizationIDSFromURIModal = ({
               {...formDbEntries.getInputProps('version')}
               withAsterisk
             />
-            <Button w="calc(20% - 15px)" mt={25} type="submit">
+            <Button
+              w="calc(20% - 15px)"
+              mt={25}
+              type="submit"
+              leftSection={isLoadingDbEntries && <Loader color="blue" />}
+            >
               Search db entries
             </Button>
           </Group>
