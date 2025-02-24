@@ -1,7 +1,9 @@
 import {
   ActionIcon,
   Button,
+  Center,
   Checkbox,
+  Fieldset,
   FileInput,
   Group,
   Loader,
@@ -29,6 +31,13 @@ interface FormIDS {
   uri: string;
 }
 
+interface FormDbEntries {
+  user: string;
+  backend: string;
+  database: string;
+  version: string;
+}
+
 export const VisualizationIDSFromURIModal = ({
   opened,
   close,
@@ -46,6 +55,15 @@ export const VisualizationIDSFromURIModal = ({
     initialValues: {
       file: null,
       uri: '',
+    },
+  });
+
+  const formDbEntries = useForm<FormDbEntries>({
+    initialValues: {
+      user: 'public',
+      backend: '',
+      database: '',
+      version: '3',
     },
   });
 
@@ -294,12 +312,59 @@ export const VisualizationIDSFromURIModal = ({
     setIsLoading(false);
   }
 
+  async function fetchDbEntries() {
+    try {
+
+      const response = await fetch(
+        `${window.env.API_URL}/data_entry/available_entries/?user=${formDbEntries.values.user}&backend=${formDbEntries.values.backend}&database=${formDbEntries.values.database}&version=${formDbEntries.values.version}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+
+      if (response.ok) {
+        const res = await response.json();
+        console.log('res db entries', res);
+      } else {
+        const res = await response.json();
+        console.error('Promise resolved but HTTP status failed:', res);
+        formDbEntries.setErrors({
+          user: 'Failed to fetch data',
+          backend: 'Failed to fetch data',
+          database: 'Failed to fetch data',
+          version: 'Failed to fetch data',
+        });
+        showNotification({
+          title: 'Error',
+          message: res.datail,
+          color: 'red',
+        });
+      }
+    } catch (error) {
+      console.error('Promise rejected:', error);
+      formDbEntries.setErrors({
+        user: 'Error occurred while fetching data',
+        backend: 'Error occurred while fetching data',
+        database: 'Error occurred while fetching data',
+        version: 'Error occurred while fetching data',
+      });
+      showNotification({
+        title: 'Error',
+        message: 'Error to search IDS',
+        color: 'red',
+      });
+    }
+  }
+
   return (
     <Modal
       opened={opened}
       onClose={close}
       title="Select IDS"
-      size="70%"
+      size="90%"
       centered
     >
       <Group justify="space-between" mb={10}>
@@ -325,7 +390,7 @@ export const VisualizationIDSFromURIModal = ({
             },
           }}
         />
-        <Text>or</Text>
+
         <form
           onSubmit={formIDS.onSubmit(() => {
             fetchDataIDSFromURI();
@@ -360,6 +425,52 @@ export const VisualizationIDSFromURIModal = ({
           />
         </form>
       </Group>
+
+      <Center>
+        <Text>or</Text>
+      </Center>
+
+      <form
+        onSubmit={formDbEntries.onSubmit(() => {
+          fetchDbEntries();
+        })}
+      >
+        <Fieldset legend="Legacy parameters" w="100%" mb={10}>
+          <Group justify="space-between">
+            <TextInput
+              label="User"
+              placeholder="Enter user name"
+              withAsterisk
+              {...formDbEntries.getInputProps('user')}
+              w="calc(20% - 15px)"
+            />
+            <TextInput
+              label="Backend"
+              placeholder="Enter backend name"
+              w="calc(20% - 15px)"
+              {...formDbEntries.getInputProps('backend')}
+            />
+            <TextInput
+              label="Database"
+              placeholder="Enter plot name"
+              w="calc(20% - 15px)"
+              {...formDbEntries.getInputProps('database')}
+            />
+            <TextInput
+              label="Version"
+              placeholder="Enter plot name"
+              defaultValue="3"
+              w="calc(20% - 15px)"
+              {...formDbEntries.getInputProps('version')}
+              withAsterisk
+            />
+            <Button w="calc(20% - 15px)" mt={25} type="submit">
+              Search db entries
+            </Button>
+          </Group>
+        </Fieldset>
+      </form>
+
       <Table withTableBorder>
         <Table.Thead>{tableHeaders}</Table.Thead>
 
