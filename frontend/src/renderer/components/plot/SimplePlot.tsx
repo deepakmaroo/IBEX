@@ -9,7 +9,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { useEffect, useState, useRef } from "react";
-import { ActionIcon, Container } from "@mantine/core";
+import { ActionIcon, Container, Group, Title } from "@mantine/core";
 import { IconCamera } from "@tabler/icons-react";
 import { toPng } from "html-to-image";
 import { useHover } from "@mantine/hooks";
@@ -17,6 +17,7 @@ import { DataPlot } from "src/renderer/types";
 
 interface SimplePlotProps {
   data: DataPlot[];
+  titleForm: string;
   xAxisName: string;
   yAxisName: string;
   width?: number;
@@ -34,6 +35,7 @@ const getRandomColor = () => {
 
 export const SimplePlot = ({
   data,
+  titleForm,
   xAxisName,
   yAxisName,
   height,
@@ -115,7 +117,7 @@ export const SimplePlot = ({
       .then((dataUrl) => {
         const link = document.createElement("a");
         link.href = dataUrl;
-        link.download = "chart.png";
+        link.download = `${titleForm}.png`;
         link.click();
       })
       .catch((err) => {
@@ -124,18 +126,21 @@ export const SimplePlot = ({
   };
 
   return (
-    <Container pos="relative" ref={ref as React.LegacyRef<HTMLDivElement>}>
+    <Container pos="relative" ref={ref as React.LegacyRef<HTMLDivElement>} pt="2rem">
       <ActionIcon
         variant="filled"
         aria-label="screen-plot"
         pos="absolute"
         size="lg"
         right={5}
-        top={5}
+        top={"2rem"}
         onClick={exportToPNG}
       >
         <IconCamera style={{ width: "70%", height: "70%" }} stroke={1.5} />
       </ActionIcon>
+      <Group justify="center">
+        <Title>{titleForm}</Title>
+      </Group>
       <ResponsiveContainer height={height || 400} width={width} ref={chartRef}>
         <LineChart
           data={transformedData}

@@ -62,6 +62,7 @@ export const VisualizationPlot = ({closeCustomPlotModal}: VisualizationPlotProps
       <>
         <SimplePlot
           data={rawData}
+          titleForm={active.dataFormPlot.titleForm}
           xAxisName={active.dataFormPlot.titleAxisX}
           yAxisName={active.dataFormPlot.titleAxisY}
           height={400}
