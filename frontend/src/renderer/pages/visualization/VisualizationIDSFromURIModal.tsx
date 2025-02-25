@@ -403,6 +403,7 @@ export const VisualizationIDSFromURIModal = ({
             width: 'calc(50% - 30px)',
           }}
         >
+          
           <TextInput
             label="Write/Paste your URI"
             placeholder="Enter your uri"
@@ -413,6 +414,7 @@ export const VisualizationIDSFromURIModal = ({
                 aria-label="Settings"
                 component="button"
                 type="submit"
+                disabled={isLoading || isLoadingDbEntries}
               >
                 <IconSearch
                   style={{ width: '70%', height: '70%' }}
@@ -469,7 +471,6 @@ export const VisualizationIDSFromURIModal = ({
             <TextInput
               label="Version"
               placeholder="Enter plot name"
-              defaultValue="3"
               w="calc(20% - 15px)"
               {...formDbEntries.getInputProps('version')}
               withAsterisk
@@ -478,7 +479,7 @@ export const VisualizationIDSFromURIModal = ({
               w="calc(20% - 15px)"
               mt={25}
               type="submit"
-              leftSection={isLoadingDbEntries && <Loader color="blue" />}
+              leftSection={isLoadingDbEntries && <Loader color="blue" size="sm"/>}
             >
               Search db entries
             </Button>
