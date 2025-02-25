@@ -71,10 +71,10 @@ export const VisualizationIDSFromURIModal = ({
     },
     validate: {
       user: (value) => (value.length < 1 ? 'User is required' : undefined),
-      backend: (value) =>
-        value.length < 1 ? 'Backend is required' : undefined,
-      database: (value) =>
-        value.length < 1 ? 'Database is required' : undefined,
+      // backend: (value) =>
+      //   value.length < 1 ? 'Backend is required' : undefined,
+      // database: (value) =>
+      //   value.length < 1 ? 'Database is required' : undefined,
       version: (value) =>
         value.length < 1 ? 'Version is required' : undefined,
     },
