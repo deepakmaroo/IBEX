@@ -1,5 +1,6 @@
 import {
   ActionIcon,
+  Autocomplete,
   Button,
   Center,
   Checkbox,
@@ -45,8 +46,10 @@ export const VisualizationIDSFromURIModal = ({
   const { active, updatedConfiguration } = useIbexStore();
   const [dataIDS, setDataIDS] = useState<IDSDataSelected[]>([]);
   const [dataIDSLoaded, setDataIDSLoaded] = useState<IDSDataLoaded[]>([]);
+  const [dataDbEntries, setDataDbEntries] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingDbEntries, setIsLoadingDbEntries] = useState(false);
+  const [isLoadedDbEntries, setIsLoadedDbEntries] = useState(false);
   const [activePage, setPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const [fromURIisSuccess, setFromURIisSuccess] = useState(false);
@@ -65,6 +68,15 @@ export const VisualizationIDSFromURIModal = ({
       backend: '',
       database: '',
       version: '3',
+    },
+    validate: {
+      user: (value) => (value.length < 1 ? 'User is required' : undefined),
+      backend: (value) =>
+        value.length < 1 ? 'Backend is required' : undefined,
+      database: (value) =>
+        value.length < 1 ? 'Database is required' : undefined,
+      version: (value) =>
+        value.length < 1 ? 'Version is required' : undefined,
     },
   });
 
@@ -328,6 +340,13 @@ export const VisualizationIDSFromURIModal = ({
 
       if (response.ok) {
         const res = await response.json();
+        setDataDbEntries(res.entries);
+        showNotification({
+          title: 'Success',
+          message: 'Data successfully fetched from db entries',
+          color: 'green',
+        });
+
         console.log('res db entries', res);
       } else {
         const res = await response.json();
@@ -359,6 +378,7 @@ export const VisualizationIDSFromURIModal = ({
       });
     } finally {
       setIsLoadingDbEntries(false);
+      setIsLoadedDbEntries(true);
     }
   }
 
@@ -403,11 +423,10 @@ export const VisualizationIDSFromURIModal = ({
             width: 'calc(50% - 30px)',
           }}
         >
-          
-          <TextInput
+          <Autocomplete
             label="Write/Paste your URI"
             placeholder="Enter your uri"
-            {...formIDS.getInputProps('uri')}
+            data={dataDbEntries}
             rightSection={
               <ActionIcon
                 variant="filled"
@@ -425,10 +444,15 @@ export const VisualizationIDSFromURIModal = ({
             styles={{
               input: {
                 //green if success else default
-                borderColor: fromURIisSuccess ? '#00FF00' : '',
+                borderColor: fromURIisSuccess
+                ? '#00FF00'
+                : isLoadedDbEntries && dataDbEntries.length > 0 
+                  ? '#FFDD00'
+                  : '',
               },
             }}
             disabled={isLoading || isLoadingDbEntries}
+            {...formIDS.getInputProps('uri')}
           />
         </form>
       </Group>
@@ -461,12 +485,14 @@ export const VisualizationIDSFromURIModal = ({
               placeholder="Enter backend name"
               w="calc(20% - 15px)"
               {...formDbEntries.getInputProps('backend')}
+              withAsterisk
             />
             <TextInput
               label="Database"
               placeholder="Enter plot name"
               w="calc(20% - 15px)"
               {...formDbEntries.getInputProps('database')}
+              withAsterisk
             />
             <TextInput
               label="Version"
@@ -479,7 +505,9 @@ export const VisualizationIDSFromURIModal = ({
               w="calc(20% - 15px)"
               mt={25}
               type="submit"
-              leftSection={isLoadingDbEntries && <Loader color="blue" size="sm"/>}
+              leftSection={
+                isLoadingDbEntries && <Loader color="blue" size="sm" />
+              }
             >
               Search db entries
             </Button>
