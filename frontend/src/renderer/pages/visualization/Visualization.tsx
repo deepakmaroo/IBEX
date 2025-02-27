@@ -20,7 +20,7 @@ export const Visualization = () => {
     { open: openCustomPlotModal, close: closeCustomPlotModal },
   ] = useDisclosure(false);
 
-  const height = configurations.length > 0 ? '85vh' : '85vh';
+  const height = configurations.length > 0 ? '84vh' : '85vh';
 
   return (
     <Container fluid p={10}>

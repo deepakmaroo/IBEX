@@ -1,4 +1,12 @@
-import { Accordion, Group, ScrollArea, Text, Tooltip } from '@mantine/core';
+import {
+  Accordion,
+  ColorSwatch,
+  Group,
+  ScrollArea,
+  SimpleGrid,
+  Text,
+  Tooltip,
+} from '@mantine/core';
 import { CheckedNodeIds, CustomTreeData } from 'src/renderer/types';
 import { TreeLibrary } from '../../components';
 
@@ -18,24 +26,25 @@ interface AccordionLabelProps {
 
 function AccordionLabel({ label, description }: AccordionLabelProps) {
   return (
-    <Group styles={{
-      root:{
-        display:'block'
-      }
-    }}>
-      {/* <Avatar src={image} radius="xl" size="lg" /> */}
-      <div>
+    <Group wrap="nowrap">
+      <ColorSwatch color="#009790" />
+      <SimpleGrid cols={1} verticalSpacing={0}>
         <Text>{label}</Text>
-        <Tooltip label={description} position='right'>
-          <Text size="sm" c="dimmed" fw={400} styles={{
-          root:{
-            whiteSpace:'nowrap'
-          }
-        }}>
+        <Tooltip label={description} position="right">
+          <Text
+            size="sm"
+            c="dimmed"
+            fw={400}
+            styles={{
+              root: {
+                whiteSpace: 'nowrap',
+              },
+            }}
+          >
             {description}
           </Text>
         </Tooltip>
-      </div>
+      </SimpleGrid>
     </Group>
   );
 }
@@ -49,7 +58,10 @@ export const TreeLibrariesAccordion = ({
   getNodesChecked,
 }: VisualizationTreeProps) => {
   const items = customDataTree.map((item) => (
-    <Accordion.Item key={`accodion-${item.name}-${item.uri}`} value={`${item.fullUri}`}>
+    <Accordion.Item
+      key={`accodion-${item.name}-${item.uri}`}
+      value={`${item.fullUri}`}
+    >
       <Accordion.Control>
         <AccordionLabel label={item.name} description={item.uri} />
       </Accordion.Control>
@@ -69,15 +81,8 @@ export const TreeLibrariesAccordion = ({
     </Accordion.Item>
   ));
 
-  const customStyles = `
-    .mantine-ScrollArea-viewport > div {
-      display: block !important;
-    }
-  `;
-
   return (
     <ScrollArea h={height}>
-      <style>{customStyles}</style>
       <Accordion onChange={handleAccordionChange}>{items}</Accordion>
     </ScrollArea>
   );
