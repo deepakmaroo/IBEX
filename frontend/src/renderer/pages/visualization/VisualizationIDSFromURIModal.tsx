@@ -95,7 +95,7 @@ export const VisualizationIDSFromURIModal = ({
       <Table.Th>Select</Table.Th>
       <Table.Th>Name</Table.Th>
       <Table.Th>Occurrences</Table.Th>
-      {/* <Table.Th> */}
+      <Table.Th>URI</Table.Th>
     </Table.Tr>
   );
 
@@ -161,6 +161,7 @@ export const VisualizationIDSFromURIModal = ({
           })}
         </Group>
       </Table.Td>
+      <Table.Td>{element.uri}</Table.Td>
     </Table.Tr>
   ));
 
@@ -257,7 +258,15 @@ export const VisualizationIDSFromURIModal = ({
 
       const listIdsResult = await responseListIds.json();
 
-      const newDataLoaded: IDSDataLoaded[] = [];
+      const oldDataLoadedSelected = dataIDsLoaded.filter((loaded) =>
+      dataIDsSelected.some(
+        (selected) =>
+          selected.name === loaded.name && selected.uri === loaded.uri,
+      ),
+    );
+
+    const newDataLoaded: IDSDataLoaded[] = [...oldDataLoadedSelected];
+
       for (const ids of listIdsResult.idses) {
         newDataLoaded.push({
           name: ids.name,
