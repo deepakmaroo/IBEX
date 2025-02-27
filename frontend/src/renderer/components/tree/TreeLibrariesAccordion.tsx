@@ -22,12 +22,13 @@ interface VisualizationTreeProps {
 interface AccordionLabelProps {
   label: string;
   description: string;
+  color: string;
 }
 
-function AccordionLabel({ label, description }: AccordionLabelProps) {
+function AccordionLabel({ label, description, color }: AccordionLabelProps) {
   return (
     <Group wrap="nowrap">
-      <ColorSwatch color="#009790" />
+      <ColorSwatch color={color} />
       <SimpleGrid cols={1} verticalSpacing={0}>
         <Text>{label}</Text>
         <Tooltip label={description} position="right">
@@ -63,7 +64,7 @@ export const TreeLibrariesAccordion = ({
       value={`${item.fullUri}`}
     >
       <Accordion.Control>
-        <AccordionLabel label={item.name} description={item.uri} />
+        <AccordionLabel label={item.name} description={item.uri} color={item.uriColor}/>
       </Accordion.Control>
       <Accordion.Panel>
         <TreeLibrary

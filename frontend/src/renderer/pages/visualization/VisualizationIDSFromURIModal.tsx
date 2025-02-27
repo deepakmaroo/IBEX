@@ -39,6 +39,10 @@ interface FormDbEntries {
   version: string;
 }
 
+function getColorRandom(): string {
+  return `#${Math.floor(Math.random() * 16777215).toString(16)}`;
+}
+
 export const VisualizationIDSFromURIModal = ({
   opened,
   close,
@@ -161,6 +165,14 @@ export const VisualizationIDSFromURIModal = ({
   ));
 
   const handleCheckIds = (name: string, uri: string): void => {
+
+    //Verify if dataIDSSelected[] contains the uri then use the color of the uri or generate a new color
+    const color = dataIDsSelected?.findIndex(
+      (d: IDSDataSelected) => d.uri === uri,
+    ) !== -1
+      ? dataIDsSelected.find((d) => d.uri === uri)?.uriColor
+      : getColorRandom();
+    
     const updateDataIDS: IDSDataSelected[] =
       dataIDsSelected?.findIndex(
         (d: IDSDataSelected) => d.name === name && d.uri === uri,
@@ -173,6 +185,7 @@ export const VisualizationIDSFromURIModal = ({
             {
               name,
               uri: dataIDsLoaded.find((d) => d.name === name)?.uri,
+              uriColor: color,
             },
           ];
 

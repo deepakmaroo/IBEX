@@ -4,6 +4,7 @@ type IDSData = {
 };
 
 export type IDSDataSelected = IDSData & {
+  uriColor: string;
   occurrenceIndex?: number;
 };
 

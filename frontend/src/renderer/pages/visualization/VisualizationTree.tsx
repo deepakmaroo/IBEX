@@ -28,6 +28,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
         occurrenceIndex: ids.occurrenceIndex,
         data: [],
         fullUri: `${ids.uri}#${ids.name}:${ids.occurrenceIndex}`,
+        uriColor: ids.uriColor,
       }));
       const updatedActive: Configuration = {
         ...active,
