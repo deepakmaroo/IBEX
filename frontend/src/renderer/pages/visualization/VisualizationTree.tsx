@@ -161,7 +161,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
     (value: string) => {
       if (value) {
         const selectedCustomData = active.customDataTree.find(
-          (item) => item.name === value,
+          (item) => item.fullUri === value,
         );
         if (selectedCustomData) {
           if (selectedCustomData.data.length === 0) {

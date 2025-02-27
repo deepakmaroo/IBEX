@@ -27,7 +27,7 @@ export const Visualization = () => {
       {configurations.length > 0 ? (
         <>
           <VisualizationHeader handleAddTree={openAddTreeModal} handleNewPlot={openCustomPlotModal}/>
-          <Grid grow type="container">
+          <Grid type="container">
             <Grid.Col span={2}>
               <Paper shadow="md" h={height} radius="md">
                 <VisualizationTree height={height} />

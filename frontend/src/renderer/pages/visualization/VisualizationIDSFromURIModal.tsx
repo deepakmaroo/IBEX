@@ -44,8 +44,8 @@ export const VisualizationIDSFromURIModal = ({
   close,
 }: VisualizationSelectIDSModalProps) => {
   const { active, updatedConfiguration } = useIbexStore();
-  const [dataIDS, setDataIDS] = useState<IDSDataSelected[]>([]);
-  const [dataIDSLoaded, setDataIDSLoaded] = useState<IDSDataLoaded[]>([]);
+  const [dataIDsSelected, setDataIDsSelected] = useState<IDSDataSelected[]>([]);
+  const [dataIDsLoaded, setDataIDsLoaded] = useState<IDSDataLoaded[]>([]);
   const [dataDbEntries, setDataDbEntries] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingDbEntries, setIsLoadingDbEntries] = useState(false);
@@ -82,7 +82,7 @@ export const VisualizationIDSFromURIModal = ({
 
   useEffect(() => {
     if (active?.dataIDS) {
-      setDataIDS(active?.dataIDS);
+      setDataIDsSelected(active?.dataIDS);
     }
   }, [active?.dataIDS]);
 
@@ -91,13 +91,14 @@ export const VisualizationIDSFromURIModal = ({
       <Table.Th>Select</Table.Th>
       <Table.Th>Name</Table.Th>
       <Table.Th>Occurrences</Table.Th>
+      {/* <Table.Th> */}
     </Table.Tr>
   );
 
   // Pagination logic: calculate rows for the current page
   const startIndex = (activePage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentPageData = dataIDSLoaded.slice(startIndex, endIndex);
+  const currentPageData = dataIDsLoaded.slice(startIndex, endIndex);
 
   const tableRows = currentPageData.map((element, index) => (
     <Table.Tr key={`table-${element.name}`}>
@@ -106,10 +107,11 @@ export const VisualizationIDSFromURIModal = ({
           radius="sm"
           size="sm"
           w={50}
-          onChange={() => handleCheckIds(element.name)}
+          onChange={() => handleCheckIds(element.name, element.uri)}
           checked={
-            dataIDS?.findIndex(
-              (d: IDSDataSelected) => d.name === element.name,
+            dataIDsSelected?.findIndex(
+              (d: IDSDataSelected) =>
+                d.name === element.name && d.uri === element.uri,
             ) !== -1
           }
         />
@@ -126,22 +128,29 @@ export const VisualizationIDSFromURIModal = ({
                 w={50}
                 label={`${occurrence}`}
                 onChange={() => {
-                  const updatedDataIDS = dataIDS.map((d) =>
-                    d.name === element.name
+                  const updatedDataIDS = dataIDsSelected.map((d) =>
+                    d.name === element.name && d.uri === element.uri
                       ? { ...d, occurrenceIndex: idx }
                       : d,
                   );
-                  setDataIDS(updatedDataIDS);
+                  setDataIDsSelected(updatedDataIDS);
                 }}
                 checked={
-                  dataIDS.find(
-                    (d) => d.name === element.name && d.occurrenceIndex === idx,
+                  dataIDsSelected.find(
+                    (d) =>
+                      d.name === element.name &&
+                      d.uri === element.uri &&
+                      d.occurrenceIndex === idx,
                   )
                     ? true
                     : false
                 }
                 disabled={
-                  dataIDS.find((d) => d.name === element.name) ? false : true
+                  dataIDsSelected.find(
+                    (d) => d.name === element.name && d.uri === element.uri,
+                  )
+                    ? false
+                    : true
                 }
               />
             );
@@ -151,24 +160,27 @@ export const VisualizationIDSFromURIModal = ({
     </Table.Tr>
   ));
 
-  const handleCheckIds = (name: string): void => {
+  const handleCheckIds = (name: string, uri: string): void => {
     const updateDataIDS: IDSDataSelected[] =
-      dataIDS?.findIndex((d: IDSDataSelected) => d.name === name) !== -1
-        ? dataIDS?.filter((d: IDSDataSelected) => d.name !== name)
+      dataIDsSelected?.findIndex(
+        (d: IDSDataSelected) => d.name === name && d.uri === uri,
+      ) !== -1
+        ? dataIDsSelected?.filter(
+            (d: IDSDataSelected) => d.name !== name && d.uri === uri,
+          )
         : [
-            ...dataIDS,
+            ...dataIDsSelected,
             {
               name,
-              uri: dataIDSLoaded.find((d) => d.name === name)?.uri,
+              uri: dataIDsLoaded.find((d) => d.name === name)?.uri,
             },
           ];
 
-    setDataIDS(updateDataIDS);
+    setDataIDsSelected(updateDataIDS);
   };
 
   const updateDataIDS = (): void => {
-    console.log('dataids', dataIDS);
-    const allIdsWithOccurrence = dataIDS.every(
+    const allIdsWithOccurrence = dataIDsSelected.every(
       (d) => d.occurrenceIndex !== undefined && d.occurrenceIndex !== null,
     );
     if (!allIdsWithOccurrence) {
@@ -180,7 +192,7 @@ export const VisualizationIDSFromURIModal = ({
       return;
     }
 
-    updatedConfiguration({ ...active, dataIDS });
+    updatedConfiguration({ ...active, dataIDS: dataIDsSelected });
     close();
   };
 
@@ -254,7 +266,7 @@ export const VisualizationIDSFromURIModal = ({
         });
       }
 
-      setDataIDSLoaded(newDataLoaded);
+      setDataIDsLoaded(newDataLoaded);
       setFromURIisSuccess(true);
       setFromFileisSuccess(false);
       showNotification({
@@ -297,7 +309,7 @@ export const VisualizationIDSFromURIModal = ({
 
       if (response.ok) {
         const res = await response.json();
-        setDataIDSLoaded(res.idses);
+        setDataIDsLoaded(res.idses);
         setFromURIisSuccess(false);
         setFromFileisSuccess(true);
       } else {
@@ -347,7 +359,6 @@ export const VisualizationIDSFromURIModal = ({
           color: 'green',
         });
 
-        console.log('res db entries', res);
       } else {
         const res = await response.json();
         console.error('Promise resolved but HTTP status failed:', res);
@@ -445,10 +456,10 @@ export const VisualizationIDSFromURIModal = ({
               input: {
                 //green if success else default
                 borderColor: fromURIisSuccess
-                ? '#00FF00'
-                : isLoadedDbEntries && dataDbEntries.length > 0 
-                  ? '#FFDD00'
-                  : '',
+                  ? '#00FF00'
+                  : isLoadedDbEntries && dataDbEntries.length > 0
+                    ? '#FFDD00'
+                    : '',
               },
             }}
             disabled={isLoading || isLoadingDbEntries}
@@ -520,7 +531,7 @@ export const VisualizationIDSFromURIModal = ({
 
         <Table.Caption>
           {isLoading && <Loader color="blue" />}
-          {dataIDSLoaded.length === 0 && !isLoading && (
+          {dataIDsLoaded.length === 0 && !isLoading && (
             <Text>No data found</Text>
           )}
         </Table.Caption>
@@ -530,14 +541,14 @@ export const VisualizationIDSFromURIModal = ({
 
       <Group justify="center" mt={20}>
         <Pagination
-          total={Math.ceil(dataIDSLoaded.length / itemsPerPage)}
+          total={Math.ceil(dataIDsLoaded.length / itemsPerPage)}
           value={activePage}
           onChange={setPage}
         />
       </Group>
 
       <Group justify="flex-end" mt={20}>
-        <Button disabled={!dataIDS.length} onClick={updateDataIDS}>
+        <Button disabled={!dataIDsSelected.length} onClick={updateDataIDS}>
           Validate
         </Button>
       </Group>

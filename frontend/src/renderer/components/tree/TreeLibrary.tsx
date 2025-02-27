@@ -220,7 +220,6 @@ export const TreeLibrary = ({
         data={treeData}
         className={classes}
         selectOnClick
-        onClick={(node) => console.log("node : ",node)}
         renderNode={(payload) => (
           <Element
             {...payload}
