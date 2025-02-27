@@ -10,6 +10,9 @@ import { FuseV1Options, FuseVersion } from '@electron/fuses';
 
 import { mainConfig } from './webpack.main.config';
 import { rendererConfig } from './webpack.renderer.config';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const config: ForgeConfig = {
   packagerConfig: {
