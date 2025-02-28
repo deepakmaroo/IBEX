@@ -42,7 +42,16 @@ export function MainLayout() {
   };
 
   const handleSaveConfiguration = () => {
-    console.log('Save configuration');
+    console.log('active', active);
+    const newIbexState = {};
+    window.api.fs.saveAsDialog('ibexState.json', 'json')
+      .then((path) => {
+        if (path) {
+          window.api.fs.writeFile(path, JSON.stringify(active))
+        }
+      }
+    );
+
   };
 
   const handleLoadConfiguration = () => {

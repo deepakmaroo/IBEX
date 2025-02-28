@@ -1,12 +1,21 @@
 // See the Electron documentation for details on how to use preload scripts:
 // https://www.electronjs.org/docs/latest/tutorial/process-model#preload-scripts
 
-import { contextBridge } from 'electron';
+import { contextBridge, ipcRenderer } from 'electron';
 import { ENV_VARIABLE } from './config';
 
 export const API = {
-  electron: {
-    // Send a message to the main process
+  fs: {
+    readFile: (filePath: string) => ipcRenderer.invoke('readFile', filePath),
+
+    writeFile: (path: string, data: string) =>
+      ipcRenderer.invoke('writeFile', path, data),
+
+    getFilePathDialog: (type: string) =>
+      ipcRenderer.invoke('getFilePathDialog', type),
+
+    saveAsDialog: (name: string, ext: string) =>
+      ipcRenderer.invoke('saveAsDialog', name, ext),
   },
 };
 
