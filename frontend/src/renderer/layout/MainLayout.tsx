@@ -63,7 +63,26 @@ export function MainLayout() {
   };
 
   const handleLoadConfiguration = () => {
-    console.log('Load configuration');
+    window.api.fs.getFilePathDialog('json')
+      .then((path) => {
+        if (path) {
+          window.api.fs.readFile(path)
+            .then((data) => {
+              const newIbexState = JSON.parse(data);
+              console.log("newIbexState", newIbexState)
+              const newConfig: Configuration = {
+                name: newIbexState.name,
+                dataIDS: newIbexState.dataIDS,
+                customDataTree: [],
+                checkedNodes: newIbexState.checkedNodes,
+                // lastURIInput: ''
+              };
+              console.log("newConfig", newConfig)
+              addConfiguration(newConfig);
+              setActive(newConfig.name);
+            });
+        }
+      });
   };
 
   const handleSelectConfiguration = (value: string) => {
