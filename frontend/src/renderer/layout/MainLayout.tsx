@@ -2,7 +2,7 @@ import { AppShell, Text } from '@mantine/core';
 import { Outlet } from 'react-router-dom';
 import { useIbexStore } from '../stores';
 import { useDisclosure } from '@mantine/hooks';
-import { ConfigForm, Configuration } from '../types';
+import { BaseConfiguration, ConfigForm, Configuration } from '../types';
 import { ConfigCreateModal, ConfirmModal, Header } from '../components';
 
 export function MainLayout() {
@@ -42,12 +42,20 @@ export function MainLayout() {
   };
 
   const handleSaveConfiguration = () => {
-    console.log('active', active);
-    const newIbexState = {};
+    const newIbexState: BaseConfiguration = {
+      name: active.name,
+      dataIDS: active.dataIDS,
+      checkedNodes: active.checkedNodes,
+      lastURIInput: active.lastURIInput,
+      lastLocalDataSetSelected: active.lastLocalDataSetSelected
+    };
+
+    console.log('newIbexState', newIbexState);
+
     window.api.fs.saveAsDialog('ibexState.json', 'json')
       .then((path) => {
         if (path) {
-          window.api.fs.writeFile(path, JSON.stringify(active))
+          window.api.fs.writeFile(path, JSON.stringify(newIbexState))
         }
       }
     );

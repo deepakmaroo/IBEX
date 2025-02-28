@@ -105,7 +105,7 @@ export const VisualizationIDSFromURIModal = ({
   const currentPageData = dataIDsLoaded.slice(startIndex, endIndex);
 
   const tableRows = currentPageData.map((element, index) => (
-    <Table.Tr key={`table-${element.name}`}>
+    <Table.Tr key={`table-${element.name}-${index}`}>
       <Table.Td>
         <Checkbox
           radius="sm"

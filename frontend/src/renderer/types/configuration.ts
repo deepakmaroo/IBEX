@@ -2,16 +2,16 @@ import { IDSDataSelected } from './ids';
 import { CheckedNodeIds, CustomTreeData } from './tree';
 import { DataFormPlot } from './plot';
 
-interface BaseConfiguration {
+export interface BaseConfiguration {
   name: string;
-  url?: string;
-  saved?: boolean;
   dataIDS: IDSDataSelected[];
   lastLocalDataSetSelected?: string;
   lastURIInput?: string;
   checkedNodes: CheckedNodeIds[];
 }
 export interface Configuration extends BaseConfiguration {
+  url?: string;
+  saved?: boolean;
   customDataTree: CustomTreeData[];
   dataFormPlot?: DataFormPlot;
 }
