@@ -9,6 +9,7 @@ from imaspy.ids_primitive import IDSPrimitive  # type: ignore
 from imaspy.ids_struct_array import IDSStructArray  # type: ignore
 from imaspy.ids_structure import IDSStructure  # type: ignore
 from imaspy.ids_data_type import IDSDataType  # type: ignore
+from imaspy.ids_path import IDSPath  # type: ignore
 
 from ibex.data_source.data_source_interface import DataSourceInterface
 from ibex.data_source.exception import NotALeafNodeException, NotAnArrayException
@@ -85,8 +86,9 @@ class IMASPySource(DataSourceInterface):
         :return:
         """
 
-        metadata = self._get_metadata(uri, ids, node_path, occurrence)
+        metadata, coordinates = self._get_metadata_and_coordinates(uri, ids, node_path, occurrence)
         metadata_dict = self._jsonify_metadata(metadata, recursive)
+        metadata_dict["coordinates"] = coordinates
 
         if metadata_dict["ndim"] > 0:
             target_node = self._get_raw_data(uri, ids, node_path, occurrence)
@@ -113,12 +115,14 @@ class IMASPySource(DataSourceInterface):
         entry = imaspy.DBEntry(uri, mode="r")
         ids_data = entry.get(ids, lazy=True, autoconvert=False, occurrence=occurrence)
 
-        data_path = imaspy.ids_path.IDSPath(node_path)
+        data_path = IDSPath(node_path)
         ids_data = data_path.goto(ids_data, from_root=True)
 
         return ids_data
 
-    def _get_metadata(self, uri: str, ids: str, node_path: str, occurrence: int = 0) -> IDSMetadata:
+    def _get_metadata_and_coordinates(
+        self, uri: str, ids: str, node_path: str, occurrence: int = 0
+    ) -> (IDSMetadata, List[str]):
         """
 
         :param uri:
@@ -129,12 +133,31 @@ class IMASPySource(DataSourceInterface):
         """
 
         entry = imaspy.DBEntry(uri, mode="r")
-        ids_metadata = entry.get(ids, lazy=True, autoconvert=False, occurrence=occurrence).metadata
+        ids_obj = entry.get(ids, lazy=True, autoconvert=False, occurrence=occurrence)
+        is_time_homogeneous = ids_obj.ids_properties.homogeneous_time
 
-        data_path = imaspy.ids_path.IDSPath(node_path)
-        ids_metadata = data_path.goto_metadata(ids_metadata)
+        data_path = IDSPath(node_path)
+        node_metadata = data_path.goto_metadata(ids_obj.metadata)
 
-        return ids_metadata
+        # =========== Extract path ancestors ===========
+        path_elements: List[str] = [x[0] for x in data_path.items()]
+
+        # contains IDSPaths of all ancestors of path + path itself
+        ancestors_and_path = []
+        for i in range(1, len(path_elements) + 1):
+            ancestors_and_path.append(IDSPath("/".join(path_elements[:i])))
+        # =========== ====================== ===========
+
+        coordinates = []
+        for element in ancestors_and_path:
+            element_metadata = element.goto_metadata(ids_obj.metadata)
+            for coord in element_metadata.coordinates:
+                if is_time_homogeneous and coord.is_time_coordinate:
+                    coordinates.append("time")
+                else:
+                    coordinates.append(str(coord))
+
+        return (node_metadata, coordinates)
 
     def get_data(self, uri: str, ids: str, node_path: str, occurrence: int = 0, range: List[int] | None = None) -> dict:
         """
