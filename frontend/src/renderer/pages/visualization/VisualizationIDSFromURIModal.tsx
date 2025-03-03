@@ -10,13 +10,12 @@ import {
   Loader,
   Modal,
   Pagination,
-  Radio,
   Table,
   Text,
   TextInput,
 } from '@mantine/core';
 import { useIbexStore } from '../../stores';
-import { IDSDataSelected, IDSDataLoaded } from 'src/renderer/types';
+import { URIData } from 'src/renderer/types';
 import { useEffect, useState } from 'react';
 import { IconSearch } from '@tabler/icons-react';
 import { showNotification } from '@mantine/notifications';
@@ -48,8 +47,8 @@ export const VisualizationIDSFromURIModal = ({
   close,
 }: VisualizationSelectIDSModalProps) => {
   const { active, updatedConfiguration } = useIbexStore();
-  const [dataIDsSelected, setDataIDsSelected] = useState<IDSDataSelected[]>([]);
-  const [dataIDsLoaded, setDataIDsLoaded] = useState<IDSDataLoaded[]>([]);
+  const [dataURIsSelected, setDataURIsSelected] = useState<URIData[]>([]);
+  const [dataURIsLoaded, setDataURIsLoaded] = useState<URIData[]>([]);
   const [dataDbEntries, setDataDbEntries] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingDbEntries, setIsLoadingDbEntries] = useState(false);
@@ -85,16 +84,15 @@ export const VisualizationIDSFromURIModal = ({
   });
 
   useEffect(() => {
-    if (active?.dataIDS) {
-      setDataIDsSelected(active?.dataIDS);
+    if (active?.dataURI) {
+      setDataURIsSelected(active?.dataURI);
     }
-  }, [active?.dataIDS]);
+  }, [active?.dataURI]);
 
   const tableHeaders = (
     <Table.Tr>
       <Table.Th>Select</Table.Th>
       <Table.Th>Name</Table.Th>
-      <Table.Th>Occurrences</Table.Th>
       <Table.Th>URI</Table.Th>
     </Table.Tr>
   );
@@ -102,7 +100,7 @@ export const VisualizationIDSFromURIModal = ({
   // Pagination logic: calculate rows for the current page
   const startIndex = (activePage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentPageData = dataIDsLoaded.slice(startIndex, endIndex);
+  const currentPageData = dataURIsLoaded.slice(startIndex, endIndex);
 
   const tableRows = currentPageData.map((element, index) => (
     <Table.Tr key={`table-${element.name}-${index}`}>
@@ -111,89 +109,36 @@ export const VisualizationIDSFromURIModal = ({
           radius="sm"
           size="sm"
           w={50}
-          onChange={() => handleCheckIds(element.name, element.uri)}
+          onChange={() => handleCheckIds(element.name)}
           checked={
-            dataIDsSelected?.findIndex(
-              (d: IDSDataSelected) =>
-                d.name === element.name && d.uri === element.uri,
+            dataURIsSelected?.findIndex(
+              (d: URIData) =>
+                d.name === element.name,
             ) !== -1
           }
         />
       </Table.Td>
       <Table.Td>{element.name}</Table.Td>
-      <Table.Td>
-        <Group mt="xs">
-          {element.occurrences.map((occurrence, idx) => {
-            return (
-              <Checkbox
-                key={`checkbox-${element.name}-${idx}`}
-                radius="xs"
-                size="xs"
-                w={50}
-                label={`${occurrence}`}
-                onChange={() => {
-                  const updatedDataIDS = dataIDsSelected.map((d) =>
-                    d.name === element.name && d.uri === element.uri
-                      ? { ...d, occurrenceIndex: idx }
-                      : d,
-                  );
-                  setDataIDsSelected(updatedDataIDS);
-                }}
-                checked={
-                  dataIDsSelected.find(
-                    (d) =>
-                      d.name === element.name &&
-                      d.uri === element.uri &&
-                      d.occurrenceIndex === idx,
-                  )
-                    ? true
-                    : false
-                }
-                disabled={
-                  dataIDsSelected.find(
-                    (d) => d.name === element.name && d.uri === element.uri,
-                  )
-                    ? false
-                    : true
-                }
-              />
-            );
-          })}
-        </Group>
-      </Table.Td>
-      <Table.Td>{element.uri}</Table.Td>
     </Table.Tr>
   ));
 
-  const handleCheckIds = (name: string, uri: string): void => {
+  const handleCheckIds = (uri: string): void => {
     //Verify if dataIDSSelected[] contains the uri then use the color of the uri or generate a new color
     const color =
-      dataIDsSelected?.findIndex((d: IDSDataSelected) => d.uri === uri) !== -1
-        ? dataIDsSelected.find((d) => d.uri === uri)?.uriColor
+      dataURIsSelected?.findIndex((d: URIData) => d.uri === uri) !== -1
+        ? dataURIsSelected.find((d) => d.uri === uri)?.uriColor
         : getColorRandom();
 
-    const updateDataIDS: IDSDataSelected[] = dataIDsSelected.some(
-      (d) => d.name === name && d.uri === uri,
+    const updateDataIDS: URIData[] = dataURIsSelected.some(
+      (d) => d.uri === uri,
     )
-      ? dataIDsSelected.filter((d) => !(d.name === name && d.uri === uri))
-      : [...dataIDsSelected, { name, uri, uriColor: color }];
-    setDataIDsSelected(updateDataIDS);
+      ? dataURIsSelected.filter((d) => !(d.uri === uri))
+      : [...dataURIsSelected, { name: dataURIsLoaded.find((d) => d.uri === uri)?.name, uri, uriColor: color }];
+    setDataURIsSelected(updateDataIDS);
   };
 
-  const updateDataIDS = (): void => {
-    const allIdsWithOccurrence = dataIDsSelected.every(
-      (d) => d.occurrenceIndex !== undefined && d.occurrenceIndex !== null,
-    );
-    if (!allIdsWithOccurrence) {
-      showNotification({
-        title: 'Error',
-        message: 'Please select an occurrence for all IDS',
-        color: 'red',
-      });
-      return;
-    }
-
-    updatedConfiguration({ ...active, dataIDS: dataIDsSelected });
+  const updateDataURI = (): void => {
+    updatedConfiguration({ ...active, dataURI: dataURIsSelected });
     close();
   };
 
@@ -240,42 +185,42 @@ export const VisualizationIDSFromURIModal = ({
         return;
       }
 
-      // Fetch IDS data from URI
-      const responseListIds = await fetch(
-        `${window.env.API_URL}/data_entry/list_idses/?uri=${encodeURIComponent(formIDS.values.uri)}`,
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        },
-      );
+    //   // Fetch IDS data from URI
+    //   const responseListIds = await fetch(
+    //     `${window.env.API_URL}/data_entry/list_idses/?uri=${encodeURIComponent(formIDS.values.uri)}`,
+    //     {
+    //       method: 'GET',
+    //       headers: {
+    //         'Content-Type': 'application/json',
+    //       },
+    //     },
+    //   );
 
-      if (!responseListIds.ok) {
-        const error = await responseListIds.json();
-        throw new Error(error.detail || 'Failed to fetch IDS data');
-      }
+    //   if (!responseListIds.ok) {
+    //     const error = await responseListIds.json();
+    //     throw new Error(error.detail || 'Failed to fetch IDS data');
+    //   }
 
-      const listIdsResult = await responseListIds.json();
+    //   const listIdsResult = await responseListIds.json();
 
-      const oldDataLoadedSelected = dataIDsLoaded.filter((loaded) =>
-      dataIDsSelected.some(
-        (selected) =>
-          selected.name === loaded.name && selected.uri === loaded.uri,
-      ),
-    );
+    //   const oldDataLoadedSelected = dataURIsLoaded.filter((loaded) =>
+    //   dataIDsSelected.some(
+    //     (selected) =>
+    //       selected.name === loaded.name
+    //   ),
+    // );
 
-    const newDataLoaded: IDSDataLoaded[] = [...oldDataLoadedSelected];
+    // const newDataLoaded: IDSDataLoaded[] = [...oldDataLoadedSelected];
 
-      for (const ids of listIdsResult.idses) {
-        newDataLoaded.push({
-          name: ids.name,
-          occurrences: ids.occurrences,
-          uri: formIDS.values.uri,
-        });
-      }
+      // for (const ids of listIdsResult.idses) {
+      //   newDataLoaded.push({
+      //     name: ids.name,
+      //     occurrences: ids.occurrences,
+      //     uri: formIDS.values.uri,
+      //   });
+      // }
 
-      setDataIDsLoaded(newDataLoaded);
+      // setDataIDsLoaded(newDataLoaded);
       setFromURIisSuccess(true);
       setFromFileisSuccess(false);
       showNotification({
@@ -318,7 +263,7 @@ export const VisualizationIDSFromURIModal = ({
 
       if (response.ok) {
         const res = await response.json();
-        setDataIDsLoaded(res.idses);
+        // setDataIDsLoaded(res.idses);
         setFromURIisSuccess(false);
         setFromFileisSuccess(true);
       } else {
@@ -405,7 +350,7 @@ export const VisualizationIDSFromURIModal = ({
     <Modal
       opened={opened}
       onClose={close}
-      title="Select IDS"
+      title="Select URIs"
       size="90%"
       centered
     >
@@ -539,7 +484,7 @@ export const VisualizationIDSFromURIModal = ({
 
         <Table.Caption>
           {isLoading && <Loader color="blue" />}
-          {dataIDsLoaded.length === 0 && !isLoading && (
+          {dataURIsLoaded.length === 0 && !isLoading && (
             <Text>No data found</Text>
           )}
         </Table.Caption>
@@ -549,14 +494,14 @@ export const VisualizationIDSFromURIModal = ({
 
       <Group justify="center" mt={20}>
         <Pagination
-          total={Math.ceil(dataIDsLoaded.length / itemsPerPage)}
+          total={Math.ceil(dataURIsLoaded.length / itemsPerPage)}
           value={activePage}
           onChange={setPage}
         />
       </Group>
 
       <Group justify="flex-end" mt={20}>
-        <Button disabled={!dataIDsSelected.length} onClick={updateDataIDS}>
+        <Button disabled={!dataURIsSelected.length} onClick={updateDataURI}>
           Validate
         </Button>
       </Group>

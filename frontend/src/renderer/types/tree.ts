@@ -1,6 +1,6 @@
 import { TreeNodeData } from '@mantine/core';
-import { IDSDataSelected } from './ids';
 import { NodeInfoTypeEnum } from './nodesInfos';
+import { URIData } from './ids';
 
 export type DataTreeSelected = {
   path: string;
@@ -11,8 +11,7 @@ export type CustomTreeNodeData = TreeNodeData & {
   children: CustomTreeNodeData[];
 };
 
-export type CustomTreeData = IDSDataSelected & {
-  fullUri: string;
+export type CustomTreeData = URIData & {
   data: CustomTreeNodeData[];
 };
 

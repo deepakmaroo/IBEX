@@ -25,7 +25,7 @@ export const VisualizationHeader = ({
         </Button>
         <Button
           leftSection={<IconPlus size={20} />}
-          disabled={!active.dataIDS.length}
+          disabled={!active.dataURI.length}
           onClick={handleNewPlot}
         >
           New Chart

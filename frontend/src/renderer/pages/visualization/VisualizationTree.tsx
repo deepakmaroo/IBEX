@@ -21,13 +21,11 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
    * Handle dataIDS change
    */
   useEffect(() => {
-    if (active && active.dataIDS) {
-      const newCustomDataTree: CustomTreeData[] = active.dataIDS.map((ids) => ({
+    if (active && active.dataURI) {
+      const newCustomDataTree: CustomTreeData[] = active.dataURI.map((ids) => ({
         name: ids.name,
         uri: ids.uri,
-        occurrenceIndex: ids.occurrenceIndex,
         data: [],
-        fullUri: `${ids.uri}#${ids.name}:${ids.occurrenceIndex}`,
         uriColor: ids.uriColor,
       }));
       const updatedActive: Configuration = {
@@ -37,7 +35,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
       updatedConfiguration(updatedActive);
       setActive(updatedActive.name);
     }
-  }, [active.dataIDS]);
+  }, [active.dataURI]);
 
   useEffect(() => {
     // Refresh expanded root folder when click on New Chart
@@ -128,7 +126,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
 
         const updatedCustomDataTree = active.customDataTree.map(
           (dataTree: CustomTreeData) => {
-            if (dataTree.fullUri && nodeUri.startsWith(dataTree.fullUri)) {
+            if (dataTree.uri && nodeUri.startsWith(dataTree.uri)) {
               return {
                 ...dataTree,
                 data: updateNodeChildren(dataTree.data, nodeUri),
@@ -162,11 +160,11 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
     (value: string) => {
       if (value) {
         const selectedCustomData = active.customDataTree.find(
-          (item) => item.fullUri === value,
+          (item) => item.uri === value,
         );
         if (selectedCustomData) {
           if (selectedCustomData.data.length === 0) {
-            fetchNodeInfos(selectedCustomData.fullUri);
+            fetchNodeInfos(selectedCustomData.uri);
           }
         }
       }
