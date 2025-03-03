@@ -146,6 +146,9 @@ class IMASPySource(DataSourceInterface):
         ancestors_and_path = []
         for i in range(1, len(path_elements) + 1):
             ancestors_and_path.append(IDSPath("/".join(path_elements[:i])))
+
+        # sort list to contain leaf nodes coordinates at the beginning
+        ancestors_and_path.sort(key=lambda x: len(str(x)), reverse=True)
         # =========== ====================== ===========
 
         coordinates = []
