@@ -28,7 +28,7 @@ export function MainLayout() {
   const handleAddConfiguration = (config: ConfigForm) => {
     const newConfig: Configuration = {
       name: config.name,
-      dataIDS: [],
+      dataURI: [],
       customDataTree: [],
       checkedNodes: []
     };
@@ -44,7 +44,7 @@ export function MainLayout() {
   const handleSaveConfiguration = () => {
     const newIbexState: BaseConfiguration = {
       name: active.name,
-      dataIDS: active.dataIDS,
+      dataURI: active.dataURI,
       checkedNodes: active.checkedNodes,
       lastURIInput: active.lastURIInput,
       lastLocalDataSetSelected: active.lastLocalDataSetSelected
@@ -72,7 +72,7 @@ export function MainLayout() {
               console.log("newIbexState", newIbexState)
               const newConfig: Configuration = {
                 name: newIbexState.name,
-                dataIDS: newIbexState.dataIDS,
+                dataURI: newIbexState.dataIDS,
                 customDataTree: [],
                 checkedNodes: newIbexState.checkedNodes,
                 // lastURIInput: ''

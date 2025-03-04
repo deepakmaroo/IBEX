@@ -17,7 +17,7 @@ import {
 import { useIbexStore } from '../../stores';
 import { URIData } from 'src/renderer/types';
 import { useEffect, useState } from 'react';
-import { IconSearch } from '@tabler/icons-react';
+import { IconPlus } from '@tabler/icons-react';
 import { showNotification } from '@mantine/notifications';
 import { useForm } from '@mantine/form';
 
@@ -48,8 +48,7 @@ export const VisualizationIDSFromURIModal = ({
 }: VisualizationSelectIDSModalProps) => {
   const { active, updatedConfiguration } = useIbexStore();
   const [dataURIsSelected, setDataURIsSelected] = useState<URIData[]>([]);
-  const [dataURIsLoaded, setDataURIsLoaded] = useState<URIData[]>([]);
-  const [dataDbEntries, setDataDbEntries] = useState<string[]>([]);
+  const [dataDbEntries, setDataDbEntries] = useState<URIData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingDbEntries, setIsLoadingDbEntries] = useState(false);
   const [isLoadedDbEntries, setIsLoadedDbEntries] = useState(false);
@@ -100,7 +99,7 @@ export const VisualizationIDSFromURIModal = ({
   // Pagination logic: calculate rows for the current page
   const startIndex = (activePage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentPageData = dataURIsLoaded.slice(startIndex, endIndex);
+  const currentPageData = dataDbEntries.slice(startIndex, endIndex);
 
   const tableRows = currentPageData.map((element, index) => (
     <Table.Tr key={`table-${element.name}-${index}`}>
@@ -109,32 +108,33 @@ export const VisualizationIDSFromURIModal = ({
           radius="sm"
           size="sm"
           w={50}
-          onChange={() => handleCheckIds(element.name)}
+          onChange={() => handleCheckUri(element.uri, dataDbEntries)}
           checked={
             dataURIsSelected?.findIndex(
-              (d: URIData) =>
-                d.name === element.name,
+              (d: URIData) => d.uri === element.uri,
             ) !== -1
           }
         />
       </Table.Td>
       <Table.Td>{element.name}</Table.Td>
+      <Table.Td>{element.uri}</Table.Td>
     </Table.Tr>
   ));
 
-  const handleCheckIds = (uri: string): void => {
+  const handleCheckUri = (uri: string, dataEntries: URIData[]): void => {
     //Verify if dataIDSSelected[] contains the uri then use the color of the uri or generate a new color
     const color =
       dataURIsSelected?.findIndex((d: URIData) => d.uri === uri) !== -1
         ? dataURIsSelected.find((d) => d.uri === uri)?.uriColor
         : getColorRandom();
 
-    const updateDataIDS: URIData[] = dataURIsSelected.some(
-      (d) => d.uri === uri,
-    )
+    console.log('')
+    const updateDataURIs: URIData[] = dataURIsSelected.some((d) => d.uri === uri)
       ? dataURIsSelected.filter((d) => !(d.uri === uri))
-      : [...dataURIsSelected, { name: dataURIsLoaded.find((d) => d.uri === uri)?.name, uri, uriColor: color }];
-    setDataURIsSelected(updateDataIDS);
+      : [...dataURIsSelected, { name: dataEntries.find((d) => d.uri === uri)?.name, uri, uriColor: color }];
+
+      console.log('updateDataURIs:', updateDataURIs);
+    setDataURIsSelected(updateDataURIs);
   };
 
   const updateDataURI = (): void => {
@@ -185,42 +185,25 @@ export const VisualizationIDSFromURIModal = ({
         return;
       }
 
-    //   // Fetch IDS data from URI
-    //   const responseListIds = await fetch(
-    //     `${window.env.API_URL}/data_entry/list_idses/?uri=${encodeURIComponent(formIDS.values.uri)}`,
-    //     {
-    //       method: 'GET',
-    //       headers: {
-    //         'Content-Type': 'application/json',
-    //       },
-    //     },
-    //   );
+      if (dataURIsSelected.some((d) => d.uri === formIDS.values.uri)) {
+        formIDS.setFieldError('uri', 'URI already added');
+        showNotification({
+          title: 'Error',
+          message: 'URI already added',
+          color: 'red',
+        });
+        return;
+      }
+      
 
-    //   if (!responseListIds.ok) {
-    //     const error = await responseListIds.json();
-    //     throw new Error(error.detail || 'Failed to fetch IDS data');
-    //   }
+      const oldDataEntriesSelected = dataDbEntries.filter((loaded) =>
+        dataURIsSelected.some((selected) => selected.uri === loaded.uri),
+      );
 
-    //   const listIdsResult = await responseListIds.json();
+      const newDataEntries = [...oldDataEntriesSelected, { name: `URI-${dataDbEntries.length}`, uri: formIDS.values.uri, uriColor: getColorRandom() }]
 
-    //   const oldDataLoadedSelected = dataURIsLoaded.filter((loaded) =>
-    //   dataIDsSelected.some(
-    //     (selected) =>
-    //       selected.name === loaded.name
-    //   ),
-    // );
-
-    // const newDataLoaded: IDSDataLoaded[] = [...oldDataLoadedSelected];
-
-      // for (const ids of listIdsResult.idses) {
-      //   newDataLoaded.push({
-      //     name: ids.name,
-      //     occurrences: ids.occurrences,
-      //     uri: formIDS.values.uri,
-      //   });
-      // }
-
-      // setDataIDsLoaded(newDataLoaded);
+      setDataDbEntries(newDataEntries);
+      handleCheckUri(formIDS.values.uri, newDataEntries);
       setFromURIisSuccess(true);
       setFromFileisSuccess(false);
       showNotification({
@@ -306,7 +289,27 @@ export const VisualizationIDSFromURIModal = ({
 
       if (response.ok) {
         const res = await response.json();
-        setDataDbEntries(res.entries);
+
+        const oldDataEntriesSelected = dataDbEntries.filter((loaded) =>
+          dataURIsSelected.some((selected) => selected.uri === loaded.uri),
+        );
+        
+        const maxId = Math.max(
+          0,
+          ...oldDataEntriesSelected.map((d) => {
+            const match = d.name.match(/URI-(\d+)/);
+            return match ? parseInt(match[1], 10) : 0;
+          })
+        );
+  
+        const newDataEntries: URIData[] = res.entries
+          .filter((entry: string) => !oldDataEntriesSelected.some((d) => d.uri === entry))
+          .map((entry: string, index: number) => ({
+            name: `URI-${maxId + index + 1}`,
+            uri: entry,
+          }));
+
+        setDataDbEntries([...oldDataEntriesSelected, ...newDataEntries]);
         showNotification({
           title: 'Success',
           message: 'Data successfully fetched from db entries',
@@ -390,7 +393,7 @@ export const VisualizationIDSFromURIModal = ({
           <Autocomplete
             label="Write/Paste your URI"
             placeholder="Enter your uri"
-            data={dataDbEntries}
+            data={dataDbEntries.map((entry) => entry.uri)}
             rightSection={
               <ActionIcon
                 variant="filled"
@@ -399,7 +402,7 @@ export const VisualizationIDSFromURIModal = ({
                 type="submit"
                 disabled={isLoading || isLoadingDbEntries}
               >
-                <IconSearch
+                <IconPlus
                   style={{ width: '70%', height: '70%' }}
                   stroke={1.5}
                 />
@@ -484,8 +487,8 @@ export const VisualizationIDSFromURIModal = ({
 
         <Table.Caption>
           {isLoading && <Loader color="blue" />}
-          {dataURIsLoaded.length === 0 && !isLoading && (
-            <Text>No data found</Text>
+          {dataDbEntries.length === 0 && !isLoading && (
+            <Text>No uri added</Text>
           )}
         </Table.Caption>
 
@@ -494,7 +497,7 @@ export const VisualizationIDSFromURIModal = ({
 
       <Group justify="center" mt={20}>
         <Pagination
-          total={Math.ceil(dataURIsLoaded.length / itemsPerPage)}
+          total={Math.ceil(dataDbEntries.length / itemsPerPage)}
           value={activePage}
           onChange={setPage}
         />
