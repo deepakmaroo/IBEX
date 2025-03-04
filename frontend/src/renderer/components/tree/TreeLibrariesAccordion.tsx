@@ -7,13 +7,13 @@ import {
   Text,
   Tooltip,
 } from '@mantine/core';
-import { CheckedNodeIds, CustomTreeData } from 'src/renderer/types';
+import { CheckedNodeURI, CustomTreeData } from 'src/renderer/types';
 import { TreeLibrary } from '../../components';
 
 interface VisualizationTreeProps {
   customDataTree: CustomTreeData[];
   height: string;
-  checkedNodes: CheckedNodeIds[];
+  checkedNodes: CheckedNodeURI[];
   handleAccordionChange: (value: string) => void;
   handleSelectChildren: (nodeValue: string) => void;
   getNodesChecked: (idsName: string, nodes: string[]) => void;
@@ -70,17 +70,19 @@ export const TreeLibrariesAccordion = ({
         <TreeLibrary
           treeData={item.data}
           checkedNodes={
-            checkedNodes.find((node) => node.idsName === item.name)
+            checkedNodes.find((node) => node.uri === item.uri)
               ?.checkedNodes || []
           }
           handleSelectChildren={handleSelectChildren}
           getCheckedNodes={(nodesChecked) => {
-            getNodesChecked(item.name, nodesChecked);
+            getNodesChecked(item.uri, nodesChecked);
           }}
         />
       </Accordion.Panel>
     </Accordion.Item>
   ));
+
+  
 
   return (
     <ScrollArea h={height}>

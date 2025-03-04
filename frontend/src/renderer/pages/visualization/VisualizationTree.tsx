@@ -2,6 +2,7 @@ import { useCallback, useEffect } from 'react';
 import { TreeLibrariesAccordion } from '../../components';
 import { useIbexStore } from '../../stores';
 import {
+  CheckedNodeURI,
   Configuration,
   CustomTreeData,
   CustomTreeNodeData,
@@ -28,6 +29,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
         data: [],
         uriColor: ids.uriColor,
       }));
+      console.log("newCustomDataTree",newCustomDataTree);
       const updatedActive: Configuration = {
         ...active,
         customDataTree: newCustomDataTree,
@@ -41,6 +43,10 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
     // Refresh expanded root folder when click on New Chart
     active?.lastURIInput && fetchNodeInfos(active.lastURIInput);
   }, [active.lastURIInput]);
+
+  useEffect(() => {
+    console.log("active",active);
+  }, [active]);
 
   /**
    * Handle node update using full URI
@@ -232,11 +238,11 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
   );
 
   const getNodesChecked = useCallback(
-    (idsName: string, nodes: string[]) => {
-      const updatedCheckedNodes = active.checkedNodes.map((checkedNode) => {
-        if (checkedNode.idsName === idsName) {
+    (uri: string, nodes: string[]) => {
+      const updatedCheckedNodes: CheckedNodeURI[] = active.checkedNodes.map((checkedNode) => {
+        if (checkedNode.uri === uri) {
           return {
-            idsName: idsName,
+            uri: uri,
             checkedNodes: nodes,
           };
         }

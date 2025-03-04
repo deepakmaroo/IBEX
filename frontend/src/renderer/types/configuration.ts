@@ -1,5 +1,5 @@
 import { URIData } from './ids';
-import { CheckedNodeIds, CustomTreeData } from './tree';
+import { CheckedNodeURI, CustomTreeData } from './tree';
 import { DataFormPlot } from './plot';
 
 export interface BaseConfiguration {
@@ -7,7 +7,7 @@ export interface BaseConfiguration {
   dataURI: URIData[];
   lastLocalDataSetSelected?: string;
   lastURIInput?: string;
-  checkedNodes: CheckedNodeIds[];
+  checkedNodes: CheckedNodeURI[];
 }
 export interface Configuration extends BaseConfiguration {
   url?: string;
