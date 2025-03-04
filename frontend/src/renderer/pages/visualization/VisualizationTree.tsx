@@ -39,10 +39,8 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
 
   useEffect(() => {
     // Refresh expanded root folder when click on New Chart
-    active?.lastURIInput && (
-      fetchNodeInfos(active.lastURIInput)
-    )
-  }, [active.lastURIInput])
+    active?.lastURIInput && fetchNodeInfos(active.lastURIInput);
+  }, [active.lastURIInput]);
 
   /**
    * Handle node update using full URI
@@ -74,7 +72,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
         const newChildren: CustomTreeNodeData[] = nodeInfoschildren.map(
           (child: NodeInfoChildren) => {
             const newValue =
-            nodeInfos.type === NodeInfoTypeEnum.ARRAY
+              nodeInfos.type === NodeInfoTypeEnum.ARRAY
                 ? `${nodeUri}[0]/${child.name}`
                 : `${nodeUri}/${child.name}`;
             return {
@@ -121,7 +119,6 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
             // Node no has children
             return node;
           });
-
         };
 
         const updatedCustomDataTree = active.customDataTree.map(
@@ -139,11 +136,61 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
         const updatedActive: Configuration = {
           ...active,
           customDataTree: updatedCustomDataTree,
-          lastURIInput: nodeUri,
         };
 
         updatedConfiguration(updatedActive);
         setActive(updatedActive.name);
+      } catch (error) {
+        console.error(error);
+      }
+    },
+    [active],
+  );
+
+  const fetchIDSData = useCallback(
+    async (uri: string) => {
+      try {
+        const response = await fetch(
+          `${window.env.API_URL}/data_entry/list_idses/?uri=${encodeURIComponent(uri)}`,
+          {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+          },
+        );
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.detail || 'Failed to fetch IDS data');
+        }
+
+        const listIdsResult = await response.json();
+        const newTree: CustomTreeNodeData[] = [];
+
+        for (const ids of listIdsResult.idses) {
+          for (const oc of ids.occurrences) {
+            newTree.push({
+              label: `${ids.name}:${oc}`,
+              value: `${uri}#${ids.name}:${oc}`,
+              type: NodeInfoTypeEnum.STRUCTURE,
+              children: [],
+            });
+          }
+        }
+
+        const updatedActive: Configuration = {
+          ...active,
+          customDataTree: active.customDataTree.map((item) => {
+            if (item.uri === uri) {
+              return {
+                ...item,
+                data: newTree,
+              };
+            }
+            return item;
+          }),
+        };
+
+        updatedConfiguration(updatedActive);
       } catch (error) {
         console.error(error);
       }
@@ -164,7 +211,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
         );
         if (selectedCustomData) {
           if (selectedCustomData.data.length === 0) {
-            fetchNodeInfos(selectedCustomData.uri);
+            fetchIDSData(selectedCustomData.uri);
           }
         }
       }
@@ -184,27 +231,26 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
     [active],
   );
 
-  const getNodesChecked = useCallback((idsName: string, nodes: string[]) => {
-    const updatedCheckedNodes = active.checkedNodes.map((checkedNode) => {
-      if (checkedNode.idsName === idsName) {
-        return {
-          idsName: idsName,
-          checkedNodes: nodes,
-        };
-      }
-      return checkedNode;
-    }
-    );
-    const updatedActive: Configuration = {
-      ...active,
-      checkedNodes: updatedCheckedNodes,
-      
-    };
-    updatedConfiguration(updatedActive);
-    setActive(updatedActive.name);
-  }, [
-    active,
-  ]);
+  const getNodesChecked = useCallback(
+    (idsName: string, nodes: string[]) => {
+      const updatedCheckedNodes = active.checkedNodes.map((checkedNode) => {
+        if (checkedNode.idsName === idsName) {
+          return {
+            idsName: idsName,
+            checkedNodes: nodes,
+          };
+        }
+        return checkedNode;
+      });
+      const updatedActive: Configuration = {
+        ...active,
+        checkedNodes: updatedCheckedNodes,
+      };
+      updatedConfiguration(updatedActive);
+      setActive(updatedActive.name);
+    },
+    [active],
+  );
 
   return (
     <TreeLibrariesAccordion

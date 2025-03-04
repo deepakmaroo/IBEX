@@ -128,12 +128,10 @@ export const VisualizationIDSFromURIModal = ({
         ? dataURIsSelected.find((d) => d.uri === uri)?.uriColor
         : getColorRandom();
 
-    console.log('')
     const updateDataURIs: URIData[] = dataURIsSelected.some((d) => d.uri === uri)
       ? dataURIsSelected.filter((d) => !(d.uri === uri))
       : [...dataURIsSelected, { name: dataEntries.find((d) => d.uri === uri)?.name, uri, uriColor: color }];
 
-      console.log('updateDataURIs:', updateDataURIs);
     setDataURIsSelected(updateDataURIs);
   };
 
@@ -194,23 +192,24 @@ export const VisualizationIDSFromURIModal = ({
         });
         return;
       }
-      
+
+      if (dataDbEntries.some((d) => d.uri === formIDS.values.uri)) {
+        //if uri in dataDbEntries, then add to dataURIsSelected
+        handleCheckUri(formIDS.values.uri, dataDbEntries);
+        setFromURIisSuccess(true);
+        setFromFileisSuccess(false);
+        return;
+      }
 
       const oldDataEntriesSelected = dataDbEntries.filter((loaded) =>
         dataURIsSelected.some((selected) => selected.uri === loaded.uri),
       );
-
       const newDataEntries = [...oldDataEntriesSelected, { name: `URI-${dataDbEntries.length}`, uri: formIDS.values.uri, uriColor: getColorRandom() }]
 
       setDataDbEntries(newDataEntries);
       handleCheckUri(formIDS.values.uri, newDataEntries);
       setFromURIisSuccess(true);
       setFromFileisSuccess(false);
-      showNotification({
-        title: 'Success',
-        message: 'Data successfully fetched from URI',
-        color: 'green',
-      });
     } catch (error) {
       console.error('Error:', error.message || error);
       formIDS.setFieldError('uri', error.message || 'An error occurred');
