@@ -44,9 +44,9 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
     active?.lastURIInput && fetchNodeInfos(active.lastURIInput);
   }, [active.lastURIInput]);
 
-  useEffect(() => {
-    console.log("active",active);
-  }, [active]);
+  // useEffect(() => {
+  //   console.log("active",active);
+  // }, [active]);
 
   /**
    * Handle node update using full URI
@@ -239,6 +239,8 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
 
   const getNodesChecked = useCallback(
     (uri: string, nodes: string[]) => {
+      console.log("uri",uri);
+      console.log("nodes",nodes);
       const updatedCheckedNodes: CheckedNodeURI[] = active.checkedNodes.map((checkedNode) => {
         if (checkedNode.uri === uri) {
           return {

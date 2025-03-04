@@ -59,14 +59,15 @@ export const TreeLibrary = ({
 
   function updateCheckedNodes(){
     if(selectedNode){
-      const idsNameSelected:string = selectedNode.split("#")[1]?.split(":")[0]
+      const URISelected:string = selectedNode.split("#")[0]
+      console.log("URISelected",URISelected);
       const updatedCheckedNodes = active.checkedNodes;
-      const nodeToUpdate = active.checkedNodes.find((nodeToUpdate) => nodeToUpdate.idsName === idsNameSelected)
+      const nodeToUpdate = active.checkedNodes.find((nodeToUpdate) => nodeToUpdate.uri === URISelected)
       
       if(nodeToUpdate?.checkedNodes){ // Update checkedNodes
         nodeToUpdate.checkedNodes = checkedNodes
       } else { // Init checkedNodes config
-        updatedCheckedNodes.push({idsName:idsNameSelected, checkedNodes: tree.getCheckedNodes().map((node) => node.value)})
+        updatedCheckedNodes.push({uri:URISelected, checkedNodes: tree.getCheckedNodes().map((node) => node.value)})
       }
       
       const updatedActive: Configuration = {
