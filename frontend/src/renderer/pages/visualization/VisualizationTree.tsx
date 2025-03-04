@@ -19,21 +19,29 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
   const { active, setActive, updatedConfiguration } = useIbexStore();
 
   /**
-   * Handle dataIDS change
+   * Handle dataURI change
    */
   useEffect(() => {
     if (active && active.dataURI) {
-      const newCustomDataTree: CustomTreeData[] = active.dataURI.map((ids) => ({
-        name: ids.name,
-        uri: ids.uri,
-        data: [],
-        uriColor: ids.uriColor,
-      }));
-      console.log("newCustomDataTree",newCustomDataTree);
+  
+      const existingCustomDataTree = active.customDataTree || [];
+  
+      const newCustomDataTree: CustomTreeData[] = active.dataURI.map((ids) => {
+        const existingItem = existingCustomDataTree.find(item => item.uri === ids.uri);
+        
+        return {
+          name: ids.name,
+          uri: ids.uri,
+          data: existingItem ? existingItem.data : [],
+          uriColor: existingItem ? existingItem.uriColor : ids.uriColor,
+        };
+      });
+  
       const updatedActive: Configuration = {
         ...active,
         customDataTree: newCustomDataTree,
       };
+  
       updatedConfiguration(updatedActive);
       setActive(updatedActive.name);
     }
@@ -43,10 +51,6 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
     // Refresh expanded root folder when click on New Chart
     active?.lastURIInput && fetchNodeInfos(active.lastURIInput);
   }, [active.lastURIInput]);
-
-  // useEffect(() => {
-  //   console.log("active",active);
-  // }, [active]);
 
   /**
    * Handle node update using full URI
@@ -239,8 +243,6 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
 
   const getNodesChecked = useCallback(
     (uri: string, nodes: string[]) => {
-      console.log("uri",uri);
-      console.log("nodes",nodes);
       const updatedCheckedNodes: CheckedNodeURI[] = active.checkedNodes.map((checkedNode) => {
         if (checkedNode.uri === uri) {
           return {

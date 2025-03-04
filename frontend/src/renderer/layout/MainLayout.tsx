@@ -50,8 +50,6 @@ export function MainLayout() {
       lastLocalDataSetSelected: active.lastLocalDataSetSelected
     };
 
-    console.log('newIbexState', newIbexState);
-
     window.api.fs.saveAsDialog('ibexState.json', 'json')
       .then((path) => {
         if (path) {
@@ -69,7 +67,6 @@ export function MainLayout() {
           window.api.fs.readFile(path)
             .then((data) => {
               const newIbexState = JSON.parse(data);
-              console.log("newIbexState", newIbexState)
               const newConfig: Configuration = {
                 name: newIbexState.name,
                 dataURI: newIbexState.dataIDS,
@@ -77,7 +74,6 @@ export function MainLayout() {
                 checkedNodes: newIbexState.checkedNodes,
                 // lastURIInput: ''
               };
-              console.log("newConfig", newConfig)
               addConfiguration(newConfig);
               setActive(newConfig.name);
             });

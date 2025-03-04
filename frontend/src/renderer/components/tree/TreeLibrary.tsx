@@ -59,8 +59,7 @@ export const TreeLibrary = ({
 
   function updateCheckedNodes(){
     if(selectedNode){
-      const URISelected:string = selectedNode.split("#")[0]
-      console.log("URISelected",URISelected);
+      const URISelected:string = selectedNode.split("#")[0];
       const updatedCheckedNodes = active.checkedNodes;
       const nodeToUpdate = active.checkedNodes.find((nodeToUpdate) => nodeToUpdate.uri === URISelected)
       
