@@ -90,8 +90,10 @@ class IMASPySource(DataSourceInterface):
         metadata = self._get_metadata(uri, ids, node_path, occurrence)
         metadata_dict = self._jsonify_metadata(metadata, recursive)
 
-        if metadata_dict["ndim"] > 0:
-            target_node = self._get_raw_data(uri, ids, node_path, occurrence)
+        # fill 'shape', but omit it if path points to more than one node
+        if metadata_dict["ndim"] > 0 and ":" not in node_path:
+            # _get_raw_data() returns list even if path points to one node, so we access [0] element
+            target_node = self._get_raw_data(uri, ids, [node_path], occurrence)[0]
             if isinstance(target_node, IDSStructure):
                 return metadata_dict
 
@@ -122,7 +124,6 @@ class IMASPySource(DataSourceInterface):
             data_path = imaspy.ids_path.IDSPath(node_path)
             ids_data = data_path.goto(ids_obj, from_root=True)
             result.append(ids_data)
-            print(f">>> {node_path}, {ids_data} --> {type(ids_data)}")
 
         return result
 
@@ -135,7 +136,6 @@ class IMASPySource(DataSourceInterface):
         :param occurrence:
         :return:
         """
-
         entry = imaspy.DBEntry(uri, mode="r")
         ids_metadata = entry.get(ids, lazy=True, autoconvert=False, occurrence=occurrence).metadata
 
@@ -199,21 +199,31 @@ class IMASPySource(DataSourceInterface):
         :param occurrence: ids occurrence number
         :return: dictionary {'shape': [<dim1>,<dim2>, ...], 'min':<min_value>, 'max':<max_value>, 'mean':<mean>, 'standard_deviation':<s_d>}
         """
-        ids_data = self._get_raw_data(uri, ids, node_path, occurrence)
+        node_paths = self._expand_node_path(uri, ids, node_path, occurrence)
+        ids_data = self._get_raw_data(uri, ids, node_paths, occurrence)
 
-        if isinstance(ids_data, IDSStructure) or isinstance(ids_data, IDSStructArray):
+        # test if all values are the same type
+        # if not all(type(x) == type(ids_data[0]) for x in ids_data):
+        #    raise DifferentTypesException(f"Nodes pointed by path {node_path} have different types and cannot be summarized")
+
+        if len(ids_data) > 1:
+            raise NotImplementedError(
+                "Multiple nodes summary is not supported yet. Make sure your IDS path points to only one node"
+            )
+
+        if isinstance(ids_data[0], IDSStructure) or isinstance(ids_data[0], IDSStructArray):
             raise NotALeafNodeException(f"Path {node_path} does not point to a leaf node")
 
-        if not isinstance(ids_data, IDSNumericArray):
+        if not isinstance(ids_data[0], IDSNumericArray):
             raise NotAnArrayException("Cannot get array summary of non array node")
 
         result = {}
 
-        result["shape"] = ids_data.shape
-        result["min"] = np.min(ids_data)
-        result["max"] = np.max(ids_data)
-        result["mean"] = np.mean(ids_data)
-        result["standard_deviation"] = np.std(ids_data)
+        result["shape"] = ids_data[0].shape
+        result["min"] = np.min(ids_data[0])
+        result["max"] = np.max(ids_data[0])
+        result["mean"] = np.mean(ids_data[0])
+        result["standard_deviation"] = np.std(ids_data[0])
 
         return result
 

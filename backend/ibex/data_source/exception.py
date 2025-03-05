@@ -14,3 +14,9 @@ class NodeNotFoundException(Exception):
     "Raised when requested data-node cannot be found"
 
     pass
+
+
+class DifferentTypesException(Exception):
+    "Raised when requested multiple values are not the same type"
+
+    pass

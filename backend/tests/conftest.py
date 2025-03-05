@@ -18,6 +18,11 @@ def entry_path(tmp_path_factory):
     core_profiles.ids_properties.homogeneous_time = 1
     core_profiles.time = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
 
+    core_profiles.profiles_1d.resize(5)
+
+    for aos_element, time_element in zip(core_profiles.profiles_1d, core_profiles.time):
+        aos_element.time = time_element
+
     entry.put(core_profiles)
     entry.close()
 

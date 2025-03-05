@@ -1,4 +1,4 @@
-from ibex.core.ibex_service import URI
+from ibex.core.ibex_service import IMAS_URI
 
 
 def test_core_uri_parser():
@@ -10,7 +10,7 @@ def test_core_uri_parser():
     for ids in uri_ids:
         for occurrence in uri_occurrence:
             for node_path in uri_node_path:
-                uri_obj = URI(f"{uri_core}#{ids}{occurrence}{node_path}")
+                uri_obj = IMAS_URI(f"{uri_core}#{ids}{occurrence}{node_path}")
 
                 assert uri_obj.uri_entry_identifiers == uri_core
                 assert uri_obj.ids_name == ids
