@@ -23,6 +23,8 @@ def entry_path(tmp_path_factory):
     for aos_element, time_element in zip(core_profiles.profiles_1d, core_profiles.time):
         aos_element.time = time_element
 
+    core_profiles.profiles_1d[0].ion.resize(1)
+
     entry.put(core_profiles)
     entry.close()
 

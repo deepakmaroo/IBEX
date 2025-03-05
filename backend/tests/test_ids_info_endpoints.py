@@ -1,6 +1,26 @@
 import pytest
 
 
+def test_node_info_coordinates(entry_path):
+    test_dict = {
+        "#core_profiles/profiles_1d": ["time"],
+        "#core_profiles/profiles_1d[0]/ion[0]": ["1...N", "time"],
+        "#core_profiles/profiles_1d[0]/grid/rho_tor": ["profiles_1d(itime)/grid/rho_tor_norm", "time"],
+    }
+
+    for path, coordinates in test_dict.items():
+        parameters = {
+            "uri": f"imas:mdsplus?path={entry_path}{path}",
+        }
+        response = pytest.test_client.get("/ids_info/node_info", params=parameters)
+
+        assert response.status_code == 200
+        assert response.json()["coordinates"] == coordinates, (
+            f"Testing path: {path}. "
+            f"Received coordinate: {response.json()['coordinates']} does not match expected value: {coordinates}"
+        )
+
+
 def test_node_info_empty_path(entry_path):
     parameters = {
         "uri": f"imas:mdsplus?path={entry_path}#core_profiles",
