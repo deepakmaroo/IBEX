@@ -19,7 +19,7 @@ export interface FormPlot {
   axeY?: string;
 }
 
-export interface LineChartProps {
+export interface SimplePlotlyProps {
   title: string;
   yAxisName: string;
   yAxis2Name?: string;

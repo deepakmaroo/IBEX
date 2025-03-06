@@ -1,10 +1,9 @@
 import { Stack, Text } from '@mantine/core';
-import { SimplePlot } from '../../components';
+import { SimplePlot, SimplePlotly } from '../../components';
 import { DataPlot } from 'src/renderer/types';
 import { useEffect, useState } from 'react';
 import { useIbexStore } from '../../stores';
 import { Data } from 'plotly.js';
-import { LineChart } from 'src/renderer/components/plot/SimplePlotly';
 
 interface VisualizationPlotProps {
   closeCustomPlotModal: () => void;
@@ -75,7 +74,7 @@ export const VisualizationPlot = ({
           yAxisName={active.dataFormPlot.titleAxisY}
           height={400}
         /> */}
-      <LineChart
+      <SimplePlotly
         data={rawData}
         title={"toto"}
         yAxisName={"y"}

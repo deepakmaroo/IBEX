@@ -1,7 +1,7 @@
 import { Layout } from 'plotly.js';
 import { useEffect, useRef, useState } from 'react';
 import Plot from 'react-plotly.js';
-import { LineChartProps } from 'src/renderer/types';
+import { SimplePlotlyProps } from 'src/renderer/types';
 import { ActionIcon, Group } from '@mantine/core';
 
 import {
@@ -14,7 +14,7 @@ import {
 import { useHover } from '@mantine/hooks';
 import classes from './LineChart.module.css';
 
-export const LineChart = ({
+export const SimplePlotly = ({
   title,
   yAxisName,
   yAxis2Name,
@@ -23,7 +23,7 @@ export const LineChart = ({
   handleDragStatic,
   handleDeleteGrid,
   handleUpdateGrid,
-}: LineChartProps) => {
+}: SimplePlotlyProps) => {
 
   const { hovered, ref } = useHover();
   const [layoutPlot, setLayoutPlot] = useState<Partial<Layout>>({});
