@@ -3,14 +3,19 @@ import { SimplePlot } from '../../components';
 import { DataPlot } from 'src/renderer/types';
 import { useEffect, useState } from 'react';
 import { useIbexStore } from '../../stores';
+import { Data } from 'plotly.js';
+import { LineChart } from 'src/renderer/components/plot/SimplePlotly';
 
-interface VisualizationPlotProps{
+interface VisualizationPlotProps {
   closeCustomPlotModal: () => void;
 }
 
-export const VisualizationPlot = ({closeCustomPlotModal}: VisualizationPlotProps) => {
+export const VisualizationPlot = ({
+  closeCustomPlotModal,
+}: VisualizationPlotProps) => {
   const { active } = useIbexStore();
-  const [rawData, setRawData] = useState<DataPlot[]>([]);
+  const [rawData, setRawData] = useState<Data[]>([]);
+  const [dataPlot, setDataPlot] = useState<Data>();
 
   const fetchFieldValue = async (uri: string) => {
     try {
@@ -35,43 +40,52 @@ export const VisualizationPlot = ({closeCustomPlotModal}: VisualizationPlotProps
   };
 
   async function fetchPlotData() {
-    if(active.dataFormPlot?.dataPlot){
-      const tempRawData: DataPlot[] = []
+    if (active.dataFormPlot?.dataPlot) {
+      const tempRawData: Data[] = [];
       for (const dataInPlot of active.dataFormPlot.dataPlot) {
         const data_axeY = await fetchFieldValue(dataInPlot.axeY);
         const data_axeX = await fetchFieldValue(dataInPlot.axeX);
 
-        const dataPlot: DataPlot = {
-          nameNode: dataInPlot.nameNode,
-          valueX: data_axeX.value,
-          valueY: data_axeY.value,
+        const dataPlot: Data = {
+          x: data_axeX,
+          y: data_axeY,
+          mode: 'lines',
+          name: 'Legend',
+          yaxis: undefined,
         };
-        tempRawData.push(dataPlot)
+
+        tempRawData.push(dataPlot);
       }
       setRawData([...tempRawData]);
+      console.log('rawData', rawData);
       closeCustomPlotModal();
     }
   }
 
   useEffect(() => {
-    fetchPlotData()
-  }, [active.dataFormPlot])
+    fetchPlotData();
+  }, [active.dataFormPlot]);
 
-  return (
-    rawData.length > 0 ? (
-      <>
-        <SimplePlot
+  return rawData.length > 0 ? (
+    <>
+      {/* <SimplePlot
           data={rawData}
           titleForm={active.dataFormPlot.titleForm}
           xAxisName={active.dataFormPlot.titleAxisX}
           yAxisName={active.dataFormPlot.titleAxisY}
           height={400}
-        />
-      </>
-    ) : (
-      <Stack h="100%" align='center' w="100%" justify='center'>
-        <Text>No chart generates</Text>
-      </Stack>
-    )
+        /> */}
+      <LineChart
+        data={rawData}
+        title={"toto"}
+        yAxisName={"y"}
+        isStatic={true}
+
+      />
+    </>
+  ) : (
+    <Stack h="100%" align="center" w="100%" justify="center">
+      <Text>No chart generates</Text>
+    </Stack>
   );
 };

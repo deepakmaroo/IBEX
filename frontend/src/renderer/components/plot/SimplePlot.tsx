@@ -7,13 +7,14 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-} from "recharts";
-import { useEffect, useState, useRef } from "react";
-import { ActionIcon, Container, Group, Title } from "@mantine/core";
-import { IconCamera } from "@tabler/icons-react";
-import { toPng } from "html-to-image";
-import { useHover } from "@mantine/hooks";
-import { DataPlot } from "src/renderer/types";
+  ReferenceArea,
+} from 'recharts';
+import { useEffect, useState, useRef } from 'react';
+import { ActionIcon, Container, Group, Title } from '@mantine/core';
+import { IconCamera } from '@tabler/icons-react';
+import { toPng } from 'html-to-image';
+import { useHover } from '@mantine/hooks';
+import { DataPlot } from 'src/renderer/types';
 
 interface SimplePlotProps {
   data: DataPlot[];
@@ -25,8 +26,8 @@ interface SimplePlotProps {
 }
 
 const getRandomColor = () => {
-  const letters = "0123456789ABCDEF";
-  let color = "#";
+  const letters = '0123456789ABCDEF';
+  let color = '#';
   for (let i = 0; i < 6; i++) {
     color += letters[Math.floor(Math.random() * 16)];
   }
@@ -44,29 +45,25 @@ export const SimplePlot = ({
   const chartRef = useRef<HTMLDivElement>(null);
   const { hovered, ref } = useHover();
 
-  const transformedData = data
-    .map((node) => {
-      const maxLength = node.valueY.length;
-      const result = [];
-
-      for (let i = 0; i < maxLength; i++) {
-        result.push({
-          nameNode: node.nameNode,
-          x: node.valueX[i],
-          y: node.valueY[i]
-        });
-      }
-
-      return result;
-    })
-    .flat();
-
-  const uniqueNodes = Array.from(
-    new Set(transformedData.map((item) => item.nameNode))
+  const transformedData = data.flatMap((node) =>
+    node.valueY.map((y, i) => ({
+      nameNode: node.nameNode,
+      x: node.valueX[i],
+      y,
+    })),
   );
 
-  // State to persist node colors
+  const uniqueNodes = Array.from(
+    new Set(transformedData.map((item) => item.nameNode)),
+  );
   const [nodeColors, setNodeColors] = useState<Record<string, string>>({});
+  const [refAreaLeft, setRefAreaLeft] = useState<number | null>(null);
+  const [refAreaRight, setRefAreaRight] = useState<number | null>(null);
+  const [zoomedData, setZoomedData] = useState(transformedData);
+  const [xDomain, setXDomain] = useState<[number, number]>([
+    transformedData[0]?.x || 0,
+    transformedData[transformedData.length - 1]?.x || 1,
+  ]);
 
   // Generate colors only once for each unique node
   useEffect(() => {
@@ -76,7 +73,7 @@ export const SimplePlot = ({
         colors[node] = getRandomColor();
       }
     });
-    if(colors.length){
+    if (colors.length) {
       setNodeColors((prevColors) => ({ ...prevColors, ...colors }));
     }
   }, [uniqueNodes, nodeColors]);
@@ -87,10 +84,10 @@ export const SimplePlot = ({
       return (
         <div
           style={{
-            backgroundColor: "#fff",
-            padding: "10px",
-            border: "1px solid #ddd",
-            borderRadius: "4px",
+            backgroundColor: '#fff',
+            padding: '10px',
+            border: '1px solid #ddd',
+            borderRadius: '4px',
           }}
         >
           <p>
@@ -108,6 +105,67 @@ export const SimplePlot = ({
     return null;
   };
 
+  const handleZoom = () => {
+    if (
+      refAreaLeft === null ||
+      refAreaRight === null ||
+      refAreaLeft === refAreaRight
+    ) {
+      setRefAreaLeft(null);
+      setRefAreaRight(null);
+      return;
+    }
+
+    const [minX, maxX] = [
+      Math.min(refAreaLeft, refAreaRight),
+      Math.max(refAreaLeft, refAreaRight),
+    ];
+    const filteredData = transformedData.filter(
+      (d) => d.x >= minX && d.x <= maxX,
+    );
+    setZoomedData(filteredData);
+    setRefAreaLeft(null);
+    setRefAreaRight(null);
+  };
+
+  const handleWheelZoom = (event: React.WheelEvent) => {
+    // event.preventDefault(); 
+  
+    const zoomFactor = 0.1; 
+    const [minX, maxX] = xDomain;
+    const range = maxX - minX;
+  
+    if (range <= 0) return; // Empêche un domaine invalide
+  
+    const center = minX + range / 2;
+    let newMinX, newMaxX;
+  
+    if (event.deltaY < 0) {
+      // Zoom avant (réduction de l'intervalle)
+      newMinX = center - range * (1 - zoomFactor) / 2;
+      newMaxX = center + range * (1 - zoomFactor) / 2;
+    } else {
+      // Zoom arrière (agrandissement de l'intervalle)
+      newMinX = center - range * (1 + zoomFactor) / 2;
+      newMaxX = center + range * (1 + zoomFactor) / 2;
+    }
+  
+    // Empêcher le dépassement des bornes de l'axe X
+    const minDataX = transformedData[0]?.x || 0;
+    const maxDataX = transformedData[transformedData.length - 1]?.x || 1;
+  
+    if (newMinX < minDataX) newMinX = minDataX;
+    if (newMaxX > maxDataX) newMaxX = maxDataX;
+    if (newMinX === newMaxX) return; // Empêche un domaine illégal
+  
+    setXDomain([newMinX, newMaxX]);
+  };
+  const resetZoom = () => {
+    setZoomedData(transformedData);
+    setRefAreaLeft(null);
+    setRefAreaRight(null);
+  };
+
   const exportToPNG = () => {
     if (chartRef.current === null) {
       return;
@@ -115,77 +173,92 @@ export const SimplePlot = ({
 
     toPng(chartRef.current, { cacheBust: true })
       .then((dataUrl) => {
-        const link = document.createElement("a");
+        const link = document.createElement('a');
         link.href = dataUrl;
         link.download = `${titleForm}.png`;
         link.click();
       })
       .catch((err) => {
-        console.error("Failed to export chart as image", err);
+        console.error('Failed to export chart as image', err);
       });
   };
 
   return (
-    <Container pos="relative" ref={ref as React.LegacyRef<HTMLDivElement>} pt="2rem">
+    <Container
+      pos="relative"
+      ref={ref as React.LegacyRef<HTMLDivElement>}
+      pt="2rem"
+    >
       <ActionIcon
         variant="filled"
         aria-label="screen-plot"
         pos="absolute"
         size="lg"
         right={5}
-        top={"2rem"}
+        top={'2rem'}
         onClick={exportToPNG}
       >
-        <IconCamera style={{ width: "70%", height: "70%" }} stroke={1.5} />
+        <IconCamera style={{ width: '70%', height: '70%' }} stroke={1.5} />
       </ActionIcon>
       <Group justify="center">
         <Title>{titleForm}</Title>
       </Group>
-      <ResponsiveContainer height={height || 400} width={width} ref={chartRef}>
+      <button onClick={resetZoom} >Reset Zoom</button>
+      <div onWheel={handleWheelZoom}>
+      <ResponsiveContainer height={height || 400} width={width} ref={chartRef} >
         <LineChart
-          data={transformedData}
-          margin={{
-            top: 5,
-            right: 30,
-            left: 20,
-            bottom: 5,
-          }}
+          data={zoomedData}
+          margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+          onMouseDown={(e) => {setRefAreaLeft(Number(e.activeLabel)); console.log(e)}}
+          onMouseMove={(e) =>
+            refAreaLeft !== null && setRefAreaRight(Number(e.activeLabel))
+          }
+          onMouseUp={handleZoom}
         >
           <CartesianGrid strokeDasharray="3 3" />
-
           <XAxis
             dataKey="x"
             label={{
               value: xAxisName,
-              position: "insideBottomRight",
+              position: 'insideBottomRight',
               offset: -10,
             }}
             type="number"
-          />
-
+            // domain={
+            //   zoomedData.length > 0
+            //     ? [zoomedData[0].x, 'auto']
+            //     : ['auto', 'auto']
+            // }
+            domain={xDomain}
+          />{' '}
           <YAxis
             dataKey="y"
             type="number"
-            label={{ value: yAxisName, angle: -90, position: "insideLeft" }}
+            label={{ value: yAxisName, angle: -90, position: 'insideLeft' }}
           />
-
           <Tooltip content={customTooltip} />
-
           <Legend />
-
           {uniqueNodes.map((node) => (
             <Line
               key={node}
               type="monotone"
               dataKey="y"
-              data={transformedData.filter((d) => d.nameNode === node)}
+              data={zoomedData.filter((d) => d.nameNode === node)}
               name={node}
-              stroke={nodeColors[node]} // Use the stored color
+              stroke={nodeColors[node]}
               activeDot={{ r: 8 }}
             />
           ))}
+          {refAreaLeft !== null && refAreaRight !== null ? (
+            <ReferenceArea
+              x1={refAreaLeft}
+              x2={refAreaRight}
+              strokeOpacity={0.3}
+            />
+          ) : null}
         </LineChart>
       </ResponsiveContainer>
+      </div>
     </Container>
   );
 };
