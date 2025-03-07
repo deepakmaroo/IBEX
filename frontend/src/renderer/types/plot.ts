@@ -10,10 +10,10 @@ export interface DataFormPlot {
   titleForm?: string;
   titleAxisY?: string;
   titleAxisX?: string;
-  dataPlot?: FormPlot[];
+  coordinates?: CoordinatePlot[];
 }
 
-export interface FormPlot {
+export interface CoordinatePlot {
   nameNode?: string;
   axeX?: string;
   axeY?: string;

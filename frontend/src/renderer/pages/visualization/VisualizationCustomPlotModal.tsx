@@ -29,7 +29,7 @@ export const VisualizationCustomPlotModal = ({
         </Grid.Col>
         <Grid.Col span={10}>
           <Paper shadow="md" h="100%" p="1rem">
-            <VisualizationPlotForm/>
+            <VisualizationPlotForm closeCustomPlotModal={close}/>
           </Paper>
         </Grid.Col>
       </Grid>

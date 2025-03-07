@@ -1,6 +1,6 @@
 import { Layout } from 'plotly.js';
 import { useEffect, useRef, useState } from 'react';
-import Plot from 'react-plotly.js'
+import Plot from 'react-plotly.js';
 import { SimplePlotlyProps } from 'src/renderer/types';
 import { ActionIcon, Group } from '@mantine/core';
 
@@ -24,7 +24,6 @@ export const SimplePlotly = ({
   handleDeleteGrid,
   handleUpdateGrid,
 }: SimplePlotlyProps) => {
-
   const { hovered, ref } = useHover();
   const [layoutPlot, setLayoutPlot] = useState<Partial<Layout>>({});
   const plotRef = useRef<Plot | null>(null);
@@ -34,8 +33,8 @@ export const SimplePlotly = ({
    */
   useEffect(() => {
     let layout: Partial<Layout> = {
-      title: title,
-      yaxis: { title: yAxisName },
+      title: {text: title},
+
       autosize: true,
       modebar: {
         orientation: 'v',
@@ -44,8 +43,11 @@ export const SimplePlotly = ({
       legend: {
         x: 1.1,
         y: 1,
+        orientation:'h'
       },
+      showlegend:true
     };
+
 
     if (yAxis2Name) {
       layout = {
@@ -62,7 +64,7 @@ export const SimplePlotly = ({
   }, [title, yAxis2Name, yAxis2Name]);
 
   return (
-    <div style={{ width: '100%', height: '100%' }} ref={ref}>
+    <div ref={ref}>
       {hovered && (
         <Group pos="absolute" right={30} top={5}>
           <ActionIcon
@@ -116,38 +118,9 @@ export const SimplePlotly = ({
         config={{
           responsive: true,
         }}
-        useResizeHandler={true} // Automatically handle resizing
-        style={{ width: '100%', height: '100%' }} // Ensure it fills its container
+        useResizeHandler={true}
+        // style={{ width: '100%', height: '100%' }}
       />
     </div>
   );
 };
-
-
-// export const SimplePlotly = () => {
-//   return (
-//     <div>
-//      <Plot
-//       data={[
-//         {
-//           type: 'scatter',
-//           x: [1, 2, 3],
-//           y: [2, 6, 3],
-//           marker: {color: 'red'}
-//         },
-//         {
-//           type: 'bar',
-//           x: [1, 2, 3],
-//           y: [2, 5, 3]
-//         }
-//       ]}
-
-//       layout={{
-//         width: 320,
-//         height: 240,
-//         title: 'A Fancy Plot'
-//       }}
-//     />
-//     </div>
-//   );
-// }

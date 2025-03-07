@@ -9,11 +9,17 @@ interface VisualizationPlotProps {
   closeCustomPlotModal: () => void;
 }
 
+interface DataSimplePlot {
+  static: boolean;
+  plot: Data[];
+  title: string;
+}
+
 export const VisualizationPlot = ({
   closeCustomPlotModal,
 }: VisualizationPlotProps) => {
   const { active } = useIbexStore();
-  const [rawData, setRawData] = useState<Data[]>([]);
+  const [rawData, setRawData] = useState<DataSimplePlot[]>([]);
   // const [dataPlot, setDataPlot] = useState<Data>();
 
   const fetchFieldValue = async (uri: string) => {
@@ -39,25 +45,33 @@ export const VisualizationPlot = ({
   };
 
   async function fetchPlotData() {
-    if (active.dataFormPlot?.dataPlot) {
-      const dataChart: Data[] = [];
-      for (const dataInForm of active.dataFormPlot.dataPlot) {
-        const data_axeY = await fetchFieldValue(dataInForm.axeY);
-        const data_axeX = await fetchFieldValue(dataInForm.axeX);
+    console.log('dataFormPlot', active.dataFormPlot);
+    const newDataSimplePlot: DataSimplePlot[] = [];
 
-        const dataPlot: Data = {
-          x: data_axeX.value,
-          y: data_axeY.value,
-          mode: 'lines',
-          name: 'Legend',
-          yaxis: undefined,
+    if (active.dataFormPlot) {
+      for (const dataForm of active.dataFormPlot) {
+        const dataSimplePlot: DataSimplePlot = {
+          title: dataForm.titleForm,
+          static: true,
+          plot: [],
         };
-
-        dataChart.push(dataPlot);
+        for (const coordinate of dataForm.coordinates) {
+          const data_axeY = await fetchFieldValue(coordinate.axeY);
+          const data_axeX = await fetchFieldValue(coordinate.axeY);
+          const dataPlot: Data = {
+            x: data_axeX.value,
+            y: data_axeY.value,
+            mode: 'lines',
+            name: coordinate.nameNode
+          };
+          dataSimplePlot.plot.push(dataPlot);
+        }        
       }
-      setRawData(dataChart);
-      closeCustomPlotModal();
     }
+
+    //   setRawData(dataChart);
+    //   closeCustomPlotModal();
+    // }
   }
 
   useEffect(() => {
@@ -66,12 +80,9 @@ export const VisualizationPlot = ({
 
   return rawData.length > 0 ? (
     <>
-      <SimplePlotly
-        data={rawData}
-        title={'toto title'}
-        yAxisName={'yname'}
-        isStatic={true}
-      />
+      {
+        // rawData.map(())
+      }
     </>
   ) : (
     <Stack h="100%" align="center" w="100%" justify="center">

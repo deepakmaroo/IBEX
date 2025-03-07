@@ -8,12 +8,12 @@ export interface BaseConfiguration {
   lastLocalDataSetSelected?: string;
   lastURIInput?: string;
   checkedNodes: CheckedNodeURI[];
+  dataFormPlot: DataFormPlot[];
 }
 export interface Configuration extends BaseConfiguration {
   url?: string;
   saved?: boolean;
   customDataTree: CustomTreeData[];
-  dataFormPlot?: DataFormPlot;
 }
 
 export interface ConfigForm {

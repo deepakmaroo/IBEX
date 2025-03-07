@@ -2,15 +2,17 @@ import { Alert, Autocomplete, Button, Fieldset, Grid, Group, TextInput } from '@
 import { useCallback, useEffect, useState } from 'react';
 import { IconInfoCircle, IconX } from '@tabler/icons-react';
 import { useIbexStore } from '../../stores';
-import { DataFormPlot, FormPlot, Configuration} from "src/renderer/types";
+import { DataFormPlot, CoordinatePlot, Configuration} from "src/renderer/types";
 
-
-export const VisualizationPlotForm = () => {
+interface VisualizationPlotFormProps{
+  closeCustomPlotModal: () => void;
+}
+export const VisualizationPlotForm = ({closeCustomPlotModal}: VisualizationPlotFormProps) => {
   const { active, updatedConfiguration } = useIbexStore();
   const [totalCheckedNode, setTotalCheckedNode] = useState<string[]>([]);
   const [dataFormPlot, setDataFormPlot] = useState<DataFormPlot>({});
   const [selectableCheckedNode, setSelectableCheckedNode] = useState<string[]>([]);
-  const [formPlotList, setFormPlotList] = useState<FormPlot[]>([]);
+  const [formPlotList, setFormPlotList] = useState<CoordinatePlot[]>([]);
 
   function clearFormPlotAxe(id: number, field: string){
     const formPlotToUpdate = JSON.parse(JSON.stringify(formPlotList))
@@ -84,18 +86,21 @@ export const VisualizationPlotForm = () => {
   }
 
   function updateDataFormPlot(){
-    const fromPlotListToSave: FormPlot[] = []
+    const fromPlotListToSave: CoordinatePlot[] = []
     for (const formPlot of formPlotList) {
       (formPlot?.nameNode && formPlot?.axeX && formPlot?.axeY) && (
         fromPlotListToSave.push(formPlot)
       )
     }
-    const dataFormPlotUpdated = {...dataFormPlot, dataPlot: [...fromPlotListToSave]}
+
+    const dataFormPlotUpdated: DataFormPlot = {...dataFormPlot, coordinates: [...fromPlotListToSave]}
+    const oldDataFormPlot = active.dataFormPlot 
     const updatedActive: Configuration = {
       ...active,
-      dataFormPlot: dataFormPlotUpdated,
+      dataFormPlot: [...oldDataFormPlot, dataFormPlotUpdated]
     };
     updatedConfiguration(updatedActive);
+    closeCustomPlotModal()
   }
 
   const getPlotForms = useCallback(() => {

@@ -30,7 +30,8 @@ export function MainLayout() {
       name: config.name,
       dataURI: [],
       customDataTree: [],
-      checkedNodes: []
+      checkedNodes: [],
+      dataFormPlot: []
     };
     addConfiguration(newConfig);
     setActive(newConfig.name);
@@ -47,7 +48,8 @@ export function MainLayout() {
       dataURI: active.dataURI,
       checkedNodes: active.checkedNodes,
       lastURIInput: active.lastURIInput,
-      lastLocalDataSetSelected: active.lastLocalDataSetSelected
+      lastLocalDataSetSelected: active.lastLocalDataSetSelected,
+      dataFormPlot: active.dataFormPlot
     };
 
     window.api.fs.saveAsDialog('ibexState.json', 'json')
@@ -72,7 +74,7 @@ export function MainLayout() {
                 dataURI: newIbexState.dataIDS,
                 customDataTree: [],
                 checkedNodes: newIbexState.checkedNodes,
-                // lastURIInput: ''
+                dataFormPlot: newIbexState.dataFormPlot
               };
               addConfiguration(newConfig);
               setActive(newConfig.name);
