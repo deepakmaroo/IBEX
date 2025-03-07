@@ -40,23 +40,22 @@ export const VisualizationPlot = ({
 
   async function fetchPlotData() {
     if (active.dataFormPlot?.dataPlot) {
-      const tempRawData: Data[] = [];
-      for (const dataInPlot of active.dataFormPlot.dataPlot) {
-        const data_axeY = await fetchFieldValue(dataInPlot.axeY);
-        const data_axeX = await fetchFieldValue(dataInPlot.axeX);
+      const dataChart: Data[] = [];
+      for (const dataInForm of active.dataFormPlot.dataPlot) {
+        const data_axeY = await fetchFieldValue(dataInForm.axeY);
+        const data_axeX = await fetchFieldValue(dataInForm.axeX);
 
         const dataPlot: Data = {
-          x: data_axeX,
-          y: data_axeY,
+          x: data_axeX.value,
+          y: data_axeY.value,
           mode: 'lines',
           name: 'Legend',
           yaxis: undefined,
         };
 
-        tempRawData.push(dataPlot);
+        dataChart.push(dataPlot);
       }
-      setRawData([...tempRawData]);
-      console.log('rawData', rawData);
+      setRawData(dataChart);
       closeCustomPlotModal();
     }
   }
@@ -67,19 +66,11 @@ export const VisualizationPlot = ({
 
   return rawData.length > 0 ? (
     <>
-      {/* <SimplePlot
-          data={rawData}
-          titleForm={active.dataFormPlot.titleForm}
-          xAxisName={active.dataFormPlot.titleAxisX}
-          yAxisName={active.dataFormPlot.titleAxisY}
-          height={400}
-        /> */}
       <SimplePlotly
         data={rawData}
-        title={"toto"}
-        yAxisName={"y"}
+        title={'toto title'}
+        yAxisName={'yname'}
         isStatic={true}
-
       />
     </>
   ) : (
