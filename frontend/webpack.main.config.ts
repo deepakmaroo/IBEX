@@ -7,16 +7,19 @@ export const mainConfig: Configuration = {
   module: {
     rules,
   },
-  devServer: {
-    allowedHosts: 'all',
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-    },
-  },
   resolve: {
     alias: {
       src: path.resolve(__dirname, 'src'),
+      // stream: require.resolve('stream-browserify'), // Add this line
     },
     extensions: ['.ts', '.tsx', '.js'],
+    fallback: {
+      path: false,
+      // crypto: require.resolve('crypto-browserify'),
+      // stream: require.resolve('stream-browserify'),
+      // buffer: require.resolve('buffer/'),
+      // assert: require.resolve('assert/'),
+    },
+    
   },
 };

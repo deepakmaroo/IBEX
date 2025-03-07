@@ -14,7 +14,7 @@ export const VisualizationPlot = ({
 }: VisualizationPlotProps) => {
   const { active } = useIbexStore();
   const [rawData, setRawData] = useState<Data[]>([]);
-  const [dataPlot, setDataPlot] = useState<Data>();
+  // const [dataPlot, setDataPlot] = useState<Data>();
 
   const fetchFieldValue = async (uri: string) => {
     try {

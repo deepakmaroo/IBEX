@@ -1,6 +1,6 @@
 import { Layout } from 'plotly.js';
 import { useEffect, useRef, useState } from 'react';
-import Plot from 'react-plotly.js';
+import Plot from 'react-plotly.js'
 import { SimplePlotlyProps } from 'src/renderer/types';
 import { ActionIcon, Group } from '@mantine/core';
 
@@ -122,3 +122,32 @@ export const SimplePlotly = ({
     </div>
   );
 };
+
+
+// export const SimplePlotly = () => {
+//   return (
+//     <div>
+//      <Plot
+//       data={[
+//         {
+//           type: 'scatter',
+//           x: [1, 2, 3],
+//           y: [2, 6, 3],
+//           marker: {color: 'red'}
+//         },
+//         {
+//           type: 'bar',
+//           x: [1, 2, 3],
+//           y: [2, 5, 3]
+//         }
+//       ]}
+
+//       layout={{
+//         width: 320,
+//         height: 240,
+//         title: 'A Fancy Plot'
+//       }}
+//     />
+//     </div>
+//   );
+// }
