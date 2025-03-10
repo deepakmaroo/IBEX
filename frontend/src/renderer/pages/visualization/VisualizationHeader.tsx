@@ -21,7 +21,7 @@ export const VisualizationHeader = ({
           leftSection={<IconPlus size={20} />}
           disabled={!active}
         >
-          Select IDS
+          Select URIs
         </Button>
         <Button
           leftSection={<IconPlus size={20} />}

@@ -17,7 +17,7 @@ export const VisualizationCustomPlotModal = ({
     <Modal
       opened={opened}
       onClose={close}
-      title="Select IDS"
+      title="Select URIs"
       size="95%"
       centered
     >
