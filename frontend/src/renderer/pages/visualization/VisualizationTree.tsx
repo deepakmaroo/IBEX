@@ -10,7 +10,7 @@ import {
   NodeInfoChildren,
   NodeInfoTypeEnum,
 } from '../../types';
-import { ActionIcon, Flex, Group, TextInput } from '@mantine/core';
+import { ActionIcon, Container, Group, Switch, TextInput } from '@mantine/core';
 import { IconSearch } from '@tabler/icons-react';
 
 interface VisualizationTreeProps {
@@ -272,17 +272,10 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
   };
 
   return (
-    <div>
-      <Group
-        styles={{
-          root: {
-            display: 'block',
-          },
-        }}
-        mx="xs"
-      >
+    <Container fluid p={0}>
+      <Container fluid>
         <TextInput
-          label="Seach node"
+          label="Search node"
           placeholder="Enter plot name"
           value=""
           onChange={(event) => searchNode(event.currentTarget.value)}
@@ -300,7 +293,17 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
             </ActionIcon>
           }
         />
-      </Group>
+        <Switch
+          my="sm"
+          label="See errors"
+          labelPosition="left"
+          styles={{
+            labelWrapper: {
+              width: '100%',
+            },
+          }}
+        />
+      </Container>
       <TreeLibrariesAccordion
         customDataTree={active.customDataTree}
         height={height}
@@ -309,6 +312,6 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
         handleSelectChildren={handleSelectChildren}
         getNodesChecked={getNodesChecked}
       />
-    </div>
+    </Container>
   );
 };
