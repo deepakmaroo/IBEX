@@ -19,7 +19,7 @@ python -m venv venv
 echo "PWD: " `pwd`
 
 # PREPARE THE ENVIRONMENT
-time pip install --upgrade ./[linting]
+pip install --upgrade ./[linting]
 
 
 

@@ -81,3 +81,8 @@ parentdir_prefix = ""
 # Set the maximum line length to 120.
 line-length = 120
 exclude = ["venv", "_version.py", "versioneer.py"]
+
+[tool.coverage.run]
+omit = [
+    "ibex/_version.py",
+    ]
