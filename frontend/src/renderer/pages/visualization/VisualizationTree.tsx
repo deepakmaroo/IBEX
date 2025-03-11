@@ -306,7 +306,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
       </Container>
       <TreeLibrariesAccordion
         customDataTree={active.customDataTree}
-        height={height}
+        height={`calc(${height} - 113px)`}
         checkedNodes={active.checkedNodes || []}
         handleAccordionChange={handleAccordionChange}
         handleSelectChildren={handleSelectChildren}
