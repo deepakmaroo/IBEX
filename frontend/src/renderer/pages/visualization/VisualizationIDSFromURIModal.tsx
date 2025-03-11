@@ -396,7 +396,7 @@ export const VisualizationIDSFromURIModal = ({
             rightSection={
               <ActionIcon
                 variant="filled"
-                aria-label="Settings"
+                aria-label="Add URI"
                 component="button"
                 type="submit"
                 disabled={isLoading || isLoadingDbEntries}

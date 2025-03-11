@@ -10,6 +10,8 @@ import {
   NodeInfoChildren,
   NodeInfoTypeEnum,
 } from '../../types';
+import { ActionIcon, Flex, Group, TextInput } from '@mantine/core';
+import { IconSearch } from '@tabler/icons-react';
 
 interface VisualizationTreeProps {
   height: string;
@@ -23,12 +25,13 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
    */
   useEffect(() => {
     if (active && active.dataURI) {
-  
       const existingCustomDataTree = active.customDataTree || [];
-  
+
       const newCustomDataTree: CustomTreeData[] = active.dataURI.map((ids) => {
-        const existingItem = existingCustomDataTree.find(item => item.uri === ids.uri);
-        
+        const existingItem = existingCustomDataTree.find(
+          (item) => item.uri === ids.uri,
+        );
+
         return {
           name: ids.name,
           uri: ids.uri,
@@ -36,12 +39,12 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
           uriColor: existingItem ? existingItem.uriColor : ids.uriColor,
         };
       });
-  
+
       const updatedActive: Configuration = {
         ...active,
         customDataTree: newCustomDataTree,
       };
-  
+
       updatedConfiguration(updatedActive);
       setActive(updatedActive.name);
     }
@@ -243,15 +246,17 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
 
   const getNodesChecked = useCallback(
     (uri: string, nodes: string[]) => {
-      const updatedCheckedNodes: CheckedNodeURI[] = active.checkedNodes.map((checkedNode) => {
-        if (checkedNode.uri === uri) {
-          return {
-            uri: uri,
-            checkedNodes: nodes,
-          };
-        }
-        return checkedNode;
-      });
+      const updatedCheckedNodes: CheckedNodeURI[] = active.checkedNodes.map(
+        (checkedNode) => {
+          if (checkedNode.uri === uri) {
+            return {
+              uri: uri,
+              checkedNodes: nodes,
+            };
+          }
+          return checkedNode;
+        },
+      );
       const updatedActive: Configuration = {
         ...active,
         checkedNodes: updatedCheckedNodes,
@@ -262,14 +267,48 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
     [active],
   );
 
+  const searchNode = (value: string) => {
+    console.log(value);
+  };
+
   return (
-    <TreeLibrariesAccordion
-      customDataTree={active.customDataTree}
-      height={height}
-      checkedNodes={active.checkedNodes || []}
-      handleAccordionChange={handleAccordionChange}
-      handleSelectChildren={handleSelectChildren}
-      getNodesChecked={getNodesChecked}
-    />
+    <div>
+      <Group
+        styles={{
+          root: {
+            display: 'block',
+          },
+        }}
+        mx="xs"
+      >
+        <TextInput
+          label="Seach node"
+          placeholder="Enter plot name"
+          value=""
+          onChange={(event) => searchNode(event.currentTarget.value)}
+          rightSection={
+            <ActionIcon
+              variant="filled"
+              aria-label="Search node"
+              component="button"
+              type="submit"
+            >
+              <IconSearch
+                style={{ width: '70%', height: '70%' }}
+                stroke={1.5}
+              />
+            </ActionIcon>
+          }
+        />
+      </Group>
+      <TreeLibrariesAccordion
+        customDataTree={active.customDataTree}
+        height={height}
+        checkedNodes={active.checkedNodes || []}
+        handleAccordionChange={handleAccordionChange}
+        handleSelectChildren={handleSelectChildren}
+        getNodesChecked={getNodesChecked}
+      />
+    </div>
   );
 };
