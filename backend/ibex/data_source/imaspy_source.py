@@ -54,7 +54,7 @@ class IMASPySource(DataSourceInterface):
         entry.close()
         return result
 
-    def _jsonify_metadata(self, metadata: IDSMetadata, recursive: bool = False) -> dict:
+    def _jsonify_metadata(self, metadata: IDSMetadata, recursive: bool = False, show_error_bars: bool = False) -> dict:
         """
         Converts imaspy.ids_metadata.IDSMetadata into dictionary
         :param metadata: imaspy.ids_metadata.IDSMetadata - metadata to be converted
@@ -72,11 +72,22 @@ class IMASPySource(DataSourceInterface):
             result["children"] = [self._jsonify_metadata(child, recursive) for child in metadata]
         else:
             result["children"] = [
-                {"name": child.name, "type": child.data_type, "ndim": child.ndim} for child in metadata
+                {"name": child.name, "type": child.data_type, "ndim": child.ndim}
+                for child in metadata
+                if show_error_bars or not any(x in child.name for x in ["_error_upper", "_error_lower", "_error_index"])
             ]
+
         return result
 
-    def get_node_info(self, uri: str, ids: str, node_path: str, occurrence: int = 0, recursive: bool = False) -> dict:
+    def get_node_info(
+        self,
+        uri: str,
+        ids: str,
+        node_path: str,
+        occurrence: int = 0,
+        recursive: bool = False,
+        show_error_bars: bool = False,
+    ) -> dict:
         """
         Returns dictionary with basic info about IDS node pointed by `node_path` argument
         :param uri: pulsefile uri - used only to get proper DD version
@@ -89,7 +100,7 @@ class IMASPySource(DataSourceInterface):
         """
 
         metadata, coordinates = self._get_metadata_and_coordinates(uri, ids, node_path, occurrence)
-        metadata_dict = self._jsonify_metadata(metadata, recursive)
+        metadata_dict = self._jsonify_metadata(metadata, recursive, show_error_bars)
         metadata_dict["coordinates"] = coordinates
 
         # fill 'shape', but omit it if path points to more than one node

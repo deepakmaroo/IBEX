@@ -7,9 +7,9 @@ router = APIRouter()
 
 @router.get("/ids_info/node_info/")
 @ibex_service.measure_execution_time
-async def node_info(uri: str) -> dict:
+async def node_info(uri: str, show_error_bars: bool = False) -> dict:
     try:
-        return ibex_service.get_node_info(uri)
+        return ibex_service.get_node_info(uri, show_error_bars)
     except Exception as e:
         raise HTTPException(status_code=404, detail=f"{e}")
 

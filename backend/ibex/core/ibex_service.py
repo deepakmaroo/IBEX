@@ -75,10 +75,15 @@ def data_entry_exists(uri: str) -> dict:
     return {"exists": data_source.data_entry_exists(uri_obj.uri_entry_identifiers)}
 
 
-def get_node_info(uri: str, recursive: bool = False) -> dict:
+def get_node_info(uri: str, recursive: bool = False, show_error_bars: bool = False) -> dict:
     uri_obj = IMAS_URI(uri)
     return data_source.get_node_info(
-        uri_obj.uri_entry_identifiers, uri_obj.ids_name, uri_obj.node_path, uri_obj.occurrence, recursive
+        uri_obj.uri_entry_identifiers,
+        uri_obj.ids_name,
+        uri_obj.node_path,
+        uri_obj.occurrence,
+        recursive,
+        show_error_bars,
     )
 
 
