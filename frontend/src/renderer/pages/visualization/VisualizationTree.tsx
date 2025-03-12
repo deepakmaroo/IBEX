@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { TreeLibrariesAccordion } from '../../components';
 import { useIbexStore } from '../../stores';
 import {
@@ -10,9 +10,16 @@ import {
   NodeInfoChildren,
   NodeInfoTypeEnum,
 } from '../../types';
-import { ActionIcon, Container, Switch, TextInput } from '@mantine/core';
+import {
+  ActionIcon,
+  Container,
+  Loader,
+  Switch,
+  TextInput,
+} from '@mantine/core';
 import { IconSearch } from '@tabler/icons-react';
 import { useForm } from '@mantine/form';
+import { showNotification } from '@mantine/notifications';
 
 interface VisualizationTreeProps {
   height: string;
@@ -24,6 +31,10 @@ interface FormSearchNode {
 
 export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
   const { active, setActive, updatedConfiguration } = useIbexStore();
+
+  const [accordionSelected, setAccordionSelected] = useState<string | null>();
+  const [searchNodeIsLoading, setSearchNodeIsLoading] =
+    useState<boolean>(false);
 
   const formSearchNode = useForm<FormSearchNode>({
     initialValues: {
@@ -66,6 +77,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
     active?.lastURIInput && fetchNodeInfos(active.lastURIInput);
   }, [active.lastURIInput]);
 
+ 
   /**
    * Handle node update using full URI
    * @param fullUri The full URI for fetching or updating node data
@@ -227,6 +239,38 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
   );
 
   /**
+   * Fetch search node
+   * @param value
+   */
+  const fetchSearchNode = async (uriWithIds: string, value: string) => {
+    if (!value) return;
+
+    try {
+      const response = await fetch(
+        `${window.env.API_URL}/ids_info/find_paths/?uri=${encodeURIComponent(uriWithIds)}&searched_node=${encodeURIComponent(value)}`,
+        {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        },
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || 'Failed to fetch IDS data');
+      }
+
+      const searchResults: NodeInfo = await response.json();
+
+      console.log('searchResults', searchResults);
+
+      // updatedConfiguration(updatedActive);
+      // setActive(updatedActive.name);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  /**
    * Handle accordion change
    * @param value
    * @returns
@@ -238,6 +282,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
           (item) => item.uri === value,
         );
         if (selectedCustomData) {
+          setAccordionSelected(value);
           if (selectedCustomData.data.length === 0) {
             fetchIDSData(selectedCustomData.uri);
           }
@@ -258,6 +303,35 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
     },
     [active],
   );
+
+  /**
+   * Handle search node
+   */
+  const handleSearchNode = useCallback(async () => {
+    if (accordionSelected) {
+      const listURIsWithIds = active.customDataTree
+        .find((item) => item.uri === accordionSelected)
+        ?.data.map((item) => item.value);
+
+      setSearchNodeIsLoading(true);
+      const start = new Date().getTime();
+      for (const uriWithIds of listURIsWithIds) {
+        await fetchSearchNode(uriWithIds, formSearchNode.values.node);
+      }
+      
+      const end = new Date().getTime();
+      console.log('Execution time: ' + (end - start) + 'ms');
+      setSearchNodeIsLoading(false);
+    } else {
+      console.error('Accordion not selected');
+      showNotification({
+        title: 'Search node',
+        message: 'Select an uri to search',
+        color: 'red',
+      });
+
+    }
+  }, [active, formSearchNode, accordionSelected]);
 
   /**
    * Get nodes checked
@@ -287,36 +361,37 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
     [active],
   );
 
-  /**
-   * Search node
-   * @param value
-   */
-  const searchNode = (value: string) => {
-    console.log(value);
-  };
-
   return (
     <Container fluid p={0}>
-      <Container fluid>
-        <form>
+      <Container fluid pt={1}>
+        <form
+          onSubmit={formSearchNode.onSubmit(() => {
+            handleSearchNode();
+          })}
+        >
           <TextInput
+            mt="sm"
             label="Search node"
             placeholder="Enter node name"
-            onChange={(event) => searchNode(event.currentTarget.value)}
-            rightSection={
-              <ActionIcon
-                variant="filled"
-                aria-label="Search node"
-                component="button"
-                type="submit"
-              >
-                <IconSearch
-                  style={{ width: '70%', height: '70%' }}
-                  stroke={1.5}
-                />
-              </ActionIcon>
-            }
             {...formSearchNode.getInputProps('node')}
+            rightSection={
+              searchNodeIsLoading ? (
+                <Loader size="xs" />
+              ) : (
+                <ActionIcon
+                  variant="filled"
+                  aria-label="Search node"
+                  component="button"
+                  type="submit"
+                >
+                  <IconSearch
+                    style={{ width: '70%', height: '70%' }}
+                    stroke={1.5}
+                  />
+                </ActionIcon>
+              )
+            }
+            disabled={searchNodeIsLoading}
           />
         </form>
         <Switch
