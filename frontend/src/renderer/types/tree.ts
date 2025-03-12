@@ -1,5 +1,5 @@
 import { TreeNodeData } from '@mantine/core';
-import { NodeInfoTypeEnum } from './nodesInfos';
+import { NodeInfoTypeEnum } from './nodes';
 import { URIData } from './ids';
 
 export type DataTreeSelected = {

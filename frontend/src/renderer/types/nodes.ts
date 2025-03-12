@@ -16,3 +16,7 @@ export type NodeInfoResponse = NodeInfoChildrenResponse & {
   shapes: number[];
   children: NodeInfoChildrenResponse[];
 };
+
+export type SearchNodeResponse = {
+  paths: string[];
+};
