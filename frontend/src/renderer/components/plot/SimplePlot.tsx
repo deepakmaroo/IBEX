@@ -129,35 +129,35 @@ export const SimplePlot = ({
   };
 
   const handleWheelZoom = (event: React.WheelEvent) => {
-    // event.preventDefault(); 
-  
-    const zoomFactor = 0.1; 
+    // event.preventDefault();
+
+    const zoomFactor = 0.1;
     const [minX, maxX] = xDomain;
     const range = maxX - minX;
-  
+
     if (range <= 0) return; // Empêche un domaine invalide
-  
+
     const center = minX + range / 2;
     let newMinX, newMaxX;
-  
+
     if (event.deltaY < 0) {
       // Zoom avant (réduction de l'intervalle)
-      newMinX = center - range * (1 - zoomFactor) / 2;
-      newMaxX = center + range * (1 - zoomFactor) / 2;
+      newMinX = center - (range * (1 - zoomFactor)) / 2;
+      newMaxX = center + (range * (1 - zoomFactor)) / 2;
     } else {
       // Zoom arrière (agrandissement de l'intervalle)
-      newMinX = center - range * (1 + zoomFactor) / 2;
-      newMaxX = center + range * (1 + zoomFactor) / 2;
+      newMinX = center - (range * (1 + zoomFactor)) / 2;
+      newMaxX = center + (range * (1 + zoomFactor)) / 2;
     }
-  
+
     // Empêcher le dépassement des bornes de l'axe X
     const minDataX = transformedData[0]?.x || 0;
     const maxDataX = transformedData[transformedData.length - 1]?.x || 1;
-  
+
     if (newMinX < minDataX) newMinX = minDataX;
     if (newMaxX > maxDataX) newMaxX = maxDataX;
     if (newMinX === newMaxX) return; // Empêche un domaine illégal
-  
+
     setXDomain([newMinX, newMaxX]);
   };
   const resetZoom = () => {
@@ -203,61 +203,68 @@ export const SimplePlot = ({
       <Group justify="center">
         <Title>{titleForm}</Title>
       </Group>
-      <button onClick={resetZoom} >Reset Zoom</button>
+      <button onClick={resetZoom}>Reset Zoom</button>
       <div onWheel={handleWheelZoom}>
-      <ResponsiveContainer height={height || 400} width={width} ref={chartRef} >
-        <LineChart
-          data={zoomedData}
-          margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-          onMouseDown={(e) => {setRefAreaLeft(Number(e.activeLabel)); console.log(e)}}
-          onMouseMove={(e) =>
-            refAreaLeft !== null && setRefAreaRight(Number(e.activeLabel))
-          }
-          onMouseUp={handleZoom}
+        <ResponsiveContainer
+          height={height || 400}
+          width={width}
+          ref={chartRef}
         >
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis
-            dataKey="x"
-            label={{
-              value: xAxisName,
-              position: 'insideBottomRight',
-              offset: -10,
+          <LineChart
+            data={zoomedData}
+            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+            onMouseDown={(e) => {
+              setRefAreaLeft(Number(e.activeLabel));
+              console.log(e);
             }}
-            type="number"
-            // domain={
-            //   zoomedData.length > 0
-            //     ? [zoomedData[0].x, 'auto']
-            //     : ['auto', 'auto']
-            // }
-            domain={xDomain}
-          />{' '}
-          <YAxis
-            dataKey="y"
-            type="number"
-            label={{ value: yAxisName, angle: -90, position: 'insideLeft' }}
-          />
-          <Tooltip content={customTooltip} />
-          <Legend />
-          {uniqueNodes.map((node) => (
-            <Line
-              key={node}
-              type="monotone"
+            onMouseMove={(e) =>
+              refAreaLeft !== null && setRefAreaRight(Number(e.activeLabel))
+            }
+            onMouseUp={handleZoom}
+          >
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis
+              dataKey="x"
+              label={{
+                value: xAxisName,
+                position: 'insideBottomRight',
+                offset: -10,
+              }}
+              type="number"
+              // domain={
+              //   zoomedData.length > 0
+              //     ? [zoomedData[0].x, 'auto']
+              //     : ['auto', 'auto']
+              // }
+              domain={xDomain}
+            />{' '}
+            <YAxis
               dataKey="y"
-              data={zoomedData.filter((d) => d.nameNode === node)}
-              name={node}
-              stroke={nodeColors[node]}
-              activeDot={{ r: 8 }}
+              type="number"
+              label={{ value: yAxisName, angle: -90, position: 'insideLeft' }}
             />
-          ))}
-          {refAreaLeft !== null && refAreaRight !== null ? (
-            <ReferenceArea
-              x1={refAreaLeft}
-              x2={refAreaRight}
-              strokeOpacity={0.3}
-            />
-          ) : null}
-        </LineChart>
-      </ResponsiveContainer>
+            <Tooltip content={customTooltip} />
+            <Legend />
+            {uniqueNodes.map((node) => (
+              <Line
+                key={node}
+                type="monotone"
+                dataKey="y"
+                data={zoomedData.filter((d) => d.nameNode === node)}
+                name={node}
+                stroke={nodeColors[node]}
+                activeDot={{ r: 8 }}
+              />
+            ))}
+            {refAreaLeft !== null && refAreaRight !== null ? (
+              <ReferenceArea
+                x1={refAreaLeft}
+                x2={refAreaRight}
+                strokeOpacity={0.3}
+              />
+            ) : null}
+          </LineChart>
+        </ResponsiveContainer>
       </div>
     </Container>
   );

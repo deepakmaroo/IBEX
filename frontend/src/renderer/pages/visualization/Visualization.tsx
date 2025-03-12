@@ -26,7 +26,10 @@ export const Visualization = () => {
     <Container fluid p={10}>
       {configurations.length > 0 ? (
         <>
-          <VisualizationHeader handleAddTree={openAddTreeModal} handleNewPlot={openCustomPlotModal}/>
+          <VisualizationHeader
+            handleAddTree={openAddTreeModal}
+            handleNewPlot={openCustomPlotModal}
+          />
           <Grid type="container">
             <Grid.Col span={2}>
               <Paper shadow="md" h={height} radius="md">
@@ -35,7 +38,9 @@ export const Visualization = () => {
             </Grid.Col>
             <Grid.Col span={10}>
               <Paper shadow="md" h={height} radius="md">
-                <VisualizationPlot closeCustomPlotModal={closeCustomPlotModal}/>
+                <VisualizationPlot
+                  closeCustomPlotModal={closeCustomPlotModal}
+                />
               </Paper>
             </Grid.Col>
           </Grid>

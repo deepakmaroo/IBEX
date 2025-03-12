@@ -9,7 +9,7 @@ interface VisualizationHeaderProps {
 
 export const VisualizationHeader = ({
   handleAddTree,
-  handleNewPlot 
+  handleNewPlot,
 }: VisualizationHeaderProps) => {
   const { active } = useIbexStore();
 

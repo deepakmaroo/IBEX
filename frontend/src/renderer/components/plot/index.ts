@@ -1,2 +1,2 @@
-export * from "./SimplePlot";
-export * from "./SimplePlotly";
+export * from './SimplePlot';
+export * from './SimplePlotly';

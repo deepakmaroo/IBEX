@@ -9,7 +9,7 @@ interface VisualizationCustomPlotModalProps {
 
 export const VisualizationCustomPlotModal = ({
   opened,
-  close
+  close,
 }: VisualizationCustomPlotModalProps) => {
   const height = '85vh';
 
@@ -29,7 +29,7 @@ export const VisualizationCustomPlotModal = ({
         </Grid.Col>
         <Grid.Col span={10}>
           <Paper shadow="md" h="100%" p="1rem">
-            <VisualizationPlotForm closeCustomPlotModal={close}/>
+            <VisualizationPlotForm closeCustomPlotModal={close} />
           </Paper>
         </Grid.Col>
       </Grid>

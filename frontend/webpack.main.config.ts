@@ -20,6 +20,5 @@ export const mainConfig: Configuration = {
       // buffer: require.resolve('buffer/'),
       // assert: require.resolve('assert/'),
     },
-    
   },
 };

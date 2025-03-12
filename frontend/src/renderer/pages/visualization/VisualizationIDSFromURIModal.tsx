@@ -121,6 +121,12 @@ export const VisualizationIDSFromURIModal = ({
     </Table.Tr>
   ));
 
+  /**
+   * Handle check uri
+   * @param uri
+   * @param dataEntries
+   * @returns
+   */
   const handleCheckUri = (uri: string, dataEntries: URIData[]): void => {
     //Verify if dataIDSSelected[] contains the uri then use the color of the uri or generate a new color
     const color =
@@ -128,13 +134,26 @@ export const VisualizationIDSFromURIModal = ({
         ? dataURIsSelected.find((d) => d.uri === uri)?.uriColor
         : getColorRandom();
 
-    const updateDataURIs: URIData[] = dataURIsSelected.some((d) => d.uri === uri)
+    const updateDataURIs: URIData[] = dataURIsSelected.some(
+      (d) => d.uri === uri,
+    )
       ? dataURIsSelected.filter((d) => !(d.uri === uri))
-      : [...dataURIsSelected, { name: dataEntries.find((d) => d.uri === uri)?.name, uri, uriColor: color }];
+      : [
+          ...dataURIsSelected,
+          {
+            name: dataEntries.find((d) => d.uri === uri)?.name,
+            uri,
+            uriColor: color,
+          },
+        ];
 
     setDataURIsSelected(updateDataURIs);
   };
 
+  /**
+   * Update data URI
+   * @returns
+   */
   const updateDataURI = (): void => {
     updatedConfiguration({ ...active, dataURI: dataURIsSelected });
     close();
@@ -204,7 +223,14 @@ export const VisualizationIDSFromURIModal = ({
       const oldDataEntriesSelected = dataDbEntries.filter((loaded) =>
         dataURIsSelected.some((selected) => selected.uri === loaded.uri),
       );
-      const newDataEntries = [...oldDataEntriesSelected, { name: `URI-${dataDbEntries.length}`, uri: formIDS.values.uri, uriColor: getColorRandom() }]
+      const newDataEntries = [
+        ...oldDataEntriesSelected,
+        {
+          name: `URI-${dataDbEntries.length}`,
+          uri: formIDS.values.uri,
+          uriColor: getColorRandom(),
+        },
+      ];
 
       setDataDbEntries(newDataEntries);
       handleCheckUri(formIDS.values.uri, newDataEntries);
@@ -223,6 +249,11 @@ export const VisualizationIDSFromURIModal = ({
     }
   }
 
+  /**
+   * Fetch IDS data from file
+   * @returns {Promise<void>}
+   * Return data uri with name and occurrences
+   */
   async function fetchDataIDSFromFile() {
     const formData = new FormData();
     formData.append('file', formIDS.values.file);
@@ -235,32 +266,32 @@ export const VisualizationIDSFromURIModal = ({
     try {
       setIsLoading(true);
 
-      const response = await fetch(
-        `${window.env.API_URL}/data_entry/list_idses_from_file/`,
-        {
-          method: 'POST',
-          body: formData,
-        },
-      );
+      // const response = await fetch(
+      //   `${window.env.API_URL}/data_entry/list_idses_from_file/`,
+      //   {
+      //     method: 'POST',
+      //     body: formData,
+      //   },
+      // );
 
-      if (response.ok) {
-        const res = await response.json();
-        // setDataIDsLoaded(res.idses);
-        setFromURIisSuccess(false);
-        setFromFileisSuccess(true);
-      } else {
-        const res = await response.json();
-        console.error('Promise resolved but HTTP status failed:', res);
-        formIDS.setFieldError(
-          'file',
-          'Failed to fetch data for the provided file',
-        );
-        showNotification({
-          title: 'Error',
-          message: res.datail,
-          color: 'red',
-        });
-      }
+      // if (response.ok) {
+      //   const res = await response.json();
+      //   // setDataIDsLoaded(res.idses);
+      //   setFromURIisSuccess(false);
+      //   setFromFileisSuccess(true);
+      // } else {
+      //   const res = await response.json();
+      //   console.error('Promise resolved but HTTP status failed:', res);
+      //   formIDS.setFieldError(
+      //     'file',
+      //     'Failed to fetch data for the provided file',
+      //   );
+      //   showNotification({
+      //     title: 'Error',
+      //     message: res.datail,
+      //     color: 'red',
+      //   });
+      // }
     } catch (error) {
       console.error('Promise rejected:', error);
       formIDS.setFieldError('file', 'Error occurred while fetching data');
@@ -273,6 +304,11 @@ export const VisualizationIDSFromURIModal = ({
     setIsLoading(false);
   }
 
+  /**
+   * Fetch IDS data from db entries
+   * @returns {Promise<void>}
+   * Return data uri with name and occurrences
+   */
   async function fetchDbEntries() {
     try {
       setIsLoadingDbEntries(true);
@@ -292,17 +328,20 @@ export const VisualizationIDSFromURIModal = ({
         const oldDataEntriesSelected = dataDbEntries.filter((loaded) =>
           dataURIsSelected.some((selected) => selected.uri === loaded.uri),
         );
-        
+
         const maxId = Math.max(
           0,
           ...oldDataEntriesSelected.map((d) => {
             const match = d.name.match(/URI-(\d+)/);
             return match ? parseInt(match[1], 10) : 0;
-          })
+          }),
         );
-  
+
         const newDataEntries: URIData[] = res.entries
-          .filter((entry: string) => !oldDataEntriesSelected.some((d) => d.uri === entry))
+          .filter(
+            (entry: string) =>
+              !oldDataEntriesSelected.some((d) => d.uri === entry),
+          )
           .map((entry: string, index: number) => ({
             name: `URI-${maxId + index + 1}`,
             uri: entry,

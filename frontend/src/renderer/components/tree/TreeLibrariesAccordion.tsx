@@ -59,19 +59,20 @@ export const TreeLibrariesAccordion = ({
   getNodesChecked,
 }: VisualizationTreeProps) => {
   const items = customDataTree.map((item) => (
-    <Accordion.Item
-      key={`accodion-${item.uri}`}
-      value={`${item.uri}`}
-    >
+    <Accordion.Item key={`accodion-${item.uri}`} value={`${item.uri}`}>
       <Accordion.Control>
-        <AccordionLabel label={item.name} description={item.uri} color={item.uriColor}/>
+        <AccordionLabel
+          label={item.name}
+          description={item.uri}
+          color={item.uriColor}
+        />
       </Accordion.Control>
       <Accordion.Panel>
         <TreeLibrary
           treeData={item.data}
           checkedNodes={
-            checkedNodes.find((node) => node.uri === item.uri)
-              ?.checkedNodes || []
+            checkedNodes.find((node) => node.uri === item.uri)?.checkedNodes ||
+            []
           }
           handleSelectChildren={handleSelectChildren}
           getCheckedNodes={(nodesChecked) => {
@@ -81,8 +82,6 @@ export const TreeLibrariesAccordion = ({
       </Accordion.Panel>
     </Accordion.Item>
   ));
-
-  
 
   return (
     <ScrollArea h={height}>

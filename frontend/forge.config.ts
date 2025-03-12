@@ -10,9 +10,11 @@ import { FuseV1Options, FuseVersion } from '@electron/fuses';
 
 import { mainConfig } from './webpack.main.config';
 import { rendererConfig } from './webpack.renderer.config';
-import dotenv from 'dotenv';
 
+/* eslint-disable import/no-named-as-default-member */
+import dotenv from 'dotenv';
 dotenv.config();
+/* eslint-enable import/no-named-as-default-member */
 
 const config: ForgeConfig = {
   packagerConfig: {

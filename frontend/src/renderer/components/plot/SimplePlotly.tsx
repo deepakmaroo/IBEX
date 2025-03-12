@@ -33,7 +33,7 @@ export const SimplePlotly = ({
    */
   useEffect(() => {
     let layout: Partial<Layout> = {
-      title: {text: title},
+      title: { text: title },
 
       autosize: true,
       modebar: {
@@ -43,11 +43,10 @@ export const SimplePlotly = ({
       legend: {
         x: 1.1,
         y: 1,
-        orientation:'h'
+        orientation: 'h',
       },
-      showlegend:true
+      showlegend: true,
     };
-
 
     if (yAxis2Name) {
       layout = {

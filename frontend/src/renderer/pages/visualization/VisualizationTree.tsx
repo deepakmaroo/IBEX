@@ -10,15 +10,26 @@ import {
   NodeInfoChildren,
   NodeInfoTypeEnum,
 } from '../../types';
-import { ActionIcon, Container, Group, Switch, TextInput } from '@mantine/core';
+import { ActionIcon, Container, Switch, TextInput } from '@mantine/core';
 import { IconSearch } from '@tabler/icons-react';
+import { useForm } from '@mantine/form';
 
 interface VisualizationTreeProps {
   height: string;
 }
 
+interface FormSearchNode {
+  node: string;
+}
+
 export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
   const { active, setActive, updatedConfiguration } = useIbexStore();
+
+  const formSearchNode = useForm<FormSearchNode>({
+    initialValues: {
+      node: '',
+    },
+  });
 
   /**
    * Handle dataURI change
@@ -160,6 +171,10 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
     [active],
   );
 
+  /**
+   * Fetch IDS data
+   * @param uri
+   */
   const fetchIDSData = useCallback(
     async (uri: string) => {
       try {
@@ -234,8 +249,8 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
 
   /**
    * Fetch children node infos
-   * @param uri
-   * @param nodeValue
+   * @param nodeUri
+   * @returns
    */
   const handleSelectChildren = useCallback(
     (nodeUri: string) => {
@@ -244,6 +259,11 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
     [active],
   );
 
+  /**
+   * Get nodes checked
+   * @param uri
+   * @param nodes
+   */
   const getNodesChecked = useCallback(
     (uri: string, nodes: string[]) => {
       const updatedCheckedNodes: CheckedNodeURI[] = active.checkedNodes.map(
@@ -267,6 +287,10 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
     [active],
   );
 
+  /**
+   * Search node
+   * @param value
+   */
   const searchNode = (value: string) => {
     console.log(value);
   };
@@ -274,25 +298,27 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
   return (
     <Container fluid p={0}>
       <Container fluid>
-        <TextInput
-          label="Search node"
-          placeholder="Enter plot name"
-          value=""
-          onChange={(event) => searchNode(event.currentTarget.value)}
-          rightSection={
-            <ActionIcon
-              variant="filled"
-              aria-label="Search node"
-              component="button"
-              type="submit"
-            >
-              <IconSearch
-                style={{ width: '70%', height: '70%' }}
-                stroke={1.5}
-              />
-            </ActionIcon>
-          }
-        />
+        <form>
+          <TextInput
+            label="Search node"
+            placeholder="Enter node name"
+            onChange={(event) => searchNode(event.currentTarget.value)}
+            rightSection={
+              <ActionIcon
+                variant="filled"
+                aria-label="Search node"
+                component="button"
+                type="submit"
+              >
+                <IconSearch
+                  style={{ width: '70%', height: '70%' }}
+                  stroke={1.5}
+                />
+              </ActionIcon>
+            }
+            {...formSearchNode.getInputProps('node')}
+          />
+        </form>
         <Switch
           my="sm"
           label="See errors"

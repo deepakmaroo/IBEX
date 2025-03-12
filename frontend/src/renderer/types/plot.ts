@@ -1,4 +1,4 @@
-import { Data } from "plotly.js";
+import { Data } from 'plotly.js';
 
 export interface DataPlot {
   nameNode: string;

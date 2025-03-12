@@ -14,7 +14,6 @@ export function MainLayout() {
     setActive,
   } = useIbexStore();
 
-  
   const [
     isConfigCreateModalOpen,
     { open: openConfigCreateModal, close: closeConfigCreateModal },
@@ -31,7 +30,7 @@ export function MainLayout() {
       dataURI: [],
       customDataTree: [],
       checkedNodes: [],
-      dataFormPlot: []
+      dataFormPlot: [],
     };
     addConfiguration(newConfig);
     setActive(newConfig.name);
@@ -49,38 +48,33 @@ export function MainLayout() {
       checkedNodes: active.checkedNodes,
       lastURIInput: active.lastURIInput,
       lastLocalDataSetSelected: active.lastLocalDataSetSelected,
-      dataFormPlot: active.dataFormPlot
+      dataFormPlot: active.dataFormPlot,
     };
 
-    window.api.fs.saveAsDialog('ibexState.json', 'json')
-      .then((path) => {
-        if (path) {
-          window.api.fs.writeFile(path, JSON.stringify(newIbexState))
-        }
+    window.api.fs.saveAsDialog('ibexState.json', 'json').then((path) => {
+      if (path) {
+        window.api.fs.writeFile(path, JSON.stringify(newIbexState));
       }
-    );
-
+    });
   };
 
   const handleLoadConfiguration = () => {
-    window.api.fs.getFilePathDialog('json')
-      .then((path) => {
-        if (path) {
-          window.api.fs.readFile(path)
-            .then((data) => {
-              const newIbexState = JSON.parse(data);
-              const newConfig: Configuration = {
-                name: newIbexState.name,
-                dataURI: newIbexState.dataIDS,
-                customDataTree: [],
-                checkedNodes: newIbexState.checkedNodes,
-                dataFormPlot: newIbexState.dataFormPlot
-              };
-              addConfiguration(newConfig);
-              setActive(newConfig.name);
-            });
-        }
-      });
+    window.api.fs.getFilePathDialog('json').then((path) => {
+      if (path) {
+        window.api.fs.readFile(path).then((data) => {
+          const newIbexState = JSON.parse(data);
+          const newConfig: Configuration = {
+            name: newIbexState.name,
+            dataURI: newIbexState.dataIDS,
+            customDataTree: [],
+            checkedNodes: newIbexState.checkedNodes,
+            dataFormPlot: newIbexState.dataFormPlot,
+          };
+          addConfiguration(newConfig);
+          setActive(newConfig.name);
+        });
+      }
+    });
   };
 
   const handleSelectConfiguration = (value: string) => {

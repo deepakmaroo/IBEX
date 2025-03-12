@@ -4,5 +4,4 @@ import { configurationSlice } from '.';
 
 export const useIbexStore = create<ibexState>()((...a) => ({
   ...configurationSlice(...a),
-  
 }));

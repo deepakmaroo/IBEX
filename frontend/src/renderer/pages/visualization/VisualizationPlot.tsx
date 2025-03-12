@@ -62,10 +62,10 @@ export const VisualizationPlot = ({
             x: data_axeX.value,
             y: data_axeY.value,
             mode: 'lines',
-            name: coordinate.nameNode
+            name: coordinate.nameNode,
           };
           dataSimplePlot.plot.push(dataPlot);
-        }        
+        }
       }
     }
 

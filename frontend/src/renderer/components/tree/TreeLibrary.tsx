@@ -55,24 +55,30 @@ export const TreeLibrary = ({
   //Update checked nodes
   useEffect(() => {
     updateCheckedNodes();
-  }, [selectedNode])
+  }, [selectedNode]);
 
-  function updateCheckedNodes(){
-    if(selectedNode){
-      const URISelected:string = selectedNode.split("#")[0];
+  function updateCheckedNodes() {
+    if (selectedNode) {
+      const URISelected: string = selectedNode.split('#')[0];
       const updatedCheckedNodes = active.checkedNodes;
-      const nodeToUpdate = active.checkedNodes.find((nodeToUpdate) => nodeToUpdate.uri === URISelected)
-      
-      if(nodeToUpdate?.checkedNodes){ // Update checkedNodes
-        nodeToUpdate.checkedNodes = checkedNodes
-      } else { // Init checkedNodes config
-        updatedCheckedNodes.push({uri:URISelected, checkedNodes: tree.getCheckedNodes().map((node) => node.value)})
+      const nodeToUpdate = active.checkedNodes.find(
+        (nodeToUpdate) => nodeToUpdate.uri === URISelected,
+      );
+
+      if (nodeToUpdate?.checkedNodes) {
+        // Update checkedNodes
+        nodeToUpdate.checkedNodes = checkedNodes;
+      } else {
+        // Init checkedNodes config
+        updatedCheckedNodes.push({
+          uri: URISelected,
+          checkedNodes: tree.getCheckedNodes().map((node) => node.value),
+        });
       }
-      
+
       const updatedActive: Configuration = {
         ...active,
         checkedNodes: updatedCheckedNodes,
-        
       };
       updatedConfiguration(updatedActive);
       setActive(updatedActive.name);
@@ -80,7 +86,9 @@ export const TreeLibrary = ({
   }
 
   function NodeIcon({ node, type, expanded }: NodeIconProps) {
-    const [checked, setChecked] = useState<boolean>(checkedNodes.includes(node.value) ? (true) : (tree.isNodeChecked(node.value)));
+    const [checked, setChecked] = useState<boolean>(
+      checkedNodes.includes(node.value) ? true : tree.isNodeChecked(node.value),
+    );
     const getNodeIcon = (type: NodeInfoTypeEnum, expanded: boolean) => {
       const commonProps = {
         size: 14,
@@ -88,24 +96,28 @@ export const TreeLibrary = ({
         color: 'var(--mantine-color-blue-8)',
       };
 
-      // Check the node and save config  
+      // Check the node and save config
       const handleCheckNode = () => {
-        if (type === NodeInfoTypeEnum.INTEGER || type === NodeInfoTypeEnum.FLOAT || type === NodeInfoTypeEnum.STRING) {
+        if (
+          type === NodeInfoTypeEnum.INTEGER ||
+          type === NodeInfoTypeEnum.FLOAT ||
+          type === NodeInfoTypeEnum.STRING
+        ) {
           // Fetch checkedNodes with Config
-          if(!checked === true){
-            tree.checkNode(node.value)
-            !checkedNodes.find((checkedNode) => checkedNode === node.value) && (
-              checkedNodes.push(node.value)
-            )
+          if (!checked === true) {
+            tree.checkNode(node.value);
+            !checkedNodes.find((checkedNode) => checkedNode === node.value) &&
+              checkedNodes.push(node.value);
           } else {
-            tree.uncheckNode(node.value)
-            checkedNodes = checkedNodes.filter((uncheckedNode) => uncheckedNode !== node.value)
+            tree.uncheckNode(node.value);
+            checkedNodes = checkedNodes.filter(
+              (uncheckedNode) => uncheckedNode !== node.value,
+            );
           }
-          setChecked(!checked)
-          getCheckedNodes(checkedNodes) // Save checkedNodes in config
+          setChecked(!checked);
+          getCheckedNodes(checkedNodes); // Save checkedNodes in config
         }
       };
-  
 
       const icons: Record<NodeInfoTypeEnum, JSX.Element> = {
         [NodeInfoTypeEnum.STRUCTURE]: expanded ? (
@@ -120,28 +132,19 @@ export const TreeLibrary = ({
         ),
         [NodeInfoTypeEnum.INTEGER]: (
           <>
-            <Checkbox
-              checked={checked}
-              onChange={handleCheckNode}
-            />
+            <Checkbox checked={checked} onChange={handleCheckNode} />
             <IconHash {...commonProps} />
           </>
         ),
         [NodeInfoTypeEnum.FLOAT]: (
           <>
-            <Checkbox
-              checked={checked}
-              onChange={handleCheckNode}
-            />
+            <Checkbox checked={checked} onChange={handleCheckNode} />
             <IconRipple {...commonProps} />
           </>
         ),
         [NodeInfoTypeEnum.STRING]: (
           <>
-            <Checkbox
-              checked={checked}
-              onChange={handleCheckNode}
-            />
+            <Checkbox checked={checked} onChange={handleCheckNode} />
             <IconTypography {...commonProps} />
           </>
         ),
@@ -170,7 +173,6 @@ export const TreeLibrary = ({
     const textRef = useRef<HTMLDivElement>(null);
     const [isTextOverflowing, setIsTextOverflowing] = useState(false);
 
-
     useEffect(() => {
       const fetchData = async () => {
         if (selected && selectedNode !== node.value) {
@@ -186,7 +188,6 @@ export const TreeLibrary = ({
       };
       fetchData();
     }, [selected, node.value, type]);
-
 
     useEffect(() => {
       if (textRef.current) {
