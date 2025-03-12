@@ -91,7 +91,7 @@ export const VisualizationPlotForm = ({
   }
 
   function checkDataFormPlotCompletion() {
-    let isIncomplete: boolean = true;
+    let isIncomplete = true;
     if (
       dataFormPlot?.titleAxisX &&
       dataFormPlot?.titleAxisY &&

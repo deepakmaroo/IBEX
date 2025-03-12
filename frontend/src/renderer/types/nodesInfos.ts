@@ -6,13 +6,13 @@ export enum NodeInfoTypeEnum {
   STRING = 'STR',
 }
 
-export type NodeInfoChildren = {
+export type NodeInfoChildrenResponse = {
   name: string;
   ndim: number;
   type: NodeInfoTypeEnum;
 };
 
-export type NodeInfo = NodeInfoChildren & {
+export type NodeInfoResponse = NodeInfoChildrenResponse & {
   shapes: number[];
-  children: NodeInfoChildren[];
+  children: NodeInfoChildrenResponse[];
 };

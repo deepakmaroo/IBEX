@@ -1,4 +1,4 @@
-import { ipcMain } from 'electron';
+import { ipcMain, dialog } from 'electron';
 import * as fs from 'fs';
 
 export default {
@@ -22,7 +22,6 @@ export default {
     });
 
     ipcMain.handle('getFilePathDialog', async (event, type: string) => {
-      const { dialog } = require('electron');
       const result = await dialog.showOpenDialog({
         properties: ['openFile'],
         filters: [
@@ -37,7 +36,6 @@ export default {
     });
 
     ipcMain.handle('saveAsDialog', async (event, name: string, ext: string) => {
-      const { dialog } = require('electron');
       const result = await dialog.showSaveDialog({
         title: 'Save As',
         defaultPath: name,

@@ -6,8 +6,8 @@ import {
   Configuration,
   CustomTreeData,
   CustomTreeNodeData,
-  NodeInfo,
-  NodeInfoChildren,
+  NodeInfoResponse,
+  NodeInfoChildrenResponse,
   NodeInfoTypeEnum,
 } from '../../types';
 import {
@@ -77,7 +77,6 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
     active?.lastURIInput && fetchNodeInfos(active.lastURIInput);
   }, [active.lastURIInput]);
 
- 
   /**
    * Handle node update using full URI
    * @param fullUri The full URI for fetching or updating node data
@@ -100,13 +99,13 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
           throw new Error(error.detail || 'Failed to fetch IDS data');
         }
 
-        const nodeInfos: NodeInfo = await responseNodeInfo.json();
+        const nodeInfos: NodeInfoResponse = await responseNodeInfo.json();
         const nodeInfoschildren = nodeInfos.children || [];
 
         if (nodeInfoschildren.length === 0) return;
 
         const newChildren: CustomTreeNodeData[] = nodeInfoschildren.map(
-          (child: NodeInfoChildren) => {
+          (child: NodeInfoChildrenResponse) => {
             const newValue =
               nodeInfos.type === NodeInfoTypeEnum.ARRAY
                 ? `${nodeUri}[0]/${child.name}`
@@ -259,7 +258,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
         throw new Error(error.detail || 'Failed to fetch IDS data');
       }
 
-      const searchResults: NodeInfo = await response.json();
+      const searchResults: NodeInfoResponse = await response.json();
 
       console.log('searchResults', searchResults);
 
@@ -318,7 +317,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
       for (const uriWithIds of listURIsWithIds) {
         await fetchSearchNode(uriWithIds, formSearchNode.values.node);
       }
-      
+
       const end = new Date().getTime();
       console.log('Execution time: ' + (end - start) + 'ms');
       setSearchNodeIsLoading(false);
@@ -329,7 +328,6 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
         message: 'Select an uri to search',
         color: 'red',
       });
-
     }
   }, [active, formSearchNode, accordionSelected]);
 
