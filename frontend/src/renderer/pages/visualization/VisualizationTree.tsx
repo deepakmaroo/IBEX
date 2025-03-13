@@ -9,6 +9,7 @@ import {
   NodeInfoResponse,
   NodeInfoChildrenResponse,
   NodeInfoTypeEnum,
+  SearchNodeResponse,
 } from '../../types';
 import {
   ActionIcon,
@@ -258,9 +259,19 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
         throw new Error(error.detail || 'Failed to fetch IDS data');
       }
 
-      const searchResults: NodeInfoResponse = await response.json();
+      const customDataTree = active.customDataTree.find( 
+        (item) => item.uri === accordionSelected,
+      );
 
-      console.log('searchResults', searchResults);
+      if (!customDataTree) return;
+      const dataTree = customDataTree.data.find(
+        (item) => item.value === uriWithIds,
+      );
+      console.log('dataTree ids', dataTree);
+
+      const searchResults: SearchNodeResponse = await response.json();
+
+      console.log('searchResults', searchResults.paths);
 
       // updatedConfiguration(updatedActive);
       // setActive(updatedActive.name);
