@@ -15,6 +15,14 @@ export const VisualizationPlot = () => {
   const [rawData, setRawData] = useState<DataSimplePlot[]>([]);
   // const [dataPlot, setDataPlot] = useState<Data>();
 
+  useEffect(() => {
+    if (active.checkedNodeByURI.length > 0) {
+      console.log('active.checkedNodes', active.checkedNodeByURI);
+    }
+    
+  }, [active.checkedNodeByURI]);
+
+
   const fetchFieldValue = async (uri: string) => {
     try {
       const response = await fetch(
@@ -67,9 +75,6 @@ export const VisualizationPlot = () => {
     // }
   }
 
-  useEffect(() => {
-    fetchPlotData();
-  }, [active.dataFormPlot]);
 
   return rawData.length > 0 ? (
     <>
