@@ -14,6 +14,7 @@ export type NodeInfoChildrenResponse = {
 
 export type NodeInfoResponse = NodeInfoChildrenResponse & {
   shapes: number[];
+  coordinates: string[];
   children: NodeInfoChildrenResponse[];
 };
 

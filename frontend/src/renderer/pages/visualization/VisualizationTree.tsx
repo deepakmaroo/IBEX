@@ -88,10 +88,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
       if (!nodeUri) return;
 
       try {
-
-        const responseNodeInfo = await fetchNodeInfos(nodeUri);
-
-        const nodeInfos: NodeInfoResponse = await responseNodeInfo.json();
+        const nodeInfos: NodeInfoResponse = await fetchNodeInfos(nodeUri);
         const nodeInfoschildren = nodeInfos.children || [];
 
         if (nodeInfoschildren.length === 0) return;

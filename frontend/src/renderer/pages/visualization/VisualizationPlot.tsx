@@ -1,9 +1,10 @@
 import { Stack, Text } from '@mantine/core';
 import { SimplePlot, SimplePlotly } from '../../components';
-import { DataPlot } from 'src/renderer/types';
+import { DataPlot, NodeInfoResponse } from 'src/renderer/types';
 import { useEffect, useState } from 'react';
 import { useIbexStore } from '../../stores';
 import { Data } from 'plotly.js';
+import { fetchNodeInfos } from './utils';
 interface DataSimplePlot {
   static: boolean;
   plot: Data[];
@@ -16,14 +17,39 @@ export const VisualizationPlot = () => {
   // const [dataPlot, setDataPlot] = useState<Data>();
 
   useEffect(() => {
-    if (active.checkedNodeByURI.length > 0) {
-      console.log('active.checkedNodes', active.checkedNodeByURI);
 
-      for (const uri of active.checkedNodeByURI) {
-        
+    const fetchData = async () => {
+      if (active?.checkedNodeByURI && active.checkedNodeByURI.length > 0) {
+        console.log('active.checkedNodes', active.checkedNodeByURI);
+
+        for (const uri of active.checkedNodeByURI) {
+          for (const yUri of uri.checkedNodes) {
+
+            console.log('1st request : y nodes infos');
+            const nodesInfos: NodeInfoResponse = await fetchNodeInfos(yUri);
+            console.log('nodesInfos', nodesInfos);
+
+            const uriWithIds = yUri.split('/')[0];
+            const xAxisUri = `${uriWithIds}/${nodesInfos.coordinates[0]}`;
+            console.log('xAxisUri Value', xAxisUri);
+
+            console.log ('2nd request : xAxisUri', xAxisUri);
+            const responseXAxis = await fetchFieldValue(xAxisUri);
+            console.log('responseXAxis', responseXAxis);
+
+            console.log ('3rd request : yUri', yUri);
+            const responseYURI = await fetchFieldValue(yUri);
+            console.log('responseYURI', responseYURI);
+
+
+
+          }
+
+        }
       }
     }
-    
+
+    fetchData();
   }, [active.checkedNodeByURI]);
 
 
