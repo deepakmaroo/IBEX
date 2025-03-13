@@ -2,12 +2,12 @@
 // import { VisualizationTree } from '../VisualizationTree';
 // import { VisualizationPlotForm } from './VisualizationPlotForm';
 // /**
-//  * 
-//  * 
-//  * 
+//  *
+//  *
+//  *
 //  * *****************NOT USED*****************
-//  * 
-//  * 
+//  *
+//  *
 //  */
 // interface VisualizationCustomPlotModalProps {
 //   opened: boolean;

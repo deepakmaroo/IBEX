@@ -1,30 +1,26 @@
 import { Stack, Text } from '@mantine/core';
-import { SimplePlot, SimplePlotly } from '../../components';
-import { DataPlot, NodeInfoResponse } from 'src/renderer/types';
-import { useEffect, useState } from 'react';
+import { SimplePlotly } from '../../components';
+import {
+  DataPlot,
+  FieldValueResponse,
+  NodeInfoResponse,
+} from 'src/renderer/types';
+import { useEffect } from 'react';
 import { useIbexStore } from '../../stores';
 import { Data } from 'plotly.js';
 import { fetchNodeInfos } from './utils';
-interface DataSimplePlot {
-  static: boolean;
-  plot: Data[];
-  title: string;
-}
 
 export const VisualizationPlot = () => {
-  const { active } = useIbexStore();
-  const [rawData, setRawData] = useState<DataSimplePlot[]>([]);
+  const { active, updatedConfiguration, setActive } = useIbexStore();
   // const [dataPlot, setDataPlot] = useState<Data>();
 
   useEffect(() => {
-
     const fetchData = async () => {
       if (active?.checkedNodeByURI && active.checkedNodeByURI.length > 0) {
         console.log('active.checkedNodes', active.checkedNodeByURI);
 
         for (const uri of active.checkedNodeByURI) {
           for (const yUri of uri.checkedNodes) {
-
             console.log('1st request : y nodes infos');
             const nodesInfos: NodeInfoResponse = await fetchNodeInfos(yUri);
             console.log('nodesInfos', nodesInfos);
@@ -33,27 +29,31 @@ export const VisualizationPlot = () => {
             const xAxisUri = `${uriWithIds}/${nodesInfos.coordinates[0]}`;
             console.log('xAxisUri Value', xAxisUri);
 
-            console.log ('2nd request : xAxisUri', xAxisUri);
+            console.log('2nd request : xAxisUri', xAxisUri);
             const responseXAxis = await fetchFieldValue(xAxisUri);
             console.log('responseXAxis', responseXAxis);
 
-            console.log ('3rd request : yUri', yUri);
+            console.log('3rd request : yUri', yUri);
             const responseYURI = await fetchFieldValue(yUri);
             console.log('responseYURI', responseYURI);
 
-
-
+            if (responseXAxis && responseYURI) {
+              plotData(
+                responseXAxis.values,
+                responseYURI.values,
+                nodesInfos.name,
+                nodesInfos.name,
+              );
+            }
           }
-
         }
       }
-    }
+    };
 
     fetchData();
   }, [active.checkedNodeByURI]);
 
-
-  const fetchFieldValue = async (uri: string) => {
+  const fetchFieldValue = async (uri: string): Promise<FieldValueResponse> => {
     try {
       const response = await fetch(
         `${window.env.API_URL}/data/field_value/?uri=${encodeURIComponent(uri)}`,
@@ -75,42 +75,43 @@ export const VisualizationPlot = () => {
     }
   };
 
-  async function fetchPlotData() {
-    console.log('dataFormPlot', active.dataFormPlot);
-    const newDataSimplePlot: DataSimplePlot[] = [];
+  async function plotData(
+    xData: number[],
+    yData: number[],
+    name: string,
+    yAxisName: string,
+  ) {
+    const plot: Data = {
+      x: xData,
+      y: yData,
+      mode: 'lines',
+      name: name,
+    };
 
-    if (active.dataFormPlot) {
-      for (const dataForm of active.dataFormPlot) {
-        const dataSimplePlot: DataSimplePlot = {
-          title: dataForm.titleForm,
-          static: true,
-          plot: [],
-        };
-        for (const coordinate of dataForm.coordinates) {
-          const data_axeY = await fetchFieldValue(coordinate.axeY);
-          const data_axeX = await fetchFieldValue(coordinate.axeY);
-          const dataPlot: Data = {
-            x: data_axeX.value,
-            y: data_axeY.value,
-            mode: 'lines',
-            name: coordinate.nameNode,
-          };
-          dataSimplePlot.plot.push(dataPlot);
-        }
-      }
-    }
-
-    //   setRawData(dataChart);
-    //   closeCustomPlotModal();
-    // }
+    const dataPlot: DataPlot = {
+      static: false,
+      plot: [plot],
+      title: name,
+      yAxisName: yAxisName,
+    };
+    const updateActive = {
+      ...active,
+      dataPlot: [...active.dataPlot, dataPlot],
+    };
+    updatedConfiguration(updateActive);
+    setActive(updateActive.name);
   }
 
-
-  return rawData.length > 0 ? (
+  return active.dataPlot.length > 0 ? (
     <>
-      {
-        // rawData.map(())
-      }
+      {active.dataPlot.map((plotData, index) => (
+        <SimplePlotly
+          key={index}
+          title={plotData.title}
+          yAxisName={plotData.yAxisName}
+          data={plotData.plot}
+        />
+      ))}
     </>
   ) : (
     <Stack h="100%" align="center" w="100%" justify="center">

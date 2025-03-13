@@ -16,14 +16,13 @@
 //   Configuration,
 // } from 'src/renderer/types';
 
-
 // /**
-//  * 
-//  * 
-//  * 
+//  *
+//  *
+//  *
 //  * *****************NOT USED*****************
-//  * 
-//  * 
+//  *
+//  *
 //  */
 
 // interface VisualizationPlotFormProps {

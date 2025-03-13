@@ -1,6 +1,8 @@
-import { NodeInfoResponse } from "src/renderer/types";
+import { NodeInfoResponse } from 'src/renderer/types';
 
-export const fetchNodeInfos = async (nodeUri: string): Promise<NodeInfoResponse> => {
+export const fetchNodeInfos = async (
+  nodeUri: string,
+): Promise<NodeInfoResponse> => {
   const response = await fetch(
     `${window.env.API_URL}/ids_info/node_info/?uri=${encodeURIComponent(nodeUri)}`,
     {

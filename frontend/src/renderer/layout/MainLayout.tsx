@@ -29,7 +29,7 @@ export function MainLayout() {
       name: config.name,
       dataURI: [],
       customDataTree: [],
-      dataFormPlot: [],
+      dataPlot: [],
       checkedNodeByURI: [],
     };
     addConfiguration(newConfig);
@@ -48,7 +48,7 @@ export function MainLayout() {
       checkedNodeByURI: active.checkedNodeByURI,
       lastURIInput: active.lastURIInput,
       lastLocalDataSetSelected: active.lastLocalDataSetSelected,
-      dataFormPlot: active.dataFormPlot,
+      dataPlot: active.dataPlot,
     };
 
     window.api.fs.saveAsDialog('ibexState.json', 'json').then((path) => {
@@ -68,7 +68,7 @@ export function MainLayout() {
             dataURI: newIbexState.dataIDS,
             customDataTree: [],
             checkedNodeByURI: newIbexState.checkedNodeByURI,
-            dataFormPlot: newIbexState.dataFormPlot,
+            dataPlot: newIbexState.dataFormPlot,
           };
           addConfiguration(newConfig);
           setActive(newConfig.name);

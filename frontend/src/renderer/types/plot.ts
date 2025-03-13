@@ -1,24 +1,5 @@
 import { Data } from 'plotly.js';
 
-export interface DataPlot {
-  nameNode: string;
-  valueX: number[];
-  valueY: number[];
-}
-
-export interface DataFormPlot {
-  titleForm?: string;
-  titleAxisY?: string;
-  titleAxisX?: string;
-  coordinates?: CoordinatePlot[];
-}
-
-export interface CoordinatePlot {
-  nameNode?: string;
-  axeX?: string;
-  axeY?: string;
-}
-
 export interface SimplePlotlyProps {
   title: string;
   yAxisName: string;
@@ -28,4 +9,11 @@ export interface SimplePlotlyProps {
   handleDragStatic?: () => void;
   handleDeleteGrid?: () => void;
   handleUpdateGrid?: () => void;
+}
+
+export interface DataPlot {
+  static: boolean;
+  plot: Data[];
+  yAxisName: string;
+  title: string;
 }

@@ -19,7 +19,11 @@ import {
   IconTypography,
 } from '@tabler/icons-react';
 import classes from './TreeLibrary.module.css';
-import { CustomTreeNodeData, NodeInfoTypeEnum, Configuration } from '../../types';
+import {
+  CustomTreeNodeData,
+  NodeInfoTypeEnum,
+  Configuration,
+} from '../../types';
 import { useIbexStore } from '../../stores';
 
 interface NodeIconProps {

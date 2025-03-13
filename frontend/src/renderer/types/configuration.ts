@@ -1,6 +1,6 @@
 import { URIData } from './ids';
+import { DataPlot } from './plot';
 import { CheckedNodeByURI, CustomTreeData } from './tree';
-import { DataFormPlot } from './plot';
 
 export interface BaseConfiguration {
   name: string;
@@ -8,7 +8,7 @@ export interface BaseConfiguration {
   lastLocalDataSetSelected?: string;
   lastURIInput?: string;
   checkedNodeByURI: CheckedNodeByURI[];
-  dataFormPlot: DataFormPlot[];
+  dataPlot: DataPlot[];
 }
 export interface Configuration extends BaseConfiguration {
   url?: string;
