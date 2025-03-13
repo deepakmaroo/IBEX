@@ -29,8 +29,8 @@ export function MainLayout() {
       name: config.name,
       dataURI: [],
       customDataTree: [],
-      checkedNodes: [],
       dataFormPlot: [],
+      checkedNodeByURI: [],
     };
     addConfiguration(newConfig);
     setActive(newConfig.name);
@@ -45,7 +45,7 @@ export function MainLayout() {
     const newIbexState: BaseConfiguration = {
       name: active.name,
       dataURI: active.dataURI,
-      checkedNodes: active.checkedNodes,
+      checkedNodeByURI: active.checkedNodeByURI,
       lastURIInput: active.lastURIInput,
       lastLocalDataSetSelected: active.lastLocalDataSetSelected,
       dataFormPlot: active.dataFormPlot,
@@ -67,7 +67,7 @@ export function MainLayout() {
             name: newIbexState.name,
             dataURI: newIbexState.dataIDS,
             customDataTree: [],
-            checkedNodes: newIbexState.checkedNodes,
+            checkedNodeByURI: newIbexState.checkedNodeByURI,
             dataFormPlot: newIbexState.dataFormPlot,
           };
           addConfiguration(newConfig);
