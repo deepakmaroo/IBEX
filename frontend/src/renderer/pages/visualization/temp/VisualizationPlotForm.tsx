@@ -9,7 +9,7 @@ import {
 } from '@mantine/core';
 import { useCallback, useEffect, useState } from 'react';
 import { IconInfoCircle, IconX } from '@tabler/icons-react';
-import { useIbexStore } from '../../stores';
+import { useIbexStore } from '../../../stores';
 import {
   DataFormPlot,
   CoordinatePlot,

@@ -1,5 +1,5 @@
 import { Grid, Modal, Paper } from '@mantine/core';
-import { VisualizationTree } from './VisualizationTree';
+import { VisualizationTree } from '../VisualizationTree';
 import { VisualizationPlotForm } from './VisualizationPlotForm';
 /**
  * 
