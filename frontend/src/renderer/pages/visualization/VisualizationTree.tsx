@@ -21,6 +21,7 @@ import {
 import { IconSearch } from '@tabler/icons-react';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
+import { fetchNodeInfos } from './utils';
 
 interface VisualizationTreeProps {
   height: string;
@@ -82,23 +83,13 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
    * Handle node update using full URI
    * @param fullUri The full URI for fetching or updating node data
    */
-  const fetchNodeInfos = useCallback(
+  const fetchNodeTree = useCallback(
     async (nodeUri: string) => {
       if (!nodeUri) return;
 
       try {
-        const responseNodeInfo = await fetch(
-          `${window.env.API_URL}/ids_info/node_info/?uri=${encodeURIComponent(nodeUri)}`,
-          {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json' },
-          },
-        );
 
-        if (!responseNodeInfo.ok) {
-          const error = await responseNodeInfo.json();
-          throw new Error(error.detail || 'Failed to fetch IDS data');
-        }
+        const responseNodeInfo = await fetchNodeInfos(nodeUri);
 
         const nodeInfos: NodeInfoResponse = await responseNodeInfo.json();
         const nodeInfoschildren = nodeInfos.children || [];
@@ -259,7 +250,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
         throw new Error(error.detail || 'Failed to fetch IDS data');
       }
 
-      const customDataTree = active.customDataTree.find( 
+      const customDataTree = active.customDataTree.find(
         (item) => item.uri === accordionSelected,
       );
 
@@ -309,7 +300,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
    */
   const handleSelectChildren = useCallback(
     (nodeUri: string) => {
-      fetchNodeInfos(nodeUri);
+      fetchNodeTree(nodeUri);
     },
     [active],
   );
@@ -349,8 +340,8 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
    */
   const getNodesChecked = useCallback(
     (uri: string, nodes: string[]) => {
-      const updatedCheckedNodesByUri: CheckedNodeByURI[] = active.checkedNodeByURI.map(
-        (checkedNode) => {
+      const updatedCheckedNodesByUri: CheckedNodeByURI[] =
+        active.checkedNodeByURI.map((checkedNode) => {
           if (checkedNode.uri === uri) {
             return {
               uri: uri,
@@ -358,8 +349,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
             };
           }
           return checkedNode;
-        },
-      );
+        });
       const updatedActive: Configuration = {
         ...active,
         checkedNodeByURI: updatedCheckedNodesByUri,

@@ -18,6 +18,10 @@ export const VisualizationPlot = () => {
   useEffect(() => {
     if (active.checkedNodeByURI.length > 0) {
       console.log('active.checkedNodes', active.checkedNodeByURI);
+
+      for (const uri of active.checkedNodeByURI) {
+        
+      }
     }
     
   }, [active.checkedNodeByURI]);
