@@ -4,20 +4,13 @@ import { DataPlot } from 'src/renderer/types';
 import { useEffect, useState } from 'react';
 import { useIbexStore } from '../../stores';
 import { Data } from 'plotly.js';
-
-interface VisualizationPlotProps {
-  closeCustomPlotModal: () => void;
-}
-
 interface DataSimplePlot {
   static: boolean;
   plot: Data[];
   title: string;
 }
 
-export const VisualizationPlot = ({
-  closeCustomPlotModal,
-}: VisualizationPlotProps) => {
+export const VisualizationPlot = () => {
   const { active } = useIbexStore();
   const [rawData, setRawData] = useState<DataSimplePlot[]>([]);
   // const [dataPlot, setDataPlot] = useState<Data>();
