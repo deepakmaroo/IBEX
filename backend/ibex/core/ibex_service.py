@@ -99,9 +99,9 @@ def list_idses(uri: str) -> dict:
     return data_source.list_idses(uri_obj.uri_entry_identifiers)
 
 
-def find_paths(uri: str, searched_node: str) -> dict:
+def find_paths(uri: str, searched_node: str, show_error_bars: bool = False) -> dict:
     uri_obj = IMAS_URI(uri)
-    return data_source.find_paths(uri_obj.uri_entry_identifiers, uri_obj.ids_name, searched_node)
+    return data_source.find_paths(uri_obj.uri_entry_identifiers, searched_node, show_error_bars)
 
 
 def array_summary(uri: str) -> dict:

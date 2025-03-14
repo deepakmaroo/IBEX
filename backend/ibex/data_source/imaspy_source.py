@@ -59,6 +59,7 @@ class IMASPySource(DataSourceInterface):
         Converts imaspy.ids_metadata.IDSMetadata into dictionary
         :param metadata: imaspy.ids_metadata.IDSMetadata - metadata to be converted
         :param recursive: if it should append recursively metadata of children, children of children and so on...
+        :param show_error_bars: whether error bar nodes should be returned, or not
         :return: metadata turned into dictionary with keys: `name`:str, `type`:str, `ndim`:str, `shape`:str, `children`:list[dict]
         """
 
@@ -96,6 +97,7 @@ class IMASPySource(DataSourceInterface):
         :param occurrence: ids occurrence number
         :param recursive: if True, creates node_info tree.
             if False, returns only pointed node and it's children node_info
+        :param show_error_bars: whether error bar nodes should be returned, or not
         :return:
         """
 
@@ -213,19 +215,31 @@ class IMASPySource(DataSourceInterface):
 
         return {"value": result}
 
-    def find_paths(self, uri: str, ids: str, searched_node: str, occurrence: int = 0) -> dict:
+    def find_paths(self, uri: str, searched_node: str, show_error_bars: bool = False) -> dict:
         """
         Finds paths containing phrase passed in searched_node argument
         :param uri: imas URI
-        :param ids: name of ids e.g. core_profiles
         :param searched_node: searched text
-        :param occurrence: ids occurrence number
+        :param show_error_bars: whether error bar nodes should be returned, or not
         :return: dictionary {'paths': ['path/to/node1','path/to/node2', ...]}
         """
         entry = imaspy.DBEntry(uri, mode="r")
-        ids_obj = entry.get(ids, occurrence=occurrence, autoconvert=False)
-        found_paths = imaspy.util.find_paths(ids_obj, searched_node)
+        found_paths = []
+        ids_list = entry.factory.ids_names()
 
+        for ids in ids_list:
+            try:
+                ids_obj = entry.get(ids, occurrence=0, autoconvert=False, lazy=True)
+                found_paths += [f"#{ids}/{node}" for node in imaspy.util.find_paths(ids_obj, searched_node)]
+            except imaspy.exception.DataEntryException:
+                continue
+
+        if not show_error_bars:
+            found_paths = [
+                path
+                for path in found_paths
+                if not any(error_node in path for error_node in ["_error_upper", "_error_lower", "_error_index"])
+            ]
         return {"paths": found_paths}
 
     def array_summary(self, uri: str, ids: str, node_path: str, occurrence: int = 0) -> dict:

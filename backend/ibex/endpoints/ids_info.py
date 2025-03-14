@@ -16,9 +16,9 @@ async def node_info(uri: str, show_error_bars: bool = False) -> dict:
 
 @router.get("/ids_info/find_paths/")
 @ibex_service.measure_execution_time
-async def find_field(uri: str, searched_node: str) -> dict:
+async def find_field(uri: str, searched_node: str, show_error_bars: bool = False) -> dict:
     try:
-        return ibex_service.find_paths(uri, searched_node)
+        return ibex_service.find_paths(uri, searched_node, show_error_bars)
     except Exception as e:
         raise HTTPException(status_code=404, detail=f"{e}")
 
