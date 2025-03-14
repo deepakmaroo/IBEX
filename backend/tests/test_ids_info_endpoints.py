@@ -43,17 +43,17 @@ def test_node_info_empty_path(entry_path):
 
 def test_find_paths(entry_path):
     parameters = {
-        "uri": f"imas:mdsplus?path={entry_path}#core_profiles",
+        "uri": f"imas:mdsplus?path={entry_path}",
         "searched_node": "version_put",
     }
     response = pytest.test_client.get("/ids_info/find_paths", params=parameters)
 
     assert response.status_code == 200
     assert response.json()["paths"] == [
-        "ids_properties/version_put",
-        "ids_properties/version_put/data_dictionary",
-        "ids_properties/version_put/access_layer",
-        "ids_properties/version_put/access_layer_language",
+        "#core_profiles/ids_properties/version_put",
+        "#core_profiles/ids_properties/version_put/data_dictionary",
+        "#core_profiles/ids_properties/version_put/access_layer",
+        "#core_profiles/ids_properties/version_put/access_layer_language",
     ]
 
 
