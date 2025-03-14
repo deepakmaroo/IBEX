@@ -2,7 +2,13 @@ import { AppShell, Text } from '@mantine/core';
 import { Outlet } from 'react-router-dom';
 import { useIbexStore } from '../stores';
 import { useDisclosure } from '@mantine/hooks';
-import { BaseConfiguration, ConfigForm, Configuration } from '../types';
+import {
+  BaseConfiguration,
+  ConfigForm,
+  Configuration,
+  DataPlot,
+  DataPlotly,
+} from '../types';
 import { ConfigCreateModal, ConfirmModal, Header } from '../components';
 
 export function MainLayout() {
@@ -42,13 +48,23 @@ export function MainLayout() {
   };
 
   const handleSaveConfiguration = () => {
+    const dataPlotWithoutDataPlotly: DataPlot[] = active.dataPlot.map(
+      (plot) => ({
+        uuid: plot.uuid,
+        static: plot.static,
+        plot: plot.plot, // Too improve this
+        yAxisName: plot.yAxisName,
+        title: plot.title,
+      }),
+    );
+
     const newIbexState: BaseConfiguration = {
       name: active.name,
       dataURI: active.dataURI,
       checkedNodeURI: active.checkedNodeURI,
       lastURIInput: active.lastURIInput,
       lastLocalDataSetSelected: active.lastLocalDataSetSelected,
-      dataPlot: active.dataPlot,
+      dataPlot: dataPlotWithoutDataPlotly,
     };
 
     window.api.fs.saveAsDialog('ibexState.json', 'json').then((path) => {
@@ -62,13 +78,13 @@ export function MainLayout() {
     window.api.fs.getFilePathDialog('json').then((path) => {
       if (path) {
         window.api.fs.readFile(path).then((data) => {
-          const newIbexState = JSON.parse(data);
+          const newIbexState: Configuration = JSON.parse(data);
           const newConfig: Configuration = {
             name: newIbexState.name,
-            dataURI: newIbexState.dataIDS,
+            dataURI: newIbexState.dataURI,
             customDataTree: [],
             checkedNodeURI: newIbexState.checkedNodeURI,
-            dataPlot: newIbexState.dataFormPlot,
+            dataPlot: newIbexState.dataPlot,
           };
           addConfiguration(newConfig);
           setActive(newConfig.name);
