@@ -20,7 +20,7 @@ import {
 import { IconSearch } from '@tabler/icons-react';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
-import { fetchNodeInfos } from './utils';
+import { fetchFieldValue, fetchNodeInfos, plotData } from './utils';
 
 interface VisualizationTreeProps {
   height: string;
@@ -335,13 +335,47 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
    * @param nodes
    */
   const getNodesChecked = useCallback(
-    ( nodes: string[]) => {
-      const updatedActive: Configuration = {
-        ...active,
-        checkedNodeURI: nodes,
-      };
-      updatedConfiguration(updatedActive);
-      setActive(updatedActive.name);
+    async (nodes: string[]) => {
+      console.log('nodes', nodes);
+
+      for (const yUri of active.checkedNodeURI) {
+        console.log('1st request : y nodes infos');
+        const nodesInfos: NodeInfoResponse = await fetchNodeInfos(yUri);
+        console.log('nodesInfos', nodesInfos);
+
+        const uriWithIds = yUri.split('/')[0];
+        const xAxisUri = `${uriWithIds}/${nodesInfos.coordinates[0]}`;
+        console.log('xAxisUri Value', xAxisUri);
+
+        console.log('2nd request : xAxisUri', xAxisUri);
+        const responseXAxis = await fetchFieldValue(xAxisUri);
+        console.log('responseXAxis', responseXAxis);
+
+        console.log('3rd request : yUri', yUri);
+        const responseYURI = await fetchFieldValue(yUri);
+        console.log('responseYURI', responseYURI);
+
+        if (responseXAxis && responseYURI) {
+          const newPlot = await plotData(
+            responseXAxis.value[0],
+            responseYURI.value[0],
+            nodesInfos.name,
+            nodesInfos.name,
+            active.dataPlot,
+            yUri,
+          );
+
+          const updatedActive: Configuration = {
+            ...active,
+            dataPlot: [...active.dataPlot, newPlot],
+          };
+
+          updatedConfiguration({
+            ...active,
+            checkedNodeURI: nodes,
+          });
+        }
+      }
     },
     [active],
   );

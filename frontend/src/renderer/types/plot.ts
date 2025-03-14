@@ -18,3 +18,7 @@ export interface DataPlot {
   yAxisName: string;
   title: string;
 }
+
+export type DataPlotly = Data & {
+  uriY: string;
+}

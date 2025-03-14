@@ -1,122 +1,18 @@
 import { Stack, Text } from '@mantine/core';
 import { SimplePlotly } from '../../components';
-import {
-  DataPlot,
-  FieldValueResponse,
-  NodeInfoResponse,
-} from 'src/renderer/types';
+import { NodeInfoResponse } from 'src/renderer/types';
 import { useEffect } from 'react';
 import { useIbexStore } from '../../stores';
-import { Data } from 'plotly.js';
 import { fetchNodeInfos } from './utils';
 
-const generateUuid = () => {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-    const r = (Math.random() * 16) | 0,
-      v = c === 'x' ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
-};
-
 export const VisualizationPlot = () => {
-  const { active, updatedConfiguration, setActive } = useIbexStore();
+  const { active} = useIbexStore();
   // const [dataPlot, setDataPlot] = useState<Data>();
 
   useEffect(() => {
-    const fetchData = async () => {
-      if (active.checkedNodeURI.length > 0) {
-        console.log('active.checkedNodes', active.checkedNodeURI);
+    console.log('active', active);
+  }, [active]);
 
-        for (const yUri of active.checkedNodeURI) {
-            console.log('1st request : y nodes infos');
-            const nodesInfos: NodeInfoResponse = await fetchNodeInfos(yUri);
-            console.log('nodesInfos', nodesInfos);
-
-            const uriWithIds = yUri.split('/')[0];
-            const xAxisUri = `${uriWithIds}/${nodesInfos.coordinates[0]}`;
-            console.log('xAxisUri Value', xAxisUri);
-
-            console.log('2nd request : xAxisUri', xAxisUri);
-            const responseXAxis = await fetchFieldValue(xAxisUri);
-            console.log('responseXAxis', responseXAxis);
-
-            console.log('3rd request : yUri', yUri);
-            const responseYURI = await fetchFieldValue(yUri);
-            console.log('responseYURI', responseYURI);
-
-            if (responseXAxis && responseYURI) {
-              plotData(
-                responseXAxis.value[0],
-                responseYURI.value[0],
-                nodesInfos.name,
-                nodesInfos.name,
-              );
-            }
-          
-        }
-      }
-    };
-
-    fetchData();
-  }, [active.checkedNodeURI]);
-
-  const fetchFieldValue = async (uri: string): Promise<FieldValueResponse> => {
-    try {
-      const response = await fetch(
-        `${window.env.API_URL}/data/field_value/?uri=${encodeURIComponent(uri)}`,
-        {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
-        },
-      );
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || 'Failed to fetch IDS data');
-      }
-
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  async function plotData(
-    xData: number[],
-    yData: number[],
-    name: string,
-    yAxisName: string,
-  ) {
-    const plot: Data = {
-      x: xData,
-      y: yData,
-      mode: 'lines',
-      name: name,
-    };
-
-    let newUuid = generateUuid();
-
-    while (active.dataPlot.find((plot) => plot.uuid === newUuid)) {
-      newUuid = generateUuid();
-    }
-
-    const dataPlot: DataPlot = {
-      uuid: newUuid,
-      static: false,
-      plot: [plot],
-      title: name,
-      yAxisName: yAxisName,
-    };
-
-    const updateActive = {
-      ...active,
-      dataPlot: [...active.dataPlot, dataPlot],
-    };
-    console.log('updateActive', updateActive);
-    updatedConfiguration(updateActive);
-    setActive(updateActive.name);
-  }
 
   return active.dataPlot.length > 0 ? (
     <>
