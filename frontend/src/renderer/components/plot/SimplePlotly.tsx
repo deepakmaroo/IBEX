@@ -12,7 +12,7 @@ import {
   IconTrash,
 } from '@tabler/icons-react';
 import { useHover } from '@mantine/hooks';
-import classes from './LineChart.module.css';
+import classes from './SimplePlotly.module.css';
 
 export const SimplePlotly = ({
   title,

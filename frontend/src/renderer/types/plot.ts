@@ -21,4 +21,4 @@ export interface DataPlot {
 
 export type DataPlotly = Data & {
   uriY: string;
-}
+};

@@ -1,16 +1,9 @@
 import { Stack, Text } from '@mantine/core';
 import { SimplePlotly } from '../../components';
-import { useEffect } from 'react';
 import { useIbexStore } from '../../stores';
 
 export const VisualizationPlot = () => {
   const { active } = useIbexStore();
-  // const [dataPlot, setDataPlot] = useState<Data>();
-
-  useEffect(() => {
-    console.log('active', active);
-  }, [active]);
-
 
   return active.dataPlot.length > 0 ? (
     <>

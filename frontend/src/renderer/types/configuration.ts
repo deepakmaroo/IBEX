@@ -7,7 +7,7 @@ export interface BaseConfiguration {
   dataURI: URIData[];
   lastLocalDataSetSelected?: string;
   lastURIInput?: string;
-  checkedNodeURI: string[]
+  checkedNodeURI: string[];
   dataPlot: DataPlot[];
 }
 export interface Configuration extends BaseConfiguration {

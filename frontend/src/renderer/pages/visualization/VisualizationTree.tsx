@@ -331,10 +331,8 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
    * @param nodes
    */
   const getNodesChecked = async (nodes: string[]) => {
-    console.log('nodes', nodes);
     let updatedActive: Configuration = {
       ...active,
-      checkedNodeURI: nodes,
     };
 
     try {
@@ -349,43 +347,39 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
             dataPlot: active.dataPlot.filter(
               (plot) => plot.uuid !== updatedActive.plotEditableUuid,
             ),
+            checkedNodeURI: [],
           };
         } else {
-          // Draw plot
+          //ToDo: Add data on exist plot
+        }
+      } else {
+        // Add new plot
 
-          for (const yUri of nodes) {
-            // console.log('1st request : y nodes infos');
-            const nodesInfos: NodeInfoResponse = await fetchNodeInfos(yUri);
-            // console.log('nodesInfos', nodesInfos);
+        for (const yUri of nodes) {
+          const nodesInfos: NodeInfoResponse = await fetchNodeInfos(yUri);
 
-            const uriWithIds = yUri.split('/')[0];
-            const xAxisUri = `${uriWithIds}/${nodesInfos.coordinates[0]}`;
-            // console.log('xAxisUri Value', xAxisUri);
+          const uriWithIds = yUri.split('/')[0];
+          const xAxisUri = `${uriWithIds}/${nodesInfos.coordinates[0]}`;
 
-            // console.log('2nd request : xAxisUri', xAxisUri);
-            const responseXAxis = await fetchFieldValue(xAxisUri);
-            // console.log('responseXAxis', responseXAxis);
+          const responseXAxis = await fetchFieldValue(xAxisUri);
+          const responseYURI = await fetchFieldValue(yUri);
 
-            // console.log('3rd request : yUri', yUri);
-            const responseYURI = await fetchFieldValue(yUri);
-            // console.log('responseYURI', responseYURI);
+          if (responseXAxis && responseYURI) {
+            const newPlot: DataPlot = await plotData(
+              responseXAxis.value[0],
+              responseYURI.value[0],
+              nodesInfos.name,
+              nodesInfos.name,
+              active.dataPlot,
+              yUri,
+            );
 
-            if (responseXAxis && responseYURI) {
-              const newPlot: DataPlot = await plotData(
-                responseXAxis.value[0],
-                responseYURI.value[0],
-                nodesInfos.name,
-                nodesInfos.name,
-                active.dataPlot,
-                yUri,
-              );
-
-              updatedActive = {
-                ...active,
-                plotEditableUuid: newPlot.uuid,
-                dataPlot: [...active.dataPlot, newPlot],
-              };
-            }
+            updatedActive = {
+              ...active,
+              plotEditableUuid: newPlot.uuid,
+              dataPlot: [...active.dataPlot, newPlot],
+              checkedNodeURI: nodes,
+            };
           }
         }
       }
