@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from 'react';
 import { TreeLibrariesAccordion } from '../../components';
 import { useIbexStore } from '../../stores';
 import {
-  CheckedNodeByURI,
   Configuration,
   CustomTreeData,
   CustomTreeNodeData,
@@ -336,20 +335,10 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
    * @param nodes
    */
   const getNodesChecked = useCallback(
-    (uri: string, nodes: string[]) => {
-      const updatedCheckedNodesByUri: CheckedNodeByURI[] =
-        active.checkedNodeByURI.map((checkedNode) => {
-          if (checkedNode.uri === uri) {
-            return {
-              uri: uri,
-              checkedNodes: nodes,
-            };
-          }
-          return checkedNode;
-        });
+    ( nodes: string[]) => {
       const updatedActive: Configuration = {
         ...active,
-        checkedNodeByURI: updatedCheckedNodesByUri,
+        checkedNodeURI: nodes,
       };
       updatedConfiguration(updatedActive);
       setActive(updatedActive.name);
@@ -404,7 +393,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
       <TreeLibrariesAccordion
         customDataTree={active.customDataTree}
         height={`calc(${height} - 113px)`}
-        checkedNodes={active.checkedNodeByURI || []}
+        checkedNodes={active.checkedNodeURI || []}
         handleAccordionChange={handleAccordionChange}
         handleSelectChildren={handleSelectChildren}
         getNodesChecked={getNodesChecked}

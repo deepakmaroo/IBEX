@@ -7,16 +7,16 @@ import {
   Text,
   Tooltip,
 } from '@mantine/core';
-import { CheckedNodeURI, CustomTreeData } from 'src/renderer/types';
+import { CustomTreeData } from 'src/renderer/types';
 import { TreeLibrary } from '../../components';
 
 interface VisualizationTreeProps {
   customDataTree: CustomTreeData[];
   height: string;
-  checkedNodes: CheckedNodeURI[];
+  checkedNodes: string[];
   handleAccordionChange: (value: string) => void;
   handleSelectChildren: (nodeValue: string) => void;
-  getNodesChecked: (idsName: string, nodes: string[]) => void;
+  getNodesChecked: (nodes: string[]) => void;
 }
 
 interface AccordionLabelProps {
@@ -70,14 +70,9 @@ export const TreeLibrariesAccordion = ({
       <Accordion.Panel>
         <TreeLibrary
           treeData={item.data}
-          checkedNodes={
-            checkedNodes.find((node) => node.uri === item.uri)?.checkedNodes ||
-            []
-          }
+          checkedNodes={checkedNodes}
           handleSelectChildren={handleSelectChildren}
-          getCheckedNodes={(nodesChecked) => {
-            getNodesChecked(item.uri, nodesChecked);
-          }}
+          getCheckedNodes={getNodesChecked}
         />
       </Accordion.Panel>
     </Accordion.Item>

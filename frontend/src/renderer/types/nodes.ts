@@ -23,5 +23,5 @@ export type SearchNodeResponse = {
 };
 
 export type FieldValueResponse = {
-  values: number[];
+  value: number[][];
 };

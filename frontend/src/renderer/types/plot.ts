@@ -12,6 +12,7 @@ export interface SimplePlotlyProps {
 }
 
 export interface DataPlot {
+  uuid: string;
   static: boolean;
   plot: Data[];
   yAxisName: string;

@@ -53,40 +53,29 @@ export const TreeLibrary = ({
 }: TreeLibraryProps) => {
   const tree = useTree();
   const [selectedNode, setSelectedNode] = useState<string>(null);
-  const { active, setActive, updatedConfiguration } = useIbexStore();
+  // const { active, setActive, updatedConfiguration } = useIbexStore();
 
-  //Update checked nodes
-  useEffect(() => {
-    updateCheckedNodes();
-  }, [selectedNode]);
+  // //Update checked nodes
+  // useEffect(() => {
+  //   updateCheckedNodes();
+  // }, [selectedNode]);
 
-  function updateCheckedNodes() {
-    if (selectedNode) {
-      const URISelected: string = selectedNode.split('#')[0];
-      const updatedCheckedNodes = active.checkedNodeByURI;
-      const nodeToUpdate = active.checkedNodeByURI.find(
-        (nodeToUpdate) => nodeToUpdate.uri === URISelected,
-      );
+  // function updateCheckedNodes() {
+  //   if (selectedNode) {
 
-      if (nodeToUpdate?.checkedNodes) {
-        // Update checkedNodes
-        nodeToUpdate.checkedNodes = checkedNodes;
-      } else {
-        // Init checkedNodes config
-        updatedCheckedNodes.push({
-          uri: URISelected,
-          checkedNodes: tree.getCheckedNodes().map((node) => node.value),
-        });
-      }
+  //     const updatedActive = active;
+  //     if (active.checkedNodeURI.find((uri) => uri === selectedNode)) {
+  //       updatedActive.checkedNodeURI = active.checkedNodeURI.filter(
+  //         (uri) => uri !== selectedNode,
+  //       );
+  //     }else{
+  //       updatedActive.checkedNodeURI.push(selectedNode);
+  //     }
 
-      const updatedActive: Configuration = {
-        ...active,
-        checkedNodeByURI: updatedCheckedNodes,
-      };
-      updatedConfiguration(updatedActive);
-      setActive(updatedActive.name);
-    }
-  }
+  //     updatedConfiguration(updatedActive);
+  //     setActive(updatedActive.name);
+  //   }
+  // }
 
   function NodeIcon({ node, type, expanded }: NodeIconProps) {
     const [checked, setChecked] = useState<boolean>(

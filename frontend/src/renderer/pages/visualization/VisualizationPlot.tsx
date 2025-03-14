@@ -10,17 +10,24 @@ import { useIbexStore } from '../../stores';
 import { Data } from 'plotly.js';
 import { fetchNodeInfos } from './utils';
 
+const generateUuid = () => {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    const r = (Math.random() * 16) | 0,
+      v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+};
+
 export const VisualizationPlot = () => {
   const { active, updatedConfiguration, setActive } = useIbexStore();
   // const [dataPlot, setDataPlot] = useState<Data>();
 
   useEffect(() => {
     const fetchData = async () => {
-      if (active?.checkedNodeByURI && active.checkedNodeByURI.length > 0) {
-        console.log('active.checkedNodes', active.checkedNodeByURI);
+      if (active.checkedNodeURI.length > 0) {
+        console.log('active.checkedNodes', active.checkedNodeURI);
 
-        for (const uri of active.checkedNodeByURI) {
-          for (const yUri of uri.checkedNodes) {
+        for (const yUri of active.checkedNodeURI) {
             console.log('1st request : y nodes infos');
             const nodesInfos: NodeInfoResponse = await fetchNodeInfos(yUri);
             console.log('nodesInfos', nodesInfos);
@@ -39,19 +46,19 @@ export const VisualizationPlot = () => {
 
             if (responseXAxis && responseYURI) {
               plotData(
-                responseXAxis.values,
-                responseYURI.values,
+                responseXAxis.value[0],
+                responseYURI.value[0],
                 nodesInfos.name,
                 nodesInfos.name,
               );
             }
-          }
+          
         }
       }
     };
 
     fetchData();
-  }, [active.checkedNodeByURI]);
+  }, [active.checkedNodeURI]);
 
   const fetchFieldValue = async (uri: string): Promise<FieldValueResponse> => {
     try {
@@ -88,16 +95,25 @@ export const VisualizationPlot = () => {
       name: name,
     };
 
+    let newUuid = generateUuid();
+
+    while (active.dataPlot.find((plot) => plot.uuid === newUuid)) {
+      newUuid = generateUuid();
+    }
+
     const dataPlot: DataPlot = {
+      uuid: newUuid,
       static: false,
       plot: [plot],
       title: name,
       yAxisName: yAxisName,
     };
+
     const updateActive = {
       ...active,
       dataPlot: [...active.dataPlot, dataPlot],
     };
+    console.log('updateActive', updateActive);
     updatedConfiguration(updateActive);
     setActive(updateActive.name);
   }

@@ -15,7 +15,7 @@ export type CustomTreeData = URIData & {
   data: CustomTreeNodeData[];
 };
 
-export type CheckedNodeByURI = {
+export type CheckedNodeURI = {
   uri: string;
-  checkedNodes: string[];
+  uriSelected: string;
 };
