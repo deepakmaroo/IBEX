@@ -189,7 +189,7 @@ class IMASPySource(DataSourceInterface):
         for data in ids_data:
             if isinstance(data, IDSStructure):
                 raise NotALeafNodeException(
-                    f"Path {node_path} does not point to a leaf node. Cannot extract data from it."
+                    f"Path {node_path} does not point to a leaf node. Cannot extract data from it.", code=404
                 )
 
             if isinstance(data, str):
@@ -239,10 +239,10 @@ class IMASPySource(DataSourceInterface):
             )
 
         if isinstance(ids_data[0], IDSStructure) or isinstance(ids_data[0], IDSStructArray):
-            raise NotALeafNodeException(f"Path {node_path} does not point to a leaf node")
+            raise NotALeafNodeException(f"Path {node_path} does not point to a leaf node", code=404)
 
         if not isinstance(ids_data[0], IDSNumericArray):
-            raise NotAnArrayException("Cannot get array summary of non array node")
+            raise NotAnArrayException("Cannot get array summary of non array node", code=404)
 
         result = {}
 
