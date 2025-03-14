@@ -14,6 +14,7 @@ export interface Configuration extends BaseConfiguration {
   url?: string;
   saved?: boolean;
   customDataTree: CustomTreeData[];
+  plotEditableUuid?: string;
 }
 
 export interface ConfigForm {

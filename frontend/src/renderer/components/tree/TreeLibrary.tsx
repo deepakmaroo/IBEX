@@ -53,29 +53,6 @@ export const TreeLibrary = ({
 }: TreeLibraryProps) => {
   const tree = useTree();
   const [selectedNode, setSelectedNode] = useState<string>(null);
-  // const { active, setActive, updatedConfiguration } = useIbexStore();
-
-  // //Update checked nodes
-  // useEffect(() => {
-  //   updateCheckedNodes();
-  // }, [selectedNode]);
-
-  // function updateCheckedNodes() {
-  //   if (selectedNode) {
-
-  //     const updatedActive = active;
-  //     if (active.checkedNodeURI.find((uri) => uri === selectedNode)) {
-  //       updatedActive.checkedNodeURI = active.checkedNodeURI.filter(
-  //         (uri) => uri !== selectedNode,
-  //       );
-  //     }else{
-  //       updatedActive.checkedNodeURI.push(selectedNode);
-  //     }
-
-  //     updatedConfiguration(updatedActive);
-  //     setActive(updatedActive.name);
-  //   }
-  // }
 
   function NodeIcon({ node, type, expanded }: NodeIconProps) {
     const [checked, setChecked] = useState<boolean>(

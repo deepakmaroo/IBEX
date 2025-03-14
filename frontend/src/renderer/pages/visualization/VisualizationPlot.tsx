@@ -1,12 +1,10 @@
 import { Stack, Text } from '@mantine/core';
 import { SimplePlotly } from '../../components';
-import { NodeInfoResponse } from 'src/renderer/types';
 import { useEffect } from 'react';
 import { useIbexStore } from '../../stores';
-import { fetchNodeInfos } from './utils';
 
 export const VisualizationPlot = () => {
-  const { active} = useIbexStore();
+  const { active } = useIbexStore();
   // const [dataPlot, setDataPlot] = useState<Data>();
 
   useEffect(() => {

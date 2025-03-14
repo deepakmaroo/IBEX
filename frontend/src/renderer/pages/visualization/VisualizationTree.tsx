@@ -9,6 +9,8 @@ import {
   NodeInfoChildrenResponse,
   NodeInfoTypeEnum,
   SearchNodeResponse,
+  DataPlotly,
+  DataPlot,
 } from '../../types';
 import {
   ActionIcon,
@@ -31,7 +33,7 @@ interface FormSearchNode {
 }
 
 export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
-  const { active, setActive, updatedConfiguration } = useIbexStore();
+  const { active, updatedConfiguration } = useIbexStore();
 
   const [accordionSelected, setAccordionSelected] = useState<string | null>();
   const [searchNodeIsLoading, setSearchNodeIsLoading] =
@@ -69,7 +71,6 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
       };
 
       updatedConfiguration(updatedActive);
-      setActive(updatedActive.name);
     }
   }, [active.dataURI]);
 
@@ -162,7 +163,6 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
         };
 
         updatedConfiguration(updatedActive);
-        setActive(updatedActive.name);
       } catch (error) {
         console.error(error);
       }
@@ -254,14 +254,10 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
       const dataTree = customDataTree.data.find(
         (item) => item.value === uriWithIds,
       );
-      console.log('dataTree ids', dataTree);
 
       const searchResults: SearchNodeResponse = await response.json();
 
       console.log('searchResults', searchResults.paths);
-
-      // updatedConfiguration(updatedActive);
-      // setActive(updatedActive.name);
     } catch (error) {
       console.error(error);
     }
@@ -334,51 +330,71 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
    * @param uri
    * @param nodes
    */
-  const getNodesChecked = useCallback(
-    async (nodes: string[]) => {
-      console.log('nodes', nodes);
+  const getNodesChecked = async (nodes: string[]) => {
+    console.log('nodes', nodes);
+    let updatedActive: Configuration = {
+      ...active,
+      checkedNodeURI: nodes,
+    };
 
-      for (const yUri of active.checkedNodeURI) {
-        console.log('1st request : y nodes infos');
-        const nodesInfos: NodeInfoResponse = await fetchNodeInfos(yUri);
-        console.log('nodesInfos', nodesInfos);
+    try {
+      const findDataPlot = updatedActive.dataPlot.find(
+        (plot) => plot.uuid === updatedActive.plotEditableUuid,
+      );
 
-        const uriWithIds = yUri.split('/')[0];
-        const xAxisUri = `${uriWithIds}/${nodesInfos.coordinates[0]}`;
-        console.log('xAxisUri Value', xAxisUri);
-
-        console.log('2nd request : xAxisUri', xAxisUri);
-        const responseXAxis = await fetchFieldValue(xAxisUri);
-        console.log('responseXAxis', responseXAxis);
-
-        console.log('3rd request : yUri', yUri);
-        const responseYURI = await fetchFieldValue(yUri);
-        console.log('responseYURI', responseYURI);
-
-        if (responseXAxis && responseYURI) {
-          const newPlot = await plotData(
-            responseXAxis.value[0],
-            responseYURI.value[0],
-            nodesInfos.name,
-            nodesInfos.name,
-            active.dataPlot,
-            yUri,
-          );
-
-          const updatedActive: Configuration = {
+      if (findDataPlot) {
+        if (nodes.length === 0) {
+          updatedActive = {
             ...active,
-            dataPlot: [...active.dataPlot, newPlot],
+            dataPlot: active.dataPlot.filter(
+              (plot) => plot.uuid !== updatedActive.plotEditableUuid,
+            ),
           };
+        } else {
+          // Draw plot
 
-          updatedConfiguration({
-            ...active,
-            checkedNodeURI: nodes,
-          });
+          for (const yUri of nodes) {
+            // console.log('1st request : y nodes infos');
+            const nodesInfos: NodeInfoResponse = await fetchNodeInfos(yUri);
+            // console.log('nodesInfos', nodesInfos);
+
+            const uriWithIds = yUri.split('/')[0];
+            const xAxisUri = `${uriWithIds}/${nodesInfos.coordinates[0]}`;
+            // console.log('xAxisUri Value', xAxisUri);
+
+            // console.log('2nd request : xAxisUri', xAxisUri);
+            const responseXAxis = await fetchFieldValue(xAxisUri);
+            // console.log('responseXAxis', responseXAxis);
+
+            // console.log('3rd request : yUri', yUri);
+            const responseYURI = await fetchFieldValue(yUri);
+            // console.log('responseYURI', responseYURI);
+
+            if (responseXAxis && responseYURI) {
+              const newPlot: DataPlot = await plotData(
+                responseXAxis.value[0],
+                responseYURI.value[0],
+                nodesInfos.name,
+                nodesInfos.name,
+                active.dataPlot,
+                yUri,
+              );
+
+              updatedActive = {
+                ...active,
+                plotEditableUuid: newPlot.uuid,
+                dataPlot: [...active.dataPlot, newPlot],
+              };
+            }
+          }
         }
       }
-    },
-    [active],
-  );
+    } catch (error) {
+      console.error(error);
+    } finally {
+      updatedConfiguration(updatedActive);
+    }
+  };
 
   return (
     <Container fluid p={0}>

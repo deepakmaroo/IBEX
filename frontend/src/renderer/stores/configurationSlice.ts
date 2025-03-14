@@ -21,6 +21,8 @@ export const configurationSlice: StateCreator<ConfigurationState> = (set) => ({
           ? configuration
           : state.active;
 
+      console.log('updatedActive store', updatedActive);
+
       return {
         ...state,
         active: updatedActive,
