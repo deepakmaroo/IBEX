@@ -215,6 +215,28 @@ class IMASPySource(DataSourceInterface):
 
         return {"value": result}
 
+    def _add_index_to_aos_in_path(self, ids_metadata: imaspy.ids_base.IDSBase, path_str: str):
+        """
+        Helper function to add `[:]` to AoSs in path:
+        eg: source/profiles_1d/time -> source[:]/profiles_1d[:]/time (core_sources)
+        :param ids_metadata: root of metadata path refers to
+        :param path_str: path string
+        :return: reworked string path
+        """
+        path_elements = path_str.split("/")
+        result = ""
+
+        for element in path_elements:
+            ids_path = IDSPath(element)
+            ids_metadata = ids_path.goto_metadata(ids_metadata)
+            result += element
+            if ids_metadata.data_type == IDSDataType.STRUCT_ARRAY:
+                result += "[:]"
+            result += "/"
+
+        # return result without unnecessary "/" at the end
+        return result[:-1]
+
     def find_paths(self, uri: str, searched_node: str, show_error_bars: bool = False) -> dict:
         """
         Finds paths containing phrase passed in searched_node argument
@@ -230,16 +252,16 @@ class IMASPySource(DataSourceInterface):
         for ids in ids_list:
             try:
                 ids_obj = entry.get(ids, occurrence=0, autoconvert=False, lazy=True)
-                found_paths += [f"#{ids}/{node}" for node in imaspy.util.find_paths(ids_obj, searched_node)]
+                paths = [node for node in imaspy.util.find_paths(ids_obj, searched_node)]
+                for path in paths:
+                    if not show_error_bars and any(
+                        error_node in path for error_node in ["_error_upper", "_error_lower", "_error_index"]
+                    ):
+                        continue
+                    found_paths.append(f"#{ids}/{self._add_index_to_aos_in_path(ids_obj.metadata, path)}")
             except imaspy.exception.DataEntryException:
                 continue
 
-        if not show_error_bars:
-            found_paths = [
-                path
-                for path in found_paths
-                if not any(error_node in path for error_node in ["_error_upper", "_error_lower", "_error_index"])
-            ]
         return {"paths": found_paths}
 
     def array_summary(self, uri: str, ids: str, node_path: str, occurrence: int = 0) -> dict:
