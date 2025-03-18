@@ -74,11 +74,6 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
     }
   }, [active.dataURI]);
 
-  // useEffect(() => {
-  //   // Refresh expanded root folder when click on New Chart
-  //   active?.lastURIInput && fetchNodeInfos(active.lastURIInput, showErrorBars);
-  // }, [active.lastURIInput]);
-
   /**
    * Handle node update using full URI
    * @param fullUri The full URI for fetching or updating node data
