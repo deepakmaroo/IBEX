@@ -1,6 +1,6 @@
 import { URIData } from './ids';
 import { DataPlot } from './plot';
-import { CheckedNodeURI, CustomTreeData } from './tree';
+import { CustomTreeData } from './tree';
 
 export interface BaseConfiguration {
   name: string;

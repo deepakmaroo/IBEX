@@ -7,7 +7,6 @@ import {
   ConfigForm,
   Configuration,
   DataPlot,
-  DataPlotly,
 } from '../types';
 import { ConfigCreateModal, ConfirmModal, Header } from '../components';
 

@@ -23,7 +23,6 @@ import classes from './TreeLibrary.module.css';
 import {
   CustomTreeNodeData,
   NodeInfoTypeEnum,
-  Configuration,
 } from '../../types';
 
 interface NodeIconProps {
@@ -45,7 +44,6 @@ interface TreeLibraryProps {
 
 interface ElementProps extends RenderTreeNodePayload {
   type: NodeInfoTypeEnum;
-  nodeShowErrors: boolean;
   selectedNode: string | null;
   checkedNodes?: string[];
   tree: UseTreeReturnType;
@@ -60,7 +58,6 @@ function Element({
   elementProps,
   selected,
   type,
-  nodeShowErrors,
   selectedNode,
   checkedNodes,
   tree,
@@ -73,8 +70,8 @@ function Element({
 
   const fetchData = async () => {
     if (
-      (type === NodeInfoTypeEnum.STRUCTURE ||
-      type === NodeInfoTypeEnum.ARRAY)
+      type === NodeInfoTypeEnum.STRUCTURE ||
+      type === NodeInfoTypeEnum.ARRAY
     ) {
       await handleSelectChildren(node.value);
     }
@@ -88,12 +85,10 @@ function Element({
     }
   }, [selected, expanded]);
 
-
   useEffect(() => {
     if (selectedNode == node.value && expanded) {
       fetchData();
     }
-
   }, [selectedNode, expanded]);
 
   useEffect(() => {
@@ -234,7 +229,6 @@ export const TreeLibrary = ({
           <Element
             {...payload}
             type={(payload.node as CustomTreeNodeData).type}
-            nodeShowErrors={(payload.node as CustomTreeNodeData).seeErrorBars}
             selectedNode={selectedNode}
             tree={tree}
             checkedNodes={checkedNodes}

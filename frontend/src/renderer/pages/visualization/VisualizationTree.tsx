@@ -9,7 +9,6 @@ import {
   NodeInfoChildrenResponse,
   NodeInfoTypeEnum,
   SearchNodeResponse,
-  DataPlotly,
   DataPlot,
 } from '../../types';
 import {
@@ -95,7 +94,6 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
          * @returns
          */
 
-        console.log("call fetch tree node")
         const fetchChildrenNodeInfos = async (
           uri: string,
         ): Promise<CustomTreeNodeData[]> => {
@@ -122,7 +120,6 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
               };
             },
           );
-          console.log('newChildren', newChildren);
 
           return newChildren;
         };
@@ -138,18 +135,18 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
           targetUri: string,
         ): Promise<CustomTreeNodeData[]> => {
           if (dataTree.length === 0) {
-            console.log('no data');
             return await fetchChildrenNodeInfos(targetUri);
           }
 
           return Promise.all(
             dataTree.map(async (node) => {
-
-              if (node.value === targetUri){
-                console.log("node", node.seeErrorBars, "showErrorTree", showErrorBars)
-                if (node.children.length === 0 || node.seeErrorBars !== showErrorBars) {
+              if (node.value === targetUri) {
+                if (
+                  node.children.length === 0 ||
+                  node.seeErrorBars !== showErrorBars
+                ) {
                   const newChildren = await fetchChildrenNodeInfos(targetUri);
-  
+
                   return {
                     ...node,
                     seeErrorBars: showErrorBars,
@@ -157,7 +154,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
                   };
                 }
               }
-     
+
               if (node.children.length > 0) {
                 const updatedChildren = await updateNodeChildren(
                   node.children,
@@ -233,7 +230,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
               value: `${uri}#${ids.name}:${oc}`,
               type: NodeInfoTypeEnum.STRUCTURE,
               children: [],
-              seeErrorBars: showErrorBars
+              seeErrorBars: showErrorBars,
             });
           }
         }
@@ -285,9 +282,9 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
       );
 
       if (!customDataTree) return;
-      const dataTree = customDataTree.data.find(
-        (item) => item.value === uriWithIds,
-      );
+      // const dataTree = customDataTree.data.find(
+      //   (item) => item.value === uriWithIds,
+      // );
 
       const searchResults: SearchNodeResponse = await response.json();
 
