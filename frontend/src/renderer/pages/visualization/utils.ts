@@ -4,7 +4,6 @@ import {
   FieldValueResponse,
   NodeInfoResponse,
 } from 'src/renderer/types';
-import { Data } from 'plotly.js';
 
 const generateUuid = () => {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
@@ -16,9 +15,10 @@ const generateUuid = () => {
 
 export const fetchNodeInfos = async (
   nodeUri: string,
+  showErrorBars: boolean,
 ): Promise<NodeInfoResponse> => {
   const response = await fetch(
-    `${window.env.API_URL}/ids_info/node_info/?uri=${encodeURIComponent(nodeUri)}`,
+    `${window.env.API_URL}/ids_info/node_info/?uri=${encodeURIComponent(nodeUri)}&show_error_bars=${showErrorBars}`,
     {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
