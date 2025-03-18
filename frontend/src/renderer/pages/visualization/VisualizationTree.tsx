@@ -255,12 +255,12 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
    * Fetch search node
    * @param value
    */
-  const fetchSearchNode = async (uriWithIds: string, value: string) => {
+  const fetchSearchNode = async (uriWithIds: string, value: string, showErrorBars: boolean) => {
     if (!value) return;
 
     try {
       const response = await fetch(
-        `${window.env.API_URL}/ids_info/find_paths/?uri=${encodeURIComponent(uriWithIds)}&searched_node=${encodeURIComponent(value)}`,
+        `${window.env.API_URL}/ids_info/find_paths/?uri=${encodeURIComponent(uriWithIds)}&searched_node=${encodeURIComponent(value)}&show_error_bars=${showErrorBars}`,
         {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
@@ -333,13 +333,11 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
         ?.data.map((item) => item.value);
 
       setSearchNodeIsLoading(true);
-      const start = new Date().getTime();
+
       for (const uriWithIds of listURIsWithIds) {
-        await fetchSearchNode(uriWithIds, formSearchNode.values.node);
+        await fetchSearchNode(uriWithIds, formSearchNode.values.node, showErrorBars);
       }
 
-      const end = new Date().getTime();
-      console.log('Execution time: ' + (end - start) + 'ms');
       setSearchNodeIsLoading(false);
     } else {
       console.error('Accordion not selected');
@@ -349,7 +347,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
         color: 'red',
       });
     }
-  }, [active, formSearchNode, accordionSelected]);
+  }, [active, formSearchNode, accordionSelected, showErrorBars]);
 
   /**
    * Get nodes checked
