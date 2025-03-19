@@ -14,6 +14,7 @@ export type CustomTreeNodeData = TreeNodeData & {
 
 export type CustomTreeData = URIData & {
   data: CustomTreeNodeData[];
+  expendAll: boolean;
 };
 
 export type CheckedNodeURI = {

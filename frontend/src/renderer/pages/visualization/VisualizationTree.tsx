@@ -63,6 +63,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
           uri: ids.uri,
           data: existingItem ? existingItem.data : [],
           uriColor: existingItem ? existingItem.uriColor : ids.uriColor,
+          expendAll: false,
         };
       });
 
@@ -101,7 +102,6 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
           // const curentNode = nodeI
 
           if (nodeInfoschildren.length === 0) return;
-
 
           const newChildren: CustomTreeNodeData[] = nodeInfoschildren.map(
             (child: NodeInfoChildrenResponse) => {
@@ -286,9 +286,11 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
         (item) => item.uri === uriSelected,
       ).data;
 
-      console.log('customDataTree', customDataTree);
-
-      const dataTree = buildTree(customDataTree, uriSelected, searchResults.paths);
+      const dataTree = buildTree(
+        customDataTree,
+        uriSelected,
+        searchResults.paths,
+      );
 
       const updatedActive: Configuration = {
         ...active,
@@ -297,13 +299,13 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
             return {
               ...item,
               data: dataTree,
+              expendAll: true,
             };
           }
           return item;
         }),
       };
       updatedConfiguration(updatedActive);
-      
     } catch (error) {
       console.error(error);
     }

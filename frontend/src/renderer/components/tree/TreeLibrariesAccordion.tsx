@@ -73,6 +73,7 @@ export const TreeLibrariesAccordion = ({
           checkedNodes={checkedNodes}
           handleSelectChildren={handleSelectChildren}
           getCheckedNodes={getNodesChecked}
+          expendAll={false}
         />
       </Accordion.Panel>
     </Accordion.Item>

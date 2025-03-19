@@ -35,6 +35,7 @@ interface TreeLibraryProps {
   treeData: CustomTreeNodeData[];
   height?: string;
   checkedNodes?: string[];
+  expendAll?: boolean;
   handleSelectChildren: (node: string) => void;
   getCheckedNodes?: (nodes: string[]) => void;
 }
@@ -209,11 +210,18 @@ export const TreeLibrary = ({
   treeData,
   height,
   checkedNodes,
+  expendAll,
   handleSelectChildren,
   getCheckedNodes,
 }: TreeLibraryProps) => {
   const tree = useTree();
   const [selectedNode, setSelectedNode] = useState<string>(null);
+
+  useEffect(() => {
+    if (expendAll) {
+      tree.expandAllNodes();
+    }
+  }, [expendAll]);
 
   return (
     <ScrollArea h={height}>
@@ -221,6 +229,7 @@ export const TreeLibrary = ({
         tree={tree}
         data={treeData}
         className={classes}
+        
         selectOnClick
         renderNode={(payload) => (
           <Element

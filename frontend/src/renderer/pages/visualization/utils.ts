@@ -99,14 +99,16 @@ export const buildTree = (
   paths: string[],
 ): CustomTreeNodeData[] => {
   paths.forEach((path) => {
-    const cleanPath = path.replace(/^#/, "").split("/");
+    const cleanPath = path.replace(/^#/, '').split('/');
     let currentNode = tree;
     let findValue = idsUri;
 
     cleanPath.forEach((segment, index) => {
-      const isArray = segment.includes("[:]");
-      const cleanSegment = segment.replace(/\[:\]/g, "[0]");
-      const segmentLabel = isArray ? cleanSegment.replace(/\[0\]/g, "") : cleanSegment;
+      const isArray = segment.includes('[:]');
+      const cleanSegment = segment.replace(/\[:\]/g, '[0]');
+      const segmentLabel = isArray
+        ? cleanSegment.replace(/\[0\]/g, '')
+        : cleanSegment;
 
       // Get the value of the node
       findValue += index === 0 ? `#${cleanSegment}:0` : `/${cleanSegment}`;
@@ -120,7 +122,7 @@ export const buildTree = (
         if (isArray) {
           nodeType = NodeInfoTypeEnum.ARRAY;
         } else if (index === cleanPath.length - 1) {
-          nodeType = NodeInfoTypeEnum.FLOAT; 
+          nodeType = NodeInfoTypeEnum.FLOAT;
         } else {
           nodeType = NodeInfoTypeEnum.STRUCTURE;
         }
@@ -143,7 +145,5 @@ export const buildTree = (
       currentNode = existingNode.children;
     });
   });
-
-  console.log("tree", tree);
   return tree;
 };
