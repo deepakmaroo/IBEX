@@ -8,8 +8,8 @@ export type DataTreeSelected = {
 
 export type CustomTreeNodeData = TreeNodeData & {
   type: NodeInfoTypeEnum;
+  seeErrorBars: boolean;
   children: CustomTreeNodeData[];
-  seeErrorBars?: boolean;
 };
 
 export type CustomTreeData = URIData & {

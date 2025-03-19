@@ -14,6 +14,7 @@ import {
 import {
   ActionIcon,
   Container,
+  Fieldset,
   Loader,
   Switch,
   TextInput,
@@ -21,7 +22,7 @@ import {
 import { IconSearch } from '@tabler/icons-react';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
-import { fetchFieldValue, fetchNodeInfos, plotData } from './utils';
+import { buildTree, fetchFieldValue, fetchNodeInfos, plotData } from './utils';
 
 interface VisualizationTreeProps {
   height: string;
@@ -34,7 +35,7 @@ interface FormSearchNode {
 export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
   const { active, updatedConfiguration } = useIbexStore();
 
-  const [accordionSelected, setAccordionSelected] = useState<string | null>();
+  const [idsSelected, setIdsSelected] = useState<string | null>();
   const [showErrorBars, setShowErrorBars] = useState<boolean>(false);
   const [searchNodeIsLoading, setSearchNodeIsLoading] =
     useState<boolean>(false);
@@ -97,14 +98,16 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
             showErrorBars,
           );
           const nodeInfoschildren = nodeInfos.children || [];
+          // const curentNode = nodeI
 
           if (nodeInfoschildren.length === 0) return;
+
 
           const newChildren: CustomTreeNodeData[] = nodeInfoschildren.map(
             (child: NodeInfoChildrenResponse) => {
               const newValue =
-                nodeInfos.type === NodeInfoTypeEnum.ARRAY
-                  ? `${nodeUri}[0]/${child.name}`
+                child.type === NodeInfoTypeEnum.ARRAY
+                  ? `${nodeUri}/${child.name}[0]`
                   : `${nodeUri}/${child.name}`;
               return {
                 label: child.name,
@@ -255,7 +258,11 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
    * Fetch search node
    * @param value
    */
-  const fetchSearchNode = async (uriWithIds: string, value: string, showErrorBars: boolean) => {
+  const fetchSearchNode = async (
+    uriWithIds: string,
+    value: string,
+    showErrorBars: boolean,
+  ) => {
     if (!value) return;
 
     try {
@@ -272,18 +279,31 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
         throw new Error(error.detail || 'Failed to fetch IDS data');
       }
 
-      const customDataTree = active.customDataTree.find(
-        (item) => item.uri === accordionSelected,
-      );
-
-      if (!customDataTree) return;
-      // const dataTree = customDataTree.data.find(
-      //   (item) => item.value === uriWithIds,
-      // );
-
       const searchResults: SearchNodeResponse = await response.json();
 
-      console.log('searchResults', searchResults.paths);
+      const uriSelected = uriWithIds.split('#')[0];
+      const customDataTree = active.customDataTree.find(
+        (item) => item.uri === uriSelected,
+      ).data;
+
+      console.log('customDataTree', customDataTree);
+
+      const dataTree = buildTree(customDataTree, uriSelected, searchResults.paths);
+
+      const updatedActive: Configuration = {
+        ...active,
+        customDataTree: active.customDataTree.map((item) => {
+          if (item.uri === uriSelected) {
+            return {
+              ...item,
+              data: dataTree,
+            };
+          }
+          return item;
+        }),
+      };
+      updatedConfiguration(updatedActive);
+      
     } catch (error) {
       console.error(error);
     }
@@ -301,7 +321,6 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
           (item) => item.uri === value,
         );
         if (selectedCustomData) {
-          setAccordionSelected(value);
           if (selectedCustomData.data.length === 0) {
             fetchIDSData(selectedCustomData.uri);
           }
@@ -318,6 +337,9 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
    */
   const handleSelectChildren = useCallback(
     (nodeUri: string) => {
+      const uriWithIds = nodeUri.split('/')[0];
+      setIdsSelected(uriWithIds);
+
       fetchNodeTree(nodeUri, showErrorBars);
     },
     [active, showErrorBars],
@@ -327,16 +349,14 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
    * Handle search node
    */
   const handleSearchNode = useCallback(async () => {
-    if (accordionSelected) {
-      const listURIsWithIds = active.customDataTree
-        .find((item) => item.uri === accordionSelected)
-        ?.data.map((item) => item.value);
-
+    if (idsSelected) {
       setSearchNodeIsLoading(true);
 
-      for (const uriWithIds of listURIsWithIds) {
-        await fetchSearchNode(uriWithIds, formSearchNode.values.node, showErrorBars);
-      }
+      await fetchSearchNode(
+        idsSelected,
+        formSearchNode.values.node,
+        showErrorBars,
+      );
 
       setSearchNodeIsLoading(false);
     } else {
@@ -347,7 +367,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
         color: 'red',
       });
     }
-  }, [active, formSearchNode, accordionSelected, showErrorBars]);
+  }, [active, formSearchNode, idsSelected, showErrorBars]);
 
   /**
    * Get nodes checked
@@ -420,48 +440,53 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
   return (
     <Container fluid p={0}>
       <Container fluid pt={1}>
-        <form
-          onSubmit={formSearchNode.onSubmit(() => {
-            handleSearchNode();
-          })}
+        <Fieldset
+          variant="unstyled"
+          disabled={active.customDataTree.length === 0}
         >
-          <TextInput
-            mt="sm"
-            label="Search node"
-            placeholder="Enter node name"
-            {...formSearchNode.getInputProps('node')}
-            rightSection={
-              searchNodeIsLoading ? (
-                <Loader size="xs" />
-              ) : (
-                <ActionIcon
-                  variant="filled"
-                  aria-label="Search node"
-                  component="button"
-                  type="submit"
-                >
-                  <IconSearch
-                    style={{ width: '70%', height: '70%' }}
-                    stroke={1.5}
-                  />
-                </ActionIcon>
-              )
-            }
-            disabled={searchNodeIsLoading}
+          <form
+            onSubmit={formSearchNode.onSubmit(() => {
+              handleSearchNode();
+            })}
+          >
+            <TextInput
+              mt="sm"
+              label="Search node"
+              placeholder="Enter node name"
+              {...formSearchNode.getInputProps('node')}
+              rightSection={
+                searchNodeIsLoading ? (
+                  <Loader size="xs" />
+                ) : (
+                  <ActionIcon
+                    variant="filled"
+                    aria-label="Search node"
+                    component="button"
+                    type="submit"
+                  >
+                    <IconSearch
+                      style={{ width: '70%', height: '70%' }}
+                      stroke={1.5}
+                    />
+                  </ActionIcon>
+                )
+              }
+              disabled={searchNodeIsLoading}
+            />
+          </form>
+          <Switch
+            my="sm"
+            label="See errors"
+            labelPosition="left"
+            checked={showErrorBars}
+            onChange={() => setShowErrorBars((prev) => !prev)}
+            styles={{
+              labelWrapper: {
+                width: '100%',
+              },
+            }}
           />
-        </form>
-        <Switch
-          my="sm"
-          label="See errors"
-          labelPosition="left"
-          checked={showErrorBars}
-          onChange={() => setShowErrorBars((prev) => !prev)}
-          styles={{
-            labelWrapper: {
-              width: '100%',
-            },
-          }}
-        />
+        </Fieldset>
       </Container>
       <TreeLibrariesAccordion
         customDataTree={active.customDataTree}
