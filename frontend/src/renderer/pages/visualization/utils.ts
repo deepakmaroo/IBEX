@@ -111,7 +111,7 @@ export const buildTree = (
         : cleanSegment;
 
       // Get the value of the node
-      findValue += index === 0 ? `#${cleanSegment}:0` : `/${cleanSegment}`;
+      findValue += index === 0 ? `#${cleanSegment}:0/` : `${cleanSegment}/`;
 
       // Check if the node already exists
       let existingNode = currentNode.find((node) => node.value === findValue);

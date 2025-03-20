@@ -217,9 +217,34 @@ export const TreeLibrary = ({
   const tree = useTree();
   const [selectedNode, setSelectedNode] = useState<string>(null);
 
+  const expandNodesWithFiles = (nodes: CustomTreeNodeData[]) => {
+    const expandRecursively = (node: CustomTreeNodeData) => {
+      if (!node.children || node.children.length === 0) return; // Dossier vide, on ne l'ouvre pas
+  
+      // Vérifier si ce dossier contient au moins un fichier      
+      const hasFiles = node.children.some(
+        (child) =>
+          (child as CustomTreeNodeData).type === NodeInfoTypeEnum.FLOAT || 
+          (child as CustomTreeNodeData).type === NodeInfoTypeEnum.STRING || 
+          (child as CustomTreeNodeData).type === NodeInfoTypeEnum.INTEGER 
+
+       );
+
+       console.log("hasfiles", hasFiles)
+  
+      if (hasFiles) {
+        tree.expand(node.value);
+      }
+  
+      // Appel récursif pour tous les enfants
+      node.children.forEach(expandRecursively);
+    };
+  
+    nodes.forEach(expandRecursively);
+  };
   useEffect(() => {
     if (expendAll) {
-      tree.expandAllNodes();
+      expandNodesWithFiles(treeData);
     }
   }, [expendAll]);
 

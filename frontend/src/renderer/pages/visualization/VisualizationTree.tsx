@@ -39,6 +39,8 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
   const [showErrorBars, setShowErrorBars] = useState<boolean>(false);
   const [searchNodeIsLoading, setSearchNodeIsLoading] =
     useState<boolean>(false);
+  const [buildTreeWithSearch, setBuildTreeWithSearch] =
+    useState<boolean>(false);
 
   const formSearchNode = useForm<FormSearchNode>({
     initialValues: {
@@ -81,7 +83,11 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
    * @param fullUri The full URI for fetching or updating node data
    */
   const fetchNodeTree = useCallback(
-    async (nodeUri: string, showErrorBars: boolean) => {
+    async (
+      nodeUri: string,
+      showErrorBars: boolean,
+      buildTreeWithSearch: boolean,
+    ) => {
       if (!nodeUri) return;
 
       try {
@@ -95,11 +101,10 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
           uri: string,
         ): Promise<CustomTreeNodeData[]> => {
           const nodeInfos: NodeInfoResponse = await fetchNodeInfos(
-            uri,
+            uri.slice(0, -1),
             showErrorBars,
           );
           const nodeInfoschildren = nodeInfos.children || [];
-          // const curentNode = nodeI
 
           if (nodeInfoschildren.length === 0) return;
 
@@ -107,8 +112,10 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
             (child: NodeInfoChildrenResponse) => {
               const newValue =
                 child.type === NodeInfoTypeEnum.ARRAY
-                  ? `${nodeUri}/${child.name}[0]`
-                  : `${nodeUri}/${child.name}`;
+                  ? `${nodeUri}${child.name}[0]/`
+                  : child.type === NodeInfoTypeEnum.STRUCTURE
+                    ? `${nodeUri}${child.name}/`
+                    : `${nodeUri}${child.name}`;
               return {
                 label: child.name,
                 value: newValue,
@@ -141,7 +148,8 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
               if (node.value === targetUri) {
                 if (
                   node.children.length === 0 ||
-                  node.seeErrorBars !== showErrorBars
+                  node.seeErrorBars !== showErrorBars ||
+                  buildTreeWithSearch
                 ) {
                   const newChildren = await fetchChildrenNodeInfos(targetUri);
 
@@ -225,7 +233,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
           for (const oc of ids.occurrences) {
             newTree.push({
               label: `${ids.name}:${oc}`,
-              value: `${uri}#${ids.name}:${oc}`,
+              value: `${uri}#${ids.name}:${oc}/`,
               type: NodeInfoTypeEnum.STRUCTURE,
               children: [],
               seeErrorBars: showErrorBars,
@@ -342,9 +350,9 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
       const uriWithIds = nodeUri.split('/')[0];
       setIdsSelected(uriWithIds);
 
-      fetchNodeTree(nodeUri, showErrorBars);
+      fetchNodeTree(nodeUri, showErrorBars, buildTreeWithSearch);
     },
-    [active, showErrorBars],
+    [active, showErrorBars, buildTreeWithSearch],
   );
 
   /**
@@ -360,6 +368,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
         showErrorBars,
       );
 
+      setBuildTreeWithSearch(true);
       setSearchNodeIsLoading(false);
     } else {
       console.error('Accordion not selected');
