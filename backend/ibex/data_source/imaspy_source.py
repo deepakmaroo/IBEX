@@ -54,11 +54,12 @@ class IMASPySource(DataSourceInterface):
         entry.close()
         return result
 
-    def _jsonify_metadata(self, metadata: IDSMetadata, recursive: bool = False) -> dict:
+    def _jsonify_metadata(self, metadata: IDSMetadata, recursive: bool = False, show_error_bars: bool = False) -> dict:
         """
         Converts imaspy.ids_metadata.IDSMetadata into dictionary
         :param metadata: imaspy.ids_metadata.IDSMetadata - metadata to be converted
         :param recursive: if it should append recursively metadata of children, children of children and so on...
+        :param show_error_bars: whether error bar nodes should be returned, or not
         :return: metadata turned into dictionary with keys: `name`:str, `type`:str, `ndim`:str, `shape`:str, `children`:list[dict]
         """
 
@@ -72,11 +73,22 @@ class IMASPySource(DataSourceInterface):
             result["children"] = [self._jsonify_metadata(child, recursive) for child in metadata]
         else:
             result["children"] = [
-                {"name": child.name, "type": child.data_type, "ndim": child.ndim} for child in metadata
+                {"name": child.name, "type": child.data_type, "ndim": child.ndim}
+                for child in metadata
+                if show_error_bars or not any(x in child.name for x in ["_error_upper", "_error_lower", "_error_index"])
             ]
+
         return result
 
-    def get_node_info(self, uri: str, ids: str, node_path: str, occurrence: int = 0, recursive: bool = False) -> dict:
+    def get_node_info(
+        self,
+        uri: str,
+        ids: str,
+        node_path: str,
+        occurrence: int = 0,
+        recursive: bool = False,
+        show_error_bars: bool = False,
+    ) -> dict:
         """
         Returns dictionary with basic info about IDS node pointed by `node_path` argument
         :param uri: pulsefile uri - used only to get proper DD version
@@ -85,11 +97,12 @@ class IMASPySource(DataSourceInterface):
         :param occurrence: ids occurrence number
         :param recursive: if True, creates node_info tree.
             if False, returns only pointed node and it's children node_info
+        :param show_error_bars: whether error bar nodes should be returned, or not
         :return:
         """
 
         metadata, coordinates = self._get_metadata_and_coordinates(uri, ids, node_path, occurrence)
-        metadata_dict = self._jsonify_metadata(metadata, recursive)
+        metadata_dict = self._jsonify_metadata(metadata, recursive, show_error_bars)
         metadata_dict["coordinates"] = coordinates
 
         # fill 'shape', but omit it if path points to more than one node
@@ -202,18 +215,52 @@ class IMASPySource(DataSourceInterface):
 
         return {"value": result}
 
-    def find_paths(self, uri: str, ids: str, searched_node: str, occurrence: int = 0) -> dict:
+    def _add_index_to_aos_in_path(self, ids_metadata: imaspy.ids_base.IDSBase, path_str: str):
+        """
+        Helper function to add `[:]` to AoSs in path:
+        eg: source/profiles_1d/time -> source[:]/profiles_1d[:]/time (core_sources)
+        :param ids_metadata: root of metadata path refers to
+        :param path_str: path string
+        :return: reworked string path
+        """
+        path_elements = path_str.split("/")
+        result = ""
+
+        for element in path_elements:
+            ids_path = IDSPath(element)
+            ids_metadata = ids_path.goto_metadata(ids_metadata)
+            result += element
+            if ids_metadata.data_type == IDSDataType.STRUCT_ARRAY:
+                result += "[:]"
+            result += "/"
+
+        # return result without unnecessary "/" at the end
+        return result[:-1]
+
+    def find_paths(self, uri: str, searched_node: str, show_error_bars: bool = False) -> dict:
         """
         Finds paths containing phrase passed in searched_node argument
         :param uri: imas URI
-        :param ids: name of ids e.g. core_profiles
         :param searched_node: searched text
-        :param occurrence: ids occurrence number
+        :param show_error_bars: whether error bar nodes should be returned, or not
         :return: dictionary {'paths': ['path/to/node1','path/to/node2', ...]}
         """
         entry = imaspy.DBEntry(uri, mode="r")
-        ids_obj = entry.get(ids, occurrence=occurrence, autoconvert=False)
-        found_paths = imaspy.util.find_paths(ids_obj, searched_node)
+        found_paths = []
+        ids_list = entry.factory.ids_names()
+
+        for ids in ids_list:
+            try:
+                ids_obj = entry.get(ids, occurrence=0, autoconvert=False, lazy=True)
+                paths = [node for node in imaspy.util.find_paths(ids_obj, searched_node)]
+                for path in paths:
+                    if not show_error_bars and any(
+                        error_node in path for error_node in ["_error_upper", "_error_lower", "_error_index"]
+                    ):
+                        continue
+                    found_paths.append(f"#{ids}/{self._add_index_to_aos_in_path(ids_obj.metadata, path)}")
+            except imaspy.exception.DataEntryException:
+                continue
 
         return {"paths": found_paths}
 

@@ -22,7 +22,15 @@ class DataSourceInterface(ABC):
         ...
 
     @abstractmethod
-    def get_node_info(self, uri: str, ids: str, node_path: str, occurrence: int = 0, recursive: bool = False) -> dict:
+    def get_node_info(
+        self,
+        uri: str,
+        ids: str,
+        node_path: str,
+        occurrence: int = 0,
+        recursive: bool = False,
+        show_error_bars: bool = False,
+    ) -> dict:
         """
         Returns dictionary with basic info about IDS node pointed by `node_path` argument
         :param uri: pulsefile uri - used only to get proper DD version
@@ -31,6 +39,9 @@ class DataSourceInterface(ABC):
         :param occurrence: ids occurrence number
         :param recursive: if True, creates node_info tree.
             if False, returns only pointed node and it's children node_info
+        :param show_error_bars:  if True, show all nodes.
+            if False, returns only nodes without '_error_' in name
+
         :return:
         """
         ...
