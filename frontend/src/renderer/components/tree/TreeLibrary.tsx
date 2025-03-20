@@ -219,30 +219,27 @@ export const TreeLibrary = ({
 
   const expandNodesWithFiles = (nodes: CustomTreeNodeData[]) => {
     const expandRecursively = (node: CustomTreeNodeData) => {
-      if (!node.children || node.children.length === 0) return; // Dossier vide, on ne l'ouvre pas
+      if (!node.children || node.children.length === 0) return; // No data on folder
   
-      // Vérifier si ce dossier contient au moins un fichier      
-      const hasFiles = node.children.some(
-        (child) =>
-          (child as CustomTreeNodeData).type === NodeInfoTypeEnum.FLOAT || 
-          (child as CustomTreeNodeData).type === NodeInfoTypeEnum.STRING || 
-          (child as CustomTreeNodeData).type === NodeInfoTypeEnum.INTEGER 
-
-       );
-
-       console.log("hasfiles", hasFiles)
+      // If the node has files, expand it   
+      const hasFiles = node.children.length > 0;
   
       if (hasFiles) {
         tree.expand(node.value);
       }
   
-      // Appel récursif pour tous les enfants
+      // Recursively expand children
       node.children.forEach(expandRecursively);
     };
   
-    nodes.forEach(expandRecursively);
+    nodes.forEach((node) => {
+      tree.expand(node.value);
+      expandRecursively(node);
+    });
   };
+
   useEffect(() => {
+    console.log("hello", expendAll)
     if (expendAll) {
       expandNodesWithFiles(treeData);
     }

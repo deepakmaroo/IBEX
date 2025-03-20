@@ -98,6 +98,12 @@ export const buildTree = (
   idsUri: string,
   paths: string[],
 ): CustomTreeNodeData[] => {
+
+  // Reset the children for each ids
+  tree.forEach((node) => {
+    node.children = [];
+  });
+
   paths.forEach((path) => {
     const cleanPath = path.replace(/^#/, '').split('/');
     let currentNode = tree;
@@ -109,9 +115,10 @@ export const buildTree = (
       const segmentLabel = isArray
         ? cleanSegment.replace(/\[0\]/g, '')
         : cleanSegment;
-
+      const isLastElement = index === cleanPath.length - 1;
+      
       // Get the value of the node
-      findValue += index === 0 ? `#${cleanSegment}:0/` : `${cleanSegment}/`;
+      findValue += index === 0 ? `#${cleanSegment}:0/` : isLastElement ? `${cleanSegment}` : `${cleanSegment}/`;
 
       // Check if the node already exists
       let existingNode = currentNode.find((node) => node.value === findValue);

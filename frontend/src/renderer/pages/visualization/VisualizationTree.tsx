@@ -35,17 +35,42 @@ interface FormSearchNode {
 export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
   const { active, updatedConfiguration } = useIbexStore();
 
-  const [idsSelected, setIdsSelected] = useState<string | null>();
+  const [uriSelected, setUriSelected] = useState<string | null>();
   const [showErrorBars, setShowErrorBars] = useState<boolean>(false);
   const [searchNodeIsLoading, setSearchNodeIsLoading] =
-    useState<boolean>(false);
-  const [buildTreeWithSearch, setBuildTreeWithSearch] =
     useState<boolean>(false);
 
   const formSearchNode = useForm<FormSearchNode>({
     initialValues: {
       node: '',
     },
+    //If form.values.node is empty, reset active.customDataTree onchange input
+
+    onValuesChange: (values) => {
+      if (values.node === '') {
+        const updatedActive: Configuration = {
+          ...active,
+          customDataTree: active.customDataTree.map((item) => {
+            if (item.uri === uriSelected) {
+              return {
+                ...item,
+                data: item.data.map((node) => ({
+                  ...node,
+                  children: [],
+                  seeErrorBars: showErrorBars,
+                })),
+                expendAll: false,
+              };
+            }
+            return item;
+          }),
+        };
+        updatedConfiguration(updatedActive);
+      }
+    },
+    
+    
+
   });
 
   /**
@@ -79,15 +104,39 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
   }, [active.dataURI]);
 
   /**
+   * Delete search node value
+   */
+  // useEffect(() => {
+  //   if (formSearchNode.values.node === '') {
+  //     const updatedActive: Configuration = {
+  //       ...active,
+  //       customDataTree: active.customDataTree.map((item) => {
+  //         if (item.uri === uriSelected) {
+  //           return {
+  //             ...item,
+  //             data: item.data.map((node) => {
+  //               return {
+  //                 ...node,
+  //                 children: [],
+  //                 seeErrorBars: showErrorBars,
+  //               };
+  //             }),
+  //             expendAll: false,
+  //           };
+  //         }
+  //         return item;
+  //       }),
+  //     };
+  //     updatedConfiguration(updatedActive);
+  //   }
+  // }, [formSearchNode.values.node, uriSelected, showErrorBars]);
+
+  /**
    * Handle node update using full URI
    * @param fullUri The full URI for fetching or updating node data
    */
   const fetchNodeTree = useCallback(
-    async (
-      nodeUri: string,
-      showErrorBars: boolean,
-      buildTreeWithSearch: boolean,
-    ) => {
+    async (nodeUri: string, showErrorBars: boolean, searchNode: boolean) => {
       if (!nodeUri) return;
 
       try {
@@ -149,7 +198,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
                 if (
                   node.children.length === 0 ||
                   node.seeErrorBars !== showErrorBars ||
-                  buildTreeWithSearch
+                  !searchNode
                 ) {
                   const newChildren = await fetchChildrenNodeInfos(targetUri);
 
@@ -177,6 +226,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
           );
         };
 
+        console.log('nodeUri', nodeUri);
         const updatedCustomDataTree: CustomTreeData[] = await Promise.all(
           active.customDataTree.map(async (dataTree: CustomTreeData) => {
             if (dataTree.uri && nodeUri.startsWith(dataTree.uri)) {
@@ -267,7 +317,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
    * @param value
    */
   const fetchSearchNode = async (
-    uriWithIds: string,
+    uri: string,
     value: string,
     showErrorBars: boolean,
   ) => {
@@ -275,7 +325,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
 
     try {
       const response = await fetch(
-        `${window.env.API_URL}/ids_info/find_paths/?uri=${encodeURIComponent(uriWithIds)}&searched_node=${encodeURIComponent(value)}&show_error_bars=${showErrorBars}`,
+        `${window.env.API_URL}/ids_info/find_paths/?uri=${encodeURIComponent(uri)}&searched_node=${encodeURIComponent(value)}&show_error_bars=${showErrorBars}`,
         {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
@@ -289,21 +339,16 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
 
       const searchResults: SearchNodeResponse = await response.json();
 
-      const uriSelected = uriWithIds.split('#')[0];
-      const customDataTree = active.customDataTree.find(
-        (item) => item.uri === uriSelected,
+      const customDataTreeUri = active.customDataTree.find(
+        (item) => item.uri === uri,
       ).data;
 
-      const dataTree = buildTree(
-        customDataTree,
-        uriSelected,
-        searchResults.paths,
-      );
+      const dataTree = buildTree(customDataTreeUri, uri, searchResults.paths);
 
       const updatedActive: Configuration = {
         ...active,
         customDataTree: active.customDataTree.map((item) => {
-          if (item.uri === uriSelected) {
+          if (item.uri === uri) {
             return {
               ...item,
               data: dataTree,
@@ -331,6 +376,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
           (item) => item.uri === value,
         );
         if (selectedCustomData) {
+          setUriSelected(value);
           if (selectedCustomData.data.length === 0) {
             fetchIDSData(selectedCustomData.uri);
           }
@@ -347,28 +393,24 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
    */
   const handleSelectChildren = useCallback(
     (nodeUri: string) => {
-      const uriWithIds = nodeUri.split('/')[0];
-      setIdsSelected(uriWithIds);
-
-      fetchNodeTree(nodeUri, showErrorBars, buildTreeWithSearch);
+      fetchNodeTree(nodeUri, showErrorBars, formSearchNode.values.node !== '');
     },
-    [active, showErrorBars, buildTreeWithSearch],
+    [active, showErrorBars, formSearchNode.values.node, fetchNodeTree],
   );
 
   /**
    * Handle search node
    */
   const handleSearchNode = useCallback(async () => {
-    if (idsSelected) {
+    if (uriSelected) {
       setSearchNodeIsLoading(true);
 
       await fetchSearchNode(
-        idsSelected,
+        uriSelected,
         formSearchNode.values.node,
         showErrorBars,
       );
 
-      setBuildTreeWithSearch(true);
       setSearchNodeIsLoading(false);
     } else {
       console.error('Accordion not selected');
@@ -378,7 +420,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
         color: 'red',
       });
     }
-  }, [active, formSearchNode, idsSelected, showErrorBars]);
+  }, [active, formSearchNode.values.node, uriSelected, showErrorBars]);
 
   /**
    * Get nodes checked
