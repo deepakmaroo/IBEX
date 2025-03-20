@@ -5,7 +5,6 @@ from fastapi.testclient import TestClient
 
 from ibex.main import app
 
-# app.add_exception_handler(Exception, custom_exception_handler)
 pytest.test_client = TestClient(app)
 
 
