@@ -233,15 +233,19 @@ export const TreeLibrary = ({
     };
   
     nodes.forEach((node) => {
-      tree.expand(node.value);
+      if (node.children.length > 0){
+        tree.expand(node.value);
+      }
       expandRecursively(node);
     });
   };
 
   useEffect(() => {
-    console.log("hello", expendAll)
     if (expendAll) {
       expandNodesWithFiles(treeData);
+    } else {
+      tree.collapseAllNodes();
+      tree.clearSelected();
     }
   }, [expendAll]);
 

@@ -37,6 +37,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
 
   const [uriSelected, setUriSelected] = useState<string | null>();
   const [showErrorBars, setShowErrorBars] = useState<boolean>(false);
+  const [nodeSelected, setNodeSelected] = useState<string | null>();
   const [searchNodeIsLoading, setSearchNodeIsLoading] =
     useState<boolean>(false);
 
@@ -44,9 +45,10 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
     initialValues: {
       node: '',
     },
-    //If form.values.node is empty, reset active.customDataTree onchange input
 
     onValuesChange: (values) => {
+      //If form.values.node is empty, reset active.customDataTree onchange input
+
       if (values.node === '') {
         const updatedActive: Configuration = {
           ...active,
@@ -68,9 +70,11 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
         updatedConfiguration(updatedActive);
       }
     },
-    
-    
-
+    validate: (values) => {
+      if (values.node.length < 2) {
+        return { node: 'Node name must have at least 2 characters' };
+      }
+    },
   });
 
   /**
@@ -104,40 +108,13 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
   }, [active.dataURI]);
 
   /**
-   * Delete search node value
-   */
-  // useEffect(() => {
-  //   if (formSearchNode.values.node === '') {
-  //     const updatedActive: Configuration = {
-  //       ...active,
-  //       customDataTree: active.customDataTree.map((item) => {
-  //         if (item.uri === uriSelected) {
-  //           return {
-  //             ...item,
-  //             data: item.data.map((node) => {
-  //               return {
-  //                 ...node,
-  //                 children: [],
-  //                 seeErrorBars: showErrorBars,
-  //               };
-  //             }),
-  //             expendAll: false,
-  //           };
-  //         }
-  //         return item;
-  //       }),
-  //     };
-  //     updatedConfiguration(updatedActive);
-  //   }
-  // }, [formSearchNode.values.node, uriSelected, showErrorBars]);
-
-  /**
    * Handle node update using full URI
    * @param fullUri The full URI for fetching or updating node data
    */
   const fetchNodeTree = useCallback(
     async (nodeUri: string, showErrorBars: boolean, searchNode: boolean) => {
       if (!nodeUri) return;
+      if (searchNode) return;
 
       try {
         /**
@@ -197,8 +174,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
               if (node.value === targetUri) {
                 if (
                   node.children.length === 0 ||
-                  node.seeErrorBars !== showErrorBars ||
-                  !searchNode
+                  node.seeErrorBars !== showErrorBars
                 ) {
                   const newChildren = await fetchChildrenNodeInfos(targetUri);
 
@@ -226,7 +202,6 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
           );
         };
 
-        console.log('nodeUri', nodeUri);
         const updatedCustomDataTree: CustomTreeData[] = await Promise.all(
           active.customDataTree.map(async (dataTree: CustomTreeData) => {
             if (dataTree.uri && nodeUri.startsWith(dataTree.uri)) {
@@ -394,33 +369,52 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
   const handleSelectChildren = useCallback(
     (nodeUri: string) => {
       fetchNodeTree(nodeUri, showErrorBars, formSearchNode.values.node !== '');
+      setNodeSelected(nodeUri);
     },
     [active, showErrorBars, formSearchNode.values.node, fetchNodeTree],
+  );
+
+   /**
+   * Handles see error bars
+   */
+   const handleSeeErrorBars = useCallback(
+    (value: boolean) => {
+      setShowErrorBars(value);
+      if (formSearchNode.values.node) {
+        handleSearchNode(value);
+      } else {
+        fetchNodeTree(nodeSelected, value, false);
+      }
+    },
+    [active, formSearchNode.values.node, uriSelected, nodeSelected],
   );
 
   /**
    * Handle search node
    */
-  const handleSearchNode = useCallback(async () => {
-    if (uriSelected) {
-      setSearchNodeIsLoading(true);
+  const handleSearchNode = useCallback(
+    async (showErrors: boolean) => {
+      if (uriSelected) {
+        setSearchNodeIsLoading(true);
 
-      await fetchSearchNode(
-        uriSelected,
-        formSearchNode.values.node,
-        showErrorBars,
-      );
+        await fetchSearchNode(
+          uriSelected,
+          formSearchNode.values.node,
+          showErrors,
+        );
 
-      setSearchNodeIsLoading(false);
-    } else {
-      console.error('Accordion not selected');
-      showNotification({
-        title: 'Search node',
-        message: 'Select an uri to search',
-        color: 'red',
-      });
-    }
-  }, [active, formSearchNode.values.node, uriSelected, showErrorBars]);
+        setSearchNodeIsLoading(false);
+      } else {
+        console.error('Accordion not selected');
+        showNotification({
+          title: 'Search node',
+          message: 'Select an uri to search',
+          color: 'red',
+        });
+      }
+    },
+    [active, formSearchNode.values.node, uriSelected],
+  );
 
   /**
    * Get nodes checked
@@ -490,6 +484,8 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
     }
   };
 
+ 
+
   return (
     <Container fluid p={0}>
       <Container fluid pt={1}>
@@ -499,7 +495,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
         >
           <form
             onSubmit={formSearchNode.onSubmit(() => {
-              handleSearchNode();
+              handleSearchNode(showErrorBars);
             })}
           >
             <TextInput
@@ -532,7 +528,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
             label="See errors"
             labelPosition="left"
             checked={showErrorBars}
-            onChange={() => setShowErrorBars((prev) => !prev)}
+            onChange={() => handleSeeErrorBars(!showErrorBars)}
             styles={{
               labelWrapper: {
                 width: '100%',
