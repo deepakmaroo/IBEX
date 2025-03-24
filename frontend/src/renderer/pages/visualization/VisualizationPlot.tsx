@@ -1,7 +1,7 @@
 import { Stack, Text } from '@mantine/core';
 import { useIbexStore } from '../../stores';
 import GridLayout from 'react-grid-layout';
-import { SimplePlotly } from 'src/renderer/components';
+import { SimplePlotly } from '../../components/plot/SimplePlotly';
 
 export const VisualizationPlot = () => {
   const { active } = useIbexStore();
