@@ -374,10 +374,10 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
     [active, showErrorBars, formSearchNode.values.node, fetchNodeTree],
   );
 
-   /**
+  /**
    * Handles see error bars
    */
-   const handleSeeErrorBars = useCallback(
+  const handleSeeErrorBars = useCallback(
     (value: boolean) => {
       setShowErrorBars(value);
       if (formSearchNode.values.node) {
@@ -483,8 +483,6 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
       updatedConfiguration(updatedActive);
     }
   };
-
- 
 
   return (
     <Container fluid p={0}>

@@ -220,20 +220,20 @@ export const TreeLibrary = ({
   const expandNodesWithFiles = (nodes: CustomTreeNodeData[]) => {
     const expandRecursively = (node: CustomTreeNodeData) => {
       if (!node.children || node.children.length === 0) return; // No data on folder
-  
-      // If the node has files, expand it   
+
+      // If the node has files, expand it
       const hasFiles = node.children.length > 0;
-  
+
       if (hasFiles) {
         tree.expand(node.value);
       }
-  
+
       // Recursively expand children
       node.children.forEach(expandRecursively);
     };
-  
+
     nodes.forEach((node) => {
-      if (node.children.length > 0){
+      if (node.children.length > 0) {
         tree.expand(node.value);
       }
       expandRecursively(node);
@@ -255,7 +255,6 @@ export const TreeLibrary = ({
         tree={tree}
         data={treeData}
         className={classes}
-        
         selectOnClick
         renderNode={(payload) => (
           <Element
