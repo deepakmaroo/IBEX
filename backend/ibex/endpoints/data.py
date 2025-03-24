@@ -14,3 +14,9 @@ async def field_value(uri: str, range: List[int] = Query(None)) -> dict:
         return ibex_service.get_data(uri, range)
     except Exception as e:
         raise HTTPException(status_code=404, detail=f"{e}")
+
+
+@router.get("/data/plot_data")
+@ibex_service.measure_execution_time
+async def plot_data(uri: str) -> dict:
+    return ibex_service.get_plot_data(uri)

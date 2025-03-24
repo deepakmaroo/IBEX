@@ -125,3 +125,10 @@ def get_multiple_node_data(uri: str) -> dict:
     return data_source.get_multiple_node_data(
         uri_obj.uri_entry_identifiers, uri_obj.ids_name, uri_obj.node_path, uri_obj.occurrence
     )
+
+
+def get_plot_data(uri: str) -> dict:
+    uri_obj = IMAS_URI(uri)
+    return data_source.get_plot_data(
+        uri_obj.uri_entry_identifiers, uri_obj.ids_name, uri_obj.node_path, uri_obj.occurrence
+    )

@@ -408,3 +408,87 @@ class IMASPySource(DataSourceInterface):
                 )
 
         return parent_paths
+
+    def get_plot_data(self, uri: str, ids: str, node_path: str, occurrence: int = 0):
+        """
+        TODO: fill docstring when fuctionality will be ready
+        :param uri:
+        :param ids:
+        :param node_path:
+        :param occurrence:
+        :return:
+        """
+
+        if "[" in node_path or "(" in node_path:
+            raise NotImplementedError("plot_data does not support array access operator yet (`[` | `(`)")
+
+        node_paths = self._expand_node_path(uri, ids, node_path, occurrence)
+        ids_data = self._get_raw_data(uri, ids, node_paths, occurrence)
+
+        data_to_be_returned = []
+        coordinates_to_be_returned = []
+
+        for data in ids_data:
+            if isinstance(data, IDSStructure):
+                raise NotALeafNodeException(
+                    f"Path {node_path} does not point to a leaf node. Cannot extract data from it."
+                )
+            if isinstance(data, str):
+                data_to_be_returned.append(data)
+            elif isinstance(data.value, np.ndarray):
+                data_to_be_returned.append(data.tolist())
+            else:
+                data_to_be_returned.append(data.value)
+
+            for coordinate in data.coordinates:
+                # for 1..N coordinates
+                if isinstance(coordinate, np.ndarray):
+                    c = {
+                        "name": "1..N",
+                        "target": str(data.metadata.path),
+                        "unit": "-",
+                        "value": coordinate.tolist(),
+                        "shape": coordinate.shape,
+                        "ndim": coordinate.ndim,
+                        "path": "",
+                        "description": "1..N",
+                    }
+                    coordinates_to_be_returned.append(c)
+                    continue
+
+                if isinstance(coordinate, str):
+                    coordinate_data = coordinate
+                elif isinstance(coordinate.value, np.ndarray):
+                    coordinate_data = coordinate.tolist()
+                else:
+                    coordinate_data = coordinate.value
+
+                if coordinate.metadata.name in [x["name"] for x in coordinates_to_be_returned]:
+                    coordinates_to_be_returned[coordinate.metadata.name]["value"].append(coordinate)
+                else:
+                    c = {
+                        "name": coordinate.metadata.name,
+                        "target": str(data.metadata.path),
+                        "unit": coordinate.metadata.units,
+                        "value": coordinate_data,
+                        "shape": coordinate.shape,
+                        "ndim": coordinate.metadata.ndim,
+                        "path": str(coordinate.metadata.path),
+                        "description": coordinate.metadata.documentation,
+                    }
+                    coordinates_to_be_returned.append(c)
+
+        result = {
+            "data": {
+                "name": node_path.split("/")[-1],
+                "unit": ids_data[0].metadata.units,
+                "value": data_to_be_returned,
+                "shape": [],
+                "ndim": ids_data[0].metadata.ndim,
+                "path": str(ids_data[0].metadata.path),
+                "description": ids_data[0].metadata.documentation,
+                "coordinates": coordinates_to_be_returned,
+            }
+        }
+
+        return result
