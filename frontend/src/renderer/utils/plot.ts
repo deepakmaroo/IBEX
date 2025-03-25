@@ -1,4 +1,4 @@
-import { DataPlot, DataPlotly } from '../types';
+import { DataGridPlot, DataPlotly } from '../types';
 import { generateUuid } from './uuid';
 
 export async function plotData(
@@ -6,9 +6,9 @@ export async function plotData(
   yData: number[],
   name: string,
   yAxisName: string,
-  dataPlot: DataPlot[],
+  dataPlot: DataGridPlot[],
   uriY: string,
-): Promise<DataPlot> {
+): Promise<DataGridPlot> {
   const plot: DataPlotly = {
     x: xData,
     y: yData,
@@ -19,16 +19,21 @@ export async function plotData(
 
   let newUuid = generateUuid();
 
-  while (dataPlot.find((plot) => plot.uuid === newUuid)) {
+  while (dataPlot.find((plot) => plot.i === newUuid)) {
     newUuid = generateUuid();
   }
 
-  const newDataPlot: DataPlot = {
-    uuid: newUuid,
+  const newDataPlot: DataGridPlot = {
     static: false,
     plot: [plot],
     title: name,
     yAxisName: yAxisName,
+    x: 0,
+    y: 0,
+    w: 6,
+    h: 11,
+    i: newUuid,
+ 
   };
 
   return newDataPlot;

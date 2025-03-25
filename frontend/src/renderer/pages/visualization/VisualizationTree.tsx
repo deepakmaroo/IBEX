@@ -9,7 +9,7 @@ import {
   NodeInfoChildrenResponse,
   NodeInfoTypeEnum,
   SearchNodeResponse,
-  DataPlot,
+  DataGridPlot,
 } from '../../types';
 import {
   ActionIcon,
@@ -464,7 +464,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
           const responseYURI = await fetchFieldValue(yUri);
 
           if (responseXAxis && responseYURI) {
-            const newPlot: DataPlot = await plotData(
+            const newPlot: DataGridPlot = await plotData(
               responseXAxis.value[0],
               responseYURI.value[0],
               nodesInfos.name,
@@ -475,7 +475,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
 
             updatedActive = {
               ...active,
-              plotEditableUuid: newPlot.uuid,
+              plotEditableUuid: newPlot.i,
               dataPlot: [...active.dataPlot, newPlot],
               checkedNodeURI: nodes,
             };

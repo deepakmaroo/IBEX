@@ -1,4 +1,6 @@
 import { Data } from 'plotly.js';
+import { Layout } from 'react-grid-layout';
+
 
 export interface SimplePlotlyProps {
   title: string;
@@ -10,13 +12,14 @@ export interface SimplePlotlyProps {
   handleDeleteGrid?: () => void;
 }
 
-export interface DataPlot {
-  uuid: string;
+export interface DataGridPlot extends Layout {
   static: boolean;
   plot: Data[];
   yAxisName: string;
   title: string;
 }
+
+
 
 export type DataPlotly = Data & {
   uriY: string;
