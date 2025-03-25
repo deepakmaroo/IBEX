@@ -472,8 +472,8 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
               responseXAxis.value[0],
               responseYURI.value[0],
               nodesInfos.name,
-              nodesInfos.name,
               'Time',
+              nodesInfos.name,
               active.dataPlot,
               yUri,
             );
