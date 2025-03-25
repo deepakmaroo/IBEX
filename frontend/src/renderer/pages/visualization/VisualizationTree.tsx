@@ -22,7 +22,12 @@ import {
 import { IconSearch } from '@tabler/icons-react';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
-import { buildTree, fetchFieldValue, fetchNodeInfos, plotData } from './utils';
+import {
+  buildTree,
+  fetchFieldValue,
+  fetchNodeInfos,
+  plotData,
+} from '../../utils';
 
 interface VisualizationTreeProps {
   height: string;

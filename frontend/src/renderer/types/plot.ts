@@ -8,7 +8,6 @@ export interface SimplePlotlyProps {
   isStatic?: boolean;
   handleDragStatic?: () => void;
   handleDeleteGrid?: () => void;
-  handleUpdateGrid?: () => void;
 }
 
 export interface DataPlot {

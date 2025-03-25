@@ -8,7 +8,6 @@ import {
   IconDownload,
   IconLock,
   IconLockOpen,
-  IconPencil,
   IconTrash,
 } from '@tabler/icons-react';
 import { useHover } from '@mantine/hooks';
@@ -22,7 +21,6 @@ export const SimplePlotly = ({
   isStatic,
   handleDragStatic,
   handleDeleteGrid,
-  handleUpdateGrid,
 }: SimplePlotlyProps) => {
   const { hovered, ref } = useHover();
   const [layoutPlot, setLayoutPlot] = useState<Partial<Layout>>({});
@@ -34,8 +32,6 @@ export const SimplePlotly = ({
   useEffect(() => {
     let layout: Partial<Layout> = {
       title: { text: title },
-
-      autosize: true,
       modebar: {
         orientation: 'v',
         remove: ['toImage', 'pan2d'],
@@ -76,38 +72,38 @@ export const SimplePlotly = ({
               stroke={1.5}
             />
           </ActionIcon>
-          <ActionIcon
-            variant="filled"
-            aria-label="Write"
-            // onClick={handleUpdateGrid}
-            className={classes.actionButton}
-          >
-            <IconPencil style={{ width: '70%', height: '70%' }} stroke={1.5} />
-          </ActionIcon>
-          <ActionIcon
-            variant="filled"
-            aria-label="Settings"
-            // onClick={handleDragStatic}
-            className={classes.actionButton}
-          >
-            {isStatic ? (
-              <IconLock style={{ width: '70%', height: '70%' }} stroke={1.5} />
-            ) : (
-              <IconLockOpen
-                style={{ width: '70%', height: '70%' }}
-                stroke={1.5}
-              />
-            )}
-          </ActionIcon>
-          <ActionIcon
-            variant="filled"
-            aria-label="Trash"
-            // onClick={handleDeleteGrid}
-            className={classes.actionButton}
-            color="red"
-          >
-            <IconTrash style={{ width: '70%', height: '70%' }} stroke={1.5} />
-          </ActionIcon>
+
+          {handleDragStatic && (
+            <ActionIcon
+              variant="filled"
+              aria-label="Settings"
+              onClick={handleDragStatic}
+              className={classes.actionButton}
+            >
+              {isStatic ? (
+                <IconLock
+                  style={{ width: '70%', height: '70%' }}
+                  stroke={1.5}
+                />
+              ) : (
+                <IconLockOpen
+                  style={{ width: '70%', height: '70%' }}
+                  stroke={1.5}
+                />
+              )}
+            </ActionIcon>
+          )}
+          {handleDeleteGrid && (
+            <ActionIcon
+              variant="filled"
+              aria-label="Trash"
+              // onClick={handleDeleteGrid}
+              className={classes.actionButton}
+              color="red"
+            >
+              <IconTrash style={{ width: '70%', height: '70%' }} stroke={1.5} />
+            </ActionIcon>
+          )}
         </Group>
       )}
       <Plot
@@ -115,10 +111,10 @@ export const SimplePlotly = ({
         data={data}
         layout={layoutPlot}
         config={{
-          responsive: true,
+          autosizable: true,
         }}
         useResizeHandler={true}
-        // style={{ width: '100%', height: '100%' }}
+        style={{ width: '100%', height: '100%' }}
       />
     </div>
   );
