@@ -10,6 +10,6 @@ async def general_exception_handler(request: Request, exc: Exception):
     try:
         code = exc.code
     except AttributeError:
-        code = 404
+        code = 500
     logger.error(traceback.format_exc())
     return JSONResponse(status_code=code, content={"message": str(exc)})
