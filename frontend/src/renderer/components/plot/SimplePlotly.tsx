@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import Plot from 'react-plotly.js';
 import { SimplePlotlyProps } from 'src/renderer/types';
 import { ActionIcon, Group } from '@mantine/core';
+import { toPng } from 'html-to-image';
 
 import {
   IconDownload,
@@ -25,6 +26,7 @@ export const SimplePlotly = ({
   const { hovered, ref } = useHover();
   const [layoutPlot, setLayoutPlot] = useState<Partial<Layout>>({});
   const plotRef = useRef<Plot | null>(null);
+  const divRef = useRef<HTMLDivElement | null>(null);
 
   /**
    * Update the layout of the plot
@@ -58,6 +60,23 @@ export const SimplePlotly = ({
     setLayoutPlot(layout);
   }, [title, yAxis2Name, yAxis2Name]);
 
+  const exportToPNG = () => {
+    if (divRef.current === null) {
+      return;
+    }
+
+    toPng(divRef.current, { cacheBust: true })
+      .then((dataUrl) => {
+        const link = document.createElement('a');
+        link.href = dataUrl;
+        link.download = 'chart.png';
+        link.click();
+      })
+      .catch((err) => {
+        console.error('Failed to export chart as image', err);
+      });
+  };
+
   return (
     <div ref={ref}>
       {hovered && (
@@ -66,6 +85,7 @@ export const SimplePlotly = ({
             variant="filled"
             aria-label="Download"
             className={classes.actionButton}
+            onClick={exportToPNG}
           >
             <IconDownload
               style={{ width: '70%', height: '70%' }}
@@ -106,16 +126,18 @@ export const SimplePlotly = ({
           )}
         </Group>
       )}
-      <Plot
-        ref={plotRef}
-        data={data}
-        layout={layoutPlot}
-        config={{
-          autosizable: true,
-        }}
-        useResizeHandler={true}
-        style={{ width: '100%', height: '100%' }}
-      />
+      <div ref={divRef}>
+        <Plot
+          ref={plotRef}
+          data={data}
+          layout={layoutPlot}
+          config={{
+            autosizable: true,
+          }}
+          useResizeHandler={true}
+          style={{ width: '100%', height: '100%' }}
+        />
+      </div>
     </div>
   );
 };

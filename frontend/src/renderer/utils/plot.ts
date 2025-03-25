@@ -33,7 +33,6 @@ export async function plotData(
     w: 6,
     h: 11,
     i: newUuid,
- 
   };
 
   return newDataPlot;
