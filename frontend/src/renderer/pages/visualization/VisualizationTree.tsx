@@ -463,12 +463,17 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
           const responseXAxis = await fetchFieldValue(xAxisUri);
           const responseYURI = await fetchFieldValue(yUri);
 
+          /***
+           * Plot selected data
+           */
+
           if (responseXAxis && responseYURI) {
             const newPlot: DataGridPlot = await plotData(
               responseXAxis.value[0],
               responseYURI.value[0],
               nodesInfos.name,
               nodesInfos.name,
+              'Time',
               active.dataPlot,
               yUri,
             );

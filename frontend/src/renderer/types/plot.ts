@@ -3,6 +3,7 @@ import { Layout } from 'react-grid-layout';
 
 export interface SimplePlotlyProps {
   title: string;
+  xAxisName: string;
   yAxisName: string;
   yAxis2Name?: string;
   data: Data[];
@@ -14,6 +15,7 @@ export interface SimplePlotlyProps {
 export interface DataGridPlot extends Layout {
   static: boolean;
   plot: Data[];
+  xAxisName: string;
   yAxisName: string;
   title: string;
 }

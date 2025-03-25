@@ -34,6 +34,28 @@ export const SimplePlotly = ({
   useEffect(() => {
     let layout: Partial<Layout> = {
       title: { text: title },
+      xaxis: {
+        title: {
+          text: 'x Axis',
+          font: {
+            family: 'Courier New, monospace',
+            size: 18,
+            color: '#7f7f7f',
+          },
+        },
+        showline: true,
+      },
+      yaxis: {
+        title: {
+          text: yAxisName,
+          font: {
+            family: 'Courier New, monospace',
+            size: 18,
+            color: '#7f7f7f',
+          },
+        },
+        showline: true,
+      },
       modebar: {
         orientation: 'v',
         remove: ['toImage', 'pan2d'],

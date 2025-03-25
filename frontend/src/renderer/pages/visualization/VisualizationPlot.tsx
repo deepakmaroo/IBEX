@@ -90,6 +90,7 @@ export const VisualizationPlot = () => {
           >
             <SimplePlotly
               title={plotData.title}
+              xAxisName={plotData.xAxisName}
               yAxisName={plotData.yAxisName}
               data={plotData.plot}
               isStatic={plotData.static}
