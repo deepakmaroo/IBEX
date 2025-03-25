@@ -1,5 +1,5 @@
 import { URIData } from './ids';
-import { DataPlot } from './plot';
+import { DataGridPlot } from './plot';
 import { CustomTreeData } from './tree';
 
 export interface BaseConfiguration {
@@ -8,7 +8,7 @@ export interface BaseConfiguration {
   lastLocalDataSetSelected?: string;
   lastURIInput?: string;
   checkedNodeURI: string[];
-  dataPlot: DataPlot[];
+  dataPlot: DataGridPlot[];
 }
 export interface Configuration extends BaseConfiguration {
   url?: string;

@@ -433,7 +433,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
 
     try {
       const findDataPlot = updatedActive.dataPlot.find(
-        (plot) => plot.uuid === updatedActive.plotEditableUuid,
+        (plot) => plot.i === updatedActive.plotEditableUuid,
       );
 
       if (findDataPlot) {
@@ -441,7 +441,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
           updatedActive = {
             ...active,
             dataPlot: active.dataPlot.filter(
-              (plot) => plot.uuid !== updatedActive.plotEditableUuid,
+              (plot) => plot.i !== updatedActive.plotEditableUuid,
             ),
             checkedNodeURI: [],
           };

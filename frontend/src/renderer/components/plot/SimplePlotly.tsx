@@ -97,7 +97,7 @@ export const SimplePlotly = ({
             <ActionIcon
               variant="filled"
               aria-label="Trash"
-              // onClick={handleDeleteGrid}
+              onClick={handleDeleteGrid}
               className={classes.actionButton}
               color="red"
             >
