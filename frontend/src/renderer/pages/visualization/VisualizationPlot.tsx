@@ -4,6 +4,7 @@ import GridLayout from 'react-grid-layout';
 import { SimplePlotly } from '../../components/plot/SimplePlotly';
 import { useCallback, useState } from 'react';
 import { Configuration, DataGridPlot } from 'src/renderer/types';
+import { Layout } from 'react-grid-layout';
 
 export const VisualizationPlot = () => {
   const { active, updatedConfiguration } = useIbexStore();
@@ -33,6 +34,9 @@ export const VisualizationPlot = () => {
     setDragEnabled(true);
   };
 
+  /**
+   * Handle the drag static event
+   */
   const handleDragStatic = useCallback(
     (id: string) => {
       const newDataPlot: DataGridPlot[] = active.dataPlot.map(
@@ -54,6 +58,9 @@ export const VisualizationPlot = () => {
     [active],
   );
 
+  /**
+   * Handle the delete grid event
+   */
   const handleDeleteGrid = useCallback(
     (id: string) => {
       const newDataPlot: DataGridPlot[] = active.dataPlot.filter(
@@ -66,6 +73,26 @@ export const VisualizationPlot = () => {
     [active],
   );
 
+  /**
+   * Handle update grid layout
+   */
+  const handleUpdateLayout = useCallback(
+    (updatedLayouts: Layout[]) => {
+      const updatedDataPlot: DataGridPlot[] = active.dataPlot.map(
+        (item: DataGridPlot) => {
+          const findUpdatedLayout = updatedLayouts.find((layout) => layout.i === item.i);
+          if (findUpdatedLayout) {
+            return { ...item, ...findUpdatedLayout };
+          }
+          return item;
+        },
+      );
+
+      const newActive: Configuration = { ...active, dataPlot: updatedDataPlot };
+
+      updatedConfiguration(newActive);
+    }, [active])
+
   return active.dataPlot.length > 0 ? (
     <>
       <GridLayout
@@ -76,6 +103,7 @@ export const VisualizationPlot = () => {
         onDragStart={handleMouseDown}
         onDragStop={handleMouseUp}
         isDraggable={dragEnabled}
+        onLayoutChange={(layout)=> handleUpdateLayout(layout)}
       >
         {active.dataPlot.map((plotData: DataGridPlot) => (
           <div

@@ -16,6 +16,7 @@ import classes from './SimplePlotly.module.css';
 
 export const SimplePlotly = ({
   title,
+  xAxisName,
   yAxisName,
   yAxis2Name,
   data,
@@ -36,7 +37,7 @@ export const SimplePlotly = ({
       title: { text: title },
       xaxis: {
         title: {
-          text: 'x Axis',
+          text: xAxisName,
           font: {
             family: 'Courier New, monospace',
             size: 18,
