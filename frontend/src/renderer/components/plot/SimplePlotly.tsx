@@ -67,6 +67,8 @@ export const SimplePlotly = ({
         orientation: 'h',
       },
       showlegend: true,
+      plot_bgcolor: '#c7c7c7',
+      // paper_bgcolor: '#FFFFFF',
     };
 
     if (yAxis2Name) {

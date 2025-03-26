@@ -1,4 +1,4 @@
-import { Stack, Text } from '@mantine/core';
+import { Paper, ScrollArea, Stack, Text } from '@mantine/core';
 import { useIbexStore } from '../../stores';
 import GridLayout from 'react-grid-layout';
 import { SimplePlotly } from '../../components/plot/SimplePlotly';
@@ -80,7 +80,9 @@ export const VisualizationPlot = () => {
     (updatedLayouts: Layout[]) => {
       const updatedDataPlot: DataGridPlot[] = active.dataPlot.map(
         (item: DataGridPlot) => {
-          const findUpdatedLayout = updatedLayouts.find((layout) => layout.i === item.i);
+          const findUpdatedLayout = updatedLayouts.find(
+            (layout) => layout.i === item.i,
+          );
           if (findUpdatedLayout) {
             return { ...item, ...findUpdatedLayout };
           }
@@ -91,43 +93,50 @@ export const VisualizationPlot = () => {
       const newActive: Configuration = { ...active, dataPlot: updatedDataPlot };
 
       updatedConfiguration(newActive);
-    }, [active])
+    },
+    [active],
+  );
 
   return active.dataPlot.length > 0 ? (
     <>
-      <GridLayout
-        cols={12}
-        rowHeight={30}
-        width={1850}
-        autoSize={true}
-        onDragStart={handleMouseDown}
-        onDragStop={handleMouseUp}
-        isDraggable={dragEnabled}
-        onLayoutChange={(layout)=> handleUpdateLayout(layout)}
-      >
-        {active.dataPlot.map((plotData: DataGridPlot) => (
-          <div
-            key={plotData.i}
-            data-grid={{
-              x: plotData.x,
-              y: plotData.y,
-              w: plotData.w,
-              h: plotData.h,
-              static: plotData.static,
-            }}
-          >
-            <SimplePlotly
-              title={plotData.title}
-              xAxisName={plotData.xAxisName}
-              yAxisName={plotData.yAxisName}
-              data={plotData.plot}
-              isStatic={plotData.static}
-              handleDragStatic={() => handleDragStatic(plotData.i)}
-              handleDeleteGrid={() => handleDeleteGrid(plotData.i)}
-            />
-          </div>
-        ))}
-      </GridLayout>
+      <ScrollArea h="84vh">
+        <GridLayout
+          cols={12}
+          rowHeight={30}
+          width={1515}
+          autoSize={true}
+          onDragStart={handleMouseDown}
+          onDragStop={handleMouseUp}
+          isDraggable={dragEnabled}
+          onLayoutChange={(layout) => handleUpdateLayout(layout)}
+        >
+          {active.dataPlot.map((plotData: DataGridPlot) => (
+            <Paper
+              shadow="sm"
+              radius="xs"
+              withBorder
+              key={plotData.i}
+              data-grid={{
+                x: plotData.x,
+                y: plotData.y,
+                w: plotData.w,
+                h: plotData.h,
+                static: plotData.static,
+              }}
+            >
+              <SimplePlotly
+                title={plotData.title}
+                xAxisName={plotData.xAxisName}
+                yAxisName={plotData.yAxisName}
+                data={plotData.plot}
+                isStatic={plotData.static}
+                handleDragStatic={() => handleDragStatic(plotData.i)}
+                handleDeleteGrid={() => handleDeleteGrid(plotData.i)}
+              />
+            </Paper>
+          ))}
+        </GridLayout>
+      </ScrollArea>
     </>
   ) : (
     <Stack h="100%" align="center" w="100%" justify="center">
