@@ -21,7 +21,3 @@ export type NodeInfoResponse = NodeInfoChildrenResponse & {
 export type SearchNodeResponse = {
   paths: string[];
 };
-
-export type FieldValueResponse = {
-  value: number[][];
-};

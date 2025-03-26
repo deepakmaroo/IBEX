@@ -10,6 +10,7 @@ import {
   NodeInfoTypeEnum,
   SearchNodeResponse,
   DataGridPlot,
+  DataIdsResponse,
 } from '../../types';
 import {
   ActionIcon,
@@ -24,7 +25,10 @@ import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
 import {
   buildTree,
+  fetchDataIds,
+  fetchDataPlot,
   fetchFieldValue,
+  fetchFindPaths,
   fetchNodeInfos,
   plotData,
 } from '../../utils';
@@ -242,21 +246,10 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
    */
   const fetchIDSData = useCallback(
     async (uri: string) => {
+
       try {
-        const response = await fetch(
-          `${window.env.API_URL}/data_entry/list_idses/?uri=${encodeURIComponent(uri)}`,
-          {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json' },
-          },
-        );
 
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.detail || 'Failed to fetch IDS data');
-        }
-
-        const listIdsResult = await response.json();
+        const listIdsResult = await fetchDataIds(uri);
         const newTree: CustomTreeNodeData[] = [];
 
         for (const ids of listIdsResult.idses) {
@@ -304,20 +297,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
     if (!value) return;
 
     try {
-      const response = await fetch(
-        `${window.env.API_URL}/ids_info/find_paths/?uri=${encodeURIComponent(uri)}&searched_node=${encodeURIComponent(value)}&show_error_bars=${showErrorBars}`,
-        {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
-        },
-      );
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || 'Failed to fetch IDS data');
-      }
-
-      const searchResults: SearchNodeResponse = await response.json();
+      const searchResults: SearchNodeResponse = await fetchFindPaths(uri, value, showErrorBars);
 
       const customDataTreeUri = active.customDataTree.find(
         (item) => item.uri === uri,
@@ -452,38 +432,36 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
         // Add new plot
 
         for (const yUri of nodes) {
-          const nodesInfos: NodeInfoResponse = await fetchNodeInfos(
-            yUri,
-            showErrorBars,
-          );
+          console.log('yUri', yUri);
 
-          const uriWithIds = yUri.split('/')[0];
-          const xAxisUri = `${uriWithIds}/${nodesInfos.coordinates[0]}`;
-
-          const responseXAxis = await fetchFieldValue(xAxisUri);
-          const responseYURI = await fetchFieldValue(yUri);
+          const responseYURI = await fetchDataPlot(yUri);
 
           /***
            * Plot selected data
            */
 
-          if (responseXAxis && responseYURI) {
-            const newPlot: DataGridPlot = await plotData(
-              responseXAxis.value[0],
-              responseYURI.value[0],
-              nodesInfos.name,
-              'Time',
-              nodesInfos.name,
-              active.dataPlot,
-              yUri,
-            );
+          if (responseYURI) {
+            if(responseYURI.data.ndim === 1){
+              const newPlot: DataGridPlot = await plotData(
+                responseYURI.data.coordinates[0].value,
+                responseYURI.data.value[0],
+                responseYURI.data.path,
+                responseYURI.data.name,
+                responseYURI.data.coordinates[0].name,
+                active.dataPlot,
+                yUri,
+              );
 
-            updatedActive = {
-              ...active,
-              plotEditableUuid: newPlot.i,
-              dataPlot: [...active.dataPlot, newPlot],
-              checkedNodeURI: nodes,
-            };
+              console.log('newPlot', newPlot);
+              updatedActive = {
+                ...active,
+                plotEditableUuid: newPlot.i,
+                dataPlot: [...active.dataPlot, newPlot],
+                checkedNodeURI: nodes,
+              };
+            }
+
+
           }
         }
       }
