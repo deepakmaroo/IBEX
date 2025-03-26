@@ -49,15 +49,13 @@ def test_node_is_not_leaf_field_value(entry_path):
 
 def test_node_is_not_leaf_array_summary(entry_path):
     parameters = {"uri": f"imas:mdsplus?path={entry_path}#core_profiles/ids_properties"}
-    print(f"{parameters}")
-    response = pytest.test_client.get("/data/array_summary", params=parameters)
+    response = pytest.test_client.get("/ids_info/array_summary", params=parameters)
     assert response.status_code == 461, "field_value endpoint should return 461 when trying to get non leaf node"
 
 
 def test_node_is_not_array(entry_path):
     parameters = {"uri": f"imas:mdsplus?path={entry_path}#core_profiles/ids_properties/version_put/access_layer"}
-    print(f"{parameters}")
-    response = pytest.test_client.get("/data/array_summary", params=parameters)
+    response = pytest.test_client.get("/ids_info/array_summary", params=parameters)
     assert (
         response.status_code == 462
     ), "array_summary endpoint should return 462 when trying to get summary of non array node"
