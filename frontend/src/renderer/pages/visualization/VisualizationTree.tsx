@@ -432,11 +432,25 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
             ),
           };
         } else {
-          console.log("findDataPlot and node > 0");
+
+          const dataAlreadyPlotted = findDataPlot.plot.map((plot) => nodes.includes(plot.nodeUri));
+
+          const nodesToFetch = nodes.filter((node, index) => !dataAlreadyPlotted[index]);
+
+          console.log('nodesToFetch', nodesToFetch);
+
+          console.log('findDataPlot and node > 0');
           const responseTrace1 = await fetchDataPlot(nodes[0]);
           const responseTrace2 = await fetchDataPlot(nodes[1]);
 
-          if (responseTrace1 && responseTrace1.data.ndim === 1 && responseTrace2 && responseTrace2.data.ndim === 1 && responseTrace1.data.coordinates[0].path === responseTrace2.data.coordinates[0].path) {
+          if (
+            responseTrace1 &&
+            responseTrace1.data.ndim === 1 &&
+            responseTrace2 &&
+            responseTrace2.data.ndim === 1 &&
+            responseTrace1.data.coordinates[0].path ===
+              responseTrace2.data.coordinates[0].path
+          ) {
             findDataPlot.plot = [];
 
             const updatedPlot: DataGridPlot = await plotData(
@@ -454,7 +468,10 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
             updatedActive = {
               ...updatedActive,
               plotEditableUuid: findDataPlot.i,
-              dataPlot: [...active.dataPlot.filter((plot) => plot.i !== findDataPlot.i), updatedPlot],
+              dataPlot: [
+                ...active.dataPlot.filter((plot) => plot.i !== findDataPlot.i),
+                updatedPlot,
+              ],
             };
           }
         }
@@ -481,7 +498,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
             responseYURI.data.path,
           );
 
-          console.log("new plot", updatedPlot);
+          console.log('new plot', updatedPlot);
           updatedActive.dataPlot.push(updatedPlot);
 
           updatedActive = {

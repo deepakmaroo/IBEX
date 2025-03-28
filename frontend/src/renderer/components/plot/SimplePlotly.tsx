@@ -87,6 +87,7 @@ export const SimplePlotly = ({
           overlaying: 'y',
           side: 'right',
           showline: true,
+          zeroline: false,
         }
       };
     }

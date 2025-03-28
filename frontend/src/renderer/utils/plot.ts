@@ -41,7 +41,7 @@ export async function plotData(
     x: xData,
     y: yData,
     name: yName,
-    uriY: yAxisPath,
+    nodeUri: yAxisPath,
     // type: 'scatter',
     mode: 'lines',
   };
@@ -56,7 +56,7 @@ export async function plotData(
       name: y2Name,
       yaxis: 'y2',
       // type: 'scatter',
-      uriY: y2AxisPath,
+      nodeUri: y2AxisPath,
       mode: 'lines',
 
     };

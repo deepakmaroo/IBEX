@@ -12,9 +12,14 @@ export interface SimplePlotlyProps {
   handleDeleteGrid?: () => void;
 }
 
+export type DataPlotly = Data & {
+  nodeUri: string;
+
+};
+
 export interface DataGridPlot extends Layout {
   static: boolean;
-  plot: Data[];
+  plot: DataPlotly[];
   xAxisName: string;
   yAxisName: string;
   y2AxisName?: string;
@@ -23,7 +28,3 @@ export interface DataGridPlot extends Layout {
   yAxisPath: string;
   y2AxisPath?: string;
 }
-
-export type DataPlotly = Data & {
-  uriY: string;
-};
