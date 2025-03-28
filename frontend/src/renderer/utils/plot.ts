@@ -1,43 +1,77 @@
 import { DataGridPlot, DataPlotly } from '../types';
 import { generateUuid } from './uuid';
 
-export async function plotData(
-  xData: number[],
-  yData: number[],
-  name: string,
+export const generateNewPlot = (
+  title: string,
   xAxisName: string,
   yAxisName: string,
-  dataPlot: DataGridPlot[],
-  uriY: string,
-): Promise<DataGridPlot> {
-  const plot: DataPlotly = {
-    x: xData,
-    y: yData,
-    mode: 'lines',
-    name: name,
-    uriY: uriY,
-  };
-
-  let newUuid = generateUuid();
-
-  while (dataPlot.find((plot) => plot.i === newUuid)) {
-    newUuid = generateUuid();
-  }
-
-  const newDataPlot: DataGridPlot = {
+  xAxisPath: string,
+  yAxisPath: string,
+): DataGridPlot => {
+  return {
+    i: generateUuid(),
     static: false,
-    plot: [plot],
-    title: name,
-    yAxisName: yAxisName,
+    plot: [],
+    title: title,
     xAxisName: xAxisName,
+    yAxisName: yAxisName,
+    xAxisPath: xAxisPath,
+    yAxisPath: yAxisPath,
     x: 0,
     y: 0,
     w: 6,
     h: 12,
-    i: newUuid,
-    minH: 12, 
-    minW: 6
+    minH: 12,
+    minW: 6,
   };
+};
 
-  return newDataPlot;
+export async function plotData(
+  dataPlot: DataGridPlot,
+  xData: number[],
+  yData: number[],
+  yName: string,
+  yAxisPath: string,
+  y2Name?: string,
+  y2Data?: number[],
+  y2AxisPath?: string,
+
+): Promise<DataGridPlot> {
+  const trace1: DataPlotly = {
+    x: xData,
+    y: yData,
+    name: yName,
+    uriY: yAxisPath,
+    // type: 'scatter',
+    mode: 'lines',
+  };
+  dataPlot.plot.push(trace1);
+
+
+
+  if (y2Data && y2AxisPath) {
+    const trace2: DataPlotly = {
+      x: xData,
+      y: y2Data,
+      name: y2Name,
+      yaxis: 'y2',
+      // type: 'scatter',
+      uriY: y2AxisPath,
+      mode: 'lines',
+
+    };
+
+    dataPlot = {
+      title: `${yName}/${y2Name}`,
+      ...dataPlot,
+      plot: [...dataPlot.plot, trace2],
+      y2AxisName: y2Name,
+      y2AxisPath: y2AxisPath,
+    };
+
+  } 
+
+  // console.log(dataPlot);
+
+  return dataPlot;
 }

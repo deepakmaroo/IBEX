@@ -84,7 +84,12 @@ export const VisualizationPlot = () => {
             (layout) => layout.i === item.i,
           );
           if (findUpdatedLayout) {
-            return { ...item, ...findUpdatedLayout };
+            return {
+              ...item,
+              ...findUpdatedLayout,
+              minH: 12,
+              minW: 6,
+            };
           }
           return item;
         },
@@ -110,31 +115,35 @@ export const VisualizationPlot = () => {
           isDraggable={dragEnabled}
           onLayoutChange={(layout) => handleUpdateLayout(layout)}
         >
-          {active.dataPlot.map((plotData: DataGridPlot) => (
-            <Paper
-              shadow="sm"
-              radius="xs"
-              withBorder
-              key={plotData.i}
-              data-grid={{
-                x: plotData.x,
-                y: plotData.y,
-                w: plotData.w,
-                h: plotData.h,
-                static: plotData.static,
-              }}
-            >
-              <SimplePlotly
-                title={plotData.title}
-                xAxisName={plotData.xAxisName}
-                yAxisName={plotData.yAxisName}
-                data={plotData.plot}
-                isStatic={plotData.static}
-                handleDragStatic={() => handleDragStatic(plotData.i)}
-                handleDeleteGrid={() => handleDeleteGrid(plotData.i)}
-              />
-            </Paper>
-          ))}
+          {active.dataPlot.map((plotData: DataGridPlot) => {
+            console.log("plotData", plotData);
+            return (
+              <Paper
+                shadow="sm"
+                radius="xs"
+                withBorder
+                key={plotData.i}
+                data-grid={{
+                  x: plotData.x,
+                  y: plotData.y,
+                  w: plotData.w,
+                  h: plotData.h,
+                  static: plotData.static,
+                }}
+              >
+                <SimplePlotly
+                  title={plotData.title}
+                  xAxisName={plotData.xAxisName}
+                  yAxisName={plotData.yAxisName}
+                  y2AxisName={plotData.y2AxisName}
+                  data={plotData.plot}
+                  isStatic={plotData.static}
+                  handleDragStatic={() => handleDragStatic(plotData.i)}
+                  handleDeleteGrid={() => handleDeleteGrid(plotData.i)}
+                />
+              </Paper>
+            );
+          })}
         </GridLayout>
       </ScrollArea>
     </>

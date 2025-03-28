@@ -18,7 +18,7 @@ export const SimplePlotly = ({
   title,
   xAxisName,
   yAxisName,
-  yAxis2Name,
+  y2AxisName,
   data,
   isStatic,
   handleDragStatic,
@@ -64,26 +64,35 @@ export const SimplePlotly = ({
       legend: {
         x: 1.1,
         y: 1,
-        orientation: 'h',
+        orientation: 'v',
       },
       showlegend: true,
       plot_bgcolor: '#c7c7c7',
       // paper_bgcolor: '#FFFFFF',
     };
 
-    if (yAxis2Name) {
+    if (y2AxisName && y2AxisName !== "") {
       layout = {
         ...layout,
         yaxis2: {
-          title: yAxis2Name,
+          title: {
+            text: y2AxisName,
+            font: {
+              family: 'Courier New, monospace',
+              size: 18,
+              color: 'rgb(148, 103, 189)',
+            },
+          },
+          tickfont: {color: 'rgb(148, 103, 189)'},
           overlaying: 'y',
           side: 'right',
-        },
+          showline: true,
+        }
       };
     }
 
     setLayoutPlot(layout);
-  }, [title, yAxis2Name, yAxis2Name]);
+  }, [title, yAxisName, y2AxisName]);
 
   const exportToPNG = () => {
     if (divRef.current === null) {

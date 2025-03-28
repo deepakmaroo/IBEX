@@ -5,7 +5,7 @@ export interface SimplePlotlyProps {
   title: string;
   xAxisName: string;
   yAxisName: string;
-  yAxis2Name?: string;
+  y2AxisName?: string;
   data: Data[];
   isStatic?: boolean;
   handleDragStatic?: () => void;
@@ -17,7 +17,11 @@ export interface DataGridPlot extends Layout {
   plot: Data[];
   xAxisName: string;
   yAxisName: string;
+  y2AxisName?: string;
   title: string;
+  xAxisPath: string;
+  yAxisPath: string;
+  y2AxisPath?: string;
 }
 
 export type DataPlotly = Data & {

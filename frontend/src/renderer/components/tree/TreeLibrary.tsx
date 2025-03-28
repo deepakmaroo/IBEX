@@ -10,7 +10,7 @@ import {
   UseTreeReturnType,
   useTree,
 } from '@mantine/core';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   IconFileUnknown,
   IconFolder,
@@ -130,7 +130,7 @@ function NodeIcon({
   getCheckedNodes,
 }: NodeIconProps) {
   const [checked, setChecked] = useState<boolean>(
-    checkedNodes.includes(node.value) ? true : tree.isNodeChecked(node.value),
+    checkedNodes.includes(node.value)
   );
   const getNodeIcon = (type: NodeInfoTypeEnum, expanded: boolean) => {
     const commonProps = {
@@ -140,27 +140,37 @@ function NodeIcon({
     };
 
     // Check the node and save config
-    const handleCheckNode = () => {
+    const handleCheckNode = useCallback(() => {
       if (
         type === NodeInfoTypeEnum.INTEGER ||
         type === NodeInfoTypeEnum.FLOAT ||
         type === NodeInfoTypeEnum.STRING
       ) {
         // Fetch checkedNodes with Config
-        if (!checked === true) {
-          tree.checkNode(node.value);
-          !checkedNodes.find((checkedNode) => checkedNode === node.value) &&
-            checkedNodes.push(node.value);
-        } else {
+        if (checked) {
+          console.log("checkedNodes tree checked", checkedNodes)
           tree.uncheckNode(node.value);
           checkedNodes = checkedNodes.filter(
             (uncheckedNode) => uncheckedNode !== node.value,
           );
+
+        } else {
+          console.log("checkedNodes tree not checked", checkedNodes);
+          tree.checkNode(node.value);
+          checkedNodes.push(node.value);
         }
-        setChecked(!checked);
+        console.log("checkedNodes tree", checkedNodes);
+        setChecked(!checked); 
         getCheckedNodes(checkedNodes); // Save checkedNodes in config
       }
-    };
+    }, [
+      checked,
+      checkedNodes,
+      getCheckedNodes,
+      node.value,
+      tree,
+      type,
+    ])
 
     const icons: Record<NodeInfoTypeEnum, JSX.Element> = {
       [NodeInfoTypeEnum.STRUCTURE]: expanded ? (
