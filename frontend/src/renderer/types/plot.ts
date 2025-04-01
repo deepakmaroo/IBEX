@@ -25,12 +25,7 @@ export interface DataGridPlot extends Layout {
   
   yAxisName: string;
   y2AxisName?: string;
-  y3AxisName?: string;
-  y4AxisName?: string;
 
   yUnit: string;
   y2Unit?: string;
-  y3Unit?: string;
-  y4Unit?: string;
-
 }

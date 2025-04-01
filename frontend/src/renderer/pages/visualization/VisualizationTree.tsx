@@ -436,97 +436,90 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
           const dataPlotted = nodes.filter(
             (node) => !findDataPlot.plot.find((plot) => plot.nodeUri === node),
           );
-          
-          for (const node of dataPlotted) {
-            const responseTrace: PlotDataResponse = await fetchDataPlot(node);
-            console.log('responseTrace', responseTrace);
 
-            const unit = responseTrace.data.unit;
-            const yHaveUnit = findDataPlot.yUnit === unit;
-            const y2HaveUnit = findDataPlot.y2Unit === unit;
-            const y3HaveUnit = findDataPlot.y3Unit === unit;
-            const y4HaveUnit = findDataPlot.y4Unit === unit;
-            const title = `${findDataPlot.title}/ ${responseTrace.data.name}(${unit})`;
+          if (dataPlotted.length !== 0) {
+            for (const node of dataPlotted) {
+              const responseTrace: PlotDataResponse = await fetchDataPlot(node);
 
-            if (responseTrace && responseTrace.data.ndim === 1 && yHaveUnit) {
-              //Trace y axis
-              const updatedPlot = await plotData(
-                title,
-                findDataPlot,
-                responseTrace.data.coordinates[0].value,
-                responseTrace.data.value[0],
-                nodes[0],
-                responseTrace.data.name,
-              );
-              console.log('updatedPlot', updatedPlot);
-            } else if (responseTrace && responseTrace.data.ndim === 1 && !yHaveUnit){
-              //Trace with new y2 axis
-              const updatedPlot = await plotData(
-                title,
-                findDataPlot,
-                responseTrace.data.coordinates[0].value,
-                responseTrace.data.value[0],
-                nodes[0],
-                responseTrace.data.name,
-                true,
-              );
-              console.log('updatedPlot', updatedPlot);
+              const unit = responseTrace.data.unit;
+              const yHaveUnit = findDataPlot.yUnit === unit;
+              const title = `${findDataPlot.title}/ ${responseTrace.data.name}(${unit})`;
+
+              if (responseTrace && responseTrace.data.ndim === 1 && yHaveUnit) {
+                //Trace y axis
+                const updatedPlot = await plotData(
+                  title,
+                  findDataPlot,
+                  responseTrace.data.coordinates[0].value,
+                  responseTrace.data.value[0],
+                  node,
+                  `${responseTrace.data.name}(${responseTrace.data.unit})`,
+                );
+                updatedActive = {
+                  ...updatedActive,
+                  dataPlot: [
+                    ...active.dataPlot.filter(
+                      (plot) => plot.i !== findDataPlot.i,
+                    ),
+                    updatedPlot,
+                  ],
+                };
+              } else if (
+                responseTrace &&
+                responseTrace.data.ndim === 1 &&
+                !yHaveUnit
+              ) {
+                //Trace with new y2 axis
+                findDataPlot.y2AxisName = `${responseTrace.data.name}(${responseTrace.data.unit})`;
+                const updatedPlot = await plotData(
+                  title,
+                  findDataPlot,
+                  responseTrace.data.coordinates[0].value,
+                  responseTrace.data.value[0],
+                  node,
+                  `${responseTrace.data.name}(${responseTrace.data.unit})`,
+
+                  true,
+                );
+                updatedActive = {
+                  ...updatedActive,
+                  dataPlot: [
+                    ...active.dataPlot.filter(
+                      (plot) => plot.i !== findDataPlot.i,
+                    ),
+                    updatedPlot,
+                  ],
+                };
+              }
             }
+          } else {
 
-
-
-            
+            const plots = findDataPlot.plot.filter(
+              (plot) => !nodes.includes(plot.nodeUri),
+            );
+            findDataPlot.plot = plots;
+            updatedActive = {
+              ...updatedActive,
+              dataPlot: [
+                ...active.dataPlot.filter((plot) => plot.i !== findDataPlot.i),
+                findDataPlot,
+              ],
+            };
           }
-
-          // const nodesToFetch = nodes.filter((node, index) => !dataAlreadyPlotted[index]);
-
-          // console.log('findDataPlot and node > 0');
-          // const responseTrace1 = await fetchDataPlot(nodes[0]);
-          // const responseTrace2 = await fetchDataPlot(nodes[1]);
-
-          // if (
-          //   responseTrace1 &&
-          //   responseTrace1.data.ndim === 1 &&
-          //   responseTrace2 &&
-          //   responseTrace2.data.ndim === 1 &&
-          //   responseTrace1.data.coordinates[0].path ===
-          //     responseTrace2.data.coordinates[0].path
-          // ) {
-          //   findDataPlot.plot = [];
-
-          //   const updatedPlot: DataGridPlot = await plotData(
-          //     findDataPlot, // plot
-          //     responseTrace1.data.coordinates[0].value, // xData
-          //     responseTrace1.data.value[0], // yData
-          //     `${responseTrace1.data.name}(${responseTrace1.data.unit})`, // name
-          //     responseTrace1.data.path,
-          //     `${responseTrace2.data.name}(${responseTrace2.data.unit})`, // y2name
-          //     responseTrace2.data.value[0], // y2Data
-          //     responseTrace2.data.path, // y2Path
-          //   );
-
-          //   // console.log('updatedPlot', updatedPlot);
-          //   updatedActive = {
-          //     ...updatedActive,
-          //     plotEditableUuid: findDataPlot.i,
-          //     dataPlot: [
-          //       ...active.dataPlot.filter((plot) => plot.i !== findDataPlot.i),
-          //       updatedPlot,
-          //     ],
-          //   };
-          // }
+         
+          
         }
       } else {
         // Add new plot data
-        console.log('PLot not found, draw new plot');
+        // console.log('PLot not found, draw new plot');
 
         const responseYURI: PlotDataResponse = await fetchDataPlot(nodes[0]);
 
         if (responseYURI && responseYURI.data.ndim === 1) {
           const newPlot = generateNewPlot(
             responseYURI.data.name,
-            `${responseYURI.data.coordinates[0].name}(${responseYURI.data.coordinates[0].unit})`,
-            `${responseYURI.data.name}(${responseYURI.data.unit})`,
+            `${responseYURI.data.coordinates[0].unit}`,
+            `${responseYURI.data.unit}`,
             responseYURI.data.unit,
           );
 
@@ -538,10 +531,10 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
             responseYURI.data.coordinates[0].value,
             responseYURI.data.value[0],
             nodes[0],
-            responseYURI.data.name,
+            `${responseYURI.data.name}(${responseYURI.data.unit})`,
           );
 
-          console.log('new plot', updatedPlot);
+          // console.log('new plot', updatedPlot);
           updatedActive.dataPlot.push(updatedPlot);
 
           updatedActive = {

@@ -8,11 +8,7 @@ export const generateNewPlot = (
   yUnit: string,
   y2AxisName?: string,
   y2Unit?: string,
-  y3AxisName?: string,
-  y3Unit?: string,
-  y4AxisName?: string,
-  y4Unit?: string,
-  
+
 ): DataGridPlot => {
   return {
     title: title,
@@ -22,12 +18,8 @@ export const generateNewPlot = (
     xAxisName: xAxisName,
     yAxisName: yAxisName,
     y2AxisName: y2AxisName,
-    y3AxisName: y3AxisName,
-    y4AxisName: y4AxisName,
     yUnit: yUnit,
     y2Unit: y2Unit,
-    y3Unit: y3Unit,
-    y4Unit: y4Unit,
     
     //default layout position
     x: 0,
@@ -62,7 +54,7 @@ export async function plotData(
 
   if (y2Axis) {
     trace.yaxis = 'y2';
-    
+
     dataPlot = {
       ...dataPlot,
       title: `${title}`,
