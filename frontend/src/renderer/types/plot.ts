@@ -13,18 +13,24 @@ export interface SimplePlotlyProps {
 }
 
 export type DataPlotly = Data & {
-  nodeUri: string;
+  nodeUri:string;
 
 };
 
 export interface DataGridPlot extends Layout {
+  title: string;
   static: boolean;
   plot: DataPlotly[];
   xAxisName: string;
+  
   yAxisName: string;
   y2AxisName?: string;
-  title: string;
-  xAxisPath: string;
-  yAxisPath: string;
-  y2AxisPath?: string;
+  y3AxisName?: string;
+  y4AxisName?: string;
+
+  yUnit: string;
+  y2Unit?: string;
+  y3Unit?: string;
+  y4Unit?: string;
+
 }

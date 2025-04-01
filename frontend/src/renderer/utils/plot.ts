@@ -5,18 +5,31 @@ export const generateNewPlot = (
   title: string,
   xAxisName: string,
   yAxisName: string,
-  xAxisPath: string,
-  yAxisPath: string,
+  yUnit: string,
+  y2AxisName?: string,
+  y2Unit?: string,
+  y3AxisName?: string,
+  y3Unit?: string,
+  y4AxisName?: string,
+  y4Unit?: string,
+  
 ): DataGridPlot => {
   return {
+    title: title,
     i: generateUuid(),
     static: false,
     plot: [],
-    title: title,
     xAxisName: xAxisName,
     yAxisName: yAxisName,
-    xAxisPath: xAxisPath,
-    yAxisPath: yAxisPath,
+    y2AxisName: y2AxisName,
+    y3AxisName: y3AxisName,
+    y4AxisName: y4AxisName,
+    yUnit: yUnit,
+    y2Unit: y2Unit,
+    y3Unit: y3Unit,
+    y4Unit: y4Unit,
+    
+    //default layout position
     x: 0,
     y: 0,
     w: 6,
@@ -27,51 +40,37 @@ export const generateNewPlot = (
 };
 
 export async function plotData(
+  title: string,
   dataPlot: DataGridPlot,
   xData: number[],
   yData: number[],
+  nodeUri: string,
+
   yName: string,
-  yAxisPath: string,
-  y2Name?: string,
-  y2Data?: number[],
-  y2AxisPath?: string,
+  y2Axis?: boolean,
 
 ): Promise<DataGridPlot> {
-  const trace1: DataPlotly = {
+  const trace: DataPlotly = {
     x: xData,
     y: yData,
     name: yName,
-    nodeUri: yAxisPath,
-    // type: 'scatter',
     mode: 'lines',
+    nodeUri: nodeUri,
   };
-  dataPlot.plot.push(trace1);
 
 
 
-  if (y2Data && y2AxisPath) {
-    const trace2: DataPlotly = {
-      x: xData,
-      y: y2Data,
-      name: y2Name,
-      yaxis: 'y2',
-      // type: 'scatter',
-      nodeUri: y2AxisPath,
-      mode: 'lines',
-
-    };
-
+  if (y2Axis) {
+    trace.yaxis = 'y2';
+    
     dataPlot = {
-      title: `${yName}/${y2Name}`,
       ...dataPlot,
-      plot: [...dataPlot.plot, trace2],
-      y2AxisName: y2Name,
-      y2AxisPath: y2AxisPath,
+      title: `${title}`,
     };
 
   } 
 
-  // console.log(dataPlot);
+  dataPlot.plot.push(trace);
 
   return dataPlot;
 }
