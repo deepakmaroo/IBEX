@@ -28,3 +28,28 @@ def test_get_non_existing_node(entry_path):
     response = pytest.test_client.get("/data/field_value", params=parameters)
 
     assert response.status_code == 404
+
+
+def test_plot_data(entry_path):
+    parameters = {
+        "uri": f"imas:mdsplus?path={entry_path}#core_profiles/profiles_1d[:]/time",
+    }
+    response = pytest.test_client.get("/data/plot_data", params=parameters)
+    response_body = response.json()
+
+    assert response.status_code == 200
+
+    assert response_body["data"]["name"] == "time"
+    assert response_body["data"]["unit"] == "s"
+    assert response_body["data"]["shape"] == [5]
+    assert response_body["data"]["path"] == "#core_profiles/profiles_1d[:]/time"
+
+    assert len(response_body["data"]["coordinates"]) == 1
+    time_coordinate = response_body["data"]["coordinates"][0]
+
+    assert time_coordinate["name"] == "time"
+    assert time_coordinate["target"] == "#core_profiles/profiles_1d[:]"
+    assert time_coordinate["unit"] == "s"
+    assert time_coordinate["shape"] == [1, 5]
+    assert time_coordinate["path"] == "#core_profiles/time"
+    assert time_coordinate["description"] == "Generic time"

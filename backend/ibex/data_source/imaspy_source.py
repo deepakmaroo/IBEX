@@ -2,6 +2,7 @@ from typing import Optional, Sequence, List
 
 import imaspy  # type: ignore
 import numpy as np  # type: ignore
+import re  # type: ignore
 from idstools.database import DBMaster  # type: ignore
 from imaspy.ids_metadata import IDSMetadata  # type: ignore
 from imaspy.ids_primitive import IDSNumericArray  # type: ignore
@@ -103,7 +104,7 @@ class IMASPySource(DataSourceInterface):
 
         metadata, coordinates = self._get_metadata_and_coordinates(uri, ids, node_path, occurrence)
         metadata_dict = self._jsonify_metadata(metadata, recursive, show_error_bars)
-        metadata_dict["coordinates"] = coordinates
+        metadata_dict["coordinates"] = list(coordinates.values())
 
         # fill 'shape', but omit it if path points to more than one node
         if metadata_dict["ndim"] > 0 and ":" not in node_path:
@@ -142,6 +143,51 @@ class IMASPySource(DataSourceInterface):
 
         return result
 
+    def _slice_to_string(self, slice_obj: slice | None | int):
+        """
+        Coverts slice object into it's string representation e.g. slice(1,2,3) -> [1:2:3]
+        :param slice_obj: slice object
+        :return: string representation of slice
+        """
+        if slice_obj is None:
+            return ""
+        if not isinstance(slice_obj, slice):
+            # str, int, etc.
+            return f"[{slice_obj}]"
+
+        start = str(slice_obj.start) if slice_obj.start else ""
+        stop = str(slice_obj.stop) if slice_obj.stop else ""
+        step = str(slice_obj.step) if slice_obj.step else ""
+
+        if not step:
+            return f"[{start}:{stop}]"
+        elif not start:
+            return f"[:{stop}:{step}]"
+        elif not stop:
+            return f"[{start}::{step}]"
+        else:
+            return f"[{start}:{stop}:{step}]"
+
+    def _get_path_and_path_ancestors(self, node_path: IDSPath):
+        """
+        Returns list of path and it's ancestors
+        :param node_path: node_path
+        :return: list of path and ancestors
+        """
+
+        # =========== Extract path ancestors ===========
+        path_elements: List[str] = [f"{x[0]}{self._slice_to_string(x[1])}" for x in node_path.items()]
+
+        # contains IDSPaths of all ancestors of path + path itself
+        ancestors_and_path = []
+        for i in range(1, len(path_elements) + 1):
+            ancestors_and_path.append(IDSPath("/".join(path_elements[:i])))
+
+        # sort list to contain leaf nodes coordinates at the beginning
+        ancestors_and_path.sort(key=lambda x: len(str(x)), reverse=True)
+
+        return ancestors_and_path
+
     def _get_metadata_and_coordinates(
         self, uri: str, ids: str, node_path: str, occurrence: int = 0
     ) -> (IDSMetadata, List[str]):
@@ -160,27 +206,19 @@ class IMASPySource(DataSourceInterface):
 
         data_path = IDSPath(node_path)
         node_metadata = data_path.goto_metadata(ids_obj.metadata)
+        ancestors_and_path = self._get_path_and_path_ancestors(data_path)
 
-        # =========== Extract path ancestors ===========
-        path_elements: List[str] = [x[0] for x in data_path.items()]
-
-        # contains IDSPaths of all ancestors of path + path itself
-        ancestors_and_path = []
-        for i in range(1, len(path_elements) + 1):
-            ancestors_and_path.append(IDSPath("/".join(path_elements[:i])))
-
-        # sort list to contain leaf nodes coordinates at the beginning
-        ancestors_and_path.sort(key=lambda x: len(str(x)), reverse=True)
-        # =========== ====================== ===========
-
-        coordinates = []
+        # dict "node" : "coordinate"
+        # e.g "profiles_1d[:]" : "time"
+        coordinates = {}
         for element in ancestors_and_path:
             element_metadata = element.goto_metadata(ids_obj.metadata)
+
             for coord in element_metadata.coordinates:
                 if is_time_homogeneous and coord.is_time_coordinate:
-                    coordinates.append("time")
+                    coordinates[element] = "time"
                 else:
-                    coordinates.append(str(coord))
+                    coordinates[element] = str(coord)
 
         return (node_metadata, coordinates)
 
@@ -409,83 +447,98 @@ class IMASPySource(DataSourceInterface):
 
         return parent_paths
 
+    def _serialize_data(self, data: IDSBase):
+        """
+        Converts data IDS data into serializable values e.g. imaspy.int64 -> int
+        :param data:
+        :return: Serializable data value
+        """
+        if isinstance(data, IDSStructure):
+            raise NotALeafNodeException("Cannot serialize non-leaf node")
+        if isinstance(data, str):
+            return data
+        elif isinstance(data, list):
+            return data
+        elif isinstance(data, IDSNumericArray):
+            return data.value.tolist()
+        elif isinstance(data.value, np.ndarray):
+            return data.tolist()
+        else:
+            return data.value
+
     def get_plot_data(self, uri: str, ids: str, node_path: str, occurrence: int = 0):
         """
-        TODO: fill docstring when fuctionality will be ready
-        :param uri:
-        :param ids:
-        :param node_path:
-        :param occurrence:
-        :return:
+        Returns all data used to plot selected quantity. Result contains data values, metadata and coordinates.
+        :param uri: imas URI
+        :param ids: name of ids e.g. core_profiles
+        :param node_path: path to ids node e.g. ids_properties/version_put
+        :param occurrence: ids occurrence number
+        :return: Dictionary containing data values, metadata and coordinates.
         """
-
-        if "[" in node_path or "(" in node_path:
-            raise NotImplementedError("plot_data does not support array access operator yet (`[` | `(`)")
 
         node_paths = self._expand_node_path(uri, ids, node_path, occurrence)
         ids_data = self._get_raw_data(uri, ids, node_paths, occurrence)
 
-        data_to_be_returned = []
+        data_to_be_returned = [self._serialize_data(data) for data in ids_data]
         coordinates_to_be_returned = []
 
-        for data in ids_data:
-            if isinstance(data, IDSStructure):
-                raise NotALeafNodeException(
-                    f"Path {node_path} does not point to a leaf node. Cannot extract data from it."
-                )
-            if isinstance(data, str):
-                data_to_be_returned.append(data)
-            elif isinstance(data.value, np.ndarray):
-                data_to_be_returned.append(data.tolist())
+        # =================================
+
+        metadata, coordinates_dict = self._get_metadata_and_coordinates(uri, ids, node_path, occurrence)
+
+        # replace all dummy indexes by [:]. i.e. "itime", "i1", "i2", "i3"... -> [:]
+        coordinates_dict = {key: re.sub(r"\[(.*?)\]", r"[:]", value) for key, value in coordinates_dict.items()}
+
+        # =================================
+
+        for target, coord in coordinates_dict.items():
+            if coord == "1...N":
+                # 1...N coords are targeting AoS
+                # remove last [:] from path
+                if str(target)[-3:] == "[:]":
+                    target_str = str(target)[:-3]
+
+                node_paths = self._expand_node_path(uri, ids, str(target_str), occurrence)
+                coord_target_objects = self._get_raw_data(uri, ids, node_paths, occurrence)
+                coord_values = [list(map(int, list(x.coordinates[0]))) for x in coord_target_objects]
+
+                c = {
+                    "name": coord,
+                    "target": f"#{ids}/{target}",
+                    "unit": "-",
+                    "value": coord_values,
+                    "shape": np.asarray(coord_values).shape,
+                    "ndim": 2,
+                    "path": "",
+                    "description": "1...N",
+                }
+                coordinates_to_be_returned.append(c)
+
             else:
-                data_to_be_returned.append(data.value)
+                coord_real_paths = self._expand_node_path(uri, ids, coord, occurrence)
+                coord_data = self._get_raw_data(uri, ids, coord_real_paths, occurrence)
+                serialized_data = [self._serialize_data(x) for x in coord_data]
 
-            for coordinate in data.coordinates:
-                # for 1..N coordinates
-                if isinstance(coordinate, np.ndarray):
-                    c = {
-                        "name": "1..N",
-                        "target": str(data.metadata.path),
-                        "unit": "-",
-                        "value": coordinate.tolist(),
-                        "shape": coordinate.shape,
-                        "ndim": coordinate.ndim,
-                        "path": "",
-                        "description": "1..N",
-                    }
-                    coordinates_to_be_returned.append(c)
-                    continue
-
-                if isinstance(coordinate, str):
-                    coordinate_data = coordinate
-                elif isinstance(coordinate.value, np.ndarray):
-                    coordinate_data = coordinate.tolist()
-                else:
-                    coordinate_data = coordinate.value
-
-                if coordinate.metadata.name in [x["name"] for x in coordinates_to_be_returned]:
-                    coordinates_to_be_returned[coordinate.metadata.name]["value"].append(coordinate)
-                else:
-                    c = {
-                        "name": coordinate.metadata.name,
-                        "target": str(data.metadata.path),
-                        "unit": coordinate.metadata.units,
-                        "value": coordinate_data,
-                        "shape": coordinate.shape,
-                        "ndim": coordinate.metadata.ndim,
-                        "path": str(coordinate.metadata.path),
-                        "description": coordinate.metadata.documentation,
-                    }
-                    coordinates_to_be_returned.append(c)
+                c = {
+                    "name": coord.split("/")[-1],
+                    "target": f"#{ids}/{target}",
+                    "unit": coord_data[0].metadata.units,
+                    "value": serialized_data,
+                    "shape": np.asarray(serialized_data).shape,
+                    "ndim": coord_data[0].metadata.ndim,
+                    "path": f"#{ids}/{coord}",
+                    "description": coord_data[0].metadata.documentation,
+                }
+                coordinates_to_be_returned.append(c)
 
         result = {
             "data": {
                 "name": node_path.split("/")[-1],
                 "unit": ids_data[0].metadata.units,
                 "value": data_to_be_returned,
-                "shape": [],
+                "shape": np.asarray(data_to_be_returned).shape,
                 "ndim": ids_data[0].metadata.ndim,
-                "path": str(ids_data[0].metadata.path),
+                "path": f"#{ids}/{node_path}",
                 "description": ids_data[0].metadata.documentation,
                 "coordinates": coordinates_to_be_returned,
             }
