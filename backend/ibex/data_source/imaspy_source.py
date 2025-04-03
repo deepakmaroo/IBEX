@@ -13,8 +13,15 @@ from imaspy.ids_data_type import IDSDataType  # type: ignore
 from imaspy.ids_base import IDSBase  # type: ignore
 from imaspy.ids_path import IDSPath  # type: ignore
 
+from imas_core.exception import ImasCoreBackendException
+
 from ibex.data_source.data_source_interface import DataSourceInterface
-from ibex.data_source.exception import NotALeafNodeException, NotAnArrayException
+from ibex.data_source.exception import (
+    NodeNotFoundException,
+    IdsNotFoundException,
+    NotALeafNodeException,
+    NotAnArrayException,
+)
 
 
 class IMASPySource(DataSourceInterface):
@@ -28,7 +35,7 @@ class IMASPySource(DataSourceInterface):
         try:
             entry = imaspy.DBEntry(uri, mode="r")
             entry.close()
-        except Exception:  # imas_core.exception.ImasCoreBackendException
+        except ImasCoreBackendException:
             return False
         return True
 
@@ -38,7 +45,10 @@ class IMASPySource(DataSourceInterface):
         :param uri: imas URI
         :return: dictionary: {'idses': [{'name':<name>, 'occurrences':[<0>,<1>,...]}, {'name': ...}]}
         """
-        entry = imaspy.DBEntry(uri, mode="r")
+        try:
+            entry = imaspy.DBEntry(uri, mode="r")
+        except ImasCoreBackendException as e:
+            raise IdsNotFoundException(e) from None
         ids_list = entry.factory.ids_names()
         result: dict = {"idses": []}
 
@@ -133,12 +143,21 @@ class IMASPySource(DataSourceInterface):
         """
 
         result = []
-        entry = imaspy.DBEntry(uri, mode="r")
-        ids_obj = entry.get(ids, lazy=True, autoconvert=False, occurrence=occurrence)
+        try:
+            entry = imaspy.DBEntry(uri, mode="r")
+        except ImasCoreBackendException as e:
+            raise IdsNotFoundException(e) from None
+        try:
+            ids_obj = entry.get(ids, lazy=True, autoconvert=False, occurrence=occurrence)
+        except imaspy.exception.IDSNameError as e:
+            raise IdsNotFoundException(e) from None
 
         for node_path in node_paths:
             data_path = imaspy.ids_path.IDSPath(node_path)
-            ids_data = data_path.goto(ids_obj, from_root=True)
+            try:
+                ids_data = data_path.goto(ids_obj, from_root=True)
+            except AttributeError as e:
+                raise NodeNotFoundException(e) from None
             result.append(ids_data)
 
         return result
@@ -200,12 +219,23 @@ class IMASPySource(DataSourceInterface):
         :return:
         """
 
-        entry = imaspy.DBEntry(uri, mode="r")
-        ids_obj = entry.get(ids, lazy=True, autoconvert=False, occurrence=occurrence)
+        try:
+            entry = imaspy.DBEntry(uri, mode="r")
+        except ImasCoreBackendException as e:
+            raise IdsNotFoundException(e) from None
+
+        try:
+            ids_obj = entry.get(ids, lazy=True, autoconvert=False, occurrence=occurrence)
+        except imaspy.exception.IDSNameError as e:
+            raise IdsNotFoundException(e) from None
+
         is_time_homogeneous = ids_obj.ids_properties.homogeneous_time
 
         data_path = IDSPath(node_path)
-        node_metadata = data_path.goto_metadata(ids_obj.metadata)
+        try:
+            node_metadata = data_path.goto_metadata(ids_obj.metadata)
+        except ValueError as e:
+            raise NodeNotFoundException(e) from None
         ancestors_and_path = self._get_path_and_path_ancestors(data_path)
 
         # dict "node" : "coordinate"
@@ -283,7 +313,11 @@ class IMASPySource(DataSourceInterface):
         :param show_error_bars: whether error bar nodes should be returned, or not
         :return: dictionary {'paths': ['path/to/node1','path/to/node2', ...]}
         """
-        entry = imaspy.DBEntry(uri, mode="r")
+        try:
+            entry = imaspy.DBEntry(uri, mode="r")
+        except ImasCoreBackendException as e:
+            raise IdsNotFoundException(e) from None
+
         found_paths = []
         ids_list = entry.factory.ids_names()
 
@@ -435,13 +469,20 @@ class IMASPySource(DataSourceInterface):
         """
         parent_paths = [""]
 
-        entry = imaspy.DBEntry(uri, mode="r")
-        ids_root = entry.get(ids, occurrence=occurrence, lazy=True)
+        try:
+            entry = imaspy.DBEntry(uri, mode="r")
+        except ImasCoreBackendException as e:
+            raise IdsNotFoundException(e) from None
+
+        try:
+            ids_root = entry.get(ids, lazy=True, autoconvert=False, occurrence=occurrence)
+        except imaspy.exception.IDSNameError as e:
+            raise IdsNotFoundException(e) from None
 
         for path_element in node_path.split("/"):
             parent_paths = self._expand_single_path_element(ids_root, path_element, parent_paths)
             if not parent_paths:
-                raise Exception(
+                raise NodeNotFoundException(
                     f"Cannot evaluate path. Path element: {path_element} from path: {node_path} returned empty list."
                 )
 

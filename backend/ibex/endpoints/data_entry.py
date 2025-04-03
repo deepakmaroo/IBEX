@@ -1,6 +1,6 @@
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException  # type: ignore
+from fastapi import APIRouter  # type: ignore
 
 from ibex.core import ibex_service
 
@@ -16,10 +16,7 @@ async def exists(uri: str) -> dict:
 @router.get("/data_entry/list_idses/")
 @ibex_service.measure_execution_time
 async def list_idses(uri: str) -> dict:
-    try:
-        return ibex_service.list_idses(uri)
-    except Exception as e:
-        raise HTTPException(status_code=404, detail=f"{e}")
+    return ibex_service.list_idses(uri)
 
 
 @router.get("/data_entry/available_entries/")
@@ -35,7 +32,4 @@ async def available_entries(
     else:
         backends = backend.split(" ")
 
-    try:
-        return ibex_service.list_db_entries(user, backends, database, int(version))
-    except Exception as e:
-        raise HTTPException(status_code=404, detail=f"{e}")
+    return ibex_service.list_db_entries(user, backends, database, int(version))
