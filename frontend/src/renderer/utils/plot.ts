@@ -37,8 +37,8 @@ export async function plotData(
   xData: number[],
   yData: number[],
   nodeUri: string,
-
   yName: string,
+  unit: string,
   y2Axis?: boolean,
 
 ): Promise<DataGridPlot> {
@@ -48,6 +48,7 @@ export async function plotData(
     name: yName,
     mode: 'lines',
     nodeUri: nodeUri,
+    unit: unit,
   };
 
 

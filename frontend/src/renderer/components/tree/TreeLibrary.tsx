@@ -148,18 +148,15 @@ function NodeIcon({
       ) {
         // Fetch checkedNodes with Config
         if (checked) {
-          console.log("checkedNodes tree checked", checkedNodes)
           tree.uncheckNode(node.value);
           checkedNodes = checkedNodes.filter(
             (uncheckedNode) => uncheckedNode !== node.value,
           );
 
         } else {
-          console.log("checkedNodes tree not checked", checkedNodes);
           tree.checkNode(node.value);
           checkedNodes.push(node.value);
         }
-        console.log("checkedNodes tree", checkedNodes);
         setChecked(!checked); 
         getCheckedNodes(checkedNodes); // Save checkedNodes in config
       }

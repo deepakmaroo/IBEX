@@ -116,7 +116,6 @@ export const VisualizationPlot = () => {
           onLayoutChange={(layout) => handleUpdateLayout(layout)}
         >
           {active.dataPlot.map((plotData: DataGridPlot) => {
-            console.log("plotData", plotData);
             return (
               <Paper
                 shadow="sm"

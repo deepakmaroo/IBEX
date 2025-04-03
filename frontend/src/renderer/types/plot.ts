@@ -14,7 +14,7 @@ export interface SimplePlotlyProps {
 
 export type DataPlotly = Data & {
   nodeUri:string;
-
+  unit: string;
 };
 
 export interface DataGridPlot extends Layout {
