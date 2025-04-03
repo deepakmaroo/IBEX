@@ -58,6 +58,7 @@ export const TreeLibrariesAccordion = ({
   handleSelectChildren,
   getNodesChecked,
 }: VisualizationTreeProps) => {
+
   const items = customDataTree.map((item) => {
     return (
       <Accordion.Item key={`accodion-${item.uri}`} value={`${item.uri}`}>

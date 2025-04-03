@@ -410,14 +410,14 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
    * @param uri
    * @param nodes
    */
-  const getNodesChecked = async (nodes: string[]) => {
-    let updatedActive: Configuration = { ...active, checkedNodeURI: nodes };
+  const getNodesChecked = useCallback (async (nodes: string[]) => {
+    let updatedActive: Configuration = { ...active, checkedNodeURI: [...nodes] };
   
     try {
       const findDataPlot = updatedActive.dataPlot.find(plot => plot.i === updatedActive.plotEditableUuid);
   
       if (!findDataPlot) {
-        return await handleNewPlot(nodes, updatedActive);
+        updatedActive = await handleNewPlot(nodes, updatedActive);
       }
   
       if (nodes.length === 0) {
@@ -431,11 +431,11 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
       console.log('check finally');
       updatedConfiguration(updatedActive);
     }
-  };
+  }, [active, updatedConfiguration]);
   
-  const handleNewPlot = async (nodes: string[], updatedActive: Configuration) => {
+  const handleNewPlot = async (nodes: string[], updatedActive: Configuration): Promise<Configuration> => {
     const response = await fetchDataPlot(nodes[0]);
-    if (!response || response.data.ndim !== 1) return;
+    if (!response || response.data.ndim !== 1) return updatedActive;
   
     const newPlot = generateNewPlot(
       `${response.data.name}(${response.data.unit})`,
@@ -456,10 +456,10 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
   
     updatedActive.dataPlot.push(updatedPlot);
     updatedActive.plotEditableUuid = updatedPlot.i;
-    updatedConfiguration(updatedActive);
+    return updatedActive;
   };
   
-  const handleExistingPlot = async (nodes: string[], findDataPlot: DataGridPlot, updatedActive: Configuration) => {
+  const handleExistingPlot = async (nodes: string[], findDataPlot: DataGridPlot, updatedActive: Configuration): Promise<Configuration>  => {
     const dataPlotted = nodes.filter(node => !findDataPlot.plot.some(plot => plot.nodeUri === node));
   
     if (dataPlotted.length === 0) {
@@ -493,7 +493,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
     return updatedActive;
   };
   
-  const updateExistingPlots = (nodes: string[], findDataPlot: DataGridPlot, updatedActive: Configuration) => {
+  const updateExistingPlots = (nodes: string[], findDataPlot: DataGridPlot, updatedActive: Configuration): Configuration => {
     const plots = findDataPlot.plot.filter(plot => nodes.includes(plot.nodeUri));
     if (plots.every(plot => plot.unit === plots[0].unit)) {
       findDataPlot.y2AxisName = '';

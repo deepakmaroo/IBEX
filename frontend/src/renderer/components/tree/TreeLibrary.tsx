@@ -28,6 +28,8 @@ interface NodeIconProps {
   expanded: boolean;
   checkedNodes: string[];
   tree: UseTreeReturnType;
+  textRef: React.RefObject<HTMLDivElement>;
+  isOverflowing: boolean;
   getCheckedNodes: (nodes: string[]) => void;
 }
 
@@ -104,19 +106,10 @@ function Element({
         node={node}
         checkedNodes={checkedNodes}
         tree={tree}
+        textRef={textRef}
+        isOverflowing={isTextOverflowing}
         getCheckedNodes={getCheckedNodes}
       />
-      {isTextOverflowing ? (
-        <Tooltip label={node.label} position="left">
-          <Text truncate="end" w={125} ref={textRef}>
-            {node.label}
-          </Text>
-        </Tooltip>
-      ) : (
-        <Text truncate="end" w={125} ref={textRef}>
-          {node.label}
-        </Text>
-      )}
     </Group>
   );
 }
@@ -127,11 +120,16 @@ function NodeIcon({
   expanded,
   checkedNodes,
   tree,
+  isOverflowing,
+  textRef,
   getCheckedNodes,
 }: NodeIconProps) {
-  const [checked, setChecked] = useState<boolean>(
-    checkedNodes.includes(node.value)
-  );
+  const [checked, setChecked] = useState<boolean>(false);
+
+  useEffect(() => {
+    setChecked(checkedNodes.includes(node.value));
+  }, [checkedNodes]);
+
   const getNodeIcon = (type: NodeInfoTypeEnum, expanded: boolean) => {
     const commonProps = {
       size: 14,
@@ -152,51 +150,85 @@ function NodeIcon({
           checkedNodes = checkedNodes.filter(
             (uncheckedNode) => uncheckedNode !== node.value,
           );
-
         } else {
           tree.checkNode(node.value);
           checkedNodes.push(node.value);
         }
-        setChecked(!checked); 
+        setChecked(!checked);
         getCheckedNodes(checkedNodes); // Save checkedNodes in config
       }
-    }, [
-      checked,
-      checkedNodes,
-      getCheckedNodes,
-      node.value,
-      tree,
-      type,
-    ])
+    }, [checked, checkedNodes, getCheckedNodes, node.value, tree, type]);
+
+    const labels = isOverflowing ? (
+      <Tooltip label={node.label} position="left">
+        <Text truncate="end" w={125} ref={textRef}>
+          {node.label}
+        </Text>
+      </Tooltip>
+    ) : (
+      <Text truncate="end" w={125} ref={textRef}>
+        {node.label}
+      </Text>
+    );
 
     const icons: Record<NodeInfoTypeEnum, JSX.Element> = {
       [NodeInfoTypeEnum.STRUCTURE]: expanded ? (
-        <IconFolderOpen {...commonProps} />
+        <Group>
+          <IconFolderOpen {...commonProps} />
+          {labels}
+        </Group>
       ) : (
-        <IconFolder {...commonProps} />
+        <>
+          <IconFolder {...commonProps} />
+          {labels}
+        </>
       ),
       [NodeInfoTypeEnum.ARRAY]: expanded ? (
-        <IconFolderOpen {...commonProps} />
+        <Group>
+          <IconFolderOpen {...commonProps} />
+          {labels}
+        </Group>
       ) : (
-        <IconFolder {...commonProps} />
+        <Group>
+          <IconFolder {...commonProps} />
+          {labels}
+        </Group>
       ),
       [NodeInfoTypeEnum.INTEGER]: (
-        <>
-          <Checkbox checked={checked} onChange={handleCheckNode} />
-          <IconHash {...commonProps} />
-        </>
+        <Checkbox
+          checked={checked}
+          onChange={handleCheckNode}
+          label={
+            <Group>
+              <IconHash {...commonProps} />
+              {labels}
+            </Group>
+          }
+        />
       ),
       [NodeInfoTypeEnum.FLOAT]: (
-        <>
-          <Checkbox checked={checked} onChange={handleCheckNode} />
-          <IconRipple {...commonProps} />
-        </>
+        <Checkbox
+          checked={checked}
+          onChange={handleCheckNode}
+          label={
+            <Group>
+              <IconRipple {...commonProps} />
+              {labels}
+            </Group>
+          }
+        />
       ),
       [NodeInfoTypeEnum.STRING]: (
-        <>
-          <Checkbox checked={checked} onChange={handleCheckNode} />
-          <IconTypography {...commonProps} />
-        </>
+        <Checkbox
+          checked={checked}
+          onChange={handleCheckNode}
+          label={
+            <Group>
+              <IconTypography {...commonProps} />
+              {labels}
+            </Group>
+          }
+        />
       ),
     };
     return icons[type] || <IconFileUnknown {...commonProps} />;
@@ -223,6 +255,10 @@ export const TreeLibrary = ({
 }: TreeLibraryProps) => {
   const tree = useTree();
   const [selectedNode, setSelectedNode] = useState<string>(null);
+
+  useEffect(() => {
+    console.log('checkedNodes:', checkedNodes);
+  }, [checkedNodes]);
 
   const expandNodesWithFiles = (nodes: CustomTreeNodeData[]) => {
     const expandRecursively = (node: CustomTreeNodeData) => {
