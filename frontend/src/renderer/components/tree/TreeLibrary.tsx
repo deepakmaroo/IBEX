@@ -137,14 +137,14 @@ function NodeIcon({
       color: 'var(--mantine-color-blue-8)',
     };
 
-    // Check the node and save config
     const handleCheckNode = useCallback(() => {
       if (
-        type === NodeInfoTypeEnum.INTEGER ||
-        type === NodeInfoTypeEnum.FLOAT ||
-        type === NodeInfoTypeEnum.STRING
+        [
+          NodeInfoTypeEnum.INTEGER,
+          NodeInfoTypeEnum.FLOAT,
+          NodeInfoTypeEnum.STRING,
+        ].includes(type)
       ) {
-        // Fetch checkedNodes with Config
         if (checked) {
           tree.uncheckNode(node.value);
           checkedNodes = checkedNodes.filter(
@@ -155,82 +155,61 @@ function NodeIcon({
           checkedNodes.push(node.value);
         }
         setChecked(!checked);
-        getCheckedNodes(checkedNodes); // Save checkedNodes in config
+        getCheckedNodes(checkedNodes);
       }
     }, [checked, checkedNodes, getCheckedNodes, node.value, tree, type]);
 
-    const labels = isOverflowing ? (
-      <Tooltip label={node.label} position="left">
+    const labels = (
+      <Tooltip label={node.label} position="left" disabled={!isOverflowing}>
         <Text truncate="end" w={125} ref={textRef}>
           {node.label}
         </Text>
       </Tooltip>
-    ) : (
-      <Text truncate="end" w={125} ref={textRef}>
-        {node.label}
-      </Text>
+    );
+
+    const getFolderIcon = () => (
+      <Group gap={2}>
+        {expanded ? (
+          <IconFolderOpen {...commonProps} />
+        ) : (
+          <IconFolder {...commonProps} />
+        )}
+        {labels}
+      </Group>
+    );
+
+    const getCheckboxIcon = (IconComponent: JSX.Element) => (
+      <Checkbox
+        checked={checked}
+        onChange={handleCheckNode}
+        styles={{
+          label: {
+            paddingLeft: 5,
+          }
+        }}
+        label={
+          <Group gap={2}>
+            {IconComponent}
+            {labels}
+          </Group>
+        }
+      />
     );
 
     const icons: Record<NodeInfoTypeEnum, JSX.Element> = {
-      [NodeInfoTypeEnum.STRUCTURE]: expanded ? (
-        <Group>
-          <IconFolderOpen {...commonProps} />
-          {labels}
-        </Group>
-      ) : (
-        <>
-          <IconFolder {...commonProps} />
-          {labels}
-        </>
+      [NodeInfoTypeEnum.STRUCTURE]: getFolderIcon(),
+      [NodeInfoTypeEnum.ARRAY]: getFolderIcon(),
+      [NodeInfoTypeEnum.INTEGER]: getCheckboxIcon(
+        <IconHash {...commonProps} />,
       ),
-      [NodeInfoTypeEnum.ARRAY]: expanded ? (
-        <Group>
-          <IconFolderOpen {...commonProps} />
-          {labels}
-        </Group>
-      ) : (
-        <Group>
-          <IconFolder {...commonProps} />
-          {labels}
-        </Group>
+      [NodeInfoTypeEnum.FLOAT]: getCheckboxIcon(
+        <IconRipple {...commonProps} />,
       ),
-      [NodeInfoTypeEnum.INTEGER]: (
-        <Checkbox
-          checked={checked}
-          onChange={handleCheckNode}
-          label={
-            <Group>
-              <IconHash {...commonProps} />
-              {labels}
-            </Group>
-          }
-        />
-      ),
-      [NodeInfoTypeEnum.FLOAT]: (
-        <Checkbox
-          checked={checked}
-          onChange={handleCheckNode}
-          label={
-            <Group>
-              <IconRipple {...commonProps} />
-              {labels}
-            </Group>
-          }
-        />
-      ),
-      [NodeInfoTypeEnum.STRING]: (
-        <Checkbox
-          checked={checked}
-          onChange={handleCheckNode}
-          label={
-            <Group>
-              <IconTypography {...commonProps} />
-              {labels}
-            </Group>
-          }
-        />
+      [NodeInfoTypeEnum.STRING]: getCheckboxIcon(
+        <IconTypography {...commonProps} />,
       ),
     };
+
     return icons[type] || <IconFileUnknown {...commonProps} />;
   };
 

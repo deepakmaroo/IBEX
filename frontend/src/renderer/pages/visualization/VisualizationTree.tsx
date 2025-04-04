@@ -410,40 +410,57 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
    * @param uri
    * @param nodes
    */
-  const getNodesChecked = useCallback (async (nodes: string[]) => {
-    let updatedActive: Configuration = { ...active, checkedNodeURI: [...nodes] };
-  
-    try {
-      const findDataPlot = updatedActive.dataPlot.find(plot => plot.i === updatedActive.plotEditableUuid);
-  
-      if (!findDataPlot) {
-        updatedActive = await handleNewPlot(nodes, updatedActive);
+  const getNodesChecked = useCallback(
+    async (nodes: string[]) => {
+      let updatedActive: Configuration = {
+        ...active,
+        checkedNodeURI: [...nodes],
+      };
+
+      try {
+        const findDataPlot = updatedActive.dataPlot.find(
+          (plot) => plot.i === updatedActive.plotEditableUuid,
+        );
+
+        if (!findDataPlot) {
+          updatedActive = await handleNewPlot(nodes, updatedActive);
+        }
+
+        if (nodes.length === 0) {
+          updatedActive.dataPlot = active.dataPlot.filter(
+            (plot) => plot.i !== updatedActive.plotEditableUuid,
+          );
+        } else {
+          updatedActive = await handleExistingPlot(
+            nodes,
+            findDataPlot,
+            updatedActive,
+          );
+        }
+      } catch (error) {
+        console.error(error);
+      } finally {
+        console.log('check finally');
+        updatedConfiguration(updatedActive);
       }
-  
-      if (nodes.length === 0) {
-        updatedActive.dataPlot = active.dataPlot.filter(plot => plot.i !== updatedActive.plotEditableUuid);
-      } else {
-        updatedActive = await handleExistingPlot(nodes, findDataPlot, updatedActive);
-      }
-    } catch (error) {
-      console.error(error);
-    } finally {
-      console.log('check finally');
-      updatedConfiguration(updatedActive);
-    }
-  }, [active, updatedConfiguration]);
-  
-  const handleNewPlot = async (nodes: string[], updatedActive: Configuration): Promise<Configuration> => {
+    },
+    [active, updatedConfiguration],
+  );
+
+  const handleNewPlot = async (
+    nodes: string[],
+    updatedActive: Configuration,
+  ): Promise<Configuration> => {
     const response = await fetchDataPlot(nodes[0]);
     if (!response || response.data.ndim !== 1) return updatedActive;
-  
+
     const newPlot = generateNewPlot(
       `${response.data.name}(${response.data.unit})`,
       `${response.data.coordinates[0].name}(${response.data.coordinates[0].unit})`,
       response.data.unit,
-      response.data.unit
+      response.data.unit,
     );
-  
+
     const updatedPlot = await plotData(
       `${response.data.name}(${response.data.unit})`,
       newPlot,
@@ -451,59 +468,105 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
       response.data.value[0],
       nodes[0],
       `${response.data.name}(${response.data.unit})`,
-      response.data.unit
+      response.data.unit,
     );
-  
+
     updatedActive.dataPlot.push(updatedPlot);
     updatedActive.plotEditableUuid = updatedPlot.i;
     return updatedActive;
   };
-  
-  const handleExistingPlot = async (nodes: string[], findDataPlot: DataGridPlot, updatedActive: Configuration): Promise<Configuration>  => {
-    const dataPlotted = nodes.filter(node => !findDataPlot.plot.some(plot => plot.nodeUri === node));
-  
+
+  const handleExistingPlot = async (
+    nodes: string[],
+    findDataPlot: DataGridPlot,
+    updatedActive: Configuration,
+  ): Promise<Configuration> => {
+    const dataPlotted = nodes.filter(
+      (node) => !findDataPlot?.plot.some((plot) => plot.nodeUri === node),
+    );
+
     if (dataPlotted.length === 0) {
       return updateExistingPlots(nodes, findDataPlot, updatedActive);
     }
-  
+
     for (const node of dataPlotted) {
       const response = await fetchDataPlot(node);
       if (!response || response.data.ndim !== 1) {
-        showNotification({ title: 'Plot', message: 'Cannot plot data with more than one dimension', color: 'yellow' });
-        updatedActive.checkedNodeURI = nodes.filter(n => n !== node);
+        showNotification({
+          title: 'Plot',
+          message: 'Cannot plot data with more than one dimension',
+          color: 'yellow',
+        });
+        updatedActive.checkedNodeURI = nodes.filter((n) => n !== node);
         continue;
       }
-  
+
       const unit = response.data.unit;
-      const unitIsSame = findDataPlot.yUnit === unit || findDataPlot.y2Unit === unit;
+      const unitIsSame =
+        findDataPlot.yUnit === unit || findDataPlot.y2Unit === unit;
       const title = `${findDataPlot.title}/ ${response.data.name}(${unit})`;
-  
+
       if (unitIsSame) {
-        const updatedPlot = await plotData(title, findDataPlot, response.data.coordinates[0].value, response.data.value[0], node, `${response.data.name}(${unit})`, unit);
-        updatedActive.dataPlot = [...active.dataPlot.filter(plot => plot.i !== findDataPlot.i), updatedPlot];
+        const updatedPlot = await plotData(
+          title,
+          findDataPlot,
+          response.data.coordinates[0].value,
+          response.data.value[0],
+          node,
+          `${response.data.name}(${unit})`,
+          unit,
+        );
+        updatedActive.dataPlot = [
+          ...active.dataPlot?.filter((plot) => plot.i !== findDataPlot.i),
+          updatedPlot,
+        ];
       } else if (!findDataPlot.y2AxisName) {
         findDataPlot.y2AxisName = unit;
-        const updatedPlot = await plotData(title, findDataPlot, response.data.coordinates[0].value, response.data.value[0], node, `${response.data.name}(${unit})`, unit, true);
-        updatedActive.dataPlot = [...active.dataPlot.filter(plot => plot.i !== findDataPlot.i), updatedPlot];
+        const updatedPlot = await plotData(
+          title,
+          findDataPlot,
+          response.data.coordinates[0].value,
+          response.data.value[0],
+          node,
+          `${response.data.name}(${unit})`,
+          unit,
+          true,
+        );
+        updatedActive.dataPlot = [
+          ...active.dataPlot?.filter((plot) => plot.i !== findDataPlot.i),
+          updatedPlot,
+        ];
       } else {
-        showNotification({ title: 'Plot', message: 'Cannot plot data with more than one dimension', color: 'yellow' });
-        updatedActive.checkedNodeURI = nodes.filter(n => n !== node);
+        showNotification({
+          title: 'Plot',
+          message: 'Plot already contains 2 y axes',
+          color: 'yellow',
+        });
+        updatedActive.checkedNodeURI = nodes.filter((n) => n !== node);
       }
     }
     return updatedActive;
   };
-  
-  const updateExistingPlots = (nodes: string[], findDataPlot: DataGridPlot, updatedActive: Configuration): Configuration => {
-    const plots = findDataPlot.plot.filter(plot => nodes.includes(plot.nodeUri));
-    if (plots.every(plot => plot.unit === plots[0].unit)) {
+
+  const updateExistingPlots = (
+    nodes: string[],
+    findDataPlot: DataGridPlot,
+    updatedActive: Configuration,
+  ): Configuration => {
+    const plots = findDataPlot?.plot.filter((plot) =>
+      nodes.includes(plot.nodeUri),
+    );
+    if (plots.every((plot) => plot.unit === plots[0].unit)) {
       findDataPlot.y2AxisName = '';
     }
     findDataPlot.plot = plots;
-    findDataPlot.title = plots.map(plot => plot.name).join('/');
-    updatedActive.dataPlot = [...active.dataPlot.filter(plot => plot.i !== findDataPlot.i), findDataPlot];
+    findDataPlot.title = plots.map((plot) => plot.name).join('/');
+    updatedActive.dataPlot = [
+      ...active.dataPlot.filter((plot) => plot.i !== findDataPlot.i),
+      findDataPlot,
+    ];
     return updatedActive;
   };
-  
 
   return (
     <Container fluid p={0}>
