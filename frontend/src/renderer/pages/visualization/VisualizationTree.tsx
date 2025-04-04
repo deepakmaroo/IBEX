@@ -418,12 +418,15 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
       };
 
       try {
-        const findDataPlot = updatedActive.dataPlot.find(
+        let findDataPlot = updatedActive.dataPlot.find(
           (plot) => plot.i === updatedActive.plotEditableUuid,
         );
 
         if (!findDataPlot) {
           updatedActive = await handleNewPlot(nodes, updatedActive);
+          findDataPlot = updatedActive.dataPlot.find(
+            (plot) => plot.i === updatedActive.plotEditableUuid,
+          );
         }
 
         if (nodes.length === 0) {
@@ -440,11 +443,10 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
       } catch (error) {
         console.error(error);
       } finally {
-        console.log('check finally');
         updatedConfiguration(updatedActive);
       }
     },
-    [active, updatedConfiguration],
+    [active],
   );
 
   const handleNewPlot = async (
@@ -452,7 +454,16 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
     updatedActive: Configuration,
   ): Promise<Configuration> => {
     const response = await fetchDataPlot(nodes[0]);
-    if (!response || response.data.ndim !== 1) return updatedActive;
+
+    if (!response || response.data.ndim !== 1) {
+      showNotification({
+        title: 'Plot',
+        message: 'Cannot plot data with more than one dimension',
+        color: 'yellow',
+      });
+      updatedActive.checkedNodeURI = nodes.filter((n) => n !== nodes[0]);
+      return updatedActive;
+    }
 
     const newPlot = generateNewPlot(
       `${response.data.name}(${response.data.unit})`,
@@ -482,8 +493,9 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
     updatedActive: Configuration,
   ): Promise<Configuration> => {
     const dataPlotted = nodes.filter(
-      (node) => !findDataPlot?.plot.some((plot) => plot.nodeUri === node),
+      (node) => !findDataPlot.plot.some((plot) => plot.nodeUri === node),
     );
+    
 
     if (dataPlotted.length === 0) {
       return updateExistingPlots(nodes, findDataPlot, updatedActive);
@@ -522,6 +534,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
         ];
       } else if (!findDataPlot.y2AxisName) {
         findDataPlot.y2AxisName = unit;
+        findDataPlot.y2Unit = unit;
         const updatedPlot = await plotData(
           title,
           findDataPlot,
@@ -557,8 +570,16 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
       nodes.includes(plot.nodeUri),
     );
     if (plots.every((plot) => plot.unit === plots[0].unit)) {
+      findDataPlot.yAxisName = plots[0].unit;
+      findDataPlot.yUnit = plots[0].unit;
       findDataPlot.y2AxisName = '';
+      findDataPlot.y2Unit = '';
+
+      for (const plot of plots) {
+        plot.yaxis = '';
+      }
     }
+
     findDataPlot.plot = plots;
     findDataPlot.title = plots.map((plot) => plot.name).join('/');
     updatedActive.dataPlot = [

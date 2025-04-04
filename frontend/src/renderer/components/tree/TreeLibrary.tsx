@@ -235,10 +235,6 @@ export const TreeLibrary = ({
   const tree = useTree();
   const [selectedNode, setSelectedNode] = useState<string>(null);
 
-  useEffect(() => {
-    console.log('checkedNodes:', checkedNodes);
-  }, [checkedNodes]);
-
   const expandNodesWithFiles = (nodes: CustomTreeNodeData[]) => {
     const expandRecursively = (node: CustomTreeNodeData) => {
       if (!node.children || node.children.length === 0) return; // No data on folder
