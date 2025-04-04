@@ -22,6 +22,14 @@ class IdsNotFoundException(IbexException):
         super().__init__(message, code)
 
 
+class EntryNotFoundException(IbexException):
+    "Raised when requested DBEntry cannot be opened"
+
+    def __init__(self, message: str, code: int = 404):
+        self.code = code
+        super().__init__(message, code)
+
+
 class ResultTooLong(IbexException):
     "Raised when generated result is too long be useful"
 

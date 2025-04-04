@@ -10,6 +10,7 @@ from ibex.data_source.exception import (
     IdsNotFoundException,
     NotALeafNodeException,
     NotAnArrayException,
+    EntryNotFoundException,
 )
 
 from .exception_handlers import general_exception_handler
@@ -32,6 +33,7 @@ app.add_exception_handler(NodeNotFoundException, general_exception_handler)
 app.add_exception_handler(IdsNotFoundException, general_exception_handler)
 app.add_exception_handler(NotALeafNodeException, general_exception_handler)
 app.add_exception_handler(NotAnArrayException, general_exception_handler)
+app.add_exception_handler(EntryNotFoundException, general_exception_handler)
 
 
 try:

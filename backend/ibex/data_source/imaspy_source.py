@@ -6,7 +6,6 @@ import re  # type: ignore
 from idstools.database import DBMaster  # type: ignore
 from imaspy.ids_metadata import IDSMetadata  # type: ignore
 from imaspy.ids_primitive import IDSNumericArray  # type: ignore
-from imaspy.ids_primitive import IDSPrimitive  # type: ignore
 from imaspy.ids_struct_array import IDSStructArray  # type: ignore
 from imaspy.ids_structure import IDSStructure  # type: ignore
 from imaspy.ids_data_type import IDSDataType  # type: ignore
@@ -21,10 +20,37 @@ from ibex.data_source.exception import (
     IdsNotFoundException,
     NotALeafNodeException,
     NotAnArrayException,
+    EntryNotFoundException,
 )
 
 
 class IMASPySource(DataSourceInterface):
+    def _open_entry(self, uri: str) -> imaspy.DBEntry:
+        """
+        Opens DBEntry with mode "r". Handles possible exceptions.
+        :param uri: imas URI
+        :return: DBEntry object
+        """
+        try:
+            return imaspy.DBEntry(uri, mode="r")
+        except ImasCoreBackendException as e:
+            raise EntryNotFoundException(e) from None
+
+    def _open_entry_and_get_ids(self, uri: str, ids: str, occurrence: int = 0):
+        """
+        Opens DBEntry with mode "r" and reads an IDS. Handles possible exceptions.
+        :param uri: imas URI
+        :param ids: name of ids e.g. core_profiles
+        :param occurrence: ids occurrence number
+        :return: IDSBase object
+        """
+        entry = self._open_entry(uri)
+        try:
+            ids_root = entry.get(ids, lazy=True, autoconvert=False, occurrence=occurrence)
+            return ids_root
+        except imaspy.exception.IDSNameError as e:
+            raise IdsNotFoundException(e) from None
+
     def data_entry_exists(self, uri: str) -> bool:
         """
         Check if data entry can be opened
@@ -33,9 +59,9 @@ class IMASPySource(DataSourceInterface):
         """
 
         try:
-            entry = imaspy.DBEntry(uri, mode="r")
+            entry = self._open_entry(uri)
             entry.close()
-        except ImasCoreBackendException:
+        except EntryNotFoundException:
             return False
         return True
 
@@ -45,10 +71,8 @@ class IMASPySource(DataSourceInterface):
         :param uri: imas URI
         :return: dictionary: {'idses': [{'name':<name>, 'occurrences':[<0>,<1>,...]}, {'name': ...}]}
         """
-        try:
-            entry = imaspy.DBEntry(uri, mode="r")
-        except ImasCoreBackendException as e:
-            raise IdsNotFoundException(e) from None
+
+        entry = self._open_entry(uri)
         ids_list = entry.factory.ids_names()
         result: dict = {"idses": []}
 
@@ -118,8 +142,16 @@ class IMASPySource(DataSourceInterface):
 
         # fill 'shape', but omit it if path points to more than one node
         if metadata_dict["ndim"] > 0 and ":" not in node_path:
-            # _get_raw_data() returns list even if path points to one node, so we access [0] element
-            target_node = self._get_raw_data(uri, ids, [node_path], occurrence)[0]
+            ids_path = IDSPath(node_path)
+            path_elements = list(ids_path.items())
+            ids_obj = self._open_entry_and_get_ids(uri, ids, occurrence)
+            data_nodes = self._get_raw_data(ids_obj, path_elements)
+
+            target_node = data_nodes
+            # traverse through data until you find value
+            while isinstance(target_node, list):
+                target_node = target_node[0]
+
             if isinstance(target_node, IDSStructure):
                 return metadata_dict
 
@@ -130,37 +162,75 @@ class IMASPySource(DataSourceInterface):
 
         return metadata_dict
 
-    def _get_raw_data(
-        self, uri: str, ids: str, node_paths: List[str], occurrence: int = 0
-    ) -> List[IDSStructure | IDSPrimitive]:
+    def _get_raw_data(self, ids_obj: IDSBase, path_elements: List[IDSPath] | None):
         """
         Internal function. Returns raw data extracted from IDS
-        :param uri: imas URI
-        :param ids: name of ids e.g. core_profiles
-        :param node_path: list of paths to ids nodes e.g. ['ids_properties/version_put']
-        :param occurrence: ids occurrence number
-        :return: List[IDSStructure | IDSPrimitive], depending on node's content
+        :param ids_obj: root element used to traverse path
+        :param path_elements: list of paths from root to leaf e.g. [IDSPath("ids_properties"), IDSPath("version_put"), IDSPath("access_layer")]
+        :return: value, or list of values depending on context. Could be int, str, np.ndarray, complex, IDSStructure, etc.
         """
 
-        result = []
-        try:
-            entry = imaspy.DBEntry(uri, mode="r")
-        except ImasCoreBackendException as e:
-            raise IdsNotFoundException(e) from None
-        try:
-            ids_obj = entry.get(ids, lazy=True, autoconvert=False, occurrence=occurrence)
-        except imaspy.exception.IDSNameError as e:
-            raise IdsNotFoundException(e) from None
+        if len(path_elements) == 0:
+            # exit recursion
+            return ids_obj
 
-        for node_path in node_paths:
-            data_path = imaspy.ids_path.IDSPath(node_path)
+        # path_elements contains list of pairs (node_name, node_index/slice)
+        # path_elements[0] represents first element of path
+        # e.g. in path `profiles_1d[2]/t_i_average` path_elements[0] is tuple ('profiles_1d', 2)
+
+        # There are 3 possible values of path index:
+        # - None (no index at all e.g. in 'ids_properties')
+        # - int value (single index e.g. in 'profiles_1d[2]')
+        # - slice (range of values e.g. in 'profiles_1d[5:10]')
+
+        path_node_name = path_elements[0][0]
+        path_index = path_elements[0][1]
+
+        if path_index is None:
+            # No index in path element, just go deeper with recursion
             try:
-                ids_data = data_path.goto(ids_obj, from_root=True)
+                new_ids_obj = ids_obj[path_node_name]
             except AttributeError as e:
-                raise NodeNotFoundException(e) from None
-            result.append(ids_data)
+                raise NodeNotFoundException(e)
+            return self._get_raw_data(new_ids_obj, path_elements[1:])
 
-        return result
+        elif isinstance(path_index, int):
+            # int index in path element, just go deeper with recursion using index
+            try:
+                new_ids_obj = ids_obj[f"{path_node_name}[{path_index}]"]
+            except AttributeError as e:
+                raise NodeNotFoundException(e)
+            return self._get_raw_data(new_ids_obj, path_elements[1:])
+
+        elif isinstance(path_index, slice):
+            # slice index in path element
+            # here recursive tree splits into another branches. Then all returned values are put into single list.
+            try:
+                new_ids_obj = ids_obj[f"{path_node_name}"]
+            except AttributeError as e:
+                raise NodeNotFoundException(e)
+
+            # === Evaluate start, stop and step parameters ===
+            slice_obj = path_index
+
+            start = slice_obj.start if slice_obj.start else 0
+            if slice_obj.stop:
+                stop = slice_obj.stop
+            else:
+                stop = len(new_ids_obj)
+
+            step = slice_obj.step if slice_obj.step else 1
+            # === ===
+
+            # === Extract values ===
+            result = []
+            for x in range(start, stop, step):
+                result.append(self._get_raw_data(new_ids_obj[x], path_elements[1:]))
+            return result
+        else:
+            raise Exception(
+                f"Type {type(path_index)} slices are not supported. Unsupported slice was found in {path_elements[0]} path part"
+            )
 
     def _slice_to_string(self, slice_obj: slice | None | int):
         """
@@ -219,15 +289,7 @@ class IMASPySource(DataSourceInterface):
         :return:
         """
 
-        try:
-            entry = imaspy.DBEntry(uri, mode="r")
-        except ImasCoreBackendException as e:
-            raise IdsNotFoundException(e) from None
-
-        try:
-            ids_obj = entry.get(ids, lazy=True, autoconvert=False, occurrence=occurrence)
-        except imaspy.exception.IDSNameError as e:
-            raise IdsNotFoundException(e) from None
+        ids_obj = self._open_entry_and_get_ids(uri, ids, occurrence)
 
         is_time_homogeneous = ids_obj.ids_properties.homogeneous_time
 
@@ -263,25 +325,15 @@ class IMASPySource(DataSourceInterface):
         :return: dictionary {'value':<node_value>}, where <node_value> represents data extracted from IDS node
         """
 
-        result = []
-        node_paths = self._expand_node_path(uri, ids, node_path, occurrence)
-        ids_data = self._get_raw_data(uri, ids, node_paths, occurrence)
+        ids_root = self._open_entry_and_get_ids(uri, ids, occurrence)
 
-        for data in ids_data:
-            if isinstance(data, IDSStructure):
-                raise NotALeafNodeException(
-                    f"Path {node_path} does not point to a leaf node. Cannot extract data from it."
-                )
+        ids_path = IDSPath(node_path)
+        path_elements = list(ids_path.items())
+        ids_data = self._get_raw_data(ids_root, path_elements)
 
-            if isinstance(data, str):
-                result.append(data)
+        data_to_be_returned = self._serialize_data(ids_data)
 
-            elif isinstance(data.value, np.ndarray):
-                result.append(data.tolist())
-            else:
-                result.append(data.value)
-
-        return {"value": result}
+        return {"value": data_to_be_returned}
 
     def _add_index_to_aos_in_path(self, ids_metadata: imaspy.ids_base.IDSBase, path_str: str):
         """
@@ -313,10 +365,7 @@ class IMASPySource(DataSourceInterface):
         :param show_error_bars: whether error bar nodes should be returned, or not
         :return: dictionary {'paths': ['path/to/node1','path/to/node2', ...]}
         """
-        try:
-            entry = imaspy.DBEntry(uri, mode="r")
-        except ImasCoreBackendException as e:
-            raise IdsNotFoundException(e) from None
+        entry = self._open_entry(uri)
 
         found_paths = []
         ids_list = entry.factory.ids_names()
@@ -345,31 +394,30 @@ class IMASPySource(DataSourceInterface):
         :param occurrence: ids occurrence number
         :return: dictionary {'shape': [<dim1>,<dim2>, ...], 'min':<min_value>, 'max':<max_value>, 'mean':<mean>, 'standard_deviation':<s_d>}
         """
-        node_paths = self._expand_node_path(uri, ids, node_path, occurrence)
-        ids_data = self._get_raw_data(uri, ids, node_paths, occurrence)
+
+        ids_path = IDSPath(node_path)
+        path_elements = list(ids_path.items())
+
+        ids_obj = self._open_entry_and_get_ids(uri, ids, occurrence)
+        ids_data = self._get_raw_data(ids_obj, path_elements)
 
         # test if all values are the same type
         # if not all(type(x) == type(ids_data[0]) for x in ids_data):
         #    raise DifferentTypesException(f"Nodes pointed by path {node_path} have different types and cannot be summarized")
 
-        if len(ids_data) > 1:
-            raise NotImplementedError(
-                "Multiple nodes summary is not supported yet. Make sure your IDS path points to only one node"
-            )
-
-        if isinstance(ids_data[0], IDSStructure) or isinstance(ids_data[0], IDSStructArray):
+        if isinstance(ids_data, IDSStructure) or isinstance(ids_data, IDSStructArray):
             raise NotALeafNodeException(f"Path {node_path} does not point to a leaf node")
 
-        if not isinstance(ids_data[0], IDSNumericArray):
+        if not isinstance(ids_data, IDSNumericArray):
             raise NotAnArrayException("Cannot get array summary of non array node")
 
         result = {}
 
-        result["shape"] = ids_data[0].shape
-        result["min"] = np.min(ids_data[0])
-        result["max"] = np.max(ids_data[0])
-        result["mean"] = np.mean(ids_data[0])
-        result["standard_deviation"] = np.std(ids_data[0])
+        result["shape"] = ids_data.shape
+        result["min"] = np.min(ids_data)
+        result["max"] = np.max(ids_data)
+        result["mean"] = np.mean(ids_data)
+        result["standard_deviation"] = np.std(ids_data)
 
         return result
 
@@ -488,7 +536,21 @@ class IMASPySource(DataSourceInterface):
 
         return parent_paths
 
-    def _serialize_data(self, data: IDSBase):
+    def _extract_1_N_coord_values(self, data):
+        """
+        Goes through list of IDSStructArray (or lists of lists of lists...) and returns all 1...N coordinates
+        :param data: flat or nested list of IDSStructArray
+        :return: list of 1...N values. Has the same shape as input list
+        """
+        if isinstance(data, list):
+            return [self._extract_1_N_coord_values(x) for x in data]
+        else:
+            coordinates = data.coordinates[0]
+            if isinstance(coordinates, np.ndarray):
+                coordinates = coordinates.tolist()
+            return coordinates
+
+    def _serialize_data(self, data):
         """
         Converts data IDS data into serializable values e.g. imaspy.int64 -> int
         :param data:
@@ -498,10 +560,10 @@ class IMASPySource(DataSourceInterface):
             raise NotALeafNodeException("Cannot serialize non-leaf node")
         if isinstance(data, str):
             return data
-        elif isinstance(data, list):
-            return data
         elif isinstance(data, IDSNumericArray):
             return data.value.tolist()
+        elif isinstance(data, list):
+            return [self._serialize_data(x) for x in data]
         elif isinstance(data.value, np.ndarray):
             return data.tolist()
         else:
@@ -517,10 +579,13 @@ class IMASPySource(DataSourceInterface):
         :return: Dictionary containing data values, metadata and coordinates.
         """
 
-        node_paths = self._expand_node_path(uri, ids, node_path, occurrence)
-        ids_data = self._get_raw_data(uri, ids, node_paths, occurrence)
+        ids_obj = self._open_entry_and_get_ids(uri, ids, occurrence)
 
-        data_to_be_returned = [self._serialize_data(data) for data in ids_data]
+        ids_path = IDSPath(node_path)
+        path_elements = list(ids_path.items())
+        ids_data = self._get_raw_data(ids_obj, path_elements)
+
+        data_to_be_returned = self._serialize_data(ids_data)
         coordinates_to_be_returned = []
 
         # =================================
@@ -528,60 +593,75 @@ class IMASPySource(DataSourceInterface):
         metadata, coordinates_dict = self._get_metadata_and_coordinates(uri, ids, node_path, occurrence)
 
         # replace all dummy indexes by [:]. i.e. "itime", "i1", "i2", "i3"... -> [:]
-        coordinates_dict = {key: re.sub(r"\[(.*?)\]", r"[:]", value) for key, value in coordinates_dict.items()}
+        coordinates_dict = {key: re.sub(r"[\[\(](.*?)[\]\)]", r"[:]", value) for key, value in coordinates_dict.items()}
 
         # =================================
 
         for target, coord in coordinates_dict.items():
             if coord == "1...N":
                 # 1...N coords are targeting AoS
-                # remove last [:] from path
-                if str(target)[-3:] == "[:]":
-                    target_str = str(target)[:-3]
+                # remove last array operator ([<number or colon>]) from path and save it as target_str
 
-                node_paths = self._expand_node_path(uri, ids, str(target_str), occurrence)
-                coord_target_objects = self._get_raw_data(uri, ids, node_paths, occurrence)
-                coord_values = [list(map(int, list(x.coordinates[0]))) for x in coord_target_objects]
+                splitted_target = str(target).split("/")
+                splitted_target[-1] = re.sub(r"[\[\(](.*?)[\]\)]", "", splitted_target[-1])
+                target_str = "/".join([x for x in splitted_target])
+                # ====================================
+
+                ids_path = IDSPath(str(target_str))
+                path_elements = list(ids_path.items())
+                coord_target_objects = self._get_raw_data(ids_obj, path_elements)
+
+                coord_values = self._extract_1_N_coord_values(coord_target_objects)
 
                 c = {
                     "name": coord,
                     "target": f"#{ids}/{target}",
                     "unit": "-",
-                    "value": coord_values,
                     "shape": np.asarray(coord_values).shape,
-                    "ndim": 2,
+                    "ndim": 1,  # 1...N coord always have 1 dimension
                     "path": "",
                     "description": "1...N",
+                    "value": coord_values,
                 }
                 coordinates_to_be_returned.append(c)
 
             else:
-                coord_real_paths = self._expand_node_path(uri, ids, coord, occurrence)
-                coord_data = self._get_raw_data(uri, ids, coord_real_paths, occurrence)
-                serialized_data = [self._serialize_data(x) for x in coord_data]
+                coord_path = IDSPath(coord)
+                coord_real_paths = list(coord_path.items())
+                coord_data = self._get_raw_data(ids_obj, coord_real_paths)
+
+                serialized_data = self._serialize_data(coord_data)
+
+                first_value = coord_data
+                while isinstance(first_value, list):
+                    first_value = first_value[0]
 
                 c = {
                     "name": coord.split("/")[-1],
                     "target": f"#{ids}/{target}",
-                    "unit": coord_data[0].metadata.units,
-                    "value": serialized_data,
+                    "unit": first_value.metadata.units,
                     "shape": np.asarray(serialized_data).shape,
-                    "ndim": coord_data[0].metadata.ndim,
+                    "ndim": first_value.metadata.ndim,
                     "path": f"#{ids}/{coord}",
-                    "description": coord_data[0].metadata.documentation,
+                    "description": first_value.metadata.documentation,
+                    "value": serialized_data,
                 }
                 coordinates_to_be_returned.append(c)
+
+        first_value = ids_data
+        while isinstance(first_value, list):
+            first_value = first_value[0]
 
         result = {
             "data": {
                 "name": node_path.split("/")[-1],
-                "unit": ids_data[0].metadata.units,
-                "value": data_to_be_returned,
+                "unit": first_value.metadata.units,
                 "shape": np.asarray(data_to_be_returned).shape,
-                "ndim": ids_data[0].metadata.ndim,
+                "ndim": first_value.metadata.ndim,
                 "path": f"#{ids}/{node_path}",
-                "description": ids_data[0].metadata.documentation,
+                "description": first_value.metadata.documentation,
                 "coordinates": coordinates_to_be_returned,
+                "value": data_to_be_returned,
             }
         }
 

@@ -30,6 +30,10 @@ def entry_path(tmp_path_factory):
     core_profiles.vacuum_toroidal_field.r0_error_upper = 2.0
     core_profiles.vacuum_toroidal_field.r0_error_lower = 0.1
 
+    # ===== for plot data 1...N coord test =====
+    for profiles_1d in core_profiles.profiles_1d:
+        profiles_1d.ion.resize(3)
+
     entry.put(core_profiles)
     entry.close()
 
