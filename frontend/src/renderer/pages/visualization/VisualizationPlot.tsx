@@ -108,7 +108,7 @@ export const VisualizationPlot = () => {
       if (!findPlot) return;
   
       const updatedDataPlot = active.dataPlot.map((item) =>
-        item.i === id ? { ...item, isEditing: !item.isEditing } : item
+        item.i === id ? { ...item, isEditing: !item.isEditing } : { ...item, isEditing: false }
       );
 
       console.log("updated data plot", updatedDataPlot)
