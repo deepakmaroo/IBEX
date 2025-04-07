@@ -8,8 +8,10 @@ export interface SimplePlotlyProps {
   y2AxisName?: string;
   data: Data[];
   isStatic?: boolean;
+  isEdit?: boolean;
   handleDragStatic?: () => void;
   handleDeleteGrid?: () => void;
+  handleEditGrid?: () => void;
 }
 
 export type DataPlotly = Data & {
@@ -23,6 +25,7 @@ export interface DataGridPlot extends Layout {
   static: boolean;
   plot: DataPlotly[];
   xAxisName: string;
+  isEditing: boolean;
   
   yAxisName: string;
   y2AxisName?: string;

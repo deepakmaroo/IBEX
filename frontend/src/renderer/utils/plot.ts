@@ -20,6 +20,7 @@ export const generateNewPlot = (
     y2AxisName: y2AxisName,
     yUnit: yUnit,
     y2Unit: y2Unit,
+    isEditing: true,
     
     //default layout position
     x: 0,

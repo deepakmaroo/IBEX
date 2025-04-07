@@ -49,7 +49,6 @@ export const VisualizationPlot = () => {
       );
       const newActive: Configuration = {
         ...active,
-        checkedNodeURI: [],
         dataPlot: newDataPlot,
       };
 
@@ -102,6 +101,27 @@ export const VisualizationPlot = () => {
     [active],
   );
 
+  const handleEditGrid = useCallback(
+    (id: string) => {
+      const findPlot = active.dataPlot.find((item) => item.i === id);
+      console.log("findPlot", findPlot)
+      if (!findPlot) return;
+  
+      const updatedDataPlot = active.dataPlot.map((item) =>
+        item.i === id ? { ...item, isEditing: !item.isEditing } : item
+      );
+
+      console.log("updated data plot", updatedDataPlot)
+  
+      updatedConfiguration({
+        ...active,
+        dataPlot: updatedDataPlot,
+        checkedNodeURI: findPlot.isEditing ? [] : findPlot.plot.map((item) => item.nodeUri),
+      });
+    },
+    [active]
+  );
+  
   return active.dataPlot.length > 0 ? (
     <>
       <ScrollArea h="84vh">
@@ -116,6 +136,7 @@ export const VisualizationPlot = () => {
           onLayoutChange={(layout) => handleUpdateLayout(layout)}
         >
           {active.dataPlot.map((plotData: DataGridPlot) => {
+            console.log('plotData', plotData);
             return (
               <Paper
                 shadow="sm"
@@ -137,8 +158,10 @@ export const VisualizationPlot = () => {
                   y2AxisName={plotData.y2AxisName}
                   data={plotData.plot}
                   isStatic={plotData.static}
+                  isEdit={plotData.isEditing}
                   handleDragStatic={() => handleDragStatic(plotData.i)}
                   handleDeleteGrid={() => handleDeleteGrid(plotData.i)}
+                  handleEditGrid={() => handleEditGrid(plotData.i)}
                 />
               </Paper>
             );

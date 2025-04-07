@@ -419,19 +419,19 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
 
       try {
         let findDataPlot = updatedActive.dataPlot.find(
-          (plot) => plot.i === updatedActive.plotEditableUuid,
+          (plot) => plot.isEditing
         );
 
         if (!findDataPlot) {
           updatedActive = await handleNewPlot(nodes, updatedActive);
           findDataPlot = updatedActive.dataPlot.find(
-            (plot) => plot.i === updatedActive.plotEditableUuid,
+            (plot) => plot.isEditing,
           );
         }
 
         if (nodes.length === 0) {
           updatedActive.dataPlot = active.dataPlot.filter(
-            (plot) => plot.i !== updatedActive.plotEditableUuid,
+            (plot) => plot.isEditing,
           );
         } else {
           updatedActive = await handleExistingPlot(
@@ -483,7 +483,6 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
     );
 
     updatedActive.dataPlot.push(updatedPlot);
-    updatedActive.plotEditableUuid = updatedPlot.i;
     return updatedActive;
   };
 

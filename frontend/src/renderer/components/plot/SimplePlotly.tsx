@@ -6,7 +6,9 @@ import { ActionIcon, Group } from '@mantine/core';
 import { toPng } from 'html-to-image';
 
 import {
+  IconCheck,
   IconDownload,
+  IconEdit,
   IconLock,
   IconLockOpen,
   IconTrash,
@@ -21,8 +23,10 @@ export const SimplePlotly = ({
   y2AxisName,
   data,
   isStatic,
+  isEdit,
   handleDragStatic,
   handleDeleteGrid,
+  handleEditGrid,
 }: SimplePlotlyProps) => {
   const { hovered, ref } = useHover();
   const [layoutPlot, setLayoutPlot] = useState<Partial<Layout>>({});
@@ -71,7 +75,7 @@ export const SimplePlotly = ({
       // paper_bgcolor: '#FFFFFF',
     };
 
-    if (y2AxisName && y2AxisName !== "") {
+    if (y2AxisName && y2AxisName !== '') {
       layout = {
         ...layout,
         yaxis2: {
@@ -83,12 +87,12 @@ export const SimplePlotly = ({
               color: 'rgb(148, 103, 189)',
             },
           },
-          tickfont: {color: 'rgb(148, 103, 189)'},
+          tickfont: { color: 'rgb(148, 103, 189)' },
           overlaying: 'y',
           side: 'right',
           showline: true,
           zeroline: false,
-        }
+        },
       };
     }
 
@@ -116,6 +120,27 @@ export const SimplePlotly = ({
     <div ref={ref}>
       {hovered && (
         <Group pos="absolute" right={30} top={5}>
+          {handleEditGrid && (
+            <ActionIcon
+              variant="filled"
+              aria-label="Settings"
+              onClick={handleEditGrid}
+              className={classes.actionButton}
+            >
+              {isEdit ? (
+                <IconCheck
+                  style={{ width: '70%', height: '70%' }}
+                  stroke={1.5}
+                />
+              ) : (
+                <IconEdit
+                  style={{ width: '70%', height: '70%' }}
+                  stroke={1.5}
+                />
+              )}
+            </ActionIcon>
+          )}
+
           <ActionIcon
             variant="filled"
             aria-label="Download"
@@ -148,6 +173,7 @@ export const SimplePlotly = ({
               )}
             </ActionIcon>
           )}
+
           {handleDeleteGrid && (
             <ActionIcon
               variant="filled"
