@@ -78,8 +78,6 @@ export const SimplePlotly = ({
       },
       modebar: {
         orientation: 'v',
-
-        // remove: ['toImage', 'pan2d'],
       },
       legend: {
         x: 1.1,
@@ -110,7 +108,6 @@ export const SimplePlotly = ({
     }));
   }, [title, xAxisName, yAxisName, height, width]);
 
-
   return (
     <div
       style={{
@@ -122,17 +119,22 @@ export const SimplePlotly = ({
       }}
       ref={containerRef}
     >
-      <div ref={hoverRef} className={classes.containerButton} style={{
-        width: isStatic ? '95%' : '100%',
-      }}>
+      <div
+        ref={hoverRef}
+        className={classes.containerButton}
+        style={{
+          width: isStatic ? '95%' : '100%',
+        }}
+      >
         {hovered && (
           <Group pos="absolute" right={0} top={5}>
             {handleEditGrid && (
               <ActionIcon
                 variant="filled"
-                aria-label="Settings"
+                aria-label="Editing"
                 onClick={handleEditGrid}
                 className={classes.actionButton}
+                color={isEdit ? 'yellow' : 'green'}
               >
                 {isEdit ? (
                   <IconCheck
@@ -151,7 +153,7 @@ export const SimplePlotly = ({
             {handleDragStatic && (
               <ActionIcon
                 variant="filled"
-                aria-label="Settings"
+                aria-label="StaticLayout"
                 onClick={handleDragStatic}
                 className={classes.actionButton}
               >
@@ -172,7 +174,7 @@ export const SimplePlotly = ({
             {handleDeleteGrid && (
               <ActionIcon
                 variant="filled"
-                aria-label="Trash"
+                aria-label="Delete"
                 onClick={handleDeleteGrid}
                 className={classes.actionButton}
                 color="red"
@@ -201,7 +203,7 @@ export const SimplePlotly = ({
             displaylogo: false,
           }}
           useResizeHandler={false}
-          style={{ width: "100%", height: "100%" }}
+          style={{ width: '100%', height: '100%' }}
         />
       </div>
     </div>
