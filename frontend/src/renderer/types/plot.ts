@@ -7,6 +7,8 @@ export interface SimplePlotlyProps {
   yAxisName: string;
   y2AxisName?: string;
   data: Data[];
+  width: number;
+  height: number;
   isStatic?: boolean;
   isEdit?: boolean;
   handleDragStatic?: () => void;

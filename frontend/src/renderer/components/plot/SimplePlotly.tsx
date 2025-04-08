@@ -9,9 +9,9 @@ import {
   IconCheck,
   IconDownload,
   IconEdit,
-  IconLock,
-  IconLockOpen,
+  IconHandMove,
   IconTrash,
+  IconZoomIn,
 } from '@tabler/icons-react';
 import { useHover } from '@mantine/hooks';
 import classes from './SimplePlotly.module.css';
@@ -24,22 +24,38 @@ export const SimplePlotly = ({
   data,
   isStatic,
   isEdit,
+  height,
+  width,
   handleDragStatic,
   handleDeleteGrid,
   handleEditGrid,
 }: SimplePlotlyProps) => {
-  const { hovered, ref } = useHover();
+  const { hovered, ref: hoverRef } = useHover();
   const [layoutPlot, setLayoutPlot] = useState<Partial<Layout>>({});
   const plotRef = useRef<Plot | null>(null);
-  const divRef = useRef<HTMLDivElement | null>(null);
+  const containerPlotRef = useRef<HTMLDivElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  const handleRelayout = (newLayout: Partial<Layout>) => {
+    setLayoutPlot((prevLayout) => ({
+      ...prevLayout,
+      ...newLayout, // Merge le nouveau layout avec l'existant
+    }));
+  };
 
   /**
    * Update the layout of the plot
    */
   useEffect(() => {
-    let layout: Partial<Layout> = {
+    console.log('height', height);
+    console.log('width', width);
+    setLayoutPlot((prevLayout) => ({
+      ...prevLayout,
+      height: height,
+      width: width,
       title: { text: title },
       xaxis: {
+        ...prevLayout.xaxis,
         title: {
           text: xAxisName,
           font: {
@@ -51,6 +67,7 @@ export const SimplePlotly = ({
         showline: true,
       },
       yaxis: {
+        ...prevLayout.yaxis,
         title: {
           text: yAxisName,
           font: {
@@ -63,48 +80,44 @@ export const SimplePlotly = ({
       },
       modebar: {
         orientation: 'v',
-        remove: ['toImage', 'pan2d'],
+
+        // remove: ['toImage', 'pan2d'],
       },
       legend: {
         x: 1.1,
         y: 1,
         orientation: 'v',
       },
+      yaxis2:
+        y2AxisName && y2AxisName !== ''
+          ? {
+              title: {
+                text: y2AxisName,
+                font: {
+                  family: 'Courier New, monospace',
+                  size: 18,
+                  color: 'rgb(148, 103, 189)',
+                },
+              },
+              tickfont: { color: 'rgb(148, 103, 189)' },
+              overlaying: 'y',
+              side: 'right',
+              showline: true,
+              zeroline: false,
+            }
+          : {},
       showlegend: true,
       plot_bgcolor: '#c7c7c7',
-      // paper_bgcolor: '#FFFFFF',
-    };
-
-    if (y2AxisName && y2AxisName !== '') {
-      layout = {
-        ...layout,
-        yaxis2: {
-          title: {
-            text: y2AxisName,
-            font: {
-              family: 'Courier New, monospace',
-              size: 18,
-              color: 'rgb(148, 103, 189)',
-            },
-          },
-          tickfont: { color: 'rgb(148, 103, 189)' },
-          overlaying: 'y',
-          side: 'right',
-          showline: true,
-          zeroline: false,
-        },
-      };
-    }
-
-    setLayoutPlot(layout);
-  }, [title, yAxisName, y2AxisName]);
+      dragmode: 'zoom',
+    }));
+  }, [title, xAxisName, yAxisName, height, width]);
 
   const exportToPNG = () => {
-    if (divRef.current === null) {
+    if (containerPlotRef.current === null) {
       return;
     }
 
-    toPng(divRef.current, { cacheBust: true })
+    toPng(containerPlotRef.current, { cacheBust: true })
       .then((dataUrl) => {
         const link = document.createElement('a');
         link.href = dataUrl;
@@ -117,86 +130,106 @@ export const SimplePlotly = ({
   };
 
   return (
-    <div ref={ref}>
-      {hovered && (
-        <Group pos="absolute" right={30} top={5}>
-          {handleEditGrid && (
+    <div
+      style={{
+        position: 'relative',
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+      ref={containerRef}
+    >
+      <div ref={hoverRef} className={classes.containerButton}>
+        {hovered && (
+          <Group pos="absolute" right={0} top={5}>
+            {handleEditGrid && (
+              <ActionIcon
+                variant="filled"
+                aria-label="Settings"
+                onClick={handleEditGrid}
+                className={classes.actionButton}
+              >
+                {isEdit ? (
+                  <IconCheck
+                    style={{ width: '70%', height: '70%' }}
+                    stroke={1.5}
+                  />
+                ) : (
+                  <IconEdit
+                    style={{ width: '70%', height: '70%' }}
+                    stroke={1.5}
+                  />
+                )}
+              </ActionIcon>
+            )}
+
             <ActionIcon
               variant="filled"
-              aria-label="Settings"
-              onClick={handleEditGrid}
+              aria-label="Download"
               className={classes.actionButton}
+              onClick={exportToPNG}
             >
-              {isEdit ? (
-                <IconCheck
-                  style={{ width: '70%', height: '70%' }}
-                  stroke={1.5}
-                />
-              ) : (
-                <IconEdit
-                  style={{ width: '70%', height: '70%' }}
-                  stroke={1.5}
-                />
-              )}
+              <IconDownload
+                style={{ width: '70%', height: '70%' }}
+                stroke={1.5}
+              />
             </ActionIcon>
-          )}
 
-          <ActionIcon
-            variant="filled"
-            aria-label="Download"
-            className={classes.actionButton}
-            onClick={exportToPNG}
-          >
-            <IconDownload
-              style={{ width: '70%', height: '70%' }}
-              stroke={1.5}
-            />
-          </ActionIcon>
+            {handleDragStatic && (
+              <ActionIcon
+                variant="filled"
+                aria-label="Settings"
+                onClick={handleDragStatic}
+                className={classes.actionButton}
+              >
+                {isStatic ? (
+                  <IconHandMove
+                    style={{ width: '70%', height: '70%' }}
+                    stroke={1.5}
+                  />
+                ) : (
+                  <IconZoomIn
+                    style={{ width: '70%', height: '70%' }}
+                    stroke={1.5}
+                  />
+                )}
+              </ActionIcon>
+            )}
 
-          {handleDragStatic && (
-            <ActionIcon
-              variant="filled"
-              aria-label="Settings"
-              onClick={handleDragStatic}
-              className={classes.actionButton}
-            >
-              {isStatic ? (
-                <IconLock
+            {handleDeleteGrid && (
+              <ActionIcon
+                variant="filled"
+                aria-label="Trash"
+                onClick={handleDeleteGrid}
+                className={classes.actionButton}
+                color="red"
+              >
+                <IconTrash
                   style={{ width: '70%', height: '70%' }}
                   stroke={1.5}
                 />
-              ) : (
-                <IconLockOpen
-                  style={{ width: '70%', height: '70%' }}
-                  stroke={1.5}
-                />
-              )}
-            </ActionIcon>
-          )}
-
-          {handleDeleteGrid && (
-            <ActionIcon
-              variant="filled"
-              aria-label="Trash"
-              onClick={handleDeleteGrid}
-              className={classes.actionButton}
-              color="red"
-            >
-              <IconTrash style={{ width: '70%', height: '70%' }} stroke={1.5} />
-            </ActionIcon>
-          )}
-        </Group>
-      )}
-      <div ref={divRef}>
+              </ActionIcon>
+            )}
+          </Group>
+        )}
+      </div>
+      <div ref={containerPlotRef}>
         <Plot
           ref={plotRef}
           data={data}
           layout={layoutPlot}
+          onRelayout={handleRelayout}
           config={{
-            autosizable: true,
+            autosizable: false,
+            staticPlot: !isStatic,
+            scrollZoom: true,
+            displayModeBar: true,
+            showTips: true,
+            displaylogo: false,
           }}
-          useResizeHandler={true}
-          style={{ width: '100%', height: '100%' }}
+          useResizeHandler={false}
+          style={{ width: "100%", height: "100%" }}
         />
       </div>
     </div>

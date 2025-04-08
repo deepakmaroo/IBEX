@@ -11,6 +11,10 @@ export const VisualizationPlot = () => {
 
   const [dragEnabled, setDragEnabled] = useState(true);
   const [dragTimeout, setDragTimeout] = useState<NodeJS.Timeout | null>(null);
+  const gridWith = 1515;
+  const colsNumber = 12;
+  const colWidth = gridWith / colsNumber;
+  const rowHeight = 30;
 
   /**
    * Handle the mouse down event
@@ -65,7 +69,11 @@ export const VisualizationPlot = () => {
       const newDataPlot: DataGridPlot[] = active.dataPlot.filter(
         (item: DataGridPlot) => item.i !== id,
       );
-      const newActive = { ...active, dataPlot: newDataPlot };
+      const newActive: Configuration = {
+        ...active,
+        dataPlot: newDataPlot,
+        checkedNodeURI: [],
+      };
 
       updatedConfiguration(newActive);
     },
@@ -82,6 +90,7 @@ export const VisualizationPlot = () => {
           const findUpdatedLayout = updatedLayouts.find(
             (layout) => layout.i === item.i,
           );
+
           if (findUpdatedLayout) {
             return {
               ...item,
@@ -104,31 +113,33 @@ export const VisualizationPlot = () => {
   const handleEditGrid = useCallback(
     (id: string) => {
       const findPlot = active.dataPlot.find((item) => item.i === id);
-      console.log("findPlot", findPlot)
+      console.log('findPlot', findPlot);
       if (!findPlot) return;
-  
+
       const updatedDataPlot = active.dataPlot.map((item) =>
         item.i === id ? { ...item, isEditing: !item.isEditing } : { ...item, isEditing: false }
       );
 
-      console.log("updated data plot", updatedDataPlot)
-  
+      console.log('updated data plot', updatedDataPlot);
+
       updatedConfiguration({
         ...active,
         dataPlot: updatedDataPlot,
-        checkedNodeURI: findPlot.isEditing ? [] : findPlot.plot.map((item) => item.nodeUri),
+        checkedNodeURI: findPlot.isEditing
+          ? []
+          : findPlot.plot.map((item) => item.nodeUri),
       });
     },
-    [active]
+    [active],
   );
-  
+
   return active.dataPlot.length > 0 ? (
     <>
       <ScrollArea h="84vh">
         <GridLayout
-          cols={12}
-          rowHeight={30}
-          width={1515}
+          cols={colsNumber}
+          rowHeight={rowHeight}
+          width={gridWith}
           autoSize={true}
           onDragStart={handleMouseDown}
           onDragStop={handleMouseUp}
@@ -136,7 +147,7 @@ export const VisualizationPlot = () => {
           onLayoutChange={(layout) => handleUpdateLayout(layout)}
         >
           {active.dataPlot.map((plotData: DataGridPlot) => {
-            console.log('plotData', plotData);
+            console.log('plot', plotData);
             return (
               <Paper
                 shadow="sm"
@@ -150,12 +161,21 @@ export const VisualizationPlot = () => {
                   h: plotData.h,
                   static: plotData.static,
                 }}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  boxSizing: 'border-box',
+                }}
               >
                 <SimplePlotly
                   title={plotData.title}
                   xAxisName={plotData.xAxisName}
                   yAxisName={plotData.yAxisName}
                   y2AxisName={plotData.y2AxisName}
+                  width={plotData.w * colWidth - 20}
+                  height={plotData.h * rowHeight+ 23*(plotData.h * rowHeight)/100}
                   data={plotData.plot}
                   isStatic={plotData.static}
                   isEdit={plotData.isEditing}

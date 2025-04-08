@@ -430,9 +430,12 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
         }
 
         if (nodes.length === 0) {
+          console.log('No nodes selected');
+
           updatedActive.dataPlot = active.dataPlot.filter(
-            (plot) => plot.isEditing,
+            (plot) => !plot.isEditing,
           );
+          console.log("isEdit", updatedActive)
         } else {
           updatedActive = await handleExistingPlot(
             nodes,
