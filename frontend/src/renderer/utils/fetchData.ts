@@ -1,11 +1,16 @@
-import { DataIdsResponse, NodeInfoResponse, PlotDataResponse, SearchNodeResponse } from '../types';
+import {
+  DataIdsResponse,
+  NodeInfoResponse,
+  PlotDataResponse,
+  SearchNodeResponse,
+} from '../types';
 
 /**
  * Fetch the node information
- * @param nodeUri 
- * @param showErrorBars 
- * 
- * @returns 
+ * @param nodeUri
+ * @param showErrorBars
+ *
+ * @returns
  * @type {NodeInfoResponse}
  *
  */
@@ -32,14 +37,18 @@ export const fetchNodeInfos = async (
 
 /**
  * Fetch the find paths
- * @param uri 
- * @param value 
- * @param showErrorBars 
- * 
- * @returns 
+ * @param uri
+ * @param value
+ * @param showErrorBars
+ *
+ * @returns
  * @type {SearchNodeResponse}
  */
-export const fetchFindPaths = async (uri: string, value: string, showErrorBars: boolean): Promise<SearchNodeResponse> => {
+export const fetchFindPaths = async (
+  uri: string,
+  value: string,
+  showErrorBars: boolean,
+): Promise<SearchNodeResponse> => {
   try {
     const response = await fetch(
       `${window.env.API_URL}/ids_info/find_paths/?uri=${encodeURIComponent(uri)}&searched_node=${encodeURIComponent(value)}&show_error_bars=${showErrorBars}`,
@@ -59,14 +68,13 @@ export const fetchFindPaths = async (uri: string, value: string, showErrorBars: 
   } catch (error) {
     console.error(error);
   }
-
 };
 
 /**
  * Fetch the data ids
- * @param uri 
- * 
- * @returns 
+ * @param uri
+ *
+ * @returns
  * @type {DataIdsResponse}
  */
 export const fetchDataIds = async (uri: string): Promise<DataIdsResponse> => {
@@ -93,14 +101,12 @@ export const fetchDataIds = async (uri: string): Promise<DataIdsResponse> => {
 
 /**
  * Fetch the plot data
- * @param uri 
- * 
- * @returns 
+ * @param uri
+ *
+ * @returns
  * @type {PlotDataResponse}
  */
-export const fetchDataPlot = async (
-  uri: string,
-): Promise<PlotDataResponse> => {
+export const fetchDataPlot = async (uri: string): Promise<PlotDataResponse> => {
   try {
     const response = await fetch(
       `${window.env.API_URL}/data/plot_data/?uri=${encodeURIComponent(uri)}`,
@@ -121,4 +127,3 @@ export const fetchDataPlot = async (
     console.error(error);
   }
 };
-

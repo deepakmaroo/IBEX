@@ -116,7 +116,9 @@ export const VisualizationPlot = () => {
       if (!findPlot) return;
 
       const updatedDataPlot = active.dataPlot.map((item) =>
-        item.i === id ? { ...item, isEditing: !item.isEditing } : { ...item, isEditing: false }
+        item.i === id
+          ? { ...item, isEditing: !item.isEditing }
+          : { ...item, isEditing: false },
       );
 
       console.log('updated data plot', updatedDataPlot);
@@ -174,7 +176,10 @@ export const VisualizationPlot = () => {
                   yAxisName={plotData.yAxisName}
                   y2AxisName={plotData.y2AxisName}
                   width={plotData.w * colWidth - 20}
-                  height={plotData.h * rowHeight+ 23*(plotData.h * rowHeight)/100}
+                  height={
+                    plotData.h * rowHeight +
+                    (23 * (plotData.h * rowHeight)) / 100
+                  }
                   data={plotData.plot}
                   isStatic={plotData.static}
                   isEdit={plotData.isEditing}

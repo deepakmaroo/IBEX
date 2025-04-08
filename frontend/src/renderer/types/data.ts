@@ -19,5 +19,5 @@ export type PlotDataResponse = {
     path: string;
     description: string;
     coordinates: PlotCoordinatesResponse[];
-  }
+  };
 };

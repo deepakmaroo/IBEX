@@ -185,7 +185,7 @@ function NodeIcon({
         styles={{
           label: {
             paddingLeft: 5,
-          }
+          },
         }}
         label={
           <Group gap={2}>

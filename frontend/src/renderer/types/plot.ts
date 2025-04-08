@@ -17,7 +17,7 @@ export interface SimplePlotlyProps {
 }
 
 export type DataPlotly = Data & {
-  nodeUri:string;
+  nodeUri: string;
   unit: string;
   yaxis?: string;
 };
@@ -28,7 +28,7 @@ export interface DataGridPlot extends Layout {
   plot: DataPlotly[];
   xAxisName: string;
   isEditing: boolean;
-  
+
   yAxisName: string;
   y2AxisName?: string;
 

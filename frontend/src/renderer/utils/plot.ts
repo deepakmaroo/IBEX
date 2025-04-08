@@ -8,7 +8,6 @@ export const generateNewPlot = (
   yUnit: string,
   y2AxisName?: string,
   y2Unit?: string,
-
 ): DataGridPlot => {
   return {
     title: title,
@@ -21,7 +20,7 @@ export const generateNewPlot = (
     yUnit: yUnit,
     y2Unit: y2Unit,
     isEditing: true,
-    
+
     //default layout position
     x: 0,
     y: 0,
@@ -41,7 +40,6 @@ export async function plotData(
   yName: string,
   unit: string,
   y2Axis?: boolean,
-
 ): Promise<DataGridPlot> {
   const trace: DataPlotly = {
     x: xData,
@@ -52,8 +50,6 @@ export async function plotData(
     unit: unit,
   };
 
-
-
   if (y2Axis) {
     trace.yaxis = 'y2';
 
@@ -61,8 +57,7 @@ export async function plotData(
       ...dataPlot,
       title: `${title}`,
     };
-
-  } 
+  }
 
   dataPlot.plot.push(trace);
 

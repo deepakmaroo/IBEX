@@ -6,7 +6,7 @@ import {
   BaseConfiguration,
   ConfigForm,
   Configuration,
-  DataPlot,
+  DataGridPlot,
 } from '../types';
 import { ConfigCreateModal, ConfirmModal, Header } from '../components';
 
@@ -47,13 +47,9 @@ export function MainLayout() {
   };
 
   const handleSaveConfiguration = () => {
-    const dataPlotWithoutDataPlotly: DataPlot[] = active.dataPlot.map(
+    const dataPlotWithoutDataPlotly: DataGridPlot[] = active.dataPlot.map(
       (plot) => ({
-        uuid: plot.uuid,
-        static: plot.static,
-        plot: plot.plot, // Too improve this
-        yAxisName: plot.yAxisName,
-        title: plot.title,
+        ...plot,
       }),
     );
 

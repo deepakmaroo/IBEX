@@ -525,7 +525,9 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
           unit,
         );
         updatedActive.dataPlot = [
-          ...(active.dataPlot || []).filter((plot) => plot.i !== findDataPlot.i),
+          ...(active.dataPlot || []).filter(
+            (plot) => plot.i !== findDataPlot.i,
+          ),
           updatedPlot,
         ];
       } else if (!findDataPlot.y2AxisName) {
@@ -542,7 +544,9 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
           true,
         );
         updatedActive.dataPlot = [
-          ...(active.dataPlot || []).filter((plot) => plot.i !== findDataPlot.i),
+          ...(active.dataPlot || []).filter(
+            (plot) => plot.i !== findDataPlot.i,
+          ),
           updatedPlot,
         ];
       } else {
