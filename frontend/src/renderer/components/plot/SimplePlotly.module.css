@@ -5,7 +5,6 @@
 .containerButton {
   position: absolute;
   height: 100px;
-  width: 95%;
   top: 0;
   left: 0;
   z-index: 1;

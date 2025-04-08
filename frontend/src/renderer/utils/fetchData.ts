@@ -1,4 +1,4 @@
-import { DataIdsResponse, FieldValueResponse, NodeInfoResponse, PlotDataResponse, SearchNodeResponse } from '../types';
+import { DataIdsResponse, NodeInfoResponse, PlotDataResponse, SearchNodeResponse } from '../types';
 
 /**
  * Fetch the node information
@@ -28,37 +28,6 @@ export const fetchNodeInfos = async (
 
   const data = await response.json();
   return data;
-};
-
-/**
- * Fetch the field value
- * @param uri 
- * 
- * @returns 
- * @type {FieldValueResponse}
- */
-export const fetchFieldValue = async (
-  uri: string,
-): Promise<FieldValueResponse> => {
-  try {
-    const response = await fetch(
-      `${window.env.API_URL}/data/field_value/?uri=${encodeURIComponent(uri)}`,
-      {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-      },
-    );
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || 'Failed to fetch IDS data');
-    }
-
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error(error);
-  }
 };
 
 /**

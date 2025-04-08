@@ -1,10 +1,9 @@
 import { Paper, ScrollArea, Stack, Text } from '@mantine/core';
 import { useIbexStore } from '../../stores';
-import GridLayout from 'react-grid-layout';
 import { SimplePlotly } from '../../components/plot/SimplePlotly';
 import { useCallback, useState } from 'react';
 import { Configuration, DataGridPlot } from 'src/renderer/types';
-import { Layout } from 'react-grid-layout';
+import GridLayout, { Layout } from 'react-grid-layout';
 
 export const VisualizationPlot = () => {
   const { active, updatedConfiguration } = useIbexStore();

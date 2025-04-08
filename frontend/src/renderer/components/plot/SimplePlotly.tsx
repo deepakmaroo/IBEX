@@ -3,11 +3,9 @@ import { useEffect, useRef, useState } from 'react';
 import Plot from 'react-plotly.js';
 import { SimplePlotlyProps } from 'src/renderer/types';
 import { ActionIcon, Group } from '@mantine/core';
-import { toPng } from 'html-to-image';
 
 import {
   IconCheck,
-  IconDownload,
   IconEdit,
   IconHandMove,
   IconTrash,
@@ -112,22 +110,6 @@ export const SimplePlotly = ({
     }));
   }, [title, xAxisName, yAxisName, height, width]);
 
-  const exportToPNG = () => {
-    if (containerPlotRef.current === null) {
-      return;
-    }
-
-    toPng(containerPlotRef.current, { cacheBust: true })
-      .then((dataUrl) => {
-        const link = document.createElement('a');
-        link.href = dataUrl;
-        link.download = 'chart.png';
-        link.click();
-      })
-      .catch((err) => {
-        console.error('Failed to export chart as image', err);
-      });
-  };
 
   return (
     <div
@@ -140,7 +122,9 @@ export const SimplePlotly = ({
       }}
       ref={containerRef}
     >
-      <div ref={hoverRef} className={classes.containerButton}>
+      <div ref={hoverRef} className={classes.containerButton} style={{
+        width: isStatic ? '95%' : '100%',
+      }}>
         {hovered && (
           <Group pos="absolute" right={0} top={5}>
             {handleEditGrid && (
@@ -163,18 +147,6 @@ export const SimplePlotly = ({
                 )}
               </ActionIcon>
             )}
-
-            <ActionIcon
-              variant="filled"
-              aria-label="Download"
-              className={classes.actionButton}
-              onClick={exportToPNG}
-            >
-              <IconDownload
-                style={{ width: '70%', height: '70%' }}
-                stroke={1.5}
-              />
-            </ActionIcon>
 
             {handleDragStatic && (
               <ActionIcon

@@ -1,7 +1,3 @@
-export type FieldValueResponse = {
-  value: number[][];
-};
-
 export type PlotCoordinatesResponse = {
   name: string;
   target: string;

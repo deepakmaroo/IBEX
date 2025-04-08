@@ -10,8 +10,6 @@ import {
   NodeInfoTypeEnum,
   SearchNodeResponse,
   DataGridPlot,
-  DataIdsResponse,
-  PlotDataResponse,
 } from '../../types';
 import {
   ActionIcon,
@@ -28,7 +26,6 @@ import {
   buildTree,
   fetchDataIds,
   fetchDataPlot,
-  fetchFieldValue,
   fetchFindPaths,
   fetchNodeInfos,
   generateNewPlot,
@@ -419,14 +416,12 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
 
       try {
         let findDataPlot = updatedActive.dataPlot.find(
-          (plot) => plot.isEditing
+          (plot) => plot.isEditing,
         );
 
         if (!findDataPlot) {
           updatedActive = await handleNewPlot(nodes, updatedActive);
-          findDataPlot = updatedActive.dataPlot.find(
-            (plot) => plot.isEditing,
-          );
+          findDataPlot = updatedActive.dataPlot.find((plot) => plot.isEditing);
         }
 
         if (nodes.length === 0) {
@@ -435,7 +430,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
           updatedActive.dataPlot = active.dataPlot.filter(
             (plot) => !plot.isEditing,
           );
-          console.log("isEdit", updatedActive)
+          console.log('isEdit', updatedActive);
         } else {
           updatedActive = await handleExistingPlot(
             nodes,
@@ -497,7 +492,6 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
     const dataPlotted = nodes.filter(
       (node) => !findDataPlot.plot.some((plot) => plot.nodeUri === node),
     );
-    
 
     if (dataPlotted.length === 0) {
       return updateExistingPlots(nodes, findDataPlot, updatedActive);
@@ -531,7 +525,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
           unit,
         );
         updatedActive.dataPlot = [
-          ...active.dataPlot?.filter((plot) => plot.i !== findDataPlot.i),
+          ...(active.dataPlot || []).filter((plot) => plot.i !== findDataPlot.i),
           updatedPlot,
         ];
       } else if (!findDataPlot.y2AxisName) {
@@ -548,7 +542,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
           true,
         );
         updatedActive.dataPlot = [
-          ...active.dataPlot?.filter((plot) => plot.i !== findDataPlot.i),
+          ...(active.dataPlot || []).filter((plot) => plot.i !== findDataPlot.i),
           updatedPlot,
         ];
       } else {
