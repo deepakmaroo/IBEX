@@ -19,6 +19,8 @@ export interface SimplePlotlyProps {
 export type DataPlotly = Data & {
   nodeUri: string;
   unit: string;
+  x: (string | number)[]; 
+  y: (string | number)[];
   yaxis?: string;
 };
 
