@@ -2,7 +2,6 @@
 // https://www.electronjs.org/docs/latest/tutorial/process-model#preload-scripts
 
 import { contextBridge, ipcRenderer } from 'electron';
-import { ENV_VARIABLE } from './config';
 
 export const API = {
   fs: {
@@ -17,11 +16,9 @@ export const API = {
     saveAsDialog: (name: string, ext: string) =>
       ipcRenderer.invoke('saveAsDialog', name, ext),
   },
-};
+  getConfig: () => ipcRenderer.invoke('getConfig'),
 
-export const ENV = {
-  API_URL: ENV_VARIABLE.API_URL,
 };
+// Use `contextBridge` APIs to expose the API to the renderer process
 
 contextBridge.exposeInMainWorld('api', API);
-contextBridge.exposeInMainWorld('env', ENV);

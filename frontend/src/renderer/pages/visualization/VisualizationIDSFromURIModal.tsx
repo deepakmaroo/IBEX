@@ -175,9 +175,14 @@ export const VisualizationIDSFromURIModal = ({
     try {
       setIsLoading(true);
 
+      const config = await window.api.getConfig();
+      if(!config) {
+        throw new Error('Failed to load configuration');
+      }
+      
       // Verify if the URI exists
       const responseURIExists = await fetch(
-        `${window.env.API_URL}/data_entry/exists/?uri=${encodeURIComponent(formIDS.values.uri)}`,
+        `${config.API_URL}/data_entry/exists/?uri=${encodeURIComponent(formIDS.values.uri)}`,
         {
           method: 'GET',
           headers: {
@@ -267,7 +272,7 @@ export const VisualizationIDSFromURIModal = ({
       setIsLoading(true);
 
       // const response = await fetch(
-      //   `${window.env.API_URL}/data_entry/list_idses_from_file/`,
+      //   `${config.API_URL}/data_entry/list_idses_from_file/`,
       //   {
       //     method: 'POST',
       //     body: formData,
@@ -311,9 +316,15 @@ export const VisualizationIDSFromURIModal = ({
    */
   async function fetchDbEntries() {
     try {
+
+      const config = await window.api.getConfig();
+      if(!config) {
+        throw new Error('Failed to load configuration');
+      }
+      
       setIsLoadingDbEntries(true);
       const response = await fetch(
-        `${window.env.API_URL}/data_entry/available_entries/?user=${formDbEntries.values.user}&backend=${formDbEntries.values.backend}&database=${formDbEntries.values.database}&version=${formDbEntries.values.version}`,
+        `${config.API_URL}/data_entry/available_entries/?user=${formDbEntries.values.user}&backend=${formDbEntries.values.backend}&database=${formDbEntries.values.database}&version=${formDbEntries.values.version}`,
         {
           method: 'GET',
           headers: {

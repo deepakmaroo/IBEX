@@ -1,8 +1,12 @@
 import { ipcMain, dialog } from 'electron';
 import * as fs from 'fs';
+import { getConfig } from '../config/config';
 
 export default {
-  initialize() {
+  async initialize() {
+
+    const config = await getConfig();
+
     ipcMain.handle('readFile', async (event, filePath: string) => {
       try {
         const fileContent: string = fs.readFileSync(filePath, 'utf-8');
@@ -46,6 +50,10 @@ export default {
       }
 
       return null;
+    });
+
+    ipcMain.handle('getConfig', async () => {
+      return config;
     });
   },
 };
