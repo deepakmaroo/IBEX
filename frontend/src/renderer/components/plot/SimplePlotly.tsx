@@ -45,8 +45,7 @@ export const SimplePlotly = ({
    * Update the layout of the plot
    */
   useEffect(() => {
-    console.log('height', height);
-    console.log('width', width);
+
     setLayoutPlot((prevLayout) => ({
       ...prevLayout,
       height: height,

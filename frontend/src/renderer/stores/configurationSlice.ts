@@ -23,7 +23,7 @@ export const configurationSlice: StateCreator<ConfigurationState> = (set) => ({
 
       return {
         ...state,
-        active: updatedActive,
+        active: {...updatedActive, saved: false},
         configurations: updatedConfigurations,
       };
     });

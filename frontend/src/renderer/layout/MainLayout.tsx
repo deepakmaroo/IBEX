@@ -16,6 +16,7 @@ export function MainLayout() {
     configurations,
     addConfiguration,
     removeConfiguration,
+    updatedConfiguration,
     setActive,
   } = useIbexStore();
 
@@ -72,6 +73,13 @@ export function MainLayout() {
         window.api.fs.writeFile(path, JSON.stringify(newIbexState));
       }
     });
+    const updateActive: Configuration = {
+      ...active,
+      saved: true,
+    };
+
+    updatedConfiguration(updateActive);
+    
   };
 
   const handleLoadConfiguration = () => {
@@ -86,6 +94,7 @@ export function MainLayout() {
             checkedNodeURI: [],
             dataPlot: newIbexState.dataPlot,
             saved: true,
+            isLoadingFromFile: true,
           };
           addConfiguration(newConfig);
           setActive(newConfig.name);
