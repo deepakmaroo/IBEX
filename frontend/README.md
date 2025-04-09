@@ -119,3 +119,14 @@ Run the application with debug mode, enable logs details to understand the appli
 ```
 npm run debug
 ```
+
+### Use linux executable
+
+After run `npm run make`, you can find the executable file in the `out` directory. Copy/paste the ibex-linux-x64 directory to your desired location. You can run the application by executing the executable file:  
+
+```
+cd out/ibex-linux-x64
+./ibex
+```
+
+To custom the app config you can modify `resources/config.json`. This files contains the default configuration for the application.
