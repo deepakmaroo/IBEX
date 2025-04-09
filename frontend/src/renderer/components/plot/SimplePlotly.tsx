@@ -2,7 +2,7 @@ import { Layout } from 'plotly.js';
 import { useEffect, useRef, useState } from 'react';
 import Plot from 'react-plotly.js';
 import { SimplePlotlyProps } from 'src/renderer/types';
-import { ActionIcon, Group } from '@mantine/core';
+import { ActionIcon, Group, Tooltip } from '@mantine/core';
 
 import {
   IconCheck,
@@ -129,61 +129,75 @@ export const SimplePlotly = ({
         {hovered && (
           <Group pos="absolute" right={0} top={5}>
             {handleEditGrid && (
-              <ActionIcon
-                variant="filled"
-                aria-label="Editing"
-                onClick={handleEditGrid}
-                className={classes.actionButton}
-                color={isEdit ? 'yellow' : 'green'}
+              <Tooltip
+                label={isEdit ? 'Stop editing the grid' : 'Edit the grid'}
               >
-                {isEdit ? (
-                  <IconCheck
-                    style={{ width: '70%', height: '70%' }}
-                    stroke={1.5}
-                  />
-                ) : (
-                  <IconEdit
-                    style={{ width: '70%', height: '70%' }}
-                    stroke={1.5}
-                  />
-                )}
-              </ActionIcon>
+                <ActionIcon
+                  variant="filled"
+                  aria-label="Editing"
+                  onClick={handleEditGrid}
+                  className={classes.actionButton}
+                  color={isEdit ? 'yellow' : 'green'}
+                >
+                  {isEdit ? (
+                    <IconCheck
+                      style={{ width: '70%', height: '70%' }}
+                      stroke={1.5}
+                    />
+                  ) : (
+                    <IconEdit
+                      style={{ width: '70%', height: '70%' }}
+                      stroke={1.5}
+                    />
+                  )}
+                </ActionIcon>
+              </Tooltip>
             )}
 
             {handleDragStatic && (
-              <ActionIcon
-                variant="filled"
-                aria-label="StaticLayout"
-                onClick={handleDragStatic}
-                className={classes.actionButton}
+              <Tooltip
+                label={
+                  isStatic
+                    ? 'Zoom in/out the plot and stop dragging'
+                    : 'Drag the plot'
+                }
               >
-                {isStatic ? (
-                  <IconHandMove
-                    style={{ width: '70%', height: '70%' }}
-                    stroke={1.5}
-                  />
-                ) : (
-                  <IconZoomIn
-                    style={{ width: '70%', height: '70%' }}
-                    stroke={1.5}
-                  />
-                )}
-              </ActionIcon>
+                <ActionIcon
+                  variant="filled"
+                  aria-label="StaticLayout"
+                  onClick={handleDragStatic}
+                  className={classes.actionButton}
+                >
+                  {isStatic ? (
+                    <IconHandMove
+                      style={{ width: '70%', height: '70%' }}
+                      stroke={1.5}
+                    />
+                  ) : (
+                    <IconZoomIn
+                      style={{ width: '70%', height: '70%' }}
+                      stroke={1.5}
+                    />
+                  )}
+                </ActionIcon>
+              </Tooltip>
             )}
 
             {handleDeleteGrid && (
-              <ActionIcon
-                variant="filled"
-                aria-label="Delete"
-                onClick={handleDeleteGrid}
-                className={classes.actionButton}
-                color="red"
-              >
-                <IconTrash
-                  style={{ width: '70%', height: '70%' }}
-                  stroke={1.5}
-                />
-              </ActionIcon>
+              <Tooltip label="Delete the grid">
+                <ActionIcon
+                  variant="filled"
+                  aria-label="Delete"
+                  onClick={handleDeleteGrid}
+                  className={classes.actionButton}
+                  color="red"
+                >
+                  <IconTrash
+                    style={{ width: '70%', height: '70%' }}
+                    stroke={1.5}
+                  />
+                </ActionIcon>
+              </Tooltip>
             )}
           </Group>
         )}
