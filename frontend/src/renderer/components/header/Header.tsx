@@ -35,11 +35,10 @@ export const Header = ({
   const actions = (
     <Group justify="flex-end" p={12}>
       <Button onClick={handleAddConfiguration}>Add configuration</Button>
-      <Button onClick={handleLoadConfiguration} disabled>Load configuration</Button>
+      <Button onClick={handleLoadConfiguration}>Load configuration</Button>
       <Button
         onClick={handleSaveConfiguration}
-        // disabled={configurations.length === 0 || active?.saved}
-        disabled
+        disabled={configurations.length === 0 || active?.saved}
       >
         Save configuration
       </Button>

@@ -47,22 +47,27 @@ export function MainLayout() {
   };
 
   const handleSaveConfiguration = () => {
-    const dataPlotWithoutDataPlotly: DataGridPlot[] = active.dataPlot.map(
-      (plot) => ({
-        ...plot,
+    const dataGridWithoutData: DataGridPlot[] = active.dataPlot.map(
+      (dataGrid) => ({
+        ...dataGrid,
+        isEditing: false,
+        plot: dataGrid.plot.map((plot) => ({
+          ...plot,
+          x:[],
+          y: [],
+        })),
       }),
     );
 
     const newIbexState: BaseConfiguration = {
       name: active.name,
       dataURI: active.dataURI,
-      checkedNodeURI: active.checkedNodeURI,
       lastURIInput: active.lastURIInput,
       lastLocalDataSetSelected: active.lastLocalDataSetSelected,
-      dataPlot: dataPlotWithoutDataPlotly,
+      dataPlot: dataGridWithoutData,
     };
 
-    window.api.fs.saveAsDialog('ibexState.json', 'json').then((path) => {
+    window.api.fs.saveAsDialog(`${active.name}IbexState.json`, 'json').then((path) => {
       if (path) {
         window.api.fs.writeFile(path, JSON.stringify(newIbexState));
       }
@@ -73,13 +78,14 @@ export function MainLayout() {
     window.api.fs.getFilePathDialog('json').then((path) => {
       if (path) {
         window.api.fs.readFile(path).then((data) => {
-          const newIbexState: Configuration = JSON.parse(data);
+          const newIbexState: BaseConfiguration = JSON.parse(data);
           const newConfig: Configuration = {
             name: newIbexState.name,
             dataURI: newIbexState.dataURI,
             customDataTree: [],
-            checkedNodeURI: newIbexState.checkedNodeURI,
+            checkedNodeURI: [],
             dataPlot: newIbexState.dataPlot,
+            saved: true,
           };
           addConfiguration(newConfig);
           setActive(newConfig.name);

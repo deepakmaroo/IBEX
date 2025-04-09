@@ -441,6 +441,8 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
       } catch (error) {
         console.error(error);
       } finally {
+        console.log('updateActive', updatedActive);
+
         updatedConfiguration(updatedActive);
       }
     },

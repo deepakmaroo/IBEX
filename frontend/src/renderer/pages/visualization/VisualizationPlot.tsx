@@ -112,7 +112,6 @@ export const VisualizationPlot = () => {
   const handleEditGrid = useCallback(
     (id: string) => {
       const findPlot = active.dataPlot.find((item) => item.i === id);
-      console.log('findPlot', findPlot);
       if (!findPlot) return;
 
       const updatedDataPlot = active.dataPlot.map((item) =>
@@ -121,7 +120,6 @@ export const VisualizationPlot = () => {
           : { ...item, isEditing: false },
       );
 
-      console.log('updated data plot', updatedDataPlot);
 
       updatedConfiguration({
         ...active,

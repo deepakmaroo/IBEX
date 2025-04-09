@@ -7,10 +7,10 @@ export interface BaseConfiguration {
   dataURI: URIData[];
   lastLocalDataSetSelected?: string;
   lastURIInput?: string;
-  checkedNodeURI: string[];
   dataPlot: DataGridPlot[];
 }
 export interface Configuration extends BaseConfiguration {
+  checkedNodeURI: string[];
   url?: string;
   saved?: boolean;
   customDataTree: CustomTreeData[];
