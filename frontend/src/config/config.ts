@@ -24,9 +24,15 @@ export const getConfig = async (): Promise<TConfig> => {
     };
 
     try {
-      await fs.promises.writeFile(configPath, JSON.stringify(defaultConfig, null, 2), 'utf-8');
+      await fs.promises.writeFile(
+        configPath,
+        JSON.stringify(defaultConfig, null, 2),
+        'utf-8',
+      );
     } catch (err) {
-      console.error(`Erreur lors de la création du fichier de configuration: ${err}`);
+      console.error(
+        `Erreur lors de la création du fichier de configuration: ${err}`,
+      );
       return defaultConfig; // Retourne la config par défaut si l'écriture échoue
     }
   }
@@ -35,7 +41,9 @@ export const getConfig = async (): Promise<TConfig> => {
     const configData = await fs.promises.readFile(configPath, 'utf-8');
     return JSON.parse(configData);
   } catch (err) {
-    console.error(`Erreur lors de la lecture du fichier de configuration: ${err}`);
+    console.error(
+      `Erreur lors de la lecture du fichier de configuration: ${err}`,
+    );
     return { API_URL: 'http://localhost:8000' }; // Fallback en cas de problème de lecture
   }
 };

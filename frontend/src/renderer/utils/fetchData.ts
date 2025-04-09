@@ -5,14 +5,6 @@ import {
   SearchNodeResponse,
 } from '../types';
 
-const loadConfig = async () => {
-  const config = await window.api.getConfig();
-  if(!config) {
-    throw new Error('Failed to load configuration');
-  }
-  return config;
-};
-
 /**
  * Fetch the node information
  * @param nodeUri
@@ -26,12 +18,11 @@ export const fetchNodeInfos = async (
   nodeUri: string,
   showErrorBars: boolean,
 ): Promise<NodeInfoResponse> => {
-
   const config = await window.api.getConfig();
-  if(!config) {
+  if (!config) {
     throw new Error('Failed to load configuration');
   }
-  
+
   const response = await fetch(
     `${config.API_URL}/ids_info/node_info/?uri=${encodeURIComponent(nodeUri)}&show_error_bars=${showErrorBars}`,
     {
@@ -64,12 +55,11 @@ export const fetchFindPaths = async (
   showErrorBars: boolean,
 ): Promise<SearchNodeResponse> => {
   try {
-
     const config = await window.api.getConfig();
-    if(!config) {
+    if (!config) {
       throw new Error('Failed to load configuration');
     }
-    
+
     const response = await fetch(
       `${config.API_URL}/ids_info/find_paths/?uri=${encodeURIComponent(uri)}&searched_node=${encodeURIComponent(value)}&show_error_bars=${showErrorBars}`,
       {
@@ -100,10 +90,10 @@ export const fetchFindPaths = async (
 export const fetchDataIds = async (uri: string): Promise<DataIdsResponse> => {
   try {
     const config = await window.api.getConfig();
-    if(!config) {
+    if (!config) {
       throw new Error('Failed to load configuration');
     }
-  
+
     const response = await fetch(
       `${config.API_URL}/data_entry/list_idses/?uri=${encodeURIComponent(uri)}`,
       {
@@ -133,12 +123,11 @@ export const fetchDataIds = async (uri: string): Promise<DataIdsResponse> => {
  */
 export const fetchDataPlot = async (uri: string): Promise<PlotDataResponse> => {
   try {
-
     const config = await window.api.getConfig();
-    if(!config) {
+    if (!config) {
       throw new Error('Failed to load configuration');
     }
-    
+
     const response = await fetch(
       `${config.API_URL}/data/plot_data/?uri=${encodeURIComponent(uri)}`,
       {

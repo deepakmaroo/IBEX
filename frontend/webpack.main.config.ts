@@ -7,7 +7,6 @@ export const mainConfig: Configuration = {
     rules,
   },
   resolve: {
-
     extensions: ['.ts', '.tsx', '.js'],
     fallback: {
       path: false,

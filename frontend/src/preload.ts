@@ -17,7 +17,6 @@ export const API = {
       ipcRenderer.invoke('saveAsDialog', name, ext),
   },
   getConfig: () => ipcRenderer.invoke('getConfig'),
-
 };
 // Use `contextBridge` APIs to expose the API to the renderer process
 

@@ -176,10 +176,10 @@ export const VisualizationIDSFromURIModal = ({
       setIsLoading(true);
 
       const config = await window.api.getConfig();
-      if(!config) {
+      if (!config) {
         throw new Error('Failed to load configuration');
       }
-      
+
       // Verify if the URI exists
       const responseURIExists = await fetch(
         `${config.API_URL}/data_entry/exists/?uri=${encodeURIComponent(formIDS.values.uri)}`,
@@ -316,12 +316,11 @@ export const VisualizationIDSFromURIModal = ({
    */
   async function fetchDbEntries() {
     try {
-
       const config = await window.api.getConfig();
-      if(!config) {
+      if (!config) {
         throw new Error('Failed to load configuration');
       }
-      
+
       setIsLoadingDbEntries(true);
       const response = await fetch(
         `${config.API_URL}/data_entry/available_entries/?user=${formDbEntries.values.user}&backend=${formDbEntries.values.backend}&database=${formDbEntries.values.database}&version=${formDbEntries.values.version}`,

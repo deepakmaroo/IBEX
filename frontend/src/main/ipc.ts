@@ -1,10 +1,9 @@
 import { ipcMain, dialog } from 'electron';
 import * as fs from 'fs';
-import { getConfig } from '../config/config';
+import { getConfig } from '../config';
 
 export default {
   async initialize() {
-
     const config = await getConfig();
 
     ipcMain.handle('readFile', async (event, filePath: string) => {
