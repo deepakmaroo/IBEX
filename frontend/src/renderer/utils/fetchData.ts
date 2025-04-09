@@ -5,145 +5,39 @@ import {
   SearchNodeResponse,
 } from '../types';
 
-/**
- * Fetch the node information
- * @param nodeUri
- * @param showErrorBars
- *
- * @returns
- * @type {NodeInfoResponse}
- *
- */
-export const fetchNodeInfos = async (
-  nodeUri: string,
-  showErrorBars: boolean,
-): Promise<NodeInfoResponse> => {
+const getConfig = async () => {
   const config = await window.api.getConfig();
-  if (!config) {
-    throw new Error('Failed to load configuration');
-  }
+  if (!config) throw new Error('Failed to load configuration');
+  return config;
+};
 
-  const response = await fetch(
-    `${config.API_URL}/ids_info/node_info/?uri=${encodeURIComponent(nodeUri)}&show_error_bars=${showErrorBars}`,
-    {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-    },
-  );
+const fetchFromApi = async <T>(endpoint: string): Promise<T> => {
+  const config = await getConfig();
+  const response = await fetch(`${config.API_URL}${endpoint}`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+  });
 
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.detail || 'Failed to fetch IDS data');
   }
 
-  const data = await response.json();
-  return data;
+  return response.json();
 };
 
-/**
- * Fetch the find paths
- * @param uri
- * @param value
- * @param showErrorBars
- *
- * @returns
- * @type {SearchNodeResponse}
- */
-export const fetchFindPaths = async (
-  uri: string,
-  value: string,
-  showErrorBars: boolean,
-): Promise<SearchNodeResponse> => {
-  try {
-    const config = await window.api.getConfig();
-    if (!config) {
-      throw new Error('Failed to load configuration');
-    }
+export const fetchNodeInfos = (nodeUri: string, showErrorBars: boolean) =>
+  fetchFromApi<NodeInfoResponse>(
+    `/ids_info/node_info/?uri=${encodeURIComponent(nodeUri)}&show_error_bars=${showErrorBars}`
+  );
 
-    const response = await fetch(
-      `${config.API_URL}/ids_info/find_paths/?uri=${encodeURIComponent(uri)}&searched_node=${encodeURIComponent(value)}&show_error_bars=${showErrorBars}`,
-      {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-      },
-    );
+export const fetchFindPaths = (uri: string, value: string, showErrorBars: boolean) =>
+  fetchFromApi<SearchNodeResponse>(
+    `/ids_info/find_paths/?uri=${encodeURIComponent(uri)}&searched_node=${encodeURIComponent(value)}&show_error_bars=${showErrorBars}`
+  );
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || 'Failed to fetch IDS data');
-    }
+export const fetchDataIds = (uri: string) =>
+  fetchFromApi<DataIdsResponse>(`/data_entry/list_idses/?uri=${encodeURIComponent(uri)}`);
 
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error(error);
-  }
-};
-
-/**
- * Fetch the data ids
- * @param uri
- *
- * @returns
- * @type {DataIdsResponse}
- */
-export const fetchDataIds = async (uri: string): Promise<DataIdsResponse> => {
-  try {
-    const config = await window.api.getConfig();
-    if (!config) {
-      throw new Error('Failed to load configuration');
-    }
-
-    const response = await fetch(
-      `${config.API_URL}/data_entry/list_idses/?uri=${encodeURIComponent(uri)}`,
-      {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-      },
-    );
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || 'Failed to fetch IDS data');
-    }
-
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error(error);
-  }
-};
-
-/**
- * Fetch the plot data
- * @param uri
- *
- * @returns
- * @type {PlotDataResponse}
- */
-export const fetchDataPlot = async (uri: string): Promise<PlotDataResponse> => {
-  try {
-    const config = await window.api.getConfig();
-    if (!config) {
-      throw new Error('Failed to load configuration');
-    }
-
-    const response = await fetch(
-      `${config.API_URL}/data/plot_data/?uri=${encodeURIComponent(uri)}`,
-      {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-      },
-    );
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || 'Failed to fetch IDS data');
-    }
-
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error(error);
-  }
-};
+export const fetchDataPlot = (uri: string) =>
+  fetchFromApi<PlotDataResponse>(`/data/plot_data/?uri=${encodeURIComponent(uri)}`);
