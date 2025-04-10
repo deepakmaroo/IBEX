@@ -1,53 +1,12 @@
 import { Paper, ScrollArea, Stack, Text } from '@mantine/core';
 import { useIbexStore } from '../../stores';
 import { SimplePlotly } from '../../components/plot/SimplePlotly';
-import { useCallback, useEffect, useState } from 'react';
-import { Configuration, DataGridPlot, DataPlotly } from 'src/renderer/types';
+import { useCallback, useState } from 'react';
+import { Configuration, DataGridPlot } from 'src/renderer/types';
 import GridLayout, { Layout } from 'react-grid-layout';
-import { fetchDataPlot } from '../../utils';
 
 export const VisualizationPlot = () => {
   const { active, updatedConfiguration } = useIbexStore();
-
-  useEffect(() => {
-    const fetchDataAndUpdate = async () => {
-      if (active?.isLoadingFromFile) {
-        const updatedDataPlot = await Promise.all(
-          active.dataPlot.map(async (dataGrid: DataGridPlot): Promise<DataGridPlot> => {
-            const updatedPlot = await Promise.all(
-              dataGrid.plot.map(async (plot): Promise<DataPlotly> => {
-                if (plot.nodeUri !== '') {
-                  const response = await fetchDataPlot(plot.nodeUri);
-                  return {
-                    ...plot,
-                    x: response.data.coordinates[0].value.map((item) => item.toString()),
-                    y: response.data.value[0] //Ceci pose probleme
-                  };
-                }
-                return plot; // Retourne le plot tel quel si nodeUri est vide
-              })
-            );
-  
-            return {
-              ...dataGrid,
-              plot: updatedPlot,
-            };
-          })
-        );
-  
-        console.log('updatedDataPlot', updatedDataPlot);
-  
-        const newActive: Configuration = {
-          ...active,
-          dataPlot: updatedDataPlot,
-          isLoadingFromFile: false,
-        };
-        updatedConfiguration(newActive);
-      }
-    };
-  
-    fetchDataAndUpdate();
-  }, [active?.isLoadingFromFile]);
 
   const [dragEnabled, setDragEnabled] = useState(true);
   const [dragTimeout, setDragTimeout] = useState<NodeJS.Timeout | null>(null);
@@ -160,7 +119,6 @@ export const VisualizationPlot = () => {
           ? { ...item, isEditing: !item.isEditing }
           : { ...item, isEditing: false },
       );
-
 
       updatedConfiguration({
         ...active,

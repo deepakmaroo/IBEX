@@ -65,7 +65,7 @@ export const TreeLibrariesAccordion = ({
           <AccordionLabel
             label={item.name}
             description={item.uri}
-            color={item.uriColor}
+            color={item?.uriColor}
           />
         </Accordion.Control>
         <Accordion.Panel>

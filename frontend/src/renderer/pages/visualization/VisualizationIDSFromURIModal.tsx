@@ -15,11 +15,16 @@ import {
   TextInput,
 } from '@mantine/core';
 import { useIbexStore } from '../../stores';
-import { URIData } from 'src/renderer/types';
+import { FormDbEntries, URIData } from 'src/renderer/types';
 import { useEffect, useState } from 'react';
 import { IconPlus } from '@tabler/icons-react';
 import { showNotification } from '@mantine/notifications';
 import { useForm } from '@mantine/form';
+import {
+  fetchDataEntries,
+  fetchURIExists,
+  updateCustomDataTree,
+} from '../../utils';
 
 interface VisualizationSelectIDSModalProps {
   opened: boolean;
@@ -29,13 +34,6 @@ interface VisualizationSelectIDSModalProps {
 interface FormIDS {
   file: File;
   uri: string;
-}
-
-interface FormDbEntries {
-  user: string;
-  backend: string;
-  database: string;
-  version: string;
 }
 
 function getColorRandom(): string {
@@ -73,10 +71,6 @@ export const VisualizationIDSFromURIModal = ({
     },
     validate: {
       user: (value) => (value.length < 1 ? 'User is required' : undefined),
-      // backend: (value) =>
-      //   value.length < 1 ? 'Backend is required' : undefined,
-      // database: (value) =>
-      //   value.length < 1 ? 'Database is required' : undefined,
       version: (value) =>
         value.length < 1 ? 'Version is required' : undefined,
     },
@@ -155,7 +149,18 @@ export const VisualizationIDSFromURIModal = ({
    * @returns
    */
   const updateDataURI = (): void => {
-    updatedConfiguration({ ...active, dataURI: dataURIsSelected });
+    const newCustomDataTree = updateCustomDataTree(
+      active.customDataTree,
+      dataURIsSelected,
+    );
+
+    const updatedActive = {
+      ...active,
+      customDataTree: newCustomDataTree,
+      dataURI: dataURIsSelected,
+    };
+
+    updatedConfiguration(updatedActive);
     close();
   };
 
@@ -181,23 +186,9 @@ export const VisualizationIDSFromURIModal = ({
       }
 
       // Verify if the URI exists
-      const responseURIExists = await fetch(
-        `${config.API_URL}/data_entry/exists/?uri=${encodeURIComponent(formIDS.values.uri)}`,
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        },
-      );
+      const responseURIExists = await fetchURIExists(formIDS.values.uri);
 
-      if (!responseURIExists.ok) {
-        const error = await responseURIExists.json();
-        throw new Error(error.detail || 'Failed to verify URI existence');
-      }
-
-      const existsResult = await responseURIExists.json();
-      if (!existsResult.exists) {
+      if (!responseURIExists.exists) {
         formIDS.setFieldError('uri', 'URI does not exist');
         showNotification({
           title: 'Error',
@@ -270,33 +261,6 @@ export const VisualizationIDSFromURIModal = ({
 
     try {
       setIsLoading(true);
-
-      // const response = await fetch(
-      //   `${config.API_URL}/data_entry/list_idses_from_file/`,
-      //   {
-      //     method: 'POST',
-      //     body: formData,
-      //   },
-      // );
-
-      // if (response.ok) {
-      //   const res = await response.json();
-      //   // setDataIDsLoaded(res.idses);
-      //   setFromURIisSuccess(false);
-      //   setFromFileisSuccess(true);
-      // } else {
-      //   const res = await response.json();
-      //   console.error('Promise resolved but HTTP status failed:', res);
-      //   formIDS.setFieldError(
-      //     'file',
-      //     'Failed to fetch data for the provided file',
-      //   );
-      //   showNotification({
-      //     title: 'Error',
-      //     message: res.datail,
-      //     color: 'red',
-      //   });
-      // }
     } catch (error) {
       console.error('Promise rejected:', error);
       formIDS.setFieldError('file', 'Error occurred while fetching data');
@@ -322,62 +286,36 @@ export const VisualizationIDSFromURIModal = ({
       }
 
       setIsLoadingDbEntries(true);
-      const response = await fetch(
-        `${config.API_URL}/data_entry/available_entries/?user=${formDbEntries.values.user}&backend=${formDbEntries.values.backend}&database=${formDbEntries.values.database}&version=${formDbEntries.values.version}`,
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        },
+      const response = await fetchDataEntries(formDbEntries.values);
+
+      const oldDataEntriesSelected = dataDbEntries.filter((loaded) =>
+        dataURIsSelected.some((selected) => selected.uri === loaded.uri),
       );
 
-      if (response.ok) {
-        const res = await response.json();
+      const maxId = Math.max(
+        0,
+        ...oldDataEntriesSelected.map((d) => {
+          const match = d.name.match(/URI-(\d+)/);
+          return match ? parseInt(match[1], 10) : 0;
+        }),
+      );
 
-        const oldDataEntriesSelected = dataDbEntries.filter((loaded) =>
-          dataURIsSelected.some((selected) => selected.uri === loaded.uri),
-        );
+      const newDataEntries: URIData[] = response.entries
+        .filter(
+          (entry: string) =>
+            !oldDataEntriesSelected.some((d) => d.uri === entry),
+        )
+        .map((entry: string, index: number) => ({
+          name: `URI-${maxId + index + 1}`,
+          uri: entry,
+        }));
 
-        const maxId = Math.max(
-          0,
-          ...oldDataEntriesSelected.map((d) => {
-            const match = d.name.match(/URI-(\d+)/);
-            return match ? parseInt(match[1], 10) : 0;
-          }),
-        );
-
-        const newDataEntries: URIData[] = res.entries
-          .filter(
-            (entry: string) =>
-              !oldDataEntriesSelected.some((d) => d.uri === entry),
-          )
-          .map((entry: string, index: number) => ({
-            name: `URI-${maxId + index + 1}`,
-            uri: entry,
-          }));
-
-        setDataDbEntries([...oldDataEntriesSelected, ...newDataEntries]);
-        showNotification({
-          title: 'Success',
-          message: 'Data successfully fetched from db entries',
-          color: 'green',
-        });
-      } else {
-        const res = await response.json();
-        console.error('Promise resolved but HTTP status failed:', res);
-        formDbEntries.setErrors({
-          user: 'Failed to fetch data',
-          backend: 'Failed to fetch data',
-          database: 'Failed to fetch data',
-          version: 'Failed to fetch data',
-        });
-        showNotification({
-          title: 'Error',
-          message: res.datail,
-          color: 'red',
-        });
-      }
+      setDataDbEntries([...oldDataEntriesSelected, ...newDataEntries]);
+      showNotification({
+        title: 'Success',
+        message: 'Data successfully fetched from db entries',
+        color: 'green',
+      });
     } catch (error) {
       console.error('Promise rejected:', error);
       formDbEntries.setErrors({

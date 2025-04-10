@@ -1,6 +1,6 @@
 import { TreeNodeData } from '@mantine/core';
 import { NodeInfoTypeEnum } from './nodes';
-import { URIData } from './ids';
+import { URIData } from './uri';
 
 export type DataTreeSelected = {
   path: string;

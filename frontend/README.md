@@ -122,7 +122,7 @@ npm run debug
 
 ### Use linux executable
 
-After run `npm run make`, you can find the executable file in the `out` directory. Copy/paste the ibex-linux-x64 directory to your desired location. You can run the application by executing the executable file:  
+After run `npm run make`, you can find the executable file in the `out` directory. Copy/paste the ibex-linux-x64 directory to your desired location. You can run the application by executing the executable file:
 
 ```
 cd out/ibex-linux-x64

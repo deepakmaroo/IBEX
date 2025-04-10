@@ -9,6 +9,7 @@ import {
   DataGridPlot,
 } from '../types';
 import { ConfigCreateModal, ConfirmModal, Header } from '../components';
+import { plotNodeUriLoaded, updateCustomDataTree } from '../utils';
 
 export function MainLayout() {
   const {
@@ -54,7 +55,7 @@ export function MainLayout() {
         isEditing: false,
         plot: dataGrid.plot.map((plot) => ({
           ...plot,
-          x:[],
+          x: [],
           y: [],
         })),
       }),
@@ -68,34 +69,37 @@ export function MainLayout() {
       dataPlot: dataGridWithoutData,
     };
 
-    window.api.fs.saveAsDialog(`${active.name}IbexState.json`, 'json').then((path) => {
-      if (path) {
-        window.api.fs.writeFile(path, JSON.stringify(newIbexState));
-      }
-    });
+    window.api.fs
+      .saveAsDialog(`${active.name}IbexState.json`, 'json')
+      .then((path) => {
+        if (path) {
+          window.api.fs.writeFile(path, JSON.stringify(newIbexState));
+        }
+      });
     const updateActive: Configuration = {
       ...active,
       saved: true,
     };
 
     updatedConfiguration(updateActive);
-    
   };
 
   const handleLoadConfiguration = () => {
     window.api.fs.getFilePathDialog('json').then((path) => {
       if (path) {
-        window.api.fs.readFile(path).then((data) => {
+        window.api.fs.readFile(path).then(async (data) => {
           const newIbexState: BaseConfiguration = JSON.parse(data);
           const newConfig: Configuration = {
             name: newIbexState.name,
             dataURI: newIbexState.dataURI,
-            customDataTree: [],
+            customDataTree: updateCustomDataTree([], newIbexState.dataURI),
             checkedNodeURI: [],
-            dataPlot: newIbexState.dataPlot,
+            dataPlot: await plotNodeUriLoaded(newIbexState.dataPlot),
             saved: true,
             isLoadingFromFile: true,
           };
+
+          console.log('newConfig', newConfig);
           addConfiguration(newConfig);
           setActive(newConfig.name);
         });

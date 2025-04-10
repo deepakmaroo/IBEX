@@ -1,4 +1,9 @@
-import { CustomTreeNodeData, NodeInfoTypeEnum } from '../types';
+import {
+  CustomTreeData,
+  CustomTreeNodeData,
+  NodeInfoTypeEnum,
+  URIData,
+} from '../types';
 
 export const buildTree = (
   tree: CustomTreeNodeData[],
@@ -64,4 +69,23 @@ export const buildTree = (
     });
   });
   return tree;
+};
+
+export const updateCustomDataTree = (
+  customTreeData: CustomTreeData[],
+  dataURI: URIData[],
+): CustomTreeData[] => {
+  const newCustomDataTree: CustomTreeData[] = dataURI.map((ids) => {
+    const existingItem = customTreeData.find((item) => item.uri === ids.uri);
+
+    return {
+      name: ids.name,
+      uri: ids.uri,
+      data: existingItem ? existingItem.data : [],
+      uriColor: existingItem ? existingItem.uriColor : ids.uriColor,
+      expendAll: false,
+    };
+  });
+
+  return newCustomDataTree;
 };

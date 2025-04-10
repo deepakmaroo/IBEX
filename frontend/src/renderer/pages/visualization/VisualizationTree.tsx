@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { TreeLibrariesAccordion } from '../../components';
 import { useIbexStore } from '../../stores';
 import {
@@ -9,7 +9,6 @@ import {
   NodeInfoChildrenResponse,
   NodeInfoTypeEnum,
   SearchNodeResponse,
-  DataGridPlot,
 } from '../../types';
 import {
   ActionIcon,
@@ -25,11 +24,10 @@ import { showNotification } from '@mantine/notifications';
 import {
   buildTree,
   fetchDataIds,
-  fetchDataPlot,
   fetchFindPaths,
   fetchNodeInfos,
-  generateNewPlot,
-  plotData,
+  handleExistingPlot,
+  handleNewPlot,
 } from '../../utils';
 
 interface VisualizationTreeProps {
@@ -84,36 +82,6 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
       }
     },
   });
-
-  /**
-   * Handle dataURI change
-   */
-  useEffect(() => {
-    if (active && active.dataURI) {
-      const existingCustomDataTree = active.customDataTree || [];
-
-      const newCustomDataTree: CustomTreeData[] = active.dataURI.map((ids) => {
-        const existingItem = existingCustomDataTree.find(
-          (item) => item.uri === ids.uri,
-        );
-
-        return {
-          name: ids.name,
-          uri: ids.uri,
-          data: existingItem ? existingItem.data : [],
-          uriColor: existingItem ? existingItem.uriColor : ids.uriColor,
-          expendAll: false,
-        };
-      });
-
-      const updatedActive: Configuration = {
-        ...active,
-        customDataTree: newCustomDataTree,
-      };
-
-      updatedConfiguration(updatedActive);
-    }
-  }, [active.dataURI]);
 
   /**
    * Handle node update using full URI
@@ -425,7 +393,6 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
         }
 
         if (nodes.length === 0) {
-
           updatedActive.dataPlot = active.dataPlot.filter(
             (plot) => !plot.isEditing,
           );
@@ -439,155 +406,12 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
       } catch (error) {
         console.error(error);
       } finally {
-        console.log('updateActive', updatedActive);
-
         updatedConfiguration(updatedActive);
       }
     },
     [active],
   );
 
-  const handleNewPlot = async (
-    nodes: string[],
-    updatedActive: Configuration,
-  ): Promise<Configuration> => {
-    const response = await fetchDataPlot(nodes[0]);
-
-    if (!response || response.data.ndim !== 1) {
-      showNotification({
-        title: 'Plot',
-        message: 'Cannot plot data with more than one dimension',
-        color: 'yellow',
-      });
-      updatedActive.checkedNodeURI = nodes.filter((n) => n !== nodes[0]);
-      return updatedActive;
-    }
-
-    const newPlot = generateNewPlot(
-      `${response.data.name}(${response.data.unit})`,
-      `${response.data.coordinates[0].name}(${response.data.coordinates[0].unit})`,
-      response.data.unit,
-      response.data.unit,
-    );
-
-    const updatedPlot = await plotData(
-      `${response.data.name}(${response.data.unit})`,
-      newPlot,
-      response.data.coordinates[0].value,
-      response.data.value[0],
-      nodes[0],
-      `${response.data.name}(${response.data.unit})`,
-      response.data.unit,
-    );
-
-    updatedActive.dataPlot.push(updatedPlot);
-    return updatedActive;
-  };
-
-  const handleExistingPlot = async (
-    nodes: string[],
-    findDataPlot: DataGridPlot,
-    updatedActive: Configuration,
-  ): Promise<Configuration> => {
-    const dataPlotted = nodes.filter(
-      (node) => !findDataPlot.plot.some((plot) => plot.nodeUri === node),
-    );
-
-    if (dataPlotted.length === 0) {
-      return updateExistingPlots(nodes, findDataPlot, updatedActive);
-    }
-
-    for (const node of dataPlotted) {
-      const response = await fetchDataPlot(node);
-      if (!response || response.data.ndim !== 1) {
-        showNotification({
-          title: 'Plot',
-          message: 'Cannot plot data with more than one dimension',
-          color: 'yellow',
-        });
-        updatedActive.checkedNodeURI = nodes.filter((n) => n !== node);
-        continue;
-      }
-
-      const unit = response.data.unit;
-      const unitIsSame =
-        findDataPlot.yUnit === unit || findDataPlot.y2Unit === unit;
-      const title = `${findDataPlot.title}/ ${response.data.name}(${unit})`;
-
-      if (unitIsSame) {
-        const updatedPlot = await plotData(
-          title,
-          findDataPlot,
-          response.data.coordinates[0].value,
-          response.data.value[0],
-          node,
-          `${response.data.name}(${unit})`,
-          unit,
-        );
-        updatedActive.dataPlot = [
-          ...(active.dataPlot || []).filter(
-            (plot) => plot.i !== findDataPlot.i,
-          ),
-          updatedPlot,
-        ];
-      } else if (!findDataPlot.y2AxisName) {
-        findDataPlot.y2AxisName = unit;
-        findDataPlot.y2Unit = unit;
-        const updatedPlot = await plotData(
-          title,
-          findDataPlot,
-          response.data.coordinates[0].value,
-          response.data.value[0],
-          node,
-          `${response.data.name}(${unit})`,
-          unit,
-          true,
-        );
-        updatedActive.dataPlot = [
-          ...(active.dataPlot || []).filter(
-            (plot) => plot.i !== findDataPlot.i,
-          ),
-          updatedPlot,
-        ];
-      } else {
-        showNotification({
-          title: 'Plot',
-          message: 'Plot already contains 2 y axes',
-          color: 'yellow',
-        });
-        updatedActive.checkedNodeURI = nodes.filter((n) => n !== node);
-      }
-    }
-    return updatedActive;
-  };
-
-  const updateExistingPlots = (
-    nodes: string[],
-    findDataPlot: DataGridPlot,
-    updatedActive: Configuration,
-  ): Configuration => {
-    const plots = findDataPlot?.plot.filter((plot) =>
-      nodes.includes(plot.nodeUri),
-    );
-    if (plots.every((plot) => plot.unit === plots[0].unit)) {
-      findDataPlot.yAxisName = plots[0].unit;
-      findDataPlot.yUnit = plots[0].unit;
-      findDataPlot.y2AxisName = '';
-      findDataPlot.y2Unit = '';
-
-      for (const plot of plots) {
-        plot.yaxis = '';
-      }
-    }
-
-    findDataPlot.plot = plots;
-    findDataPlot.title = plots.map((plot) => plot.name).join('/');
-    updatedActive.dataPlot = [
-      ...active.dataPlot.filter((plot) => plot.i !== findDataPlot.i),
-      findDataPlot,
-    ];
-    return updatedActive;
-  };
 
   return (
     <Container fluid p={0}>
