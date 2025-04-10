@@ -412,7 +412,6 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
     [active],
   );
 
-
   return (
     <Container fluid p={0}>
       <Container fluid pt={1}>

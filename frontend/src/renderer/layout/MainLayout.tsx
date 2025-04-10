@@ -99,7 +99,6 @@ export function MainLayout() {
             isLoadingFromFile: true,
           };
 
-          console.log('newConfig', newConfig);
           addConfiguration(newConfig);
           setActive(newConfig.name);
         });

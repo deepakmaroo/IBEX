@@ -209,32 +209,62 @@ const updateExistingPlots = (
 };
 
 export async function plotNodeUriLoaded(
-  dataGrigPlot: DataGridPlot[],
+  dataGridPlot: DataGridPlot[],
 ): Promise<DataGridPlot[]> {
-  const updatedDataGrigPlot: DataGridPlot[] = await Promise.all(
-    dataGrigPlot.map(async (dataGrid: DataGridPlot): Promise<DataGridPlot> => {
-      const updatedPlot = await Promise.all(
-        dataGrid.plot.map(async (plot): Promise<DataPlotly> => {
-          if (plot.nodeUri !== '') {
-            const response = await fetchDataPlot(plot.nodeUri);
-            return {
-              ...plot,
-              x: response.data.coordinates[0].value.map((item) =>
-                item.toString(),
-              ),
-              y: response.data.value[0],
-            };
-          }
-          return plot;
-        }),
-      );
+  try {
+    let errorHasOccurred = false;
 
-      return {
-        ...dataGrid,
-        plot: updatedPlot,
-      };
-    }),
-  );
+    const updatedDataGridPlot: DataGridPlot[] = await Promise.all(
+      dataGridPlot.map(async (dataGrid): Promise<DataGridPlot> => {
+        const updatedPlot = await Promise.all(
+          dataGrid.plot.map(async (plot): Promise<DataPlotly> => {
+            if (!plot.nodeUri) return plot;
 
-  return updatedDataGrigPlot;
+            try {
+              const response = await fetchDataPlot(plot.nodeUri);
+              if (!response || !response.data) {
+                console.warn(`No data returned for nodeUri: ${plot.nodeUri}`);
+                errorHasOccurred = true;
+                return plot;
+              }
+
+              return {
+                ...plot,
+                x: response.data.coordinates?.[0]?.value?.map(String) ?? [],
+                y: response.data.value?.[0] ?? [],
+              };
+            } catch (error) {
+              console.error(`Error fetching data for ${plot.nodeUri}:`, error);
+              errorHasOccurred = true;
+              return plot; // Retourne l'original si une erreur survient
+            }
+          }),
+        );
+
+        return {
+          ...dataGrid,
+          plot: updatedPlot,
+        };
+      }),
+    );
+
+    if (errorHasOccurred) {
+      showNotification({
+        title: 'Plot',
+        message: 'Some plots could not be loaded',
+        color: 'red',
+      });
+    }
+
+    return updatedDataGridPlot;
+  } catch (error) {
+    console.error('Error in plotNodeUriLoaded:', error);
+    showNotification({
+      title: 'Plot',
+      message: 'Failed to load plot data',
+      color: 'red',
+    });
+
+    return []; // Retourne un tableau vide en cas d'erreur critique
+  }
 }

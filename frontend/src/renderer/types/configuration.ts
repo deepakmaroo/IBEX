@@ -1,4 +1,4 @@
-import { URIData } from './ids';
+import { URIData } from './uri';
 import { DataGridPlot } from './plot';
 import { CustomTreeData } from './tree';
 
@@ -9,6 +9,7 @@ export interface BaseConfiguration {
   lastURIInput?: string;
   dataPlot: DataGridPlot[];
 }
+
 export interface Configuration extends BaseConfiguration {
   checkedNodeURI: string[];
   url?: string;
