@@ -40,7 +40,11 @@ export const Header = ({
         onClick={handleSaveConfiguration}
         disabled={configurations.length === 0 || active?.saved}
       >
-        Save configuration
+        {active?.path && active?.saved
+          ? 'Configuration saved'
+          : active?.path
+            ? 'Save configuration'
+            : 'Save as configuration'}
       </Button>
       <Button
         onClick={handleRemoveConfiguration}

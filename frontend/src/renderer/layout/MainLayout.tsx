@@ -69,13 +69,21 @@ export function MainLayout() {
       dataPlot: dataGridWithoutData,
     };
 
-    window.api.fs
+    if (active?.path) {
+      window.api.fs.writeFile(active.path, JSON.stringify(newIbexState));
+      updatedConfiguration({ ...active, saved: true });
+      return;
+    } else {
+      window.api.fs
       .saveAsDialog(`${active.name}IbexState.json`, 'json')
       .then((path) => {
         if (path) {
           window.api.fs.writeFile(path, JSON.stringify(newIbexState));
         }
       });
+    }
+
+
     const updateActive: Configuration = {
       ...active,
       saved: true,
@@ -96,7 +104,7 @@ export function MainLayout() {
             checkedNodeURI: [],
             dataPlot: await plotNodeUriLoaded(newIbexState.dataPlot),
             saved: true,
-            isLoadingFromFile: true,
+            path: path,
           };
 
           addConfiguration(newConfig);

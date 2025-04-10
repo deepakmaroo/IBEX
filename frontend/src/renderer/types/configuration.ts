@@ -12,10 +12,9 @@ export interface BaseConfiguration {
 
 export interface Configuration extends BaseConfiguration {
   checkedNodeURI: string[];
-  url?: string;
+  path?: string;
   saved?: boolean;
   customDataTree: CustomTreeData[];
-  isLoadingFromFile?: boolean;
 }
 
 export interface ConfigForm {
