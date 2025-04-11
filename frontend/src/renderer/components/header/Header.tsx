@@ -33,7 +33,7 @@ export const Header = ({
   handleLoadConfiguration,
   handleSelectConfiguration,
 }: HeaderProps) => {
-  
+
   useEffect(() => {
     console.log('active configuration changed:', active);
   }, [active]);
@@ -46,9 +46,7 @@ export const Header = ({
         onClick={handleSaveConfiguration}
         disabled={configurations.length === 0 || active?.saved}
       >
-        {active?.path && active?.saved
-          ? 'Configuration saved'
-          : active?.path
+        {active?.path
             ? 'Save configuration'
             : 'Save as configuration'}
       </Button>

@@ -69,15 +69,16 @@ export function MainLayout() {
       lastLocalDataSetSelected: active.lastLocalDataSetSelected,
       dataPlot: dataGridWithoutData,
     };
-
     if (active?.path) {
       await window.api.fs.writeFile(active.path, JSON.stringify(newIbexState));
       return;
     } else {
+      
       await window.api.fs
       .saveAsDialog(`${active.name}IbexState.json`, 'json')
       .then((path) => {
         if (path) {
+          active.path = path;
           window.api.fs.writeFile(path, JSON.stringify(newIbexState));
         }
       });
