@@ -52,6 +52,7 @@ export const VisualizationPlot = () => {
       );
       const newActive: Configuration = {
         ...active,
+        saved: false,
         dataPlot: newDataPlot,
       };
 
@@ -70,6 +71,7 @@ export const VisualizationPlot = () => {
       );
       const newActive: Configuration = {
         ...active,
+        saved: false,
         dataPlot: newDataPlot,
         checkedNodeURI: [],
       };
@@ -102,7 +104,7 @@ export const VisualizationPlot = () => {
         },
       );
 
-      const newActive: Configuration = { ...active, dataPlot: updatedDataPlot };
+      const newActive: Configuration = { ...active, saved: false, dataPlot: updatedDataPlot };
 
       updatedConfiguration(newActive);
     },
@@ -122,6 +124,7 @@ export const VisualizationPlot = () => {
 
       updatedConfiguration({
         ...active,
+        saved: false,
         dataPlot: updatedDataPlot,
         checkedNodeURI: findPlot.isEditing
           ? []

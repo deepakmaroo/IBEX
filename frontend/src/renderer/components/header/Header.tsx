@@ -12,6 +12,7 @@ import {
 } from '@mantine/core';
 import logoPath from '../../assets/imas_extra.png';
 import { Configuration } from 'src/renderer/types';
+import { useEffect } from 'react';
 
 interface HeaderProps {
   active: Configuration;
@@ -32,6 +33,11 @@ export const Header = ({
   handleLoadConfiguration,
   handleSelectConfiguration,
 }: HeaderProps) => {
+  
+  useEffect(() => {
+    console.log('active configuration changed:', active);
+  }, [active]);
+
   const actions = (
     <Group justify="flex-end" p={12}>
       <Button onClick={handleAddConfiguration}>Add configuration</Button>

@@ -15,7 +15,7 @@ import {
   TextInput,
 } from '@mantine/core';
 import { useIbexStore } from '../../stores';
-import { FormDbEntries, URIData } from 'src/renderer/types';
+import { Configuration, FormDbEntries, URIData } from 'src/renderer/types';
 import { useEffect, useState } from 'react';
 import { IconPlus } from '@tabler/icons-react';
 import { showNotification } from '@mantine/notifications';
@@ -154,8 +154,9 @@ export const VisualizationIDSFromURIModal = ({
       dataURIsSelected,
     );
 
-    const updatedActive = {
+    const updatedActive: Configuration = {
       ...active,
+      saved: false,
       customDataTree: newCustomDataTree,
       dataURI: dataURIsSelected,
     };

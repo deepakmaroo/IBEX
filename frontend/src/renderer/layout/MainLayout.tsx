@@ -10,6 +10,7 @@ import {
 } from '../types';
 import { ConfigCreateModal, ConfirmModal, Header } from '../components';
 import { plotNodeUriLoaded, updateCustomDataTree } from '../utils';
+import { useCallback } from 'react';
 
 export function MainLayout() {
   const {
@@ -48,7 +49,7 @@ export function MainLayout() {
     closeConfigDeleteModal();
   };
 
-  const handleSaveConfiguration = () => {
+  const handleSaveConfiguration = async () => {
     const dataGridWithoutData: DataGridPlot[] = active.dataPlot.map(
       (dataGrid) => ({
         ...dataGrid,
@@ -70,11 +71,10 @@ export function MainLayout() {
     };
 
     if (active?.path) {
-      window.api.fs.writeFile(active.path, JSON.stringify(newIbexState));
-      updatedConfiguration({ ...active, saved: true });
+      await window.api.fs.writeFile(active.path, JSON.stringify(newIbexState));
       return;
     } else {
-      window.api.fs
+      await window.api.fs
       .saveAsDialog(`${active.name}IbexState.json`, 'json')
       .then((path) => {
         if (path) {
@@ -92,10 +92,10 @@ export function MainLayout() {
     updatedConfiguration(updateActive);
   };
 
-  const handleLoadConfiguration = () => {
-    window.api.fs.getFilePathDialog('json').then((path) => {
+  const handleLoadConfiguration = async () => {
+    await window.api.fs.getFilePathDialog('json').then(async (path) => {
       if (path) {
-        window.api.fs.readFile(path).then(async (data) => {
+        await window.api.fs.readFile(path).then(async (data) => {
           const newIbexState: BaseConfiguration = JSON.parse(data);
           const newConfig: Configuration = {
             name: newIbexState.name,
