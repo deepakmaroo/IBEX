@@ -127,7 +127,7 @@ export function MainLayout() {
           handleAddConfiguration={openConfigCreateModal}
           handleRemoveConfiguration={() =>
             !active?.saved
-              ? openConfigDeleteModal
+              ? openConfigDeleteModal()
               : removeConfiguration(active?.name)
           }
           handleSaveConfiguration={handleSaveConfiguration}
