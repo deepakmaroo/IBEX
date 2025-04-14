@@ -14,7 +14,7 @@ import {
   IconZoomIn,
 } from '@tabler/icons-react';
 import { useHover } from '@mantine/hooks';
-import classes from './SimplePlotly.module.css';
+import classes from './GridLayoutPlot.module.css';
 import { SimplePlotly } from '../plot';
 import { useIbexStore } from '../../stores';
 
