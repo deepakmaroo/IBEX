@@ -124,8 +124,8 @@ export const SimplePlotly = ({
           width: isStatic ? '95%' : '100%',
         }}
       >
-        {hovered && (
-          <Group pos="absolute" right={0} top={5}>
+        {(hovered || isStatic || isEdit) && (
+          <Group pos="absolute" right={isStatic || isEdit ? 5 : 1} top={5}>
             {handleEditGrid && (
               <Tooltip
                 label={isEdit ? 'Stop editing the grid' : 'Edit the grid'}

@@ -10,7 +10,6 @@ import {
 } from '../types';
 import { ConfigCreateModal, ConfirmModal, Header } from '../components';
 import { plotNodeUriLoaded, updateCustomDataTree } from '../utils';
-import { useCallback } from 'react';
 
 export function MainLayout() {
   const {
@@ -72,17 +71,15 @@ export function MainLayout() {
     if (active?.path) {
       await window.api.fs.writeFile(active.path, JSON.stringify(newIbexState));
     } else {
-      
       await window.api.fs
-      .saveAsDialog(`${active.name}IbexState.json`, 'json')
-      .then((path) => {
-        if (path) {
-          active.path = path;
-          window.api.fs.writeFile(path, JSON.stringify(newIbexState));
-        }
-      });
+        .saveAsDialog(`${active.name}IbexState.json`, 'json')
+        .then((path) => {
+          if (path) {
+            active.path = path;
+            window.api.fs.writeFile(path, JSON.stringify(newIbexState));
+          }
+        });
     }
-
 
     const updateActive: Configuration = {
       ...active,
@@ -128,7 +125,11 @@ export function MainLayout() {
             label: configuration?.name,
           }))}
           handleAddConfiguration={openConfigCreateModal}
-          handleRemoveConfiguration={openConfigDeleteModal}
+          handleRemoveConfiguration={() =>
+            !active?.saved
+              ? openConfigDeleteModal
+              : removeConfiguration(active?.name)
+          }
           handleSaveConfiguration={handleSaveConfiguration}
           handleLoadConfiguration={handleLoadConfiguration}
           handleSelectConfiguration={handleSelectConfiguration}

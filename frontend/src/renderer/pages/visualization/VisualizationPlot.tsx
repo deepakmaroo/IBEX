@@ -47,7 +47,7 @@ export const VisualizationPlot = () => {
           if (item.i === id) {
             return { ...item, static: !item.static };
           }
-          return item;
+          return { ...item, static: false, isEditing: false };
         },
       );
       const newActive: Configuration = {
@@ -104,13 +104,20 @@ export const VisualizationPlot = () => {
         },
       );
 
-      const newActive: Configuration = { ...active, saved: false, dataPlot: updatedDataPlot };
+      const newActive: Configuration = {
+        ...active,
+        saved: false,
+        dataPlot: updatedDataPlot,
+      };
 
       updatedConfiguration(newActive);
     },
     [active],
   );
 
+  /**
+   * Handle edit grid event
+   */
   const handleEditGrid = useCallback(
     (id: string) => {
       const findPlot = active.dataPlot.find((item) => item.i === id);
@@ -119,7 +126,7 @@ export const VisualizationPlot = () => {
       const updatedDataPlot = active.dataPlot.map((item) =>
         item.i === id
           ? { ...item, isEditing: !item.isEditing }
-          : { ...item, isEditing: false },
+          : { ...item, isEditing: false, static: false },
       );
 
       updatedConfiguration({
