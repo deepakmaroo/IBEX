@@ -1,9 +1,9 @@
 import { Paper, ScrollArea, Stack, Text } from '@mantine/core';
 import { useIbexStore } from '../../stores';
-import { SimplePlotly } from '../../components/plot/SimplePlotly';
 import { useCallback, useState } from 'react';
 import { Configuration, DataGridPlot } from 'src/renderer/types';
 import GridLayout, { Layout } from 'react-grid-layout';
+import { GridLayoutPlot } from '../../components';
 
 export const VisualizationPlot = () => {
   const { active, updatedConfiguration } = useIbexStore();
@@ -38,50 +38,6 @@ export const VisualizationPlot = () => {
   };
 
   /**
-   * Handle the drag static event
-   */
-  const handleDragStatic = useCallback(
-    (id: string) => {
-      const newDataPlot: DataGridPlot[] = active.dataPlot.map(
-        (item: DataGridPlot) => {
-          if (item.i === id) {
-            return { ...item, static: !item.static };
-          }
-          return { ...item, static: false, isEditing: false };
-        },
-      );
-      const newActive: Configuration = {
-        ...active,
-        saved: false,
-        dataPlot: newDataPlot,
-      };
-
-      updatedConfiguration(newActive);
-    },
-    [active],
-  );
-
-  /**
-   * Handle the delete grid event
-   */
-  const handleDeleteGrid = useCallback(
-    (id: string) => {
-      const newDataPlot: DataGridPlot[] = active.dataPlot.filter(
-        (item: DataGridPlot) => item.i !== id,
-      );
-      const newActive: Configuration = {
-        ...active,
-        saved: false,
-        dataPlot: newDataPlot,
-        checkedNodeURI: [],
-      };
-
-      updatedConfiguration(newActive);
-    },
-    [active],
-  );
-
-  /**
    * Handle update grid layout
    */
   const handleUpdateLayout = useCallback(
@@ -111,32 +67,6 @@ export const VisualizationPlot = () => {
       };
 
       updatedConfiguration(newActive);
-    },
-    [active],
-  );
-
-  /**
-   * Handle edit grid event
-   */
-  const handleEditGrid = useCallback(
-    (id: string) => {
-      const findPlot = active.dataPlot.find((item) => item.i === id);
-      if (!findPlot) return;
-
-      const updatedDataPlot = active.dataPlot.map((item) =>
-        item.i === id
-          ? { ...item, isEditing: !item.isEditing }
-          : { ...item, isEditing: false, static: false },
-      );
-
-      updatedConfiguration({
-        ...active,
-        saved: false,
-        dataPlot: updatedDataPlot,
-        checkedNodeURI: findPlot.isEditing
-          ? []
-          : findPlot.plot.map((item) => item.nodeUri),
-      });
     },
     [active],
   );
@@ -176,22 +106,10 @@ export const VisualizationPlot = () => {
                   boxSizing: 'border-box',
                 }}
               >
-                <SimplePlotly
-                  title={plotData.title}
-                  xAxisName={plotData.xAxisName}
-                  yAxisName={plotData.yAxisName}
-                  y2AxisName={plotData.y2AxisName}
-                  width={plotData.w * colWidth - 20}
-                  height={
-                    plotData.h * rowHeight +
-                    (23 * (plotData.h * rowHeight)) / 100
-                  }
-                  data={plotData.plot}
-                  isStatic={plotData.static}
-                  isEdit={plotData.isEditing}
-                  handleDragStatic={() => handleDragStatic(plotData.i)}
-                  handleDeleteGrid={() => handleDeleteGrid(plotData.i)}
-                  handleEditGrid={() => handleEditGrid(plotData.i)}
+                <GridLayoutPlot
+                  data={plotData}
+                  colWidth={colWidth}
+                  rowHeight={rowHeight}
                 />
               </Paper>
             );

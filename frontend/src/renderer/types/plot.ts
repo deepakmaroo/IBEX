@@ -1,6 +1,7 @@
 import { Data } from 'plotly.js';
 import { Layout } from 'react-grid-layout';
 
+
 export interface SimplePlotlyProps {
   title: string;
   xAxisName: string;
@@ -9,11 +10,7 @@ export interface SimplePlotlyProps {
   data: Data[];
   width: number;
   height: number;
-  isStatic?: boolean;
-  isEdit?: boolean;
-  handleDragStatic?: () => void;
-  handleDeleteGrid?: () => void;
-  handleEditGrid?: () => void;
+  isStatic: boolean;
 }
 
 export type DataPlotly = Data & {
