@@ -197,7 +197,6 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
 
         const updatedActive: Configuration = {
           ...active,
-          saved: false,
           customDataTree: updatedCustomDataTree,
         };
 
@@ -233,7 +232,6 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
 
         const updatedActive: Configuration = {
           ...active,
-          saved: false,
           customDataTree: active.customDataTree.map((item) => {
             if (item.uri === uri) {
               return {
@@ -279,7 +277,6 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
 
       const updatedActive: Configuration = {
         ...active,
-        saved: false,
         customDataTree: active.customDataTree.map((item) => {
           if (item.uri === uri) {
             return {

@@ -71,7 +71,6 @@ export function MainLayout() {
     };
     if (active?.path) {
       await window.api.fs.writeFile(active.path, JSON.stringify(newIbexState));
-      return;
     } else {
       
       await window.api.fs
