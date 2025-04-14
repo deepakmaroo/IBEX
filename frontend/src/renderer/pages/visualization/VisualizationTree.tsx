@@ -58,7 +58,6 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
       if (values.node === '') {
         const updatedActive: Configuration = {
           ...active,
-          saved: false,
           customDataTree: active.customDataTree.map((item) => {
             if (item.uri === uriSelected) {
               return {
