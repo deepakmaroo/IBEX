@@ -15,7 +15,7 @@ export interface Configuration extends BaseConfiguration {
   customDataTree: CustomTreeData[];
   path?: string;
   saved?: boolean;
-  gridLayoutSelected?: string;
+  gridLayoutSelected?: string | null;
 }
 
 export interface ConfigForm {
