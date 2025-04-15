@@ -30,7 +30,7 @@ export const Visualization = () => {
             </Grid.Col>
             <Grid.Col span={10}>
               <Paper shadow="md" h={height} radius="md">
-                {active.gridLayoutSelected !== "" ? <VisualizationMetaData/> : <VisualizationPlot />}
+                {active?.gridLayoutSelected ? <VisualizationMetaData/> : <VisualizationPlot />}
               </Paper>
             </Grid.Col>
           </Grid>
