@@ -6,7 +6,8 @@ export const VisualizationMetaData = () => {
 
   return (
     <Container fluid pb={10}>
-      MetaData
+      
+      
 
     </Container>
   );

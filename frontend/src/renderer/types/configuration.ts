@@ -6,15 +6,16 @@ export interface BaseConfiguration {
   name: string;
   dataURI: URIData[];
   lastLocalDataSetSelected?: string;
-  lastURIInput?: string;
   dataPlot: DataGridPlot[];
+  lastURIInput?: string;
 }
 
 export interface Configuration extends BaseConfiguration {
   checkedNodeURI: string[];
+  customDataTree: CustomTreeData[];
   path?: string;
   saved?: boolean;
-  customDataTree: CustomTreeData[];
+  gridLayoutSelected?: string;
 }
 
 export interface ConfigForm {

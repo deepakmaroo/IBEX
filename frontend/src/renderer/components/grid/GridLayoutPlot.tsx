@@ -7,6 +7,7 @@ import {
 import { ActionIcon, Group, Tooltip } from '@mantine/core';
 
 import {
+  IconBrandDatabricks,
   IconCheck,
   IconEdit,
   IconHandMove,
@@ -97,6 +98,18 @@ export const GridLayoutPlot = ({
     [active],
   );
 
+  const handleInspectMetadata = useCallback(
+    (id: string) => {
+      const updateActive: Configuration = {
+        ...active,
+        gridLayoutSelected: id,
+      };
+
+      updatedConfiguration(updateActive);
+    },
+    [active],
+  );
+
   return (
     <div
       style={{
@@ -121,6 +134,20 @@ export const GridLayoutPlot = ({
             right={data.static || data.isEditing ? 5 : 1}
             top={5}
           >
+            <Tooltip label="Inpect metadatas information">
+              <ActionIcon
+                variant="filled"
+                aria-label="Metadatas"
+                onClick={() => handleInspectMetadata(data.i)}
+                className={classes.actionButton}
+              >
+                <IconBrandDatabricks
+                  style={{ width: '70%', height: '70%' }}
+                  stroke={1.5}
+                />
+              </ActionIcon>
+            </Tooltip>
+
             <Tooltip
               label={data.isEditing ? 'Stop editing the grid' : 'Edit the grid'}
             >

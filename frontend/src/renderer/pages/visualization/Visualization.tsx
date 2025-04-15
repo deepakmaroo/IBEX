@@ -5,12 +5,10 @@ import { useDisclosure } from '@mantine/hooks';
 import { VisualizationIDSFromURIModal } from './VisualizationIDSFromURIModal';
 import { VisualizationTree } from './VisualizationTree';
 import { VisualizationPlot } from './VisualizationPlot';
-import { useState } from 'react';
 import { VisualizationMetaData } from './VisualizationMetaData';
 
 export const Visualization = () => {
-  const { configurations } = useIbexStore();
-  const [seeMetaData, setSeeMetaData] = useState(true);
+  const { active, configurations } = useIbexStore();
 
   const [
     isAddTreeModalOpen,
@@ -32,7 +30,7 @@ export const Visualization = () => {
             </Grid.Col>
             <Grid.Col span={10}>
               <Paper shadow="md" h={height} radius="md">
-                {seeMetaData ? <VisualizationMetaData/> : <VisualizationPlot />}
+                {active.gridLayoutSelected !== "" ? <VisualizationMetaData/> : <VisualizationPlot />}
               </Paper>
             </Grid.Col>
           </Grid>
