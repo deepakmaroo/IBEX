@@ -6,7 +6,11 @@ import {
   BaseConfiguration,
   ConfigForm,
   Configuration,
+  ConfigurationToSave,
   DataGridPlot,
+  DataGridPlotToSave,
+  DataPlotly,
+  DataPlotlyToSave,
 } from '../types';
 import { ConfigCreateModal, ConfirmModal, Header } from '../components';
 import { plotNodeUriLoaded, updateCustomDataTree } from '../utils';
@@ -49,19 +53,17 @@ export function MainLayout() {
   };
 
   const handleSaveConfiguration = async () => {
-    const dataGridWithoutData: DataGridPlot[] = active.dataPlot.map(
+    const dataGridWithoutData: DataGridPlotToSave[] = active.dataPlot.map(
       (dataGrid) => ({
         ...dataGrid,
-        isEditing: false,
-        plot: dataGrid.plot.map((plot) => ({
+        plot: dataGrid.plot.map((plot): DataPlotlyToSave => ({
           ...plot,
-          x: [],
-          y: [],
         })),
+
       }),
     );
 
-    const newIbexState: BaseConfiguration = {
+    const newIbexState: ConfigurationToSave = {
       name: active.name,
       dataURI: active.dataURI,
       lastURIInput: active.lastURIInput,
@@ -93,13 +95,27 @@ export function MainLayout() {
     await window.api.fs.getFilePathDialog('json').then(async (path) => {
       if (path) {
         await window.api.fs.readFile(path).then(async (data) => {
-          const newIbexState: BaseConfiguration = JSON.parse(data);
+          
+          const newIbexState: ConfigurationToSave = JSON.parse(data);
+
+          
+          const newDataPlot: DataGridPlot[] = newIbexState.dataPlot.map((data):DataGridPlot => ({
+            ...data,
+            isEditing: false,
+            static: true,
+            plot: data.plot.map((plot): DataPlotly => ({
+              ...plot,
+              x: [],
+              y: [],
+            })),
+          })) 
+
           const newConfig: Configuration = {
             name: newIbexState.name,
             dataURI: newIbexState.dataURI,
             customDataTree: updateCustomDataTree([], newIbexState.dataURI),
             checkedNodeURI: [],
-            dataPlot: await plotNodeUriLoaded(newIbexState.dataPlot),
+            dataPlot: await plotNodeUriLoaded(newDataPlot),
             saved: true,
             path: path,
           };

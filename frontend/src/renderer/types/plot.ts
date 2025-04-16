@@ -14,13 +14,13 @@ export interface SimplePlotlyProps {
 
 export type DataPlotly = Data & {
   nodeUri: string;
-  unit: string;
   x: (string | number)[];
   y: (string | number)[];
   yaxis?: string;
-  path: string;
-  dimensions: number;
-  description: string;
+  path?: string;
+  dimensions?: number;
+  description?: string;
+  unit?: string;
 };
 
 export interface DataGridPlot extends Layout {
@@ -29,10 +29,27 @@ export interface DataGridPlot extends Layout {
   plot: DataPlotly[];
   xAxisName: string;
   isEditing: boolean;
-
   yAxisName: string;
   y2AxisName?: string;
-
   yUnit: string;
   y2Unit?: string;
+}
+
+export interface DataPlotlyToSave{
+  nodeUri: string;
+  yaxis?: string;
+}
+export interface DataGridPlotToSave {
+  title: string;
+  plot: DataPlotlyToSave[];
+  xAxisName: string;
+  yAxisName: string;
+  y2AxisName?: string;
+  yUnit: string;
+  y2Unit?: string;
+  i: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
 }

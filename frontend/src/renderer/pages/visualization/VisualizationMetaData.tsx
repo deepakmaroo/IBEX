@@ -6,6 +6,7 @@ import {
   Group,
   Paper,
   ScrollArea,
+  Table,
   Tabs,
   Text,
 } from '@mantine/core';
@@ -20,46 +21,26 @@ interface MetaDataInfosProps {
 }
 
 const MetaDataInfos = ({ data, height }: MetaDataInfosProps) => {
+  const renderField = (label: string, value?: string | number) =>
+    value && (
+      <Table.Tr>
+        <Table.Td fw="bold">{label}</Table.Td>
+        <Table.Td>{value}</Table.Td>
+      </Table.Tr>
+    );
+
   return (
     <ScrollArea h={height || '79vh'}>
-      <Flex direction="column">
-        {data?.path && (
-          <Group>
-            <Text>Path : </Text>
-            <Text>{data?.path}</Text>
-          </Group>
-        )}
-        {data?.name && (
-          <Group>
-            <Text>Name : </Text>
-            <Text>{data?.name}</Text>
-          </Group>
-        )}
-        {data?.nodeUri && (
-          <Group>
-            <Text>Uri : </Text>
-            <Text>{data?.nodeUri}</Text>
-          </Group>
-        )}
-        {data?.dimensions && (
-          <Group>
-            <Text>Dimension : </Text>
-            <Text>{data?.dimensions}</Text>
-          </Group>
-        )}
-        {data?.unit && (
-          <Group>
-            <Text>Unit : </Text>
-            <Text>{data?.unit}</Text>
-          </Group>
-        )}
-        {data?.description && (
-          <Group>
-            <Text>Description : </Text>
-            <Text>{data?.description}</Text>
-          </Group>
-        )}
-      </Flex>
+      <Table py="md">
+        <Table.Tbody>
+          {renderField('Path', data?.path)}
+          {renderField('Name', data?.name)}
+          {renderField('Uri', data?.nodeUri)}
+          {renderField('Dimension', data?.dimensions)}
+          {renderField('Unit', data?.unit)}
+          {renderField('Description', data?.description)}
+        </Table.Tbody>
+      </Table>
     </ScrollArea>
   );
 };
@@ -111,9 +92,6 @@ export const VisualizationMetaData = () => {
           {dataGridLayout.plot.map((item, index) => (
             <Tabs.Panel key={index} value={item.name}>
               <Grid type="container">
-                <Grid.Col span={7}>
-                  <MetaDataInfos data={item} height={HEIGHT} />
-                </Grid.Col>
                 <Grid.Col span={5}>
                   <Center h={HEIGHT}>
                     <Paper
@@ -130,14 +108,13 @@ export const VisualizationMetaData = () => {
                         isStatic={true}
                         title={item.name}
                         xAxisName={dataGridLayout.xAxisName}
-                        yAxisName={
-                          item.yaxis
-                            ? dataGridLayout?.y2AxisName
-                            : dataGridLayout?.yAxisName
-                        }
+                        yAxisName={item.unit}
                       />
                     </Paper>
                   </Center>
+                </Grid.Col>
+                <Grid.Col span={7}>
+                  <MetaDataInfos data={item} height={HEIGHT} />
                 </Grid.Col>
               </Grid>
             </Tabs.Panel>

@@ -245,6 +245,11 @@ export async function plotNodeUriLoaded(
 
               return {
                 ...plot,
+                name: `${response.data.name}(${response.data.unit})`,
+                unit: response.data.unit,
+                description: response.data.description,
+                dimensions: response.data.ndim,
+                path: response.data.path,
                 x: response.data.coordinates?.[0]?.value?.map(String) ?? [],
                 y: response.data.value?.[0] ?? [],
               };
