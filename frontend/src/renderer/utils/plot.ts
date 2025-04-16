@@ -41,6 +41,9 @@ export async function plotData(
   nodeUri: string,
   yName: string,
   unit: string,
+  dimensions: number,
+  path: string,
+  description?: string,
   y2Axis?: boolean,
 ): Promise<DataGridPlot> {
   const trace: DataPlotly = {
@@ -50,6 +53,9 @@ export async function plotData(
     mode: 'lines',
     nodeUri: nodeUri,
     unit: unit,
+    description: description,
+    path: path,
+    dimensions: dimensions,
   };
 
   if (y2Axis) {
@@ -97,6 +103,9 @@ export const handleNewPlot = async (
     nodes[0],
     `${response.data.name}(${response.data.unit})`,
     response.data.unit,
+    response.data.ndim,
+    response.data.path,
+    response.data.description,
   );
 
   updatedActive.dataPlot.push(updatedPlot);
@@ -142,6 +151,9 @@ export const handleExistingPlot = async (
         node,
         `${response.data.name}(${unit})`,
         unit,
+        response.data.ndim,
+        response.data.path,
+        response.data.description,
       );
       updatedActive.dataPlot = [
         ...(updatedActive.dataPlot || []).filter(
@@ -160,6 +172,9 @@ export const handleExistingPlot = async (
         node,
         `${response.data.name}(${unit})`,
         unit,
+        response.data.ndim,
+        response.data.path,
+        response.data.description,
         true,
       );
       updatedActive.dataPlot = [

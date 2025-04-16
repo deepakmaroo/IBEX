@@ -1,14 +1,80 @@
-import { Container, Tabs } from '@mantine/core';
+import {
+  Center,
+  Container,
+  Flex,
+  Grid,
+  Group,
+  Paper,
+  ScrollArea,
+  Tabs,
+  Text,
+} from '@mantine/core';
 import { useIbexStore } from '../../stores';
 import { useCallback, useEffect, useState } from 'react';
-import { TabsListCustom } from '../../components';
-import { Configuration, DataGridPlot } from 'src/renderer/types';
+import { SimplePlotly, TabsListCustom } from '../../components';
+import { Configuration, DataGridPlot, DataPlotly } from 'src/renderer/types';
+
+interface MetaDataInfosProps {
+  data: DataPlotly;
+  height?: string;
+}
+
+const MetaDataInfos = ({ data, height }: MetaDataInfosProps) => {
+  return (
+    <ScrollArea h={height || '79vh'}>
+      <Flex direction="column">
+        {data?.path && (
+          <Group>
+            <Text>Path : </Text>
+            <Text>{data?.path}</Text>
+          </Group>
+        )}
+        {data?.name && (
+          <Group>
+            <Text>Name : </Text>
+            <Text>{data?.name}</Text>
+          </Group>
+        )}
+        {data?.nodeUri && (
+          <Group>
+            <Text>Uri : </Text>
+            <Text>{data?.nodeUri}</Text>
+          </Group>
+        )}
+        {data?.dimensions && (
+          <Group>
+            <Text>Dimension : </Text>
+            <Text>{data?.dimensions}</Text>
+          </Group>
+        )}
+        {data?.unit && (
+          <Group>
+            <Text>Unit : </Text>
+            <Text>{data?.unit}</Text>
+          </Group>
+        )}
+        {data?.description && (
+          <Group>
+            <Text>Description : </Text>
+            <Text>{data?.description}</Text>
+          </Group>
+        )}
+      </Flex>
+    </ScrollArea>
+  );
+};
 
 export const VisualizationMetaData = () => {
+  const HEIGHT = '79vh';
+  const WIDTH_PLOT = 610;
+  const HEIGHT_PLOT = 390;
   const { active, updatedConfiguration } = useIbexStore();
   const [tabsValue, setTabsValue] = useState<string | null>();
   const [dataGridLayout, setDataGridLayout] = useState<DataGridPlot>(null);
 
+  /**
+   * Handle find grid layout corresponding to the selected tab
+   */
   useEffect(() => {
     if (active?.gridLayoutSelected) {
       const data = active.dataPlot.find(
@@ -21,6 +87,9 @@ export const VisualizationMetaData = () => {
     }
   }, [active]);
 
+  /**
+   * Handle the switch grid event
+   */
   const handleSwitchGrid = useCallback(() => {
     const updatedActive: Configuration = {
       ...active,
@@ -41,7 +110,36 @@ export const VisualizationMetaData = () => {
 
           {dataGridLayout.plot.map((item, index) => (
             <Tabs.Panel key={index} value={item.name}>
-              {item.nodeUri}
+              <Grid type="container">
+                <Grid.Col span={7}>
+                  <MetaDataInfos data={item} height={HEIGHT} />
+                </Grid.Col>
+                <Grid.Col span={5}>
+                  <Center h={HEIGHT}>
+                    <Paper
+                      style={{
+                        height: HEIGHT_PLOT,
+                      }}
+                      shadow="md"
+                      radius="md"
+                    >
+                      <SimplePlotly
+                        data={[item]}
+                        width={WIDTH_PLOT}
+                        height={HEIGHT_PLOT}
+                        isStatic={true}
+                        title={item.name}
+                        xAxisName={dataGridLayout.xAxisName}
+                        yAxisName={
+                          item.yaxis
+                            ? dataGridLayout?.y2AxisName
+                            : dataGridLayout?.yAxisName
+                        }
+                      />
+                    </Paper>
+                  </Center>
+                </Grid.Col>
+              </Grid>
             </Tabs.Panel>
           ))}
         </Tabs>

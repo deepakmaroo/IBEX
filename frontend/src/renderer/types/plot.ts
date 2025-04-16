@@ -1,7 +1,6 @@
 import { Data } from 'plotly.js';
 import { Layout } from 'react-grid-layout';
 
-
 export interface SimplePlotlyProps {
   title: string;
   xAxisName: string;
@@ -19,6 +18,9 @@ export type DataPlotly = Data & {
   x: (string | number)[];
   y: (string | number)[];
   yaxis?: string;
+  path: string;
+  dimensions: number;
+  description: string;
 };
 
 export interface DataGridPlot extends Layout {

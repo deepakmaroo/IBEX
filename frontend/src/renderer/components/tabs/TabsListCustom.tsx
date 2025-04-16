@@ -32,11 +32,15 @@ export const TabsListCustom = ({
       >
         <IconArrowLeft style={{ width: '70%', height: '70%' }} stroke={1.5} />
       </ActionIcon>
-      <Tabs.List ref={setRootRef} className={classes.list} styles={{
-        list: {
-          width: '95%',
-        }
-      }}>
+      <Tabs.List
+        ref={setRootRef}
+        className={classes.list}
+        styles={{
+          list: {
+            width: '95%',
+          },
+        }}
+      >
         {data.map((item, index) => (
           <Tabs.Tab
             key={index}

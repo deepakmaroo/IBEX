@@ -15,7 +15,7 @@ export const Visualization = () => {
     { open: openAddTreeModal, close: closeAddTreeModal },
   ] = useDisclosure(false);
 
-  const height = configurations.length > 0 ? '84vh' : '85vh';
+  const HEIGHT = configurations.length > 0 ? '84vh' : '85vh';
 
   return (
     <Container fluid p={10}>
@@ -24,19 +24,23 @@ export const Visualization = () => {
           <VisualizationHeader handleAddTree={openAddTreeModal} />
           <Grid type="container">
             <Grid.Col span={2}>
-              <Paper shadow="md" h={height} radius="md">
-                <VisualizationTree height={height} />
+              <Paper shadow="md" h={HEIGHT} radius="md">
+                <VisualizationTree height={HEIGHT} />
               </Paper>
             </Grid.Col>
             <Grid.Col span={10}>
-              <Paper shadow="md" h={height} radius="md">
-                {active?.gridLayoutSelected ? <VisualizationMetaData/> : <VisualizationPlot />}
+              <Paper shadow="md" h={HEIGHT} radius="md">
+                {active?.gridLayoutSelected ? (
+                  <VisualizationMetaData />
+                ) : (
+                  <VisualizationPlot />
+                )}
               </Paper>
             </Grid.Col>
           </Grid>
         </>
       ) : (
-        <Center h={height}>
+        <Center h={HEIGHT}>
           <Text>No configurations available</Text>
         </Center>
       )}
