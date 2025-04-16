@@ -112,7 +112,7 @@ export function MainLayout() {
             (data): DataGridPlot => ({
               ...data,
               isEditing: false,
-              static: true,
+              static: false,
               plot: data.plot.map(
                 (plot): DataPlotly => ({
                   ...plot,
