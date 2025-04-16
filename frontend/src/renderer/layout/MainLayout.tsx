@@ -3,14 +3,13 @@ import { Outlet } from 'react-router-dom';
 import { useIbexStore } from '../stores';
 import { useDisclosure } from '@mantine/hooks';
 import {
-  BaseConfiguration,
+  BaseDataPlotly,
   ConfigForm,
   Configuration,
   ConfigurationToSave,
   DataGridPlot,
   DataGridPlotToSave,
   DataPlotly,
-  DataPlotlyToSave,
 } from '../types';
 import { ConfigCreateModal, ConfirmModal, Header } from '../components';
 import { plotNodeUriLoaded, updateCustomDataTree } from '../utils';
@@ -54,12 +53,22 @@ export function MainLayout() {
 
   const handleSaveConfiguration = async () => {
     const dataGridWithoutData: DataGridPlotToSave[] = active.dataPlot.map(
-      (dataGrid) => ({
-        ...dataGrid,
-        plot: dataGrid.plot.map((plot): DataPlotlyToSave => ({
-          ...plot,
+      (dataGrid: DataGridPlot) => ({
+        title: dataGrid.title,
+        xAxisName: dataGrid.xAxisName,
+        yAxisName: dataGrid.yAxisName,
+        y2AxisName: dataGrid.y2AxisName,
+        yUnit: dataGrid.yUnit,
+        y2Unit: dataGrid.y2Unit,
+        i: dataGrid.i,
+        x: dataGrid.x,
+        y: dataGrid.y,
+        w: dataGrid.w,
+        h: dataGrid.h,
+        plot: dataGrid.plot.map((plot): BaseDataPlotly => ({
+          nodeUri: plot.nodeUri,
+          yaxis: plot.yaxis,
         })),
-
       }),
     );
 
