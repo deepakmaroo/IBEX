@@ -23,13 +23,10 @@ export const generateNewPlot = (
     y2Unit: y2Unit,
     isEditing: true,
 
-    //default layout position
     x: 0,
     y: 0,
     w: 6,
     h: 12,
-    minH: 12,
-    minW: 6,
   };
 };
 
@@ -56,11 +53,10 @@ export async function plotData(
     description: description,
     path: path,
     dimensions: dimensions,
+    yaxis: y2Axis ? 'y2' : '',
   };
 
   if (y2Axis) {
-    trace.yaxis = 'y2';
-
     dataPlot = {
       ...dataPlot,
       title: `${title}`,
@@ -68,6 +64,7 @@ export async function plotData(
   }
 
   dataPlot.plot.push(trace);
+  console.log('dataPlot', dataPlot);
 
   return dataPlot;
 }

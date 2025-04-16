@@ -17,15 +17,15 @@ export interface BaseDataPlotly {
   yaxis?: string;
 }
 
-export type DataPlotly = BaseDataPlotly & Data & {
-  x: (string | number)[];
-  y: (string | number)[];
-  path?: string;
-  dimensions?: number;
-  description?: string;
-  unit?: string;
-};
-
+export type DataPlotly = BaseDataPlotly &
+  Data & {
+    x: (string | number)[];
+    y: (string | number)[];
+    path?: string;
+    dimensions?: number;
+    description?: string;
+    unit?: string;
+  };
 
 export interface BaseDataGridPlot {
   i: string;
@@ -41,7 +41,7 @@ export interface BaseDataGridPlot {
   y2Unit?: string;
 }
 
-export interface DataGridPlot extends Layout , BaseDataGridPlot{
+export interface DataGridPlot extends Layout, BaseDataGridPlot {
   static: boolean;
   plot: DataPlotly[];
   isEditing: boolean;

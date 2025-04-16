@@ -65,10 +65,12 @@ export function MainLayout() {
         y: dataGrid.y,
         w: dataGrid.w,
         h: dataGrid.h,
-        plot: dataGrid.plot.map((plot): BaseDataPlotly => ({
-          nodeUri: plot.nodeUri,
-          yaxis: plot.yaxis,
-        })),
+        plot: dataGrid.plot.map(
+          (plot): BaseDataPlotly => ({
+            nodeUri: plot.nodeUri,
+            yaxis: plot?.yaxis || '',
+          }),
+        ),
       }),
     );
 
@@ -104,20 +106,22 @@ export function MainLayout() {
     await window.api.fs.getFilePathDialog('json').then(async (path) => {
       if (path) {
         await window.api.fs.readFile(path).then(async (data) => {
-          
           const newIbexState: ConfigurationToSave = JSON.parse(data);
 
-          
-          const newDataPlot: DataGridPlot[] = newIbexState.dataPlot.map((data):DataGridPlot => ({
-            ...data,
-            isEditing: false,
-            static: true,
-            plot: data.plot.map((plot): DataPlotly => ({
-              ...plot,
-              x: [],
-              y: [],
-            })),
-          })) 
+          const newDataPlot: DataGridPlot[] = newIbexState.dataPlot.map(
+            (data): DataGridPlot => ({
+              ...data,
+              isEditing: false,
+              static: true,
+              plot: data.plot.map(
+                (plot): DataPlotly => ({
+                  ...plot,
+                  x: [],
+                  y: [],
+                }),
+              ),
+            }),
+          );
 
           const newConfig: Configuration = {
             name: newIbexState.name,

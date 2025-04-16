@@ -1,14 +1,11 @@
 import {
   Center,
   Container,
-  Flex,
   Grid,
-  Group,
   Paper,
   ScrollArea,
   Table,
   Tabs,
-  Text,
 } from '@mantine/core';
 import { useIbexStore } from '../../stores';
 import { useCallback, useEffect, useState } from 'react';
