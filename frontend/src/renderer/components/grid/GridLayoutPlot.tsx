@@ -140,6 +140,7 @@ export const GridLayoutPlot = ({
                 aria-label="Metadatas"
                 onClick={() => handleInspectMetadata(data.i)}
                 className={classes.actionButton}
+                // disabled={data.plot.some((item) => item.x.length === 0 && item.y.length === 0)}
               >
                 <IconBrandDatabricks
                   style={{ width: '70%', height: '70%' }}

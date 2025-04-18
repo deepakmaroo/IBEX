@@ -69,10 +69,6 @@ const renderSpoiler = (label: string, value?: (string | number)[]) =>
 const RenderMetaDataCoordinates = ({
   coordinates,
 }: RenderMetaDataCoordinatesProps) => {
-  useEffect(() => {
-    console.log('Coordinates:', coordinates);
-  }, [coordinates]);
-
   const content = coordinates.map((coordinate, index) => (
     <Table
       key={index}
@@ -119,11 +115,10 @@ const MetaDataInfos = ({ data, height, tabsSelected }: MetaDataInfosProps) => {
   useEffect(() => {
     const fetchCoordinates = async () => {
       try {
-        console.log('Fetching coordinates for:', data.nodeUri);
-        console.log('Current tab selected:', tabsSelected);
-        console.log('Data name:', data.name);
+
         if (tabsSelected === data.name) {
           const response = await fetchDataPlot(data.nodeUri);
+
           setCoordinates(response.data.coordinates);
         }
       } catch (error) {
@@ -176,9 +171,10 @@ export const VisualizationMetaData = () => {
       const data = active.dataPlot.find(
         (item: DataGridPlot) => item.i === active.gridLayoutSelected,
       );
+      console.log('data', data);
       if (data) {
         setDataGridLayout(data);
-        setTabsValue(data.plot[0].name);
+        setTabsValue(data.plot[0]?.name || null);
       }
     }
   }, [active]);
@@ -195,51 +191,59 @@ export const VisualizationMetaData = () => {
   }, [active]);
 
   return (
-    dataGridLayout && (
-      <Container fluid pb={10}>
-        <Tabs value={tabsValue} onChange={setTabsValue}>
-          <TabsListCustom
-            data={dataGridLayout.plot.map((item) => item.name)}
-            value={tabsValue}
-            handleSwitchGrid={handleSwitchGrid}
-          />
+    <Container fluid pb={10}>
+      <Tabs value={tabsValue} onChange={setTabsValue}>
+        <TabsListCustom
+          data={
+            dataGridLayout
+              ? dataGridLayout.plot
+                  .map((item) => item?.name || '')
+                  .filter((item) => item)
+              : []
+          }
+          value={tabsValue}
+          handleSwitchGrid={handleSwitchGrid}
+        />
 
-          {dataGridLayout.plot.map((item, index) => (
-            <Tabs.Panel key={index} value={item.name}>
-              <Grid type="container">
-                <Grid.Col span={5}>
-                  <Center h={HEIGHT}>
-                    <Paper
-                      style={{
-                        height: HEIGHT_PLOT,
-                      }}
-                      shadow="md"
-                      radius="md"
-                    >
-                      <SimplePlotly
-                        data={[item]}
-                        width={WIDTH_PLOT}
-                        height={HEIGHT_PLOT}
-                        isStatic={true}
-                        title={item.name}
-                        xAxisName={dataGridLayout.xAxisName}
-                        yAxisName={item.unit}
+        {dataGridLayout &&
+          dataGridLayout.plot.map(
+            (item, index) =>
+              item?.name && (
+                <Tabs.Panel key={index} value={item?.name}>
+                  <Grid type="container">
+                    <Grid.Col span={5}>
+                      <Center h={HEIGHT}>
+                        <Paper
+                          style={{
+                            height: HEIGHT_PLOT,
+                          }}
+                          shadow="md"
+                          radius="md"
+                        >
+                          <SimplePlotly
+                            data={[item]}
+                            width={WIDTH_PLOT}
+                            height={HEIGHT_PLOT}
+                            isStatic={true}
+                            title={item.name}
+                            xAxisName={dataGridLayout.xAxisName}
+                            yAxisName={item.unit}
+                          />
+                        </Paper>
+                      </Center>
+                    </Grid.Col>
+                    <Grid.Col span={7}>
+                      <MetaDataInfos
+                        data={item}
+                        height={HEIGHT}
+                        tabsSelected={tabsValue}
                       />
-                    </Paper>
-                  </Center>
-                </Grid.Col>
-                <Grid.Col span={7}>
-                  <MetaDataInfos
-                    data={item}
-                    height={HEIGHT}
-                    tabsSelected={tabsValue}
-                  />
-                </Grid.Col>
-              </Grid>
-            </Tabs.Panel>
-          ))}
-        </Tabs>
-      </Container>
-    )
+                    </Grid.Col>
+                  </Grid>
+                </Tabs.Panel>
+              ),
+          )}
+      </Tabs>
+    </Container>
   );
 };

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ActionIcon, FloatingIndicator, Group, Tabs } from '@mantine/core';
 import classes from './TabsListCustom.module.css';
 import { IconArrowLeft } from '@tabler/icons-react';
@@ -23,6 +23,13 @@ export const TabsListCustom = ({
     setControlsRefs(controlsRefs);
   };
 
+  useEffect(() => {
+    console.log('data', data);
+    console.log('controlsRefs', controlsRefs);
+    console.log('rootRef', rootRef);
+    console.log('value', value);
+  }, [data, controlsRefs, rootRef, value]); 
+
   return (
     <Group mt={2}>
       <ActionIcon
@@ -41,7 +48,7 @@ export const TabsListCustom = ({
           },
         }}
       >
-        {data.map((item, index) => (
+        {data.length > 0 && data.map((item, index) => (
           <Tabs.Tab
             key={index}
             value={item}
