@@ -34,6 +34,14 @@ pip install -e . # editable mode allows changes to have instant impact
 ./bin/run_ibex_service -p 8000
 ```
 
+## Documentation build
+```commandline
+. venv/bin/activate
+pip install -U sphinx sphinx-autosummary-accessors sphinx_immaterial
+
+make -C docs html
+```
+
 ## Testing
 ```commandline
 python -m pytest tests/ #make sure to run pythest with python -m. Otherwise it won't see installed fastapi packages

@@ -15,10 +15,9 @@ import sphinx_autosummary_accessors
 from jinja2.defaults import DEFAULT_FILTERS
 from packaging.version import Version
 
-# import ibex
-
 print("python exec:", sys.executable)
 print("sys.path:", sys.path)
+
 
 # -- Project information -----------------------------------------------------
 # The documented project’s name

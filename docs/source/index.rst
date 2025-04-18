@@ -2,11 +2,17 @@
    Master "index". This will be converted to a landing index.html by sphinx. We
    define TOC here, but it'll be put in the sidebar by the theme
 
+.. _imas_python_repo: https://github.com/iterorganization/IMAS-Python
+
 =============
 Ibex Manual
 =============
 
-Ibex is web application able to traverse and visualize IDS data
+IBEX is a web-based application designed for efficient traversal and visualization of data stored in the Integrated Data Structure (IDS).
+The application follows a client–server architecture, consisting of a frontend for interactive data exploration and a backend responsible for
+data processing and communication with data sources. The backend leverages the `IMAS Python <https://github.com/iterorganization/IMAS-Python>`_ to access, parse, and manipulate IDS data,
+enabling seamless integration with existing IMAS-compatible databases.
+IBEX features a modular and extensible architecture, with the IMAS Python API encapsulated as a replaceable component, allowing it to be substituted with an alternative data access layer if needed.
 
 
 Manual
@@ -21,9 +27,18 @@ Manual
    :caption: Ibex development
    :maxdepth: 1
 
+   backend_development
+
+.. toctree::
+   :caption: API docs
+   :maxdepth: 1
+
+   api
+   api-hidden
+
 
 LICENSE
 -------
 
-#.. literalinclude:: ../../LICENSE.md
-#   :language: text
+.. literalinclude:: ../../LICENSE.md
+   :language: text
