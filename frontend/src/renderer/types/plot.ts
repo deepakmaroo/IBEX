@@ -23,8 +23,9 @@ export type DataPlotly = BaseDataPlotly &
     y: (string | number)[];
     path?: string;
     dimensions?: number;
-    description?: string;
+    shape?: number[];
     unit?: string;
+    description?: string;
   };
 
 export interface BaseDataGridPlot {

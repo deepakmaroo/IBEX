@@ -40,6 +40,7 @@ export async function plotData(
   unit: string,
   dimensions: number,
   path: string,
+  shape: number[],
   description?: string,
   y2Axis?: boolean,
 ): Promise<DataGridPlot> {
@@ -53,6 +54,7 @@ export async function plotData(
     description: description,
     path: path,
     dimensions: dimensions,
+    shape: shape,
     yaxis: y2Axis ? 'y2' : '',
   };
 
@@ -102,6 +104,7 @@ export const handleNewPlot = async (
     response.data.unit,
     response.data.ndim,
     response.data.path,
+    response.data.shape,
     response.data.description,
   );
 
@@ -150,6 +153,7 @@ export const handleExistingPlot = async (
         unit,
         response.data.ndim,
         response.data.path,
+        response.data.shape,
         response.data.description,
       );
       updatedActive.dataPlot = [
@@ -171,6 +175,7 @@ export const handleExistingPlot = async (
         unit,
         response.data.ndim,
         response.data.path,
+        response.data.shape,
         response.data.description,
         true,
       );
@@ -247,6 +252,7 @@ export async function plotNodeUriLoaded(
                 description: response.data.description,
                 dimensions: response.data.ndim,
                 path: response.data.path,
+                shape: response.data.shape,
                 x: response.data.coordinates?.[0]?.value?.map(String) ?? [],
                 y: response.data.value?.[0] ?? [],
               };
