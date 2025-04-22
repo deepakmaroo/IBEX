@@ -77,10 +77,16 @@ export const VisualizationIDSFromURIModal = ({
   });
 
   useEffect(() => {
-    if (active?.dataURI) {
+    if (active && active.dataURI.length > 0) {
       setDataURIsSelected(active?.dataURI);
+
+      const dbEntriesNotSelected = active.dataURI.filter(
+        (d: URIData) =>
+          !dataURIsSelected.some((selected) => selected.uri === d.uri),
+      );
+      setDataDbEntries([...dataURIsSelected, ...dbEntriesNotSelected]);
     }
-  }, [active?.dataURI]);
+  }, [active]);
 
   const tableHeaders = (
     <Table.Tr>
