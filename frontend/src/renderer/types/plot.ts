@@ -14,6 +14,7 @@ export interface SimplePlotlyProps {
 
 export interface BaseDataPlotly {
   nodeUri: string;
+  labelUri: string;
   yaxis?: string;
 }
 

@@ -10,7 +10,7 @@ export interface BaseConfiguration {
 }
 
 export interface Configuration extends BaseConfiguration {
-  checkedNodeURI: string[];
+  checkedNodeURI: URIData[];
   customDataTree: CustomTreeData[];
   dataPlot: DataGridPlot[];
   path?: string;

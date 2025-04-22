@@ -20,36 +20,38 @@ import {
   IconTypography,
 } from '@tabler/icons-react';
 import classes from './TreeLibrary.module.css';
-import { CustomTreeNodeData, NodeInfoTypeEnum } from '../../types';
+import { CustomTreeNodeData, NodeInfoTypeEnum, URIData } from '../../types';
 
 interface NodeIconProps {
   node: TreeNodeData;
   type: NodeInfoTypeEnum;
+  uriLabel: string;
   expanded: boolean;
-  checkedNodes: string[];
+  checkedNodes: URIData[];
   tree: UseTreeReturnType;
   textRef: React.RefObject<HTMLDivElement>;
   isOverflowing: boolean;
-  getCheckedNodes: (nodes: string[]) => void;
+  getCheckedNodes: (nodes: URIData[]) => void;
 }
 
 interface TreeLibraryProps {
   treeData: CustomTreeNodeData[];
   height?: string;
-  checkedNodes?: string[];
+  checkedNodes?: URIData[];
   expendAll?: boolean;
   handleSelectChildren: (node: string) => void;
-  getCheckedNodes?: (nodes: string[]) => void;
+  getCheckedNodes?: (nodes: URIData[]) => void;
 }
 
 interface ElementProps extends RenderTreeNodePayload {
   type: NodeInfoTypeEnum;
+  uriLabel: string;
   selectedNode: string | null;
-  checkedNodes?: string[];
+  checkedNodes?: URIData[];
   tree: UseTreeReturnType;
   setSelectedNode: (node: string | null) => void;
   handleSelectChildren: (node: string) => void;
-  getCheckedNodes: (nodes: string[]) => void;
+  getCheckedNodes: (nodes: URIData[]) => void;
 }
 
 function Element({
@@ -61,6 +63,7 @@ function Element({
   selectedNode,
   checkedNodes,
   tree,
+  uriLabel,
   setSelectedNode,
   handleSelectChildren,
   getCheckedNodes,
@@ -102,6 +105,7 @@ function Element({
     <Group gap={5} {...elementProps}>
       <NodeIcon
         type={type}
+        uriLabel={uriLabel}
         expanded={expanded}
         node={node}
         checkedNodes={checkedNodes}
@@ -122,12 +126,15 @@ function NodeIcon({
   tree,
   isOverflowing,
   textRef,
+  uriLabel,
   getCheckedNodes,
 }: NodeIconProps) {
   const [checked, setChecked] = useState<boolean>(false);
 
   useEffect(() => {
-    setChecked(checkedNodes.includes(node.value));
+    setChecked(
+      checkedNodes.some((checkedNode) => checkedNode.uri === node.value),
+    );
   }, [checkedNodes]);
 
   const getNodeIcon = (type: NodeInfoTypeEnum, expanded: boolean) => {
@@ -145,14 +152,19 @@ function NodeIcon({
           NodeInfoTypeEnum.STRING,
         ].includes(type)
       ) {
+        console.log('check node', node);
         if (checked) {
           tree.uncheckNode(node.value);
           checkedNodes = checkedNodes.filter(
-            (uncheckedNode) => uncheckedNode !== node.value,
+            (uncheckedNode) => uncheckedNode.uri !== node.value,
           );
         } else {
           tree.checkNode(node.value);
-          checkedNodes.push(node.value);
+          const newCheckedNode: URIData = {
+            name: uriLabel,
+            uri: node.value,
+          };
+          checkedNodes.push(newCheckedNode);
         }
         setChecked(!checked);
         getCheckedNodes(checkedNodes);
@@ -278,6 +290,7 @@ export const TreeLibrary = ({
           <Element
             {...payload}
             type={(payload.node as CustomTreeNodeData).type}
+            uriLabel={(payload.node as CustomTreeNodeData).uriLabel}
             selectedNode={selectedNode}
             tree={tree}
             checkedNodes={checkedNodes}

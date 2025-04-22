@@ -69,6 +69,7 @@ export function MainLayout() {
           (plot): BaseDataPlotly => ({
             nodeUri: plot.nodeUri,
             yaxis: plot?.yaxis || '',
+            labelUri: plot.labelUri,
           }),
         ),
       }),

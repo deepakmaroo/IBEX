@@ -7,16 +7,16 @@ import {
   Text,
   Tooltip,
 } from '@mantine/core';
-import { CustomTreeData } from 'src/renderer/types';
+import { CustomTreeData, URIData } from 'src/renderer/types';
 import { TreeLibrary } from '../../components';
 
 interface VisualizationTreeProps {
   customDataTree: CustomTreeData[];
   height: string;
-  checkedNodes: string[];
+  checkedNodes: URIData[];
   handleAccordionChange: (value: string) => void;
   handleSelectChildren: (nodeValue: string) => void;
-  getNodesChecked: (nodes: string[]) => void;
+  getNodesChecked: (nodes: URIData[]) => void;
 }
 
 interface AccordionLabelProps {

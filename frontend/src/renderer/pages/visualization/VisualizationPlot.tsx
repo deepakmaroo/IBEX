@@ -1,6 +1,6 @@
 import { Paper, ScrollArea, Stack, Text } from '@mantine/core';
 import { useIbexStore } from '../../stores';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Configuration, DataGridPlot } from 'src/renderer/types';
 import GridLayout, { Layout } from 'react-grid-layout';
 import { GridLayoutPlot } from '../../components';
@@ -14,6 +14,10 @@ export const VisualizationPlot = () => {
   const colsNumber = 12;
   const colWidth = gridWith / colsNumber;
   const rowHeight = 30;
+
+  useEffect(() => {
+    console.log('active', active);
+  }, [active]);
 
   /**
    * Handle the mouse down event

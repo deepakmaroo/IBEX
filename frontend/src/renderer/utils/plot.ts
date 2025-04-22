@@ -1,5 +1,5 @@
 import { showNotification } from '@mantine/notifications';
-import { Configuration, DataGridPlot, DataPlotly } from '../types';
+import { Configuration, DataGridPlot, DataPlotly, URIData } from '../types';
 import { fetchDataPlot } from './fetchData';
 import { generateUuid } from './uuid';
 
@@ -41,6 +41,7 @@ export async function plotData(
   dimensions: number,
   path: string,
   shape: number[],
+  labelUri: string,
   description?: string,
   y2Axis?: boolean,
 ): Promise<DataGridPlot> {
@@ -55,6 +56,7 @@ export async function plotData(
     path: path,
     dimensions: dimensions,
     shape: shape,
+    labelUri: labelUri,      
     yaxis: y2Axis ? 'y2' : '',
   };
 
@@ -72,10 +74,10 @@ export async function plotData(
 }
 
 export const handleNewPlot = async (
-  nodes: string[],
+  nodes: URIData[],
   updatedActive: Configuration,
 ): Promise<Configuration> => {
-  const response = await fetchDataPlot(nodes[0]);
+  const response = await fetchDataPlot(nodes[0].uri);
 
   if (!response || response.data.ndim !== 1) {
     showNotification({
@@ -99,12 +101,13 @@ export const handleNewPlot = async (
     newPlot,
     response.data.coordinates[0].value,
     response.data.value,
-    nodes[0],
+    nodes[0].uri,
     `${response.data.name}(${response.data.unit})`,
     response.data.unit,
     response.data.ndim,
     response.data.path,
     response.data.shape,
+    nodes[0].name,
     response.data.description,
   );
 
@@ -113,12 +116,12 @@ export const handleNewPlot = async (
 };
 
 export const handleExistingPlot = async (
-  nodes: string[],
+  nodes: URIData[],
   findDataPlot: DataGridPlot,
   updatedActive: Configuration,
 ): Promise<Configuration> => {
   const dataPlotted = nodes.filter(
-    (node) => !findDataPlot.plot.some((plot) => plot.nodeUri === node),
+    (node) => !findDataPlot.plot.some((plot) => plot.nodeUri === node.uri && plot.labelUri === node.name),
   );
 
   if (dataPlotted.length === 0) {
@@ -126,7 +129,7 @@ export const handleExistingPlot = async (
   }
 
   for (const node of dataPlotted) {
-    const response = await fetchDataPlot(node);
+    const response = await fetchDataPlot(node.uri);
     if (!response || response.data.ndim !== 1) {
       showNotification({
         title: 'Plot',
@@ -148,12 +151,13 @@ export const handleExistingPlot = async (
         findDataPlot,
         response.data.coordinates[0].value,
         response.data.value,
-        node,
+        node.uri,
         `${response.data.name}(${unit})`,
         unit,
         response.data.ndim,
         response.data.path,
         response.data.shape,
+        node.name,
         response.data.description,
       );
       updatedActive.dataPlot = [
@@ -170,12 +174,13 @@ export const handleExistingPlot = async (
         findDataPlot,
         response.data.coordinates[0].value,
         response.data.value,
-        node,
+        node.uri,
         `${response.data.name}(${unit})`,
         unit,
         response.data.ndim,
         response.data.path,
         response.data.shape,
+        node.name,
         response.data.description,
         true,
       );
@@ -198,12 +203,14 @@ export const handleExistingPlot = async (
 };
 
 const updateExistingPlots = (
-  nodes: string[],
+  nodes: URIData[],
   findDataPlot: DataGridPlot,
   updatedActive: Configuration,
 ): Configuration => {
   const plots = findDataPlot?.plot.filter((plot) =>
-    nodes.includes(plot.nodeUri),
+    nodes.some(
+      (node) => node.uri === plot.nodeUri && node.name === plot.labelUri,
+    ),
   );
   if (plots.every((plot) => plot.unit === plots[0].unit)) {
     findDataPlot.yAxisName = plots[0].unit;
