@@ -28,7 +28,7 @@ export const TabsListCustom = ({
     console.log('controlsRefs', controlsRefs);
     console.log('rootRef', rootRef);
     console.log('value', value);
-  }, [data, controlsRefs, rootRef, value]); 
+  }, [data, controlsRefs, rootRef, value]);
 
   return (
     <Group mt={2}>
@@ -48,16 +48,17 @@ export const TabsListCustom = ({
           },
         }}
       >
-        {data.length > 0 && data.map((item, index) => (
-          <Tabs.Tab
-            key={index}
-            value={item}
-            ref={setControlRef(item)}
-            className={classes.tab}
-          >
-            {item}
-          </Tabs.Tab>
-        ))}
+        {data.length > 0 &&
+          data.map((item, index) => (
+            <Tabs.Tab
+              key={index}
+              value={item}
+              ref={setControlRef(item)}
+              className={classes.tab}
+            >
+              {item}
+            </Tabs.Tab>
+          ))}
 
         <FloatingIndicator
           target={value ? controlsRefs[value] : null}

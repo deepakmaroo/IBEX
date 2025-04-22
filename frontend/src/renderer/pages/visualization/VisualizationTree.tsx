@@ -9,6 +9,7 @@ import {
   NodeInfoChildrenResponse,
   NodeInfoTypeEnum,
   SearchNodeResponse,
+  URIData,
 } from '../../types';
 import {
   ActionIcon,
@@ -41,7 +42,7 @@ interface FormSearchNode {
 export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
   const { active, updatedConfiguration } = useIbexStore();
 
-  const [uriSelected, setUriSelected] = useState<string | null>();
+  const [uriSelected, setUriSelected] = useState<URIData | null>();
   const [showErrorBars, setShowErrorBars] = useState<boolean>(false);
   const [nodeSelected, setNodeSelected] = useState<string | null>();
   const [searchNodeIsLoading, setSearchNodeIsLoading] =
@@ -59,7 +60,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
         const updatedActive: Configuration = {
           ...active,
           customDataTree: active.customDataTree.map((item) => {
-            if (item.uri === uriSelected) {
+            if (item.uri === uriSelected.uri) {
               return {
                 ...item,
                 data: item.data.map((node) => ({
@@ -124,6 +125,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
                 seeErrorBars: showErrorBars,
                 type: child.type,
                 children: [],
+                uriLabel: uriSelected.name,
               };
             },
           );
@@ -212,19 +214,20 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
    * @param uri
    */
   const fetchIDSData = useCallback(
-    async (uri: string) => {
+    async (dataUri: URIData) => {
       try {
-        const listIdsResult = await fetchDataIds(uri);
+        const listIdsResult = await fetchDataIds(dataUri.uri);
         const newTree: CustomTreeNodeData[] = [];
 
         for (const ids of listIdsResult.idses) {
           for (const oc of ids.occurrences) {
             newTree.push({
               label: `${ids.name}:${oc}`,
-              value: `${uri}#${ids.name}:${oc}/`,
+              value: `${dataUri.uri}#${ids.name}:${oc}/`,
               type: NodeInfoTypeEnum.STRUCTURE,
               children: [],
               seeErrorBars: showErrorBars,
+              uriLabel: dataUri.name,
             });
           }
         }
@@ -232,7 +235,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
         const updatedActive: Configuration = {
           ...active,
           customDataTree: active.customDataTree.map((item) => {
-            if (item.uri === uri) {
+            if (item.uri === dataUri.uri) {
               return {
                 ...item,
                 data: newTree,
@@ -255,7 +258,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
    * @param value
    */
   const fetchSearchNode = async (
-    uri: string,
+    dataUri: URIData,
     value: string,
     showErrorBars: boolean,
   ) => {
@@ -263,21 +266,25 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
 
     try {
       const searchResults: SearchNodeResponse = await fetchFindPaths(
-        uri,
+        dataUri.uri,
         value,
         showErrorBars,
       );
 
       const customDataTreeUri = active.customDataTree.find(
-        (item) => item.uri === uri,
+        (item) => item.uri === dataUri.uri,
       ).data;
 
-      const dataTree = buildTree(customDataTreeUri, uri, searchResults.paths);
+      const dataTree = buildTree(
+        customDataTreeUri,
+        dataUri.uri,
+        searchResults.paths,
+      );
 
       const updatedActive: Configuration = {
         ...active,
         customDataTree: active.customDataTree.map((item) => {
-          if (item.uri === uri) {
+          if (item.uri === dataUri.uri) {
             return {
               ...item,
               data: dataTree,
@@ -301,14 +308,12 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
   const handleAccordionChange = useCallback(
     (value: string) => {
       if (value) {
-        const selectedCustomData = active.customDataTree.find(
+        const selectedURIData = active.dataURI.find(
           (item) => item.uri === value,
         );
-        if (selectedCustomData) {
-          setUriSelected(value);
-          if (selectedCustomData.data.length === 0) {
-            fetchIDSData(selectedCustomData.uri);
-          }
+        if (selectedURIData) {
+          setUriSelected(selectedURIData);
+          fetchIDSData(selectedURIData);
         }
       }
     },

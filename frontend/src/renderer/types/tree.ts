@@ -9,6 +9,7 @@ export type DataTreeSelected = {
 export type CustomTreeNodeData = TreeNodeData & {
   type: NodeInfoTypeEnum;
   seeErrorBars: boolean;
+  uriLabel: string;
   children: CustomTreeNodeData[];
 };
 

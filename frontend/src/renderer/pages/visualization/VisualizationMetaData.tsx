@@ -10,7 +10,6 @@ import {
   Stack,
   Table,
   Tabs,
-  Text,
 } from '@mantine/core';
 import { useIbexStore } from '../../stores';
 import { useCallback, useEffect, useState } from 'react';
@@ -115,7 +114,6 @@ const MetaDataInfos = ({ data, height, tabsSelected }: MetaDataInfosProps) => {
   useEffect(() => {
     const fetchCoordinates = async () => {
       try {
-
         if (tabsSelected === data.name) {
           const response = await fetchDataPlot(data.nodeUri);
 
