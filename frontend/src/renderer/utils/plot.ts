@@ -98,7 +98,7 @@ export const handleNewPlot = async (
     `${response.data.name}(${response.data.unit})`,
     newPlot,
     response.data.coordinates[0].value,
-    response.data.value[0],
+    response.data.value,
     nodes[0],
     `${response.data.name}(${response.data.unit})`,
     response.data.unit,
@@ -147,7 +147,7 @@ export const handleExistingPlot = async (
         title,
         findDataPlot,
         response.data.coordinates[0].value,
-        response.data.value[0],
+        response.data.value,
         node,
         `${response.data.name}(${unit})`,
         unit,
@@ -169,7 +169,7 @@ export const handleExistingPlot = async (
         title,
         findDataPlot,
         response.data.coordinates[0].value,
-        response.data.value[0],
+        response.data.value,
         node,
         `${response.data.name}(${unit})`,
         unit,
@@ -254,7 +254,7 @@ export async function plotNodeUriLoaded(
                 path: response.data.path,
                 shape: response.data.shape,
                 x: response.data.coordinates?.[0]?.value?.map(String) ?? [],
-                y: response.data.value?.[0] ?? [],
+                y: response.data.value ?? [],
               };
             } catch (error) {
               console.error(`Error fetching data for ${plot.nodeUri}:`, error);
