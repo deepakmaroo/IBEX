@@ -383,8 +383,6 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
   const getNodesChecked = useCallback(
     async (nodes: URIData[]) => {
 
-      console.log('getNodesChecked', nodes);
-
       let updatedActive: Configuration = {
         ...active,
         saved: false,

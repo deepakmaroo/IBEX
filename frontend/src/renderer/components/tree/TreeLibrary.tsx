@@ -152,7 +152,6 @@ function NodeIcon({
           NodeInfoTypeEnum.STRING,
         ].includes(type)
       ) {
-        console.log('check node', node);
         if (checked) {
           tree.uncheckNode(node.value);
           checkedNodes = checkedNodes.filter(

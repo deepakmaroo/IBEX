@@ -169,7 +169,6 @@ export const VisualizationMetaData = () => {
       const data = active.dataPlot.find(
         (item: DataGridPlot) => item.i === active.gridLayoutSelected,
       );
-      console.log('data', data);
       if (data) {
         setDataGridLayout(data);
         setTabsValue(data.plot[0]?.name || null);

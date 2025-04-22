@@ -23,12 +23,6 @@ export const TabsListCustom = ({
     setControlsRefs(controlsRefs);
   };
 
-  useEffect(() => {
-    console.log('data', data);
-    console.log('controlsRefs', controlsRefs);
-    console.log('rootRef', rootRef);
-    console.log('value', value);
-  }, [data, controlsRefs, rootRef, value]);
 
   return (
     <Group mt={2}>

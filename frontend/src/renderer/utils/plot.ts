@@ -48,7 +48,7 @@ export async function plotData(
   const trace: DataPlotly = {
     x: xData,
     y: yData,
-    name: yName,
+    name: `${yName}(${unit})_${labelUri}`,
     mode: 'lines',
     nodeUri: nodeUri,
     unit: unit,
@@ -68,7 +68,6 @@ export async function plotData(
   }
 
   dataPlot.plot.push(trace);
-  console.log('dataPlot', dataPlot);
 
   return dataPlot;
 }
@@ -102,7 +101,7 @@ export const handleNewPlot = async (
     response.data.coordinates[0].value,
     response.data.value,
     nodes[0].uri,
-    `${response.data.name}(${response.data.unit})`,
+    response.data.name,
     response.data.unit,
     response.data.ndim,
     response.data.path,
@@ -152,7 +151,7 @@ export const handleExistingPlot = async (
         response.data.coordinates[0].value,
         response.data.value,
         node.uri,
-        `${response.data.name}(${unit})`,
+        response.data.name,
         unit,
         response.data.ndim,
         response.data.path,
@@ -175,7 +174,7 @@ export const handleExistingPlot = async (
         response.data.coordinates[0].value,
         response.data.value,
         node.uri,
-        `${response.data.name}(${unit})`,
+        response.data.name,
         unit,
         response.data.ndim,
         response.data.path,
@@ -254,7 +253,7 @@ export async function plotNodeUriLoaded(
 
               return {
                 ...plot,
-                name: `${response.data.name}(${response.data.unit})`,
+                name: `${response.data.name}(${response.data.unit})_${plot.labelUri}`,
                 unit: response.data.unit,
                 description: response.data.description,
                 dimensions: response.data.ndim,
@@ -295,6 +294,6 @@ export async function plotNodeUriLoaded(
       color: 'red',
     });
 
-    return []; // Retourne un tableau vide en cas d'erreur critique
+    return [];
   }
 }
