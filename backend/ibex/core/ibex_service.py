@@ -22,6 +22,11 @@ class IMAS_URI:
     occurrence: int = 0
 
     def __init__(self, full_uri):
+        """
+        IMAS_URI constructor
+        :param full_uri: pulsefile uri along with #fragment part
+        """
+
         self.full_uri = full_uri
 
         if "#" not in self.full_uri:

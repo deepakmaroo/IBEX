@@ -1,7 +1,7 @@
-.. _`Backend development`:
+.. _`Backend development introduction`:
 
 ===================
-Backend development
+Introduction
 ===================
 
 Backend structure
@@ -17,11 +17,12 @@ Endpoints discovering and testing
 -----------------------------------
 
 One explore the available endpoints of the IBEX server by visiting the `/docs` page of the application. This is an auto-generated Swagger UI that allows to:
+
 * Browse available API endpoints
 * Test requests and responses
 * Validate and experiment with newly implemented features
 
-Before accessing the documentation, server must be running (see :ref:_backend_development_run).
+Before accessing the documentation, server must be running (see :ref:`backend_development_run`).
 Then, the following URL has to be put in a web browser address bar:
 
 .. code-block:: bash

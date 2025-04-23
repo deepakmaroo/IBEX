@@ -37,11 +37,8 @@ class DataSourceInterface(ABC):
         :param ids: name of ids e.g. core_profiles
         :param node_path: path to ids node e.g. ids_properties/version_put
         :param occurrence: ids occurrence number
-        :param recursive: if True, creates node_info tree.
-            if False, returns only pointed node and it's children node_info
-        :param show_error_bars:  if True, show all nodes.
-            if False, returns only nodes without '_error_' in name
-
+        :param recursive: if True, creates node_info tree. If False, returns only pointed node and it's children node_info
+        :param show_error_bars: whether error bar nodes should be returned, or not
         :return:
         """
         ...

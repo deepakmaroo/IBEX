@@ -2,8 +2,6 @@
    Master "index". This will be converted to a landing index.html by sphinx. We
    define TOC here, but it'll be put in the sidebar by the theme
 
-.. _imas_python_repo: https://github.com/iterorganization/IMAS-Python
-
 =============
 Ibex Manual
 =============
@@ -22,12 +20,15 @@ Manual
    :caption: Getting Started
    :maxdepth: 1
 
+   getting_started
+
 
 .. toctree::
-   :caption: Ibex development
+   :caption: Backend development
    :maxdepth: 1
 
-   backend_development
+   backend_development_introduction
+   adding_new_data_source
 
 .. toctree::
    :caption: API docs
