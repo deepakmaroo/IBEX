@@ -2,7 +2,7 @@ import {
   Table,
   ScrollArea,
 } from "@mantine/core";
-import { isMatrix } from "src/renderer/utils";
+import { isMatrix } from "../../utils";
 
 interface MatrixViewerProps {
   value: number[] | number[][];

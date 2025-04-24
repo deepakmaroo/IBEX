@@ -20,7 +20,7 @@ import {
   DataPlotly,
   PlotCoordinatesResponse,
 } from 'src/renderer/types';
-import { fetchDataPlot, isMatrix } from '../../utils';
+import { fetchDataPlot } from '../../utils';
 
 interface MetaDataInfosProps {
   data: DataPlotly;
