@@ -20,7 +20,7 @@ import {
   DataPlotly,
   PlotCoordinatesResponse,
 } from 'src/renderer/types';
-import { fetchDataPlot } from '../../utils';
+import { fetchDataPlot, isMatrix } from '../../utils';
 
 interface MetaDataInfosProps {
   data: DataPlotly;
@@ -68,9 +68,8 @@ const renderSpoiler = (label: string, value?: (string | number)[]) =>
 const RenderMetaDataCoordinates = ({
   coordinates,
 }: RenderMetaDataCoordinatesProps) => {
-  const content = coordinates.map((coordinate, index) => (
+  const renderCoordinates = (coordinate: PlotCoordinatesResponse) => (
     <Table
-      key={index}
       withRowBorders={false}
       styles={{
         td: {
@@ -80,16 +79,17 @@ const RenderMetaDataCoordinates = ({
     >
       <Table.Tbody>
         {renderField('name', coordinate.name)}
-        {renderField('target', coordinate.target)}
+        {renderField('path', coordinate.path)}
         {renderField('unit', coordinate.unit)}
         {renderSpoiler('shape', coordinate.shape)}
         {renderField('ndim', coordinate.ndim)}
-        {renderField('path', coordinate.path)}
+        {coordinate.shape &&
+          renderSpoiler('value', isMatrix(coordinate.value) ? [] :coordinate.value as (string | number)[])}
         {renderField('description', coordinate.description)}
-        {renderSpoiler('value', coordinate.value)}
+        {renderField('target', coordinate.target)}
       </Table.Tbody>
     </Table>
-  ));
+  );
 
   return (
     <Table.Tr>
@@ -99,7 +99,7 @@ const RenderMetaDataCoordinates = ({
           {coordinates.map((coordinate, index) => (
             <Accordion.Item key={index} value={coordinate.name}>
               <AccordionControl>{coordinate.name}</AccordionControl>
-              <Accordion.Panel>{content}</Accordion.Panel>
+              <Accordion.Panel>{renderCoordinates(coordinate)}</Accordion.Panel>
             </Accordion.Item>
           ))}
         </Accordion>
@@ -138,15 +138,15 @@ const MetaDataInfos = ({ data, height, tabsSelected }: MetaDataInfosProps) => {
         }}
       >
         <Table.Tbody>
-          {renderField('Path', data?.path)}
-          {renderField('Name', data?.name)}
-          {renderField('Uri', data?.nodeUri)}
-          {renderSpoiler('Shape', data.shape as (string | number)[])}
-          {renderField('Dimension', data?.dimensions)}
+          {renderField('uri', data?.nodeUri)}
+          {renderField('name', data?.name)}
+          {renderField('path', data?.path)}
+          {renderField('unit', data.yUnit)}
+          {renderSpoiler('shape', data.shape as (string | number)[])}
+          {renderField('dimension', data?.dimensions)}
           {renderSpoiler('value', data.y as (string | number)[])}
-          {renderField('Unit', data?.unit)}
+          {renderField('description', data?.description)}
           <RenderMetaDataCoordinates coordinates={coordinates} />
-          {renderField('Description', data?.description)}
         </Table.Tbody>
       </Table>
     </ScrollArea>
@@ -223,8 +223,12 @@ export const VisualizationMetaData = () => {
                             height={HEIGHT_PLOT}
                             isStatic={true}
                             title={item.name}
-                            xAxisName={dataGridLayout.xAxisName}
-                            yAxisName={item.unit}
+                            xAxis={dataGridLayout.xAxis}
+                            yAxis={
+                              item.yaxis !== ''
+                                ? dataGridLayout.y2Axis
+                                : dataGridLayout.yAxis
+                            }
                           />
                         </Paper>
                       </Center>

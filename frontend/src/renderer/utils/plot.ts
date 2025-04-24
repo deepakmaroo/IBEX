@@ -1,26 +1,28 @@
 import { showNotification } from '@mantine/notifications';
-import { Configuration, DataGridPlot, DataPlotly, URIData } from '../types';
+import {
+  Axis,
+  Configuration,
+  DataGridPlot,
+  DataPlotly,
+  URIData,
+} from '../types';
 import { fetchDataPlot } from './fetchData';
 import { generateUuid } from './uuid';
 
 export const generateNewPlot = (
   title: string,
-  xAxisName: string,
-  yAxisName: string,
-  yUnit: string,
-  y2AxisName?: string,
-  y2Unit?: string,
+  xAxis: Axis,
+  yAxis: Axis,
+  y2Axis?: Axis,
 ): DataGridPlot => {
   return {
     title: title,
     i: generateUuid(),
     static: false,
     plot: [],
-    xAxisName: xAxisName,
-    yAxisName: yAxisName,
-    y2AxisName: y2AxisName,
-    yUnit: yUnit,
-    y2Unit: y2Unit,
+    xAxis: xAxis,
+    yAxis: yAxis,
+    y2Axis: y2Axis,
     isEditing: true,
 
     x: 0,
@@ -51,12 +53,12 @@ export async function plotData(
     name: `${yName}(${unit})_${labelUri}`,
     mode: 'lines',
     nodeUri: nodeUri,
-    unit: unit,
+    yUnit: unit,
     description: description,
     path: path,
     dimensions: dimensions,
     shape: shape,
-    labelUri: labelUri,      
+    labelUri: labelUri,
     yaxis: y2Axis ? 'y2' : '',
   };
 
@@ -65,6 +67,14 @@ export async function plotData(
       ...dataPlot,
       title: `${title}`,
     };
+  }
+
+  if (yData.length === 0) {
+    showNotification({
+      title: 'Plot',
+      message: `No data to plot for ${yName}(${unit})`,
+      color: 'yellow',
+    });
   }
 
   dataPlot.plot.push(trace);
@@ -88,17 +98,27 @@ export const handleNewPlot = async (
     return updatedActive;
   }
 
+  const xAxis: Axis = {
+    name: response.data.coordinates[0].name,
+    unit: response.data.coordinates[0].unit,
+    path: response.data.coordinates[0].path,
+  };
+
+  const yAxis: Axis = {
+    name: response.data.name,
+    unit: response.data.unit,
+  };
+
   const newPlot = generateNewPlot(
     `${response.data.name}(${response.data.unit})`,
-    `${response.data.coordinates[0].name}(${response.data.coordinates[0].unit})`,
-    response.data.unit,
-    response.data.unit,
+    xAxis,
+    yAxis,
   );
 
   const updatedPlot = await plotData(
     `${response.data.name}(${response.data.unit})`,
     newPlot,
-    response.data.coordinates[0].value,
+    response.data.coordinates[0].value as number[],
     response.data.value,
     nodes[0].uri,
     response.data.name,
@@ -119,15 +139,19 @@ export const handleExistingPlot = async (
   findDataPlot: DataGridPlot,
   updatedActive: Configuration,
 ): Promise<Configuration> => {
-  const dataPlotted = nodes.filter(
-    (node) => !findDataPlot.plot.some((plot) => plot.nodeUri === node.uri && plot.labelUri === node.name),
+  const dataToPlot = nodes.filter(
+    (node) =>
+      !findDataPlot.plot.some(
+        (plot) => plot.nodeUri === node.uri && plot.labelUri === node.name,
+      ),
   );
 
-  if (dataPlotted.length === 0) {
+  if (dataToPlot.length === 0) {
     return updateExistingPlots(nodes, findDataPlot, updatedActive);
   }
 
-  for (const node of dataPlotted) {
+
+  for (const node of dataToPlot) {
     const response = await fetchDataPlot(node.uri);
     if (!response || response.data.ndim !== 1) {
       showNotification({
@@ -140,15 +164,32 @@ export const handleExistingPlot = async (
     }
 
     const unit = response.data.unit;
-    const unitIsSame =
-      findDataPlot.yUnit === unit || findDataPlot.y2Unit === unit;
+    const unitExists =
+      findDataPlot.yAxis.unit === unit ||
+      (findDataPlot.y2Axis && findDataPlot.y2Axis.unit === unit);
+
     const title = `${findDataPlot.title}/ ${response.data.name}(${unit})`;
 
-    if (unitIsSame) {
+    const xAxisMatched =
+      findDataPlot.xAxis.name === response.data.coordinates[0].name &&
+      findDataPlot.xAxis.unit === response.data.coordinates[0].unit &&
+      response.data.coordinates[0].path === findDataPlot.xAxis.path;
+
+    if (!xAxisMatched) {
+      showNotification({
+        title: 'Plot',
+        message: 'X axis does not match',
+        color: 'yellow',
+      });
+      updatedActive.checkedNodeURI = nodes.filter((n) => n !== node);
+      continue;
+    }
+
+    if (unitExists) {
       const updatedPlot = await plotData(
         title,
         findDataPlot,
-        response.data.coordinates[0].value,
+        response.data.coordinates[0].value as number[],
         response.data.value,
         node.uri,
         response.data.name,
@@ -165,13 +206,16 @@ export const handleExistingPlot = async (
         ),
         updatedPlot,
       ];
-    } else if (!findDataPlot.y2AxisName) {
-      findDataPlot.y2AxisName = unit;
-      findDataPlot.y2Unit = unit;
+    } else if (!findDataPlot.y2Axis) {
+      findDataPlot.y2Axis = {
+        name: unit,
+        unit: unit,
+      };
+
       const updatedPlot = await plotData(
         title,
         findDataPlot,
-        response.data.coordinates[0].value,
+        response.data.coordinates[0].value as number[],
         response.data.value,
         node.uri,
         response.data.name,
@@ -211,11 +255,12 @@ const updateExistingPlots = (
       (node) => node.uri === plot.nodeUri && node.name === plot.labelUri,
     ),
   );
-  if (plots.every((plot) => plot.unit === plots[0].unit)) {
-    findDataPlot.yAxisName = plots[0].unit;
-    findDataPlot.yUnit = plots[0].unit;
-    findDataPlot.y2AxisName = '';
-    findDataPlot.y2Unit = '';
+  if (plots.every((plot) => plot.yUnit === plots[0].yUnit)) {
+    findDataPlot.yAxis = {
+      name: plots[0].yUnit,
+      unit: plots[0].yUnit,
+    };
+    findDataPlot.y2Axis = undefined;
 
     for (const plot of plots) {
       plot.yaxis = '';
@@ -254,7 +299,7 @@ export async function plotNodeUriLoaded(
               return {
                 ...plot,
                 name: `${response.data.name}(${response.data.unit})_${plot.labelUri}`,
-                unit: response.data.unit,
+                yUnit: response.data.unit,
                 description: response.data.description,
                 dimensions: response.data.ndim,
                 path: response.data.path,

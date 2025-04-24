@@ -3,15 +3,20 @@ import { Layout } from 'react-grid-layout';
 
 export interface SimplePlotlyProps {
   title: string;
-  xAxisName: string;
-  yAxisName: string;
-  y2AxisName?: string;
+  xAxis: Axis;
+  yAxis: Axis;
+  y2Axis?: Axis;
   data: Data[];
   width: number;
   height: number;
   isStatic: boolean;
 }
 
+export interface Axis {
+  name: string;
+  unit: string;
+  path?: string;
+}
 export interface BaseDataPlotly {
   nodeUri: string;
   labelUri: string;
@@ -25,7 +30,7 @@ export type DataPlotly = BaseDataPlotly &
     path?: string;
     dimensions?: number;
     shape?: number[];
-    unit?: string;
+    yUnit?: string;
     description?: string;
   };
 
@@ -36,11 +41,9 @@ export interface BaseDataGridPlot {
   w: number;
   h: number;
   title: string;
-  xAxisName: string;
-  yAxisName: string;
-  y2AxisName?: string;
-  yUnit: string;
-  y2Unit?: string;
+  xAxis: Axis;
+  yAxis: Axis;
+  y2Axis?: Axis;
 }
 
 export interface DataGridPlot extends Layout, BaseDataGridPlot {

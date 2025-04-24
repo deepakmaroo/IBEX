@@ -2,7 +2,7 @@ export type PlotCoordinatesResponse = {
   name: string;
   target: string;
   unit: string;
-  value: number[];
+  value: number[] | number[][];
   shape: number[];
   ndim: number;
   path: string;

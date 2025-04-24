@@ -92,7 +92,10 @@ export const GridLayoutPlot = ({
         dataPlot: updatedDataPlot,
         checkedNodeURI: findPlot.isEditing
           ? []
-          : findPlot.plot.map((item) => item.nodeUri),
+          : findPlot.plot.map((item) => ({
+              uri: item.nodeUri,
+              name: item.labelUri,
+            })),
       });
     },
     [active],
@@ -227,9 +230,9 @@ export const GridLayoutPlot = ({
         height={data.h * rowHeight + (23 * (data.h * rowHeight)) / 100}
         isStatic={data.static}
         title={data.title}
-        xAxisName={data.xAxisName}
-        yAxisName={data.yAxisName}
-        y2AxisName={data?.y2AxisName}
+        xAxis={data.xAxis}
+        yAxis={data.yAxis}
+        y2Axis={data?.y2Axis}
       />
     </div>
   );

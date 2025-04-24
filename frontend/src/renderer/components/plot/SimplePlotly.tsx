@@ -5,9 +5,9 @@ import { SimplePlotlyProps } from 'src/renderer/types';
 
 export const SimplePlotly = ({
   title,
-  xAxisName,
-  yAxisName,
-  y2AxisName,
+  xAxis,
+  yAxis,
+  y2Axis,
   data,
   isStatic,
   height,
@@ -35,7 +35,7 @@ export const SimplePlotly = ({
       xaxis: {
         ...prevLayout.xaxis,
         title: {
-          text: xAxisName,
+          text: xAxis.name,
           font: {
             family: 'Courier New, monospace',
             size: 18,
@@ -47,7 +47,7 @@ export const SimplePlotly = ({
       yaxis: {
         ...prevLayout.yaxis,
         title: {
-          text: yAxisName,
+          text: yAxis.name,
           font: {
             family: 'Courier New, monospace',
             size: 18,
@@ -65,10 +65,10 @@ export const SimplePlotly = ({
         orientation: 'v',
       },
       yaxis2:
-        y2AxisName && y2AxisName !== ''
+        y2Axis && y2Axis !== undefined
           ? {
               title: {
-                text: y2AxisName,
+                text: y2Axis.name,
                 font: {
                   family: 'Courier New, monospace',
                   size: 18,
@@ -86,7 +86,7 @@ export const SimplePlotly = ({
       plot_bgcolor: '#c7c7c7',
       dragmode: 'zoom',
     }));
-  }, [title, xAxisName, yAxisName, height, width]);
+  }, [title, xAxis, yAxis, height, width]);
 
   return (
     <Plot
