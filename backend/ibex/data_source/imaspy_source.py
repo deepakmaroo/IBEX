@@ -1,3 +1,5 @@
+"""IMAS-Python data source - default for IBEX"""
+
 from typing import Optional, Sequence, List
 
 import imaspy  # type: ignore
@@ -25,9 +27,20 @@ from ibex.data_source.exception import (
 
 
 class IMASPySource(DataSourceInterface):
+    """
+    Default data source for IBEX
+    """
+
+    def __init__(self):
+        """
+        Default constructor
+        """
+        ...
+
     def _open_entry(self, uri: str) -> imaspy.DBEntry:
         """
         Opens DBEntry with mode "r". Handles possible exceptions.
+
         :param uri: imas URI
         :return: DBEntry object
         """
@@ -39,6 +52,7 @@ class IMASPySource(DataSourceInterface):
     def _open_entry_and_get_ids(self, uri: str, ids: str, occurrence: int = 0):
         """
         Opens DBEntry with mode "r" and reads an IDS. Handles possible exceptions.
+
         :param uri: imas URI
         :param ids: name of ids e.g. core_profiles
         :param occurrence: ids occurrence number
@@ -54,6 +68,7 @@ class IMASPySource(DataSourceInterface):
     def data_entry_exists(self, uri: str) -> bool:
         """
         Check if data entry can be opened
+
         :param uri: imas URI
         :return: True if entry can be opened, False otherwise
         """
@@ -68,6 +83,7 @@ class IMASPySource(DataSourceInterface):
     def list_idses(self, uri: str) -> dict:
         """
         Returns list of IDSes with occurrence numbers that are filled in given data entry uri
+
         :param uri: imas URI
         :return: dictionary: {'idses': [{'name':<name>, 'occurrences':[<0>,<1>,...]}, {'name': ...}]}
         """
@@ -92,6 +108,7 @@ class IMASPySource(DataSourceInterface):
     def _jsonify_metadata(self, metadata: IDSMetadata, recursive: bool = False, show_error_bars: bool = False) -> dict:
         """
         Converts imaspy.ids_metadata.IDSMetadata into dictionary
+
         :param metadata: imaspy.ids_metadata.IDSMetadata - metadata to be converted
         :param recursive: if it should append recursively metadata of children, children of children and so on...
         :param show_error_bars: whether error bar nodes should be returned, or not
@@ -126,6 +143,7 @@ class IMASPySource(DataSourceInterface):
     ) -> dict:
         """
         Returns dictionary with basic info about IDS node pointed by `node_path` argument
+
         :param uri: pulsefile uri - used only to get proper DD version
         :param ids: name of ids e.g. core_profiles
         :param node_path: path to ids node e.g. ids_properties/version_put
@@ -164,6 +182,7 @@ class IMASPySource(DataSourceInterface):
     def _get_raw_data(self, ids_obj: IDSBase, path_elements: List[IDSPath] | None):
         """
         Internal function. Returns raw data extracted from IDS
+
         :param ids_obj: root element used to traverse path
         :param path_elements: list of paths from root to leaf e.g. [IDSPath("ids_properties"), IDSPath("version_put"), IDSPath("access_layer")]
         :return: value, or list of values depending on context. Could be int, str, np.ndarray, complex, IDSStructure, etc.
@@ -234,6 +253,7 @@ class IMASPySource(DataSourceInterface):
     def _slice_to_string(self, slice_obj: slice | None | int):
         """
         Coverts slice object into it's string representation e.g. slice(1,2,3) -> [1:2:3]
+
         :param slice_obj: slice object
         :return: string representation of slice
         """
@@ -259,6 +279,7 @@ class IMASPySource(DataSourceInterface):
     def _get_path_and_path_ancestors(self, node_path: IDSPath):
         """
         Returns list of path and it's ancestors
+
         :param node_path: node_path
         :return: list of path and ancestors
         """
@@ -280,12 +301,13 @@ class IMASPySource(DataSourceInterface):
         self, uri: str, ids: str, node_path: str, occurrence: int = 0
     ) -> (IDSMetadata, List[str]):
         """
+        Returns metadata of node and coordinates of node and it's ancestors
 
-        :param uri:
-        :param ids:
-        :param node_path:
-        :param occurrence:
-        :return:
+        :param uri: pulsefile uri - used only to get proper DD version
+        :param ids: name of ids e.g. core_profiles
+        :param node_path: path to ids node e.g. ids_properties/version_put
+        :param occurrence: ids occurrence number
+        :return: tuple(IDSMetadata, dict(k: <node_name>, v: <coordinate_node_name>))
         """
 
         ids_obj = self._open_entry_and_get_ids(uri, ids, occurrence)
@@ -316,6 +338,7 @@ class IMASPySource(DataSourceInterface):
     def get_data(self, uri: str, ids: str, node_path: str, occurrence: int = 0, range: List[int] | None = None) -> dict:
         """
         Returns data extracted from IDS, converted into dictionary
+
         :param uri: imas URI
         :param ids: name of ids e.g. core_profiles
         :param node_path: path to ids node e.g. ids_properties/version_put
@@ -338,6 +361,7 @@ class IMASPySource(DataSourceInterface):
         """
         Helper function to add `[:]` to AoSs in path:
         eg: source/profiles_1d/time -> source[:]/profiles_1d[:]/time (core_sources)
+
         :param ids_metadata: root of metadata path refers to
         :param path_str: path string
         :return: reworked string path
@@ -359,6 +383,7 @@ class IMASPySource(DataSourceInterface):
     def find_paths(self, uri: str, searched_node: str, show_error_bars: bool = False) -> dict:
         """
         Finds paths containing phrase passed in searched_node argument
+
         :param uri: imas URI
         :param searched_node: searched text
         :param show_error_bars: whether error bar nodes should be returned, or not
@@ -387,6 +412,7 @@ class IMASPySource(DataSourceInterface):
     def array_summary(self, uri: str, ids: str, node_path: str, occurrence: int = 0) -> dict:
         """
         Returns short summary of array node as a dictionary
+
         :param uri: imas URI
         :param ids: name of ids e.g. core_profiles
         :param node_path: path to ids node e.g. ids_properties/version_put
@@ -429,6 +455,7 @@ class IMASPySource(DataSourceInterface):
     ) -> dict:
         """
         Returns list of available data entries
+
         :param user: owner of searched data entry
         :param backends: searched backends [<be1>, <be2>, ...]: default(None)
         :param database: searched database name: default(None)
@@ -461,83 +488,10 @@ class IMASPySource(DataSourceInterface):
                             )
         return result
 
-    def _expand_single_path_element(self, ids_root: IDSBase, current_node_path, parent_paths=None):
-        """
-        Internal function. Expands single element of path
-        :param ids_root: The root of the IDS data structure.
-        :param current_node_path: The current path to start from.
-        :param parent_paths: List of parent paths to consider. Defaults to [""].
-        :return: list of str - A list of expanded paths.
-        """
-        ids_path = imaspy.ids_path.IDSPath(current_node_path)
-
-        if parent_paths is None:
-            parent_paths = [""]
-
-        result = []
-
-        for parent_path in parent_paths:
-            element, element_index = next(ids_path.items())
-
-            # Handle case where the index is a slice (e.g., element[start:stop:step])
-            if isinstance(element_index, slice):
-                # Evaluate start, stop and step parameters
-                start = element_index.start if element_index.start else 0
-                if element_index.stop:
-                    stop = element_index.stop
-                else:
-                    full_current_path_without_index = imaspy.ids_path.IDSPath(
-                        f"{parent_path}/{next(ids_path.items())[0]}"
-                    )
-                    ids_data = full_current_path_without_index.goto(ids_root, from_root=True)
-                    stop = len(ids_data)
-                step = element_index.step if element_index.step else 1
-
-                # Append paths to result
-                result += [f"{parent_path}/{element}[{x}]" for x in range(start, stop, step)]
-
-            # Handle case where element_index is None (indicating no specific index)
-            elif element_index is None:
-                return [f"{x}/{element}" for x in parent_paths]
-
-            # Handle case where element_index is a specific index (not a slice)
-            else:
-                return [f"{x}/{element}[{element_index}]" for x in parent_paths]
-
-        return result
-
-    def _expand_node_path(self, uri: str, ids: str, node_path: str, occurrence: int = 0):
-        """
-
-        :param ids:
-        :param occurrence:
-        :param node_path:
-        :return:
-        """
-        parent_paths = [""]
-
-        try:
-            entry = imaspy.DBEntry(uri, mode="r")
-        except ImasCoreBackendException as e:
-            raise IdsNotFoundException(e) from None
-
-        try:
-            ids_root = entry.get(ids, lazy=True, autoconvert=False, occurrence=occurrence)
-        except imaspy.exception.IDSNameError as e:
-            raise IdsNotFoundException(e) from None
-
-        for path_element in node_path.split("/"):
-            parent_paths = self._expand_single_path_element(ids_root, path_element, parent_paths)
-            if not parent_paths:
-                raise NodeNotFoundException(
-                    f"Cannot evaluate path. Path element: {path_element} from path: {node_path} returned empty list."
-                )
-
-        return parent_paths
-
     def _extract_1_N_coord_values(self, data):
         """
         Goes through list of IDSStructArray (or lists of lists of lists...) and returns all 1...N coordinates
+
         :param data: flat or nested list of IDSStructArray
         :return: list of 1...N values. Has the same shape as input list
         """
@@ -552,6 +506,7 @@ class IMASPySource(DataSourceInterface):
     def _serialize_data(self, data):
         """
         Converts data IDS data into serializable values e.g. imaspy.int64 -> int
+
         :param data:
         :return: Serializable data value
         """
@@ -571,6 +526,7 @@ class IMASPySource(DataSourceInterface):
     def get_plot_data(self, uri: str, ids: str, node_path: str, occurrence: int = 0):
         """
         Returns all data used to plot selected quantity. Result contains data values, metadata and coordinates.
+
         :param uri: imas URI
         :param ids: name of ids e.g. core_profiles
         :param node_path: path to ids node e.g. ids_properties/version_put

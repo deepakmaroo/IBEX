@@ -1,3 +1,6 @@
+"""Exceptions used by IBEX"""
+
+
 class IbexException(Exception):
     "IBEX specific exception. Used as a parent for more specific exceptions"
 

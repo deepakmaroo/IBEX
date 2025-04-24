@@ -1,3 +1,5 @@
+"""Exception handlers used by IBEX"""
+
 import traceback  # type: ignore
 import logging  # type: ignore
 from fastapi import Request  # type: ignore

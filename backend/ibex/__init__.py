@@ -1,3 +1,5 @@
+"""IBEX backend main module"""
+
 import logging
 from ibex.setup_logging import connect_formatter
 

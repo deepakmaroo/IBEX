@@ -1,3 +1,5 @@
+"""Endpoints extracting data from data source"""
+
 from typing import List
 
 from fastapi import APIRouter, Query  # type: ignore

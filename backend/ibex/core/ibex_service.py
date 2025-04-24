@@ -1,3 +1,5 @@
+"""Logic between endpoint and data sources"""
+
 import time
 import re
 from functools import wraps  # for measure_execution_time()
@@ -13,12 +15,18 @@ class IMAS_URI:
     Helper class to extract arguments from imas uri
     """
 
+    #: Full URI containing pulse file identifier, ids name and path to node
     full_uri: str = ""
 
+    #: pulse file identifier extracted from full URI
     uri_entry_identifiers: str = ""
+    #: fragment part from full URI containing ids name and path to node
     uri_fragment: str = ""
+    #: ids name extracted from full URI
     ids_name: str = ""
+    #: path to node extracted from full URI
     node_path: str = ""
+    #: ids occurrence number extracted from full URI
     occurrence: int = 0
 
     def __init__(self, full_uri):

@@ -1,3 +1,5 @@
+"""Endpoints extracting metadata from data source"""
+
 from fastapi import APIRouter  # type: ignore
 
 from ibex.core import ibex_service

@@ -1,3 +1,5 @@
+"""Endpoints extracting auxiliary info from data source"""
+
 from typing import Optional
 
 from fastapi import APIRouter  # type: ignore

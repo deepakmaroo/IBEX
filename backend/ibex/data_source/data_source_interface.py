@@ -1,3 +1,5 @@
+"""Interface for all data sources"""
+
 from abc import ABC, abstractmethod
 from typing import Sequence, Optional, List
 
@@ -7,6 +9,7 @@ class DataSourceInterface(ABC):
     def data_entry_exists(self, uri: str) -> bool:
         """
         Check if data entry can be opened
+
         :param uri: imas URI
         :return: True if entry can be opened, False otherwise
         """
@@ -16,6 +19,7 @@ class DataSourceInterface(ABC):
     def list_idses(self, uri: str) -> dict:
         """
         Returns list of IDSes with occurrence numbers that are filled in given data entry uri
+
         :param uri: imas URI
         :return: dictionary: {'idses': [{'name':<name>, 'occurrences':[<0>,<1>,...]}, {'name': ...}]}
         """
@@ -33,6 +37,7 @@ class DataSourceInterface(ABC):
     ) -> dict:
         """
         Returns dictionary with basic info about IDS node pointed by `node_path` argument
+
         :param uri: pulsefile uri - used only to get proper DD version
         :param ids: name of ids e.g. core_profiles
         :param node_path: path to ids node e.g. ids_properties/version_put
@@ -47,6 +52,7 @@ class DataSourceInterface(ABC):
     def get_data(self, uri: str, ids: str, node_path: str, occurrence: int = 0, range: List[int] | None = None) -> dict:
         """
         Returns data extracted from IDS, converted into dictionary
+
         :param uri: imas URI
         :param ids: name of ids e.g. core_profiles
         :param node_path: path to ids node e.g. ids_properties/version_put
@@ -60,6 +66,7 @@ class DataSourceInterface(ABC):
     def find_paths(self, uri: str, ids: str, searched_node: str, occurrence: int = 0) -> dict:
         """
         Finds paths containing phrase passed in searched_node argument
+
         :param uri: imas URI
         :param ids: name of ids e.g. core_profiles
         :param searched_node: searched text
@@ -72,6 +79,7 @@ class DataSourceInterface(ABC):
     def array_summary(self, uri: str, ids: str, node_path: str, occurrence: int = 0) -> dict:
         """
         Returns short summary of array node as a dictionary
+
         :param uri: imas URI
         :param ids: name of ids e.g. core_profiles
         :param node_path: path to ids node e.g. ids_properties/version_put
@@ -90,6 +98,7 @@ class DataSourceInterface(ABC):
     ) -> dict:
         """
         Returns list of available data entries
+
         :param user: owner of searched data entry
         :param backends: searched backends [<be1>, <be2>, ...]: default(None)
         :param database: searched database name: default(None)

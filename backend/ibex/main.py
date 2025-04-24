@@ -1,3 +1,5 @@
+"""IBEX FastApi entrypoint"""
+
 from fastapi import FastAPI  # type: ignore
 import logging  # type: ignore
 
