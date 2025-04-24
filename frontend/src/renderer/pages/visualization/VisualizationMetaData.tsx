@@ -20,7 +20,7 @@ import {
   DataPlotly,
   PlotCoordinatesResponse,
 } from 'src/renderer/types';
-import { fetchDataPlot } from '../../utils';
+import { fetchDataPlot, isMatrix } from '../../utils';
 
 interface MetaDataInfosProps {
   data: DataPlotly;
@@ -83,7 +83,18 @@ const RenderMetaDataCoordinates = ({
         {renderField('unit', coordinate.unit)}
         {renderSpoiler('shape', coordinate.shape)}
         {renderField('ndim', coordinate.ndim)}
-        <MatrixViewer value={coordinate.value} />
+        {
+          isMatrix(coordinate.value) ? (
+            <Table.Tr>
+              <Table.Td fw="bold">value</Table.Td>
+              <Table.Td>
+                <MatrixViewer value={coordinate.value as number[][]} />
+              </Table.Td>
+            </Table.Tr>
+          ) : (
+            renderSpoiler('value', coordinate.value)
+          )
+        }
         {renderField('description', coordinate.description)}
         {renderField('target', coordinate.target)}
       </Table.Tbody>
