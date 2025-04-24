@@ -83,18 +83,16 @@ const RenderMetaDataCoordinates = ({
         {renderField('unit', coordinate.unit)}
         {renderSpoiler('shape', coordinate.shape)}
         {renderField('ndim', coordinate.ndim)}
-        {
-          isMatrix(coordinate.value) ? (
-            <Table.Tr>
-              <Table.Td fw="bold">value</Table.Td>
-              <Table.Td>
-                <MatrixViewer value={coordinate.value as number[][]} />
-              </Table.Td>
-            </Table.Tr>
-          ) : (
-            renderSpoiler('value', coordinate.value)
-          )
-        }
+        {isMatrix(coordinate.value) ? (
+          <Table.Tr>
+            <Table.Td fw="bold">value</Table.Td>
+            <Table.Td>
+              <MatrixViewer value={coordinate.value as number[][]} />
+            </Table.Td>
+          </Table.Tr>
+        ) : (
+          renderSpoiler('value', coordinate.value)
+        )}
         {renderField('description', coordinate.description)}
         {renderField('target', coordinate.target)}
       </Table.Tbody>

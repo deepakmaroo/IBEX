@@ -117,8 +117,8 @@ export function MainLayout() {
               isEditing: false,
               static: false,
               plot: data.plot.map((plot): DataPlotly => {
-                const matched = newIbexState.dataURI.find((uri: URIData) =>
-                  plot.labelUri === uri.name,
+                const matched = newIbexState.dataURI.find(
+                  (uri: URIData) => plot.labelUri === uri.name,
                 );
 
                 let fullNodeUri = plot.nodeUri;
