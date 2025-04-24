@@ -2,7 +2,7 @@ import { Center, Container, Grid, Paper, Text } from '@mantine/core';
 import { useIbexStore } from '../../stores';
 import { VisualizationHeader } from './VisualizationHeader';
 import { useDisclosure } from '@mantine/hooks';
-import { VisualizationIDSFromURIModal } from './VisualizationIDSFromURIModal';
+import { VisualizationURIModal } from './VisualizationURIModal';
 import { VisualizationTree } from './VisualizationTree';
 import { VisualizationPlot } from './VisualizationPlot';
 import { VisualizationMetaData } from './VisualizationMetaData';
@@ -45,7 +45,7 @@ export const Visualization = () => {
         </Center>
       )}
 
-      <VisualizationIDSFromURIModal
+      <VisualizationURIModal
         opened={isAddTreeModalOpen}
         close={closeAddTreeModal}
       />

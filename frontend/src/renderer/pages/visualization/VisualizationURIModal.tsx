@@ -40,7 +40,7 @@ function getColorRandom(): string {
   return `#${Math.floor(Math.random() * 16777215).toString(16)}`;
 }
 
-export const VisualizationIDSFromURIModal = ({
+export const VisualizationURIModal = ({
   opened,
   close,
 }: VisualizationSelectIDSModalProps) => {
@@ -55,7 +55,7 @@ export const VisualizationIDSFromURIModal = ({
   const [fromURIisSuccess, setFromURIisSuccess] = useState(false);
   const [fromFileisSuccess, setFromFileisSuccess] = useState(false);
 
-  const formIDS = useForm<FormIDS>({
+  const formURI = useForm<FormIDS>({
     initialValues: {
       file: null,
       uri: '',
@@ -168,6 +168,7 @@ export const VisualizationIDSFromURIModal = ({
     };
 
     updatedConfiguration(updatedActive);
+    
     close();
   };
 
@@ -178,9 +179,9 @@ export const VisualizationIDSFromURIModal = ({
    *
    */
   async function fetchDataIDSFromURI() {
-    if (!formIDS.values.uri) {
+    if (!formURI.values.uri) {
       console.error('URI is empty.');
-      formIDS.setFieldError('uri', 'Please provide a valid URI');
+      formURI.setFieldError('uri', 'Please provide a valid URI');
       return;
     }
 
@@ -193,10 +194,10 @@ export const VisualizationIDSFromURIModal = ({
       }
 
       // Verify if the URI exists
-      const responseURIExists = await fetchURIExists(formIDS.values.uri);
+      const responseURIExists = await fetchURIExists(formURI.values.uri);
 
       if (!responseURIExists.exists) {
-        formIDS.setFieldError('uri', 'URI does not exist');
+        formURI.setFieldError('uri', 'URI does not exist');
         showNotification({
           title: 'Error',
           message: 'URI does not exist',
@@ -205,8 +206,8 @@ export const VisualizationIDSFromURIModal = ({
         return;
       }
 
-      if (dataURIsSelected.some((d) => d.uri === formIDS.values.uri)) {
-        formIDS.setFieldError('uri', 'URI already added');
+      if (dataURIsSelected.some((d) => d.uri === formURI.values.uri)) {
+        formURI.setFieldError('uri', 'URI already added');
         showNotification({
           title: 'Error',
           message: 'URI already added',
@@ -215,9 +216,9 @@ export const VisualizationIDSFromURIModal = ({
         return;
       }
 
-      if (dataDbEntries.some((d) => d.uri === formIDS.values.uri)) {
+      if (dataDbEntries.some((d) => d.uri === formURI.values.uri)) {
         //if uri in dataDbEntries, then add to dataURIsSelected
-        handleCheckUri(formIDS.values.uri, dataDbEntries);
+        handleCheckUri(formURI.values.uri, dataDbEntries);
         setFromURIisSuccess(true);
         setFromFileisSuccess(false);
         return;
@@ -230,18 +231,18 @@ export const VisualizationIDSFromURIModal = ({
         ...oldDataEntriesSelected,
         {
           name: `URI-${dataDbEntries.length}`,
-          uri: formIDS.values.uri,
+          uri: formURI.values.uri,
           uriColor: getColorRandom(),
         },
       ];
 
       setDataDbEntries(newDataEntries);
-      handleCheckUri(formIDS.values.uri, newDataEntries);
+      handleCheckUri(formURI.values.uri, newDataEntries);
       setFromURIisSuccess(true);
       setFromFileisSuccess(false);
     } catch (error) {
       console.error('Error:', error.message || error);
-      formIDS.setFieldError('uri', error.message || 'An error occurred');
+      formURI.setFieldError('uri', error.message || 'An error occurred');
       showNotification({
         title: 'Error',
         message: error.message || 'Failed to fetch data',
@@ -259,7 +260,7 @@ export const VisualizationIDSFromURIModal = ({
    */
   async function fetchDataIDSFromFile() {
     const formData = new FormData();
-    formData.append('file', formIDS.values.file);
+    formData.append('file', formURI.values.file);
 
     //Print the file to check if it is being sent
     formData.forEach((value, key) => {
@@ -270,7 +271,7 @@ export const VisualizationIDSFromURIModal = ({
       setIsLoading(true);
     } catch (error) {
       console.error('Promise rejected:', error);
-      formIDS.setFieldError('file', 'Error occurred while fetching data');
+      formURI.setFieldError('file', 'Error occurred while fetching data');
       showNotification({
         title: 'Error',
         message: 'Error to search IDS',
@@ -355,14 +356,14 @@ export const VisualizationIDSFromURIModal = ({
           clearable
           label="Upload local dataset"
           placeholder="Select local imas file"
-          value={formIDS.values.file}
-          error={formIDS.errors.file}
+          value={formURI.values.file}
+          error={formURI.errors.file}
           onChange={(file) => {
             if (file) {
-              formIDS.setFieldValue('file', file);
+              formURI.setFieldValue('file', file);
               fetchDataIDSFromFile();
             } else {
-              formIDS.setFieldValue('file', null);
+              formURI.setFieldValue('file', null);
             }
           }}
           w="calc(50% - 30px)"
@@ -376,7 +377,7 @@ export const VisualizationIDSFromURIModal = ({
         />
 
         <form
-          onSubmit={formIDS.onSubmit(() => {
+          onSubmit={formURI.onSubmit(() => {
             fetchDataIDSFromURI();
           })}
           style={{
@@ -412,7 +413,7 @@ export const VisualizationIDSFromURIModal = ({
               },
             }}
             disabled={isLoading || isLoadingDbEntries}
-            {...formIDS.getInputProps('uri')}
+            {...formURI.getInputProps('uri')}
           />
         </form>
       </Group>
