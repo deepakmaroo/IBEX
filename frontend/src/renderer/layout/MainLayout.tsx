@@ -10,6 +10,7 @@ import {
   DataGridPlot,
   DataGridPlotToSave,
   DataPlotly,
+  URIData,
 } from '../types';
 import { ConfigCreateModal, ConfirmModal, Header } from '../components';
 import { plotNodeUriLoaded, updateCustomDataTree } from '../utils';
@@ -63,13 +64,16 @@ export function MainLayout() {
         y: dataGrid.y,
         w: dataGrid.w,
         h: dataGrid.h,
-        plot: dataGrid.plot.map(
-          (plot): BaseDataPlotly => ({
-            nodeUri: plot.nodeUri,
+        plot: dataGrid.plot.map((plot): BaseDataPlotly => {
+          const suffix = plot.nodeUri.split('#')[1];
+          const newNodeUri = `${plot.labelUri}#${suffix}`;
+
+          return {
+            nodeUri: newNodeUri,
             yaxis: plot?.yaxis || '',
             labelUri: plot.labelUri,
-          }),
-        ),
+          };
+        }),
       }),
     );
 
@@ -112,13 +116,24 @@ export function MainLayout() {
               ...data,
               isEditing: false,
               static: false,
-              plot: data.plot.map(
-                (plot): DataPlotly => ({
+              plot: data.plot.map((plot): DataPlotly => {
+                const matched = newIbexState.dataURI.find((uri: URIData) =>
+                  plot.labelUri === uri.name,
+                );
+
+                let fullNodeUri = plot.nodeUri;
+                if (matched) {
+                  const suffix = plot.nodeUri.slice(matched.name.length);
+                  fullNodeUri = `${matched.uri}${suffix}`;
+                }
+
+                return {
                   ...plot,
+                  nodeUri: fullNodeUri,
                   x: [],
                   y: [],
-                }),
-              ),
+                };
+              }),
             }),
           );
 
