@@ -33,13 +33,11 @@ export const generateNewPlot = (
 };
 
 export async function plotData(
-  title: string,
   dataPlot: DataGridPlot,
   xData: number[],
   yData: number[],
   nodeUri: string,
-  yName: string,
-  unit: string,
+  yAxis: Axis,
   dimensions: number,
   path: string,
   shape: number[],
@@ -50,10 +48,10 @@ export async function plotData(
   const trace: DataPlotly = {
     x: xData,
     y: yData,
-    name: `${yName}(${unit})_${labelUri}`,
+    name: `${yAxis.name}(${yAxis.unit})_${labelUri}`,
     mode: 'lines',
     nodeUri: nodeUri,
-    yUnit: unit,
+    yAxis: yAxis,
     description: description,
     path: path,
     dimensions: dimensions,
@@ -62,17 +60,18 @@ export async function plotData(
     yaxis: y2Axis ? 'y2' : '',
   };
 
-  if (y2Axis) {
-    dataPlot = {
-      ...dataPlot,
-      title: `${title}`,
-    };
-  }
+  dataPlot = {
+    ...dataPlot,
+    title:
+      dataPlot.title === ''
+        ? `${trace.name}`
+        : `${dataPlot.title} / ${trace.name}`,
+  };
 
   if (yData.length === 0) {
     showNotification({
       title: 'Plot',
-      message: `No data to plot for ${yName}(${unit})`,
+      message: `No data to plot for ${trace.name}`,
       color: 'yellow',
     });
   }
@@ -116,13 +115,11 @@ export const handleNewPlot = async (
   );
 
   const updatedPlot = await plotData(
-    `${response.data.name}(${response.data.unit})`,
     newPlot,
     response.data.coordinates[0].value as number[],
     response.data.value,
     nodes[0].uri,
-    response.data.name,
-    response.data.unit,
+    yAxis,
     response.data.ndim,
     response.data.path,
     response.data.shape,
@@ -150,7 +147,6 @@ export const handleExistingPlot = async (
     return updateExistingPlots(nodes, findDataPlot, updatedActive);
   }
 
-
   for (const node of dataToPlot) {
     const response = await fetchDataPlot(node.uri);
     if (!response || response.data.ndim !== 1) {
@@ -168,8 +164,6 @@ export const handleExistingPlot = async (
       findDataPlot.yAxis.unit === unit ||
       (findDataPlot.y2Axis && findDataPlot.y2Axis.unit === unit);
 
-    const title = `${findDataPlot.title}/ ${response.data.name}(${unit})`;
-
     const xAxisMatched =
       findDataPlot.xAxis.name === response.data.coordinates[0].name &&
       findDataPlot.xAxis.unit === response.data.coordinates[0].unit &&
@@ -185,15 +179,18 @@ export const handleExistingPlot = async (
       continue;
     }
 
+    const yAxis = {
+      name: response.data.name,
+      unit: unit,
+    };
+
     if (unitExists) {
       const updatedPlot = await plotData(
-        title,
         findDataPlot,
         response.data.coordinates[0].value as number[],
         response.data.value,
         node.uri,
-        response.data.name,
-        unit,
+        yAxis,
         response.data.ndim,
         response.data.path,
         response.data.shape,
@@ -213,13 +210,11 @@ export const handleExistingPlot = async (
       };
 
       const updatedPlot = await plotData(
-        title,
         findDataPlot,
         response.data.coordinates[0].value as number[],
         response.data.value,
         node.uri,
-        response.data.name,
-        unit,
+        yAxis,
         response.data.ndim,
         response.data.path,
         response.data.shape,
@@ -255,11 +250,8 @@ const updateExistingPlots = (
       (node) => node.uri === plot.nodeUri && node.name === plot.labelUri,
     ),
   );
-  if (plots.every((plot) => plot.yUnit === plots[0].yUnit)) {
-    findDataPlot.yAxis = {
-      name: plots[0].yUnit,
-      unit: plots[0].yUnit,
-    };
+  if (plots.every((plot) => plot.yAxis.unit === plots[0].yAxis.unit)) {
+    findDataPlot.yAxis = plots[0].yAxis;
     findDataPlot.y2Axis = undefined;
 
     for (const plot of plots) {
@@ -296,10 +288,15 @@ export async function plotNodeUriLoaded(
                 return plot;
               }
 
+              const yAxis: Axis = {
+                name: response.data.name,
+                unit: response.data.unit,
+              };
+
               return {
                 ...plot,
                 name: `${response.data.name}(${response.data.unit})_${plot.labelUri}`,
-                yUnit: response.data.unit,
+                yAxis: yAxis,
                 description: response.data.description,
                 dimensions: response.data.ndim,
                 path: response.data.path,

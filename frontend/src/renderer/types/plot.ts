@@ -30,7 +30,7 @@ export type DataPlotly = BaseDataPlotly &
     path?: string;
     dimensions?: number;
     shape?: number[];
-    yUnit?: string;
+    yAxis?: Axis;
     description?: string;
   };
 

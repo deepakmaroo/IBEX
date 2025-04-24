@@ -151,7 +151,7 @@ const MetaDataInfos = ({ data, height, tabsSelected }: MetaDataInfosProps) => {
           {renderField('uri', data?.nodeUri)}
           {renderField('name', data?.name)}
           {renderField('path', data?.path)}
-          {renderField('unit', data.yUnit)}
+          {renderField('unit', data.yAxis.unit)}
           {renderSpoiler('shape', data.shape as (string | number)[])}
           {renderField('dimension', data?.dimensions)}
           {renderSpoiler('value', data.y as (string | number)[])}
