@@ -13,7 +13,7 @@ import {
 } from '@mantine/core';
 import { useIbexStore } from '../../stores';
 import { useCallback, useEffect, useState } from 'react';
-import { SimplePlotly, TabsListCustom } from '../../components';
+import { MatrixViewer, SimplePlotly, TabsListCustom } from '../../components';
 import {
   Configuration,
   DataGridPlot,
@@ -83,8 +83,7 @@ const RenderMetaDataCoordinates = ({
         {renderField('unit', coordinate.unit)}
         {renderSpoiler('shape', coordinate.shape)}
         {renderField('ndim', coordinate.ndim)}
-        {coordinate.shape &&
-          renderSpoiler('value', isMatrix(coordinate.value) ? [] :coordinate.value as (string | number)[])}
+        <MatrixViewer value={coordinate.value} />
         {renderField('description', coordinate.description)}
         {renderField('target', coordinate.target)}
       </Table.Tbody>
