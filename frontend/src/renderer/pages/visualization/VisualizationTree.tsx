@@ -277,7 +277,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
 
       const dataTree = buildTree(
         customDataTreeUri,
-        dataUri.uri,
+        dataUri,
         searchResults.paths,
       );
 

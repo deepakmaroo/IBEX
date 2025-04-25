@@ -7,7 +7,7 @@ import {
 
 export const buildTree = (
   tree: CustomTreeNodeData[],
-  idsUri: string,
+  dataUri: URIData,
   paths: string[],
 ): CustomTreeNodeData[] => {
   // Reset the children for each ids
@@ -18,7 +18,7 @@ export const buildTree = (
   paths.forEach((path) => {
     const cleanPath = path.replace(/^#/, '').split('/');
     let currentNode = tree;
-    let findValue = idsUri;
+    let findValue = dataUri.uri;
 
     cleanPath.forEach((segment, index) => {
       const isArray = segment.includes('[:]');
@@ -56,6 +56,7 @@ export const buildTree = (
           value: findValue,
           type: nodeType,
           children: [],
+          uriLabel: dataUri.name,
           seeErrorBars: false,
         };
 
