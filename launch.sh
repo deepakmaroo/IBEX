@@ -2,18 +2,21 @@
 
 set -e
 
-echo "Run in development mode..."
+echo "1. Loading required modules..."
+module load IMASPy IDStools nodejs
 
-# # Run backend
+echo "2. Setting up Python virtual environment..."
+python -m venv venv
+source venv/bin/activate
+
+echo "3. Installing backend in editable mode..."
 cd backend
+pip install -e .
+
 echo "Launch backend server..."
-./launch_backend.sh &
+./bin/run_ibex_service &
 BACKEND_PID=$!   # Get the PID of the backend
 cd ..
-
-# # Copy config.json
-# echo "Copy config.json to frontend..."
-# cp "./backend/config.json" "./frontend/config.json"
 
 # Run frontend
 cd frontend
