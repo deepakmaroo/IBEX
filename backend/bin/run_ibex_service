@@ -12,7 +12,17 @@ from fastapi import FastAPI    # type: ignore
 
 from ibex.main import app
 
-def write_config(api_port):
+
+def get_frontend_dir():
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    frontend_dir = (os.path.abspath(script_dir + "/../../frontend"))
+    print(f"Script directory: {script_dir}")
+    # Create the directory if it doesn't exist
+    os.makedirs(frontend_dir, exist_ok=True)
+    return frontend_dir
+
+
+def write_config(target_dir, api_port):
     """
     Write a config.json file to the user's home directory with the given API URL
 
@@ -23,8 +33,7 @@ def write_config(api_port):
   "API_URL": "http://127.0.0.1:{api_port}"
 }}'''
 
-    home_dir = os.path.expanduser("~")
-    file_path = os.path.join(home_dir, "config.json")
+    file_path = os.path.join(target_dir, "config.json")
 
     with open(file_path, "w") as f:
         f.write(content)
@@ -61,6 +70,8 @@ def port_from_cmdln():
 
 if __name__ == "__main__":
 
+    frontend_dir = get_frontend_dir()
+
     port = port_from_cmdln()
 
     config = uvicorn.Config(app, host="127.0.0.1", port=port)
@@ -80,4 +91,4 @@ if __name__ == "__main__":
     sockets = server.servers[0].sockets
     port = sockets[0].getsockname()[1]
     print(f"Server is running on port {port}")
-    write_config(port)
+    write_config(frontend_dir, port)
