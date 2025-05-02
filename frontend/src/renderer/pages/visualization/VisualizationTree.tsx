@@ -161,8 +161,11 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
                   node.children.length === 0 ||
                   node.seeErrorBars !== showErrorBars
                 ) {
+
+                  console.log('targetUri', targetUri);
+                  console.log('targetUri', targetUri.slice(0, -1));
                   const nodeInfos: NodeInfoResponse = await fetchNodeInfos(
-                    targetUri.slice(0, -1),
+                    targetUri.replace(/\[0\]\/$/, ''),
                     showErrorBars,
                   );
                   const nodeInfoschildren = nodeInfos.children || [];
@@ -242,7 +245,6 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
               children: [],
               seeErrorBars: showErrorBars,
               uriLabel: dataUri.name,
-              shape: [],
             });
           }
         }
