@@ -84,6 +84,7 @@ export const SimplePlotly = ({
           : {},
       showlegend: true,
       plot_bgcolor: '#c7c7c7',
+      // paper_bgcolor: "#c8b8b8",
       dragmode: 'zoom',
     }));
   }, [title, xAxis, yAxis, height, width]);

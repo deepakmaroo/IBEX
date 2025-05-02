@@ -1,10 +1,25 @@
-import { useCallback } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 import {
   Configuration,
   DataGridPlot,
   GridLayoutPlotProps,
 } from 'src/renderer/types';
-import { ActionIcon, Grid, Group, Slider, Tooltip } from '@mantine/core';
+import {
+  ActionIcon,
+  Center,
+  Container,
+  Grid,
+  Group,
+  Slider,
+  Text,
+  Tooltip,
+} from '@mantine/core';
 
 import {
   IconBrandDatabricks,
@@ -18,6 +33,7 @@ import { useHover } from '@mantine/hooks';
 import classes from './GridLayoutPlot.module.css';
 import { SimplePlotly } from '../plot';
 import { useIbexStore } from '../../stores';
+import { VerticalSlider } from '../verticalSlider';
 
 export const GridLayoutPlot = ({
   data,
@@ -26,6 +42,35 @@ export const GridLayoutPlot = ({
 }: GridLayoutPlotProps) => {
   const { active, updatedConfiguration } = useIbexStore();
   const { hovered, ref: hoverRef } = useHover();
+
+  const gridSliderRef = useRef<HTMLDivElement>(null);
+  const [widthSlider, setWidthSlider] = useState<number>(0);
+
+  const [heightGrid, setHeightGrid] = useState(
+    data.h * rowHeight + (23 * (data.h * rowHeight)) / 100,
+  );
+  const [widthGrid, setWidthGrid] = useState(Math.floor(data.w * colWidth));
+  const [valueSlider, setValueSlider] = useState(0);
+
+  useLayoutEffect(() => {
+    if (gridSliderRef.current) {
+      setWidthSlider(gridSliderRef.current.offsetWidth);
+      console.log(
+        'gridSliderRef.current.offsetWidth',
+        gridSliderRef.current.offsetWidth,
+      );
+    }
+  }, [gridSliderRef.current?.offsetWidth]);
+
+  /**
+   * Handle resize the grid
+   */
+  useEffect(() => {
+    setHeightGrid(data.h * rowHeight + (23 * (data.h * rowHeight)) / 100);
+    setWidthGrid(Math.floor(data.w * colWidth));
+    console.log("widthGrid", widthGrid);
+    console.log("data", data);  
+  }, [data.h, rowHeight, data.w, colWidth]);
 
   /**
    * Handle the drag static event
@@ -113,142 +158,148 @@ export const GridLayoutPlot = ({
   );
 
   return (
-    <Grid>
-      <Grid.Col span={1}>
-        <Slider
-        
-          color="blue"
-          marks={[
-            { value: 20, label: '20%' },
-            { value: 50, label: '50%' },
-            { value: 80, label: '80%' },
-          ]}
-        />
-      </Grid.Col>
-
-      <Grid.Col
-        span={11}
-        pos="relative"
-        w="100%"
-        h="100%"
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
+    <Container fluid w={widthGrid} p={0}>
+      <Grid
+        styles={{
+          inner: {
+            margin: 0,
+            width: 'inherit',
+          },
         }}
       >
-        <div
-          ref={hoverRef}
-          className={classes.containerButton}
+        <Grid.Col span={1} ref={gridSliderRef}>
+          <VerticalSlider
+            value={valueSlider}
+            onChange={setValueSlider}
+            height={heightGrid - 80}
+            disabled={!data.static}
+          />
+        </Grid.Col>
+        <Grid.Col
+          span={11}
+          pos="relative"
+          w="100%"
+          h="100%"
           style={{
-            width: data.static ? '95%' : '100%',
+            display: 'flex',
+            flexDirection: 'column',
           }}
         >
-          {(hovered || data.static || data.isEditing) && (
-            <Group
-              pos="absolute"
-              right={data.static || data.isEditing ? 5 : 1}
-              top={5}
-            >
-              <Tooltip label="Inpect metadatas information">
-                <ActionIcon
-                  variant="filled"
-                  aria-label="Metadatas"
-                  onClick={() => handleInspectMetadata(data.i)}
-                  className={classes.actionButton}
-                  // disabled={data.plot.some((item) => item.x.length === 0 && item.y.length === 0)}
-                >
-                  <IconBrandDatabricks
-                    style={{ width: '70%', height: '70%' }}
-                    stroke={1.5}
-                  />
-                </ActionIcon>
-              </Tooltip>
-
-              <Tooltip
-                label={
-                  data.isEditing ? 'Stop editing the grid' : 'Edit the grid'
-                }
+          <div
+            ref={hoverRef}
+            className={classes.containerButton}
+            style={{
+              width: data.static ? '95%' : '100%',
+            }}
+          >
+            {(hovered || data.static || data.isEditing) && (
+              <Group
+                pos="absolute"
+                right={data.static || data.isEditing ? 5 : 1}
+                top={5}
               >
-                <ActionIcon
-                  variant="filled"
-                  aria-label="Editing"
-                  onClick={() => handleEditGrid(data.i)}
-                  className={classes.actionButton}
-                  color={data.isEditing ? 'yellow' : 'green'}
-                >
-                  {data.isEditing ? (
-                    <IconCheck
+                <Tooltip label="Inpect metadatas information">
+                  <ActionIcon
+                    variant="filled"
+                    aria-label="Metadatas"
+                    onClick={() => handleInspectMetadata(data.i)}
+                    className={classes.actionButton}
+                    // disabled={data.plot.some((item) => item.x.length === 0 && item.y.length === 0)}
+                  >
+                    <IconBrandDatabricks
                       style={{ width: '70%', height: '70%' }}
                       stroke={1.5}
                     />
-                  ) : (
-                    <IconEdit
-                      style={{ width: '70%', height: '70%' }}
-                      stroke={1.5}
-                    />
-                  )}
-                </ActionIcon>
-              </Tooltip>
+                  </ActionIcon>
+                </Tooltip>
 
-              {handleDragStatic && (
                 <Tooltip
                   label={
-                    data.static
-                      ? 'Zoom in/out the plot and stop dragging'
-                      : 'Drag the plot'
+                    data.isEditing ? 'Stop editing the grid' : 'Edit the grid'
                   }
                 >
                   <ActionIcon
                     variant="filled"
-                    aria-label="StaticLayout"
-                    onClick={() => handleDragStatic(data.i)}
+                    aria-label="Editing"
+                    onClick={() => handleEditGrid(data.i)}
                     className={classes.actionButton}
+                    color={data.isEditing ? 'yellow' : 'green'}
                   >
-                    {data.static ? (
-                      <IconHandMove
+                    {data.isEditing ? (
+                      <IconCheck
                         style={{ width: '70%', height: '70%' }}
                         stroke={1.5}
                       />
                     ) : (
-                      <IconZoomIn
+                      <IconEdit
                         style={{ width: '70%', height: '70%' }}
                         stroke={1.5}
                       />
                     )}
                   </ActionIcon>
                 </Tooltip>
-              )}
 
-              {handleDeleteGrid && (
-                <Tooltip label="Delete the grid">
-                  <ActionIcon
-                    variant="filled"
-                    aria-label="Delete"
-                    onClick={() => handleDeleteGrid(data.i)}
-                    className={classes.actionButton}
-                    color="red"
+                {handleDragStatic && (
+                  <Tooltip
+                    label={
+                      data.static
+                        ? 'Zoom in/out the plot and stop dragging'
+                        : 'Drag the plot'
+                    }
                   >
-                    <IconTrash
-                      style={{ width: '70%', height: '70%' }}
-                      stroke={1.5}
-                    />
-                  </ActionIcon>
-                </Tooltip>
-              )}
-            </Group>
-          )}
-        </div>
-        <SimplePlotly
-          data={data.plot}
-          width={data.w * colWidth - 20}
-          height={data.h * rowHeight + (23 * (data.h * rowHeight)) / 100}
-          isStatic={data.static}
-          title={data.title}
-          xAxis={data.xAxis}
-          yAxis={data.yAxis}
-          y2Axis={data?.y2Axis}
-        />
-      </Grid.Col>
-    </Grid>
+                    <ActionIcon
+                      variant="filled"
+                      aria-label="StaticLayout"
+                      onClick={() => handleDragStatic(data.i)}
+                      className={classes.actionButton}
+                    >
+                      {data.static ? (
+                        <IconHandMove
+                          style={{ width: '70%', height: '70%' }}
+                          stroke={1.5}
+                        />
+                      ) : (
+                        <IconZoomIn
+                          style={{ width: '70%', height: '70%' }}
+                          stroke={1.5}
+                        />
+                      )}
+                    </ActionIcon>
+                  </Tooltip>
+                )}
+
+                {handleDeleteGrid && (
+                  <Tooltip label="Delete the grid">
+                    <ActionIcon
+                      variant="filled"
+                      aria-label="Delete"
+                      onClick={() => handleDeleteGrid(data.i)}
+                      className={classes.actionButton}
+                      color="red"
+                    >
+                      <IconTrash
+                        style={{ width: '70%', height: '70%' }}
+                        stroke={1.5}
+                      />
+                    </ActionIcon>
+                  </Tooltip>
+                )}
+              </Group>
+            )}
+          </div>
+
+          <SimplePlotly
+            data={data.plot}
+            width={widthGrid - widthSlider- (widthSlider/2)}
+            height={heightGrid}
+            isStatic={data.static}
+            title={data.title}
+            xAxis={data.xAxis}
+            yAxis={data.yAxis}
+            y2Axis={data?.y2Axis}
+          />
+        </Grid.Col>
+      </Grid>
+    </Container>
   );
 };
