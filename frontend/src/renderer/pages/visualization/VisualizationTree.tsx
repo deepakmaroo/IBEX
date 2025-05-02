@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { TreeLibrariesAccordion } from '../../components';
 import { useIbexStore } from '../../stores';
 import {
@@ -47,6 +47,10 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
   const [nodeSelected, setNodeSelected] = useState<string | null>();
   const [searchNodeIsLoading, setSearchNodeIsLoading] =
     useState<boolean>(false);
+
+    useEffect(() => {
+      console.log('active', active);
+    }, [active]);
 
   const formSearchNode = useForm<FormSearchNode>({
     initialValues: {
@@ -101,13 +105,9 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
          */
 
         const fetchChildrenNodeInfos = async (
-          uri: string,
+          nodeInfoschildren: NodeInfoChildrenResponse[],
         ): Promise<CustomTreeNodeData[]> => {
-          const nodeInfos: NodeInfoResponse = await fetchNodeInfos(
-            uri.slice(0, -1),
-            showErrorBars,
-          );
-          const nodeInfoschildren = nodeInfos.children || [];
+  
 
           if (nodeInfoschildren.length === 0) return;
 
@@ -126,6 +126,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
                 type: child.type,
                 children: [],
                 uriLabel: uriSelected.name,
+        
               };
             },
           );
@@ -144,7 +145,13 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
           targetUri: string,
         ): Promise<CustomTreeNodeData[]> => {
           if (dataTree.length === 0) {
-            return await fetchChildrenNodeInfos(targetUri);
+            const nodeInfos: NodeInfoResponse = await fetchNodeInfos(
+              targetUri.slice(0, -1),
+              showErrorBars,
+            );
+            const nodeInfoschildren = nodeInfos.children || [];
+
+            return await fetchChildrenNodeInfos(nodeInfoschildren);
           }
 
           return Promise.all(
@@ -154,11 +161,18 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
                   node.children.length === 0 ||
                   node.seeErrorBars !== showErrorBars
                 ) {
-                  const newChildren = await fetchChildrenNodeInfos(targetUri);
+                  const nodeInfos: NodeInfoResponse = await fetchNodeInfos(
+                    targetUri.slice(0, -1),
+                    showErrorBars,
+                  );
+                  const nodeInfoschildren = nodeInfos.children || [];
+
+                  const newChildren = await fetchChildrenNodeInfos(nodeInfoschildren);
 
                   return {
                     ...node,
                     seeErrorBars: showErrorBars,
+                    shape: nodeInfos.shape,
                     children: newChildren,
                   };
                 }
@@ -228,6 +242,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
               children: [],
               seeErrorBars: showErrorBars,
               uriLabel: dataUri.name,
+              shape: [],
             });
           }
         }

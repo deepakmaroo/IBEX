@@ -87,6 +87,8 @@ export const handleNewPlot = async (
 ): Promise<Configuration> => {
   const response = await fetchDataPlot(nodes[0].uri);
 
+  // console.log('response', response);
+
   if (!response || response.data.ndim !== 1) {
     showNotification({
       title: 'Plot',
