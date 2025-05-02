@@ -10,6 +10,7 @@ import {
   NodeInfoTypeEnum,
   SearchNodeResponse,
   URIData,
+  URITreeNodeData,
 } from '../../types';
 import {
   ActionIcon,
@@ -162,8 +163,6 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
                   node.seeErrorBars !== showErrorBars
                 ) {
 
-                  console.log('targetUri', targetUri);
-                  console.log('targetUri', targetUri.slice(0, -1));
                   const nodeInfos: NodeInfoResponse = await fetchNodeInfos(
                     targetUri.replace(/\[0\]\/$/, ''),
                     showErrorBars,
@@ -398,7 +397,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
    * @param nodes
    */
   const getNodesChecked = useCallback(
-    async (nodes: URIData[]) => {
+    async (nodes: URITreeNodeData[]) => {
       let updatedActive: Configuration = {
         ...active,
         saved: false,

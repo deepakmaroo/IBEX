@@ -20,18 +20,19 @@ import {
   IconTypography,
 } from '@tabler/icons-react';
 import classes from './TreeLibrary.module.css';
-import { CustomTreeNodeData, NodeInfoTypeEnum, URIData } from '../../types';
+import { CustomTreeNodeData, NodeInfoTypeEnum, URIData, URITreeNodeData } from '../../types';
 
 interface NodeIconProps {
   node: TreeNodeData;
   type: NodeInfoTypeEnum;
   uriLabel: string;
+  shape: number[];
   expanded: boolean;
   checkedNodes: URIData[];
   tree: UseTreeReturnType;
   textRef: React.RefObject<HTMLDivElement>;
   isOverflowing: boolean;
-  getCheckedNodes: (nodes: URIData[]) => void;
+  getCheckedNodes: (nodes: URITreeNodeData[]) => void;
 }
 
 interface TreeLibraryProps {
@@ -40,18 +41,19 @@ interface TreeLibraryProps {
   checkedNodes?: URIData[];
   expendAll?: boolean;
   handleSelectChildren: (node: string) => void;
-  getCheckedNodes?: (nodes: URIData[]) => void;
+  getCheckedNodes?: (nodes: URITreeNodeData[]) => void;
 }
 
 interface ElementProps extends RenderTreeNodePayload {
   type: NodeInfoTypeEnum;
   uriLabel: string;
+  shape: number[];
   selectedNode: string | null;
   checkedNodes?: URIData[];
   tree: UseTreeReturnType;
   setSelectedNode: (node: string | null) => void;
   handleSelectChildren: (node: string) => void;
-  getCheckedNodes: (nodes: URIData[]) => void;
+  getCheckedNodes: (nodes: URITreeNodeData[]) => void;
 }
 
 function Element({
@@ -64,6 +66,7 @@ function Element({
   checkedNodes,
   tree,
   uriLabel,
+  shape,
   setSelectedNode,
   handleSelectChildren,
   getCheckedNodes,
@@ -111,6 +114,7 @@ function Element({
         checkedNodes={checkedNodes}
         tree={tree}
         textRef={textRef}
+        shape={shape}
         isOverflowing={isTextOverflowing}
         getCheckedNodes={getCheckedNodes}
       />
@@ -127,6 +131,7 @@ function NodeIcon({
   isOverflowing,
   textRef,
   uriLabel,
+  shape,
   getCheckedNodes,
 }: NodeIconProps) {
   const [checked, setChecked] = useState<boolean>(false);
@@ -159,9 +164,10 @@ function NodeIcon({
           );
         } else {
           tree.checkNode(node.value);
-          const newCheckedNode: URIData = {
+          const newCheckedNode: URITreeNodeData = {
             name: uriLabel,
             uri: node.value,
+            shape: shape,
           };
           checkedNodes.push(newCheckedNode);
         }
@@ -290,6 +296,7 @@ export const TreeLibrary = ({
             {...payload}
             type={(payload.node as CustomTreeNodeData).type}
             uriLabel={(payload.node as CustomTreeNodeData).uriLabel}
+            shape={(payload.node as CustomTreeNodeData).shape}
             selectedNode={selectedNode}
             tree={tree}
             checkedNodes={checkedNodes}
