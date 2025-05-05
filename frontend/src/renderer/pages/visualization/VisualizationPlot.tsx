@@ -1,0 +1,127 @@
+import { Paper, ScrollArea, Stack, Text } from '@mantine/core';
+import { useIbexStore } from '../../stores';
+import { useCallback, useState } from 'react';
+import { Configuration, DataGridPlot } from 'src/renderer/types';
+import GridLayout, { Layout } from 'react-grid-layout';
+import { GridLayoutPlot } from '../../components';
+
+export const VisualizationPlot = () => {
+  const { active, updatedConfiguration } = useIbexStore();
+
+  const [dragEnabled, setDragEnabled] = useState(true);
+  const [dragTimeout, setDragTimeout] = useState<NodeJS.Timeout | null>(null);
+  const gridWith = 1580;
+  const colsNumber = 12;
+  const colWidth = gridWith / colsNumber;
+  const rowHeight = 30;
+
+  /**
+   * Handle the mouse down event
+   */
+  const handleMouseDown = () => {
+    if (dragTimeout) clearTimeout(dragTimeout);
+    setDragEnabled(false);
+
+    const timeoutId = setTimeout(() => {
+      setDragEnabled(true);
+    }, 3000);
+
+    setDragTimeout(timeoutId);
+  };
+
+  /**
+   * Handle the mouse up event
+   */
+  const handleMouseUp = () => {
+    if (dragTimeout) clearTimeout(dragTimeout);
+    setDragEnabled(true);
+  };
+
+  /**
+   * Handle update grid layout
+   */
+  const handleUpdateLayout = useCallback(
+    (updatedLayouts: Layout[]) => {
+      const updatedDataPlot: DataGridPlot[] = active.dataPlot.map(
+        (item: DataGridPlot) => {
+          const findUpdatedLayout = updatedLayouts.find(
+            (layout) => layout.i === item.i,
+          );
+
+          if (findUpdatedLayout) {
+            return {
+              ...item,
+              ...findUpdatedLayout,
+              minH: 12,
+              minW: 6,
+            };
+          }
+          return item;
+        },
+      );
+
+      const newActive: Configuration = {
+        ...active,
+        saved: false,
+        dataPlot: updatedDataPlot,
+      };
+
+      updatedConfiguration(newActive);
+    },
+    [active],
+  );
+
+  return active.dataPlot.length > 0 ? (
+    <>
+      <ScrollArea h="84vh">
+        <GridLayout
+          cols={colsNumber}
+          rowHeight={rowHeight}
+          width={gridWith}
+          autoSize={true}
+          onDragStart={handleMouseDown}
+          onDragStop={handleMouseUp}
+          isDraggable={dragEnabled}
+          onLayoutChange={(layout) => handleUpdateLayout(layout)}
+        >
+          {active.dataPlot.map((plotData: DataGridPlot) => {
+            return (
+              <Paper
+                shadow="sm"
+                radius="xs"
+                withBorder
+                key={plotData.i}
+                data-grid={{
+                  x: plotData.x,
+                  y: plotData.y,
+                  w: plotData.w,
+                  h: plotData.h,
+                  static: plotData.static,
+                  minH: 8,
+                  minW: 4,
+                }}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  boxSizing: 'border-box',
+                }}
+              >
+                <GridLayoutPlot
+                  data={plotData}
+                  colWidth={colWidth}
+                  rowHeight={rowHeight}
+                />
+              </Paper>
+            );
+          })}
+        </GridLayout>
+      </ScrollArea>
+    </>
+  ) : (
+    <Stack h="100%" align="center" w="100%" justify="center">
+      <Text>No chart generates</Text>
+    </Stack>
+  );
+};

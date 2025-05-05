@@ -1,13 +1,53 @@
 #!/bin/env python3
 # -*- coding: utf-8 -*-
-from ibex.main import app
-import uvicorn  # type: ignore
+
 import argparse  # type: ignore
+
+import os
 import sys
+import time
+
+import uvicorn                 # type: ignore
+from fastapi import FastAPI    # type: ignore
+
+from ibex.main import app
 
 
-if __name__ == "__main__":
+def get_frontend_dir():
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    frontend_dir = (os.path.abspath(script_dir + "/../../frontend"))
+    print(f"Script directory: {script_dir}")
+    # Create the directory if it doesn't exist
+    os.makedirs(frontend_dir, exist_ok=True)
+    return frontend_dir
 
+
+def write_config(target_dir, api_port):
+    """
+    Write a config.json file to the user's home directory with the given API URL
+
+    Parameters:
+    - api_port (int): The API port to store in the config.
+    """
+    content = f'''{{
+  "API_URL": "http://127.0.0.1:{api_port}"
+}}'''
+
+    file_path = os.path.join(target_dir, "config.json")
+
+    with open(file_path, "w") as f:
+        f.write(content)
+
+    print(f"Config written to {file_path}")
+
+
+def port_from_cmdln():
+    """
+    Reads port number from commandline
+
+    Returns:
+    - api_port (int): The port provided by the user. 0 otherwise.
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "-p",
@@ -17,11 +57,38 @@ if __name__ == "__main__":
     )
     args = parser.parse_args(args=sys.argv[1:])
 
-    if args.port and (args.port < 0 or args.port > 65535):
+    api_port = args.port
+
+    if api_port and (api_port < 0 or api_port > 65535):
         print(
             f"Provided port number was {args.port} while it has to be in range (0..65535).",
             file=sys.stderr,
         )
         exit(-1)
 
-    uvicorn.run(app, host="127.0.0.1", port=args.port if args.port else 0)
+    return api_port if api_port else 0
+
+if __name__ == "__main__":
+
+    frontend_dir = get_frontend_dir()
+
+    port = port_from_cmdln()
+
+    config = uvicorn.Config(app, host="127.0.0.1", port=port)
+    server = uvicorn.Server(config)
+
+    # Start the server in a background thread or process
+    import threading
+    thread = threading.Thread(target=server.run)
+    thread.start()
+
+    # Wait until the server is started
+    while not server.started:
+        time.sleep(0.3)
+        pass
+
+    # Access the bound sockets
+    sockets = server.servers[0].sockets
+    port = sockets[0].getsockname()[1]
+    print(f"Server is running on port {port}")
+    write_config(frontend_dir, port)
