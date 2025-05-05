@@ -7,7 +7,6 @@ export type URIData = {
 export type URITreeNodeData = {
   name: string;
   uri: string;
-  shape?: number[];
 }
 
 export type URIExistsResponse = {

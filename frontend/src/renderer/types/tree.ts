@@ -10,7 +10,6 @@ export type CustomTreeNodeData = TreeNodeData & {
   type: NodeInfoTypeEnum;
   seeErrorBars: boolean;
   uriLabel: string;
-  shape?: number[];
   children: CustomTreeNodeData[];
 };
 

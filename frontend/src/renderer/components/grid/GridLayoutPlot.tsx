@@ -68,8 +68,8 @@ export const GridLayoutPlot = ({
   useEffect(() => {
     setHeightGrid(data.h * rowHeight + (23 * (data.h * rowHeight)) / 100);
     setWidthGrid(Math.floor(data.w * colWidth));
-    console.log("widthGrid", widthGrid);
-    console.log("data", data);  
+    // console.log("widthGrid", widthGrid);
+    // console.log("data", data);  
   }, [data.h, rowHeight, data.w, colWidth]);
 
   /**

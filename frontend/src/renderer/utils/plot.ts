@@ -4,7 +4,7 @@ import {
   Configuration,
   DataGridPlot,
   DataPlotly,
-  URIData,
+  URITreeNodeData,
 } from '../types';
 import { fetchDataPlot } from './fetchData';
 import { generateUuid } from './uuid';
@@ -82,9 +82,14 @@ export async function plotData(
 }
 
 export const handleNewPlot = async (
-  nodes: URIData[],
+  nodes: URITreeNodeData[],
   updatedActive: Configuration,
 ): Promise<Configuration> => {
+
+  console.log('plot data uri', nodes[0]);
+
+
+
   const response = await fetchDataPlot(nodes[0].uri);
 
   // console.log('response', response);
@@ -134,7 +139,7 @@ export const handleNewPlot = async (
 };
 
 export const handleExistingPlot = async (
-  nodes: URIData[],
+  nodes: URITreeNodeData[],
   findDataPlot: DataGridPlot,
   updatedActive: Configuration,
 ): Promise<Configuration> => {
@@ -243,7 +248,7 @@ export const handleExistingPlot = async (
 };
 
 const updateExistingPlots = (
-  nodes: URIData[],
+  nodes: URITreeNodeData[],
   findDataPlot: DataGridPlot,
   updatedActive: Configuration,
 ): Configuration => {
@@ -302,7 +307,7 @@ export async function plotNodeUriLoaded(
                 description: response.data.description,
                 dimensions: response.data.ndim,
                 path: response.data.path,
-                shape: response.data.shape,
+                shape: [],
                 x: response.data.coordinates?.[0]?.value?.map(String) ?? [],
                 y: response.data.value ?? [],
               };

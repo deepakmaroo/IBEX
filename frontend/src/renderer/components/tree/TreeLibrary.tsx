@@ -26,7 +26,6 @@ interface NodeIconProps {
   node: TreeNodeData;
   type: NodeInfoTypeEnum;
   uriLabel: string;
-  shape: number[];
   expanded: boolean;
   checkedNodes: URIData[];
   tree: UseTreeReturnType;
@@ -47,7 +46,6 @@ interface TreeLibraryProps {
 interface ElementProps extends RenderTreeNodePayload {
   type: NodeInfoTypeEnum;
   uriLabel: string;
-  shape: number[];
   selectedNode: string | null;
   checkedNodes?: URIData[];
   tree: UseTreeReturnType;
@@ -66,7 +64,6 @@ function Element({
   checkedNodes,
   tree,
   uriLabel,
-  shape,
   setSelectedNode,
   handleSelectChildren,
   getCheckedNodes,
@@ -82,6 +79,7 @@ function Element({
       await handleSelectChildren(node.value);
     }
   };
+
 
   useEffect(() => {
     if (selected) {
@@ -114,7 +112,6 @@ function Element({
         checkedNodes={checkedNodes}
         tree={tree}
         textRef={textRef}
-        shape={shape}
         isOverflowing={isTextOverflowing}
         getCheckedNodes={getCheckedNodes}
       />
@@ -131,7 +128,6 @@ function NodeIcon({
   isOverflowing,
   textRef,
   uriLabel,
-  shape,
   getCheckedNodes,
 }: NodeIconProps) {
   const [checked, setChecked] = useState<boolean>(false);
@@ -167,8 +163,8 @@ function NodeIcon({
           const newCheckedNode: URITreeNodeData = {
             name: uriLabel,
             uri: node.value,
-            shape: shape,
           };
+          console.log('newCheckedNode', newCheckedNode);
           checkedNodes.push(newCheckedNode);
         }
         setChecked(!checked);
@@ -296,7 +292,6 @@ export const TreeLibrary = ({
             {...payload}
             type={(payload.node as CustomTreeNodeData).type}
             uriLabel={(payload.node as CustomTreeNodeData).uriLabel}
-            shape={(payload.node as CustomTreeNodeData).shape}
             selectedNode={selectedNode}
             tree={tree}
             checkedNodes={checkedNodes}

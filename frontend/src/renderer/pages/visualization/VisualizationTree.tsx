@@ -49,9 +49,9 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
   const [searchNodeIsLoading, setSearchNodeIsLoading] =
     useState<boolean>(false);
 
-    useEffect(() => {
-      console.log('active', active);
-    }, [active]);
+    // useEffect(() => {
+    //   console.log('active', active);
+    // }, [active]);
 
   const formSearchNode = useForm<FormSearchNode>({
     initialValues: {
@@ -116,7 +116,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
             (child: NodeInfoChildrenResponse) => {
               const newValue =
                 child.type === NodeInfoTypeEnum.ARRAY
-                  ? `${nodeUri}${child.name}[0]/`
+                  ? `${nodeUri}${child.name}[:]/`
                   : child.type === NodeInfoTypeEnum.STRUCTURE
                     ? `${nodeUri}${child.name}/`
                     : `${nodeUri}${child.name}`;
@@ -162,9 +162,13 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
                   node.children.length === 0 ||
                   node.seeErrorBars !== showErrorBars
                 ) {
+                  /**
+                   * Replace [:] and remove the last /
+                   */
+                  targetUri =  targetUri.replace(/\[:\]/, '').slice(0, -1);
 
                   const nodeInfos: NodeInfoResponse = await fetchNodeInfos(
-                    targetUri.replace(/\[0\]\/$/, ''),
+                    targetUri,
                     showErrorBars,
                   );
                   const nodeInfoschildren = nodeInfos.children || [];
