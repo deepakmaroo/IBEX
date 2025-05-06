@@ -55,10 +55,6 @@ export const GridLayoutPlot = ({
   useLayoutEffect(() => {
     if (gridSliderRef.current) {
       setWidthSlider(gridSliderRef.current.offsetWidth);
-      console.log(
-        'gridSliderRef.current.offsetWidth',
-        gridSliderRef.current.offsetWidth,
-      );
     }
   }, [gridSliderRef.current?.offsetWidth]);
 
@@ -156,6 +152,10 @@ export const GridLayoutPlot = ({
     },
     [active],
   );
+
+  useEffect(() => {
+    console.log('data', data);
+  }, [data]);
 
   return (
     <Container fluid w={widthGrid} p={0}>

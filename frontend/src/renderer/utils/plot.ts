@@ -90,7 +90,6 @@ export const handleNewPlot = async (
   updatedActive: Configuration,
 ): Promise<Configuration> => {
 
-  console.log('plot data uri', nodes[0]);
 
   const defaultUri = nodes[0].uri.replace(/\[:\]/g, '[0]');
   console.log('defaultUri', defaultUri);
