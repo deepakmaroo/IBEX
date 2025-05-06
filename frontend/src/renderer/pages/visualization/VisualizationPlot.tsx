@@ -1,85 +1,127 @@
-import { Group, Text } from '@mantine/core';
-import { useMove } from '@mantine/hooks';
-import { IconCircle } from '@tabler/icons-react';
+import { Paper, ScrollArea, Stack, Text } from '@mantine/core';
+import { useIbexStore } from '../../stores';
+import { useCallback, useState } from 'react';
+import { Configuration, DataGridPlot } from 'src/renderer/types';
+import GridLayout, { Layout } from 'react-grid-layout';
+import { GridLayoutPlot } from '../../components';
 
-interface VerticalSliderProps {
-  value: number;
-  data: number[];
-  onChange: (value: number) => void;
-  height?: number;
-  disabled?: boolean;
-}
+export const VisualizationPlot = () => {
+  const { active, updatedConfiguration } = useIbexStore();
 
-export const VerticalSlider = ({
-  value,
-  data = [1, 5, 2, 3, 4, 6, 7, 8, 9, 10],
-  onChange,
-  height = 200,
-  disabled = false,
-}: VerticalSliderProps) => {
-  const steps = data.length;
-  const currentIndex = data.findIndex((d) => d === value);
-  const valueRatio = currentIndex / (steps - 1); // entre 0 et 1
+  const [dragEnabled, setDragEnabled] = useState(true);
+  const [dragTimeout, setDragTimeout] = useState<NodeJS.Timeout | null>(null);
+  const gridWith = 1580;
+  const colsNumber = 12;
+  const colWidth = gridWith / colsNumber;
+  const rowHeight = 30;
 
-  const { ref } = useMove(({ y }) => {
-    if (disabled) return;
+  /**
+   * Handle the mouse down event
+   */
+  const handleMouseDown = () => {
+    if (dragTimeout) clearTimeout(dragTimeout);
+    setDragEnabled(false);
 
-    const index = Math.round((1 - y) * (steps - 1));
-    const clampedIndex = Math.max(0, Math.min(index, steps - 1));
-    onChange(data[clampedIndex]);
-  });
+    const timeoutId = setTimeout(() => {
+      setDragEnabled(true);
+    }, 3000);
 
-  return (
-    <Group justify="center">
-      <Group justify="center">
-        <div
-          ref={ref}
-          style={{
-            width: 15,
-            height,
-            backgroundColor: disabled
-              ? 'var(--mantine-color-gray-4)'
-              : 'var(--mantine-color-gray-2)',
-            position: 'relative',
-            borderRadius: '8px',
-            cursor: disabled ? 'not-allowed' : 'pointer',
-            opacity: disabled ? 0.6 : 1,
-            pointerEvents: disabled ? 'none' : 'auto',
-          }}
+    setDragTimeout(timeoutId);
+  };
+
+  /**
+   * Handle the mouse up event
+   */
+  const handleMouseUp = () => {
+    if (dragTimeout) clearTimeout(dragTimeout);
+    setDragEnabled(true);
+  };
+
+  /**
+   * Handle update grid layout
+   */
+  const handleUpdateLayout = useCallback(
+    (updatedLayouts: Layout[]) => {
+      const updatedDataPlot: DataGridPlot[] = active.dataPlot.map(
+        (item: DataGridPlot) => {
+          const findUpdatedLayout = updatedLayouts.find(
+            (layout) => layout.i === item.i,
+          );
+
+          if (findUpdatedLayout) {
+            return {
+              ...item,
+              ...findUpdatedLayout,
+              minH: 12,
+              minW: 6,
+            };
+          }
+          return item;
+        },
+      );
+
+      const newActive: Configuration = {
+        ...active,
+        saved: false,
+        dataPlot: updatedDataPlot,
+      };
+
+      updatedConfiguration(newActive);
+    },
+    [active],
+  );
+
+  return active.dataPlot.length > 0 ? (
+    <>
+      <ScrollArea h="84vh">
+        <GridLayout
+          cols={colsNumber}
+          rowHeight={rowHeight}
+          width={gridWith}
+          autoSize={true}
+          onDragStart={handleMouseDown}
+          onDragStop={handleMouseUp}
+          isDraggable={dragEnabled}
+          onLayoutChange={(layout) => handleUpdateLayout(layout)}
         >
-          {/* Filled bar */}
-          <div
-            style={{
-              position: 'absolute',
-              bottom: 0,
-              height: `${valueRatio * 100}%`,
-              width: 15,
-              backgroundColor: 'var(--mantine-color-blue-filled)',
-              opacity: 0.7,
-              borderRadius: '8px',
-              border: 'solid 1px var(--mantine-color-blue-7)',
-            }}
-          />
-
-          {/* Thumb */}
-          <IconCircle
-            color="var(--mantine-color-blue-7)"
-            width={22}
-            height={22}
-            fill="white"
-            strokeWidth={6}
-            style={{
-              position: 'absolute',
-              bottom: `calc(${valueRatio * 100}% - 8px)`,
-              left: '-3px',
-            }}
-          />
-        </div>
-      </Group>
-
-      <Text ta="center" mt="sm">
-        Value: {value}
-      </Text>
-    </Group>
+          {active.dataPlot.map((plotData: DataGridPlot) => {
+            return (
+              <Paper
+                shadow="sm"
+                radius="xs"
+                withBorder
+                key={plotData.i}
+                data-grid={{
+                  x: plotData.x,
+                  y: plotData.y,
+                  w: plotData.w,
+                  h: plotData.h,
+                  static: true,
+                  minH: 8,
+                  minW: 4,
+                }}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  boxSizing: 'border-box',
+                }}
+              >
+                <GridLayoutPlot
+                  data={plotData}
+                  colWidth={colWidth}
+                  rowHeight={rowHeight}
+                />
+              </Paper>
+            );
+          })}
+        </GridLayout>
+      </ScrollArea>
+    </>
+  ) : (
+    <Stack h="100%" align="center" w="100%" justify="center">
+      <Text>No chart generates</Text>
+    </Stack>
   );
 };
