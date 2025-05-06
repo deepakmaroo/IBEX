@@ -12,16 +12,22 @@ interface VerticalSliderProps {
 
 export const VerticalSlider = ({
   value,
-  data = [1,5,2,3,4,6,7,8,9,10],
+  data = [1, 5, 2, 3, 4, 6, 7, 8, 9, 10],
   onChange,
   height = 200,
   disabled = false,
 }: VerticalSliderProps) => {
-  const { ref } = useMove(
-    ({ y }) => {
-      if (!disabled) onChange(1 - y);
-    },
-  );
+  const steps = data.length;
+  const currentIndex = data.findIndex((d) => d === value);
+  const valueRatio = currentIndex / (steps - 1); // entre 0 et 1
+
+  const { ref } = useMove(({ y }) => {
+    if (disabled) return;
+
+    const index = Math.round((1 - y) * (steps - 1));
+    const clampedIndex = Math.max(0, Math.min(index, steps - 1));
+    onChange(data[clampedIndex]);
+  });
 
   return (
     <Group justify="center">
@@ -30,7 +36,7 @@ export const VerticalSlider = ({
           ref={ref}
           style={{
             width: 15,
-            height: height,
+            height,
             backgroundColor: disabled
               ? 'var(--mantine-color-gray-4)'
               : 'var(--mantine-color-gray-2)',
@@ -46,7 +52,7 @@ export const VerticalSlider = ({
             style={{
               position: 'absolute',
               bottom: 0,
-              height: `${value * 100}%`,
+              height: `${valueRatio * 100}%`,
               width: 15,
               backgroundColor: 'var(--mantine-color-blue-filled)',
               opacity: 0.7,
@@ -64,7 +70,7 @@ export const VerticalSlider = ({
             strokeWidth={6}
             style={{
               position: 'absolute',
-              bottom: `calc(${value * 100}% - 8px)`,
+              bottom: `calc(${valueRatio * 100}% - 8px)`,
               left: '-3px',
             }}
           />

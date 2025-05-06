@@ -170,7 +170,7 @@ export const GridLayoutPlot = ({
         }}
       >
         <Grid.Col span={1} ref={gridSliderRef}>
-          {data.coordinates.map((item, index) => (
+          {/* {data.coordinates.map((item, index) => (
             <VerticalSlider
               value={valueSlider}
               data={dataSlider}
@@ -178,7 +178,7 @@ export const GridLayoutPlot = ({
               height={heightGrid - 80}
               disabled={!data.static}
             />
-          ))}
+          ))} */}
 
         </Grid.Col>
         <Grid.Col
