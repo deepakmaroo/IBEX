@@ -17,6 +17,13 @@ export interface Axis {
   unit: string;
   path?: string;
 }
+
+export interface Coordinates {
+  name: string;
+  shape: number[];
+  value: number[];
+}
+
 export interface BaseDataPlotly {
   nodeUri: string;
   labelUri: string;
@@ -50,6 +57,7 @@ export interface DataGridPlot extends Layout, BaseDataGridPlot {
   static: boolean;
   plot: DataPlotly[];
   isEditing: boolean;
+  coordinates: Coordinates[];
 }
 
 export interface DataGridPlotToSave extends BaseDataGridPlot {

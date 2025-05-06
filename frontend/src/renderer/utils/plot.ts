@@ -2,15 +2,19 @@ import { showNotification } from '@mantine/notifications';
 import {
   Axis,
   Configuration,
+  Coordinates,
   DataGridPlot,
   DataPlotly,
+  PlotCoordinatesResponse,
   URITreeNodeData,
 } from '../types';
 import { fetchDataPlot } from './fetchData';
 import { generateUuid } from './uuid';
+import { isMatrix } from './matrix';
 
 export const generateNewPlot = (
   title: string,
+  xCoordinates: Coordinates[],
   xAxis: Axis,
   yAxis: Axis,
   y2Axis?: Axis,
@@ -24,7 +28,7 @@ export const generateNewPlot = (
     yAxis: yAxis,
     y2Axis: y2Axis,
     isEditing: true,
-
+    coordinates: xCoordinates,
     x: 0,
     y: 0,
     w: 6,
@@ -88,11 +92,12 @@ export const handleNewPlot = async (
 
   console.log('plot data uri', nodes[0]);
 
+  const defaultUri = nodes[0].uri.replace(/\[:\]/g, '[0]');
+  console.log('defaultUri', defaultUri);
 
+  const response = await fetchDataPlot(defaultUri);
 
-  const response = await fetchDataPlot(nodes[0].uri);
-
-  // console.log('response', response);
+  console.log('response', response);
 
   if (!response || response.data.ndim !== 1) {
     showNotification({
@@ -104,6 +109,13 @@ export const handleNewPlot = async (
     return updatedActive;
   }
 
+  //Get coordinates data for slider - all coordinates except the first one, is considered as x coordinates
+  const xCoordinatesData: Coordinates[] = response.data.coordinates.slice(1).map((coordinate: PlotCoordinatesResponse) => ({
+    name: coordinate.name,
+    shape: coordinate.shape,
+    value: isMatrix(coordinate.value) ? coordinate.value[0] : coordinate.value,
+  }));
+    
   const xAxis: Axis = {
     name: response.data.coordinates[0].name,
     unit: response.data.coordinates[0].unit,
@@ -117,13 +129,16 @@ export const handleNewPlot = async (
 
   const newPlot = generateNewPlot(
     `${response.data.name}(${response.data.unit})`,
+    xCoordinatesData,
     xAxis,
     yAxis,
   );
 
+  const xCoordinatesValue  = isMatrix(response.data.coordinates[0].value) ? response.data.coordinates[0].value[0] : response.data.coordinates[0].value;
+
   const updatedPlot = await plotData(
     newPlot,
-    response.data.coordinates[0].value as number[],
+    xCoordinatesValue,
     response.data.value,
     nodes[0].uri,
     yAxis,
