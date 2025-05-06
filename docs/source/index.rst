@@ -30,13 +30,6 @@ Manual
    developers_manual/frontend_development/frontend_development
    developers_manual/backend_development/backend_development
 
-.. toctree::
-   :caption: API docs
-   :maxdepth: 1
-
-   api
-   api-hidden
-
 
 LICENSE
 -------
