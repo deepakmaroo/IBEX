@@ -52,7 +52,7 @@ export const GridLayoutPlot = ({
   );
   const [widthGrid, setWidthGrid] = useState(Math.floor(data.w * colWidth));
   const [valueSlider, setValueSlider] = useState(0);
-  const [dataSlider, setDataSlider] = useState([1,2,3,4,5,6,7,8,9,10]);
+  const [dataSlider, setDataSlider] = useState([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
 
   useLayoutEffect(() => {
     if (gridSliderRef.current) {
@@ -159,6 +159,16 @@ export const GridLayoutPlot = ({
     console.log('data', data);
   }, [data]);
 
+  const handleUpdateSliderValue = (name: string, value: number) => {
+    const updatedCoordinatesValue = data.coordinates.map((item) => {
+      if (item.name === name) {
+        return { ...item, value: value };
+      }
+      return item;
+    })
+    console.log('updatedCoordinatesValue', updatedCoordinatesValue);
+  };
+
   return (
     <Container fluid w={widthGrid} p={0}>
       <Grid
@@ -169,19 +179,23 @@ export const GridLayoutPlot = ({
           },
         }}
       >
-        <Grid.Col span={1} ref={gridSliderRef}>
-          {/* {data.coordinates.map((item, index) => (
-            <VerticalSlider
-              value={valueSlider}
-              data={dataSlider}
-              onChange={setValueSlider}
-              height={heightGrid - 80}
-              disabled={!data.static}
-            />
-          ))} */}
-
+        <Grid.Col span={12} ref={gridSliderRef}>
+          <Group justify="space-between" gap="xs">
+            {data.coordinates.map((item, index) => (
+              <VerticalSlider
+                key={index}
+                value={valueSlider}
+                data={item.data}
+                onChange={(value) => {
+                  handleUpdateSliderValue(item.name, value);
+                }}
+                height={heightGrid - 80}
+                disabled={!data.static}
+              />
+            ))}
+          </Group>
         </Grid.Col>
-        <Grid.Col
+        {/* <Grid.Col
           span={11}
           pos="relative"
           w="100%"
@@ -304,7 +318,7 @@ export const GridLayoutPlot = ({
             yAxis={data.yAxis}
             y2Axis={data?.y2Axis}
           />
-        </Grid.Col>
+        </Grid.Col> */}
       </Grid>
     </Container>
   );

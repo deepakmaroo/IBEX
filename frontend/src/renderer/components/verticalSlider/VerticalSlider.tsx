@@ -1,4 +1,4 @@
-import { Group, Text } from '@mantine/core';
+import { Flex, Group, Text } from '@mantine/core';
 import { useMove } from '@mantine/hooks';
 import { IconCircle } from '@tabler/icons-react';
 
@@ -12,7 +12,7 @@ interface VerticalSliderProps {
 
 export const VerticalSlider = ({
   value,
-  data = [1, 5, 2, 3, 4, 6, 7, 8, 9, 10],
+  data,
   onChange,
   height = 200,
   disabled = false,
@@ -30,56 +30,55 @@ export const VerticalSlider = ({
   });
 
   return (
-    <Group justify="center">
-      <Group justify="center">
+    <Flex justify="center" align="center" direction="column">
+      <div
+        ref={ref}
+        style={{
+          margin: 'auto',
+          width: 15,
+          height,
+          backgroundColor: disabled
+            ? 'var(--mantine-color-gray-4)'
+            : 'var(--mantine-color-gray-2)',
+          position: 'relative',
+          borderRadius: '8px',
+          cursor: disabled ? 'not-allowed' : 'pointer',
+          opacity: disabled ? 0.6 : 1,
+          pointerEvents: disabled ? 'none' : 'auto',
+        }}
+      >
+        {/* Filled bar */}
         <div
-          ref={ref}
           style={{
+            position: 'absolute',
+            bottom: 0,
+            height: `${valueRatio * 100}%`,
             width: 15,
-            height,
-            backgroundColor: disabled
-              ? 'var(--mantine-color-gray-4)'
-              : 'var(--mantine-color-gray-2)',
-            position: 'relative',
+            backgroundColor: 'var(--mantine-color-blue-filled)',
+            opacity: 0.7,
             borderRadius: '8px',
-            cursor: disabled ? 'not-allowed' : 'pointer',
-            opacity: disabled ? 0.6 : 1,
-            pointerEvents: disabled ? 'none' : 'auto',
+            border: 'solid 1px var(--mantine-color-blue-7)',
           }}
-        >
-          {/* Filled bar */}
-          <div
-            style={{
-              position: 'absolute',
-              bottom: 0,
-              height: `${valueRatio * 100}%`,
-              width: 15,
-              backgroundColor: 'var(--mantine-color-blue-filled)',
-              opacity: 0.7,
-              borderRadius: '8px',
-              border: 'solid 1px var(--mantine-color-blue-7)',
-            }}
-          />
+        />
 
-          {/* Thumb */}
-          <IconCircle
-            color="var(--mantine-color-blue-7)"
-            width={22}
-            height={22}
-            fill="white"
-            strokeWidth={6}
-            style={{
-              position: 'absolute',
-              bottom: `calc(${valueRatio * 100}% - 8px)`,
-              left: '-3px',
-            }}
-          />
-        </div>
-      </Group>
+        {/* Thumb */}
+        <IconCircle
+          color="var(--mantine-color-blue-7)"
+          width={22}
+          height={22}
+          fill="white"
+          strokeWidth={6}
+          style={{
+            position: 'absolute',
+            bottom: `calc(${valueRatio * 100}% - 8px)`,
+            left: '-3px',
+          }}
+        />
+      </div>
 
-      <Text ta="center" mt="sm">
-        Value: {value}
+      <Text ta="center" mt="sm" w={50}>
+        {value}
       </Text>
-    </Group>
+    </Flex>
   );
 };

@@ -96,7 +96,7 @@ export const VisualizationPlot = () => {
                   y: plotData.y,
                   w: plotData.w,
                   h: plotData.h,
-                  static: true,
+                  static: plotData.static,
                   minH: 8,
                   minW: 4,
                 }}
