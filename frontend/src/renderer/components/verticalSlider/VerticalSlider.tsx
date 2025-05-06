@@ -4,6 +4,7 @@ import { IconCircle } from '@tabler/icons-react';
 
 interface VerticalSliderProps {
   value: number;
+  data: number[];
   onChange: (value: number) => void;
   height?: number;
   disabled?: boolean;
@@ -11,6 +12,7 @@ interface VerticalSliderProps {
 
 export const VerticalSlider = ({
   value,
+  data = [1,5,2,3,4,6,7,8,9,10],
   onChange,
   height = 200,
   disabled = false,
@@ -70,7 +72,7 @@ export const VerticalSlider = ({
       </Group>
 
       <Text ta="center" mt="sm">
-        Value: {Math.round(value * 100)}
+        Value: {value}
       </Text>
     </Group>
   );

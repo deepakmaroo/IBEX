@@ -112,7 +112,8 @@ export const handleNewPlot = async (
   const xCoordinatesData: Coordinates[] = response.data.coordinates.slice(1).map((coordinate: PlotCoordinatesResponse) => ({
     name: coordinate.name,
     shape: coordinate.shape,
-    value: isMatrix(coordinate.value) ? coordinate.value[0] : coordinate.value,
+    data: isMatrix(coordinate.value) ? coordinate.value[0] : coordinate.value,
+    value: 0
   }));
     
   const xAxis: Axis = {

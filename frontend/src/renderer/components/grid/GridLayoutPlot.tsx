@@ -34,6 +34,7 @@ import classes from './GridLayoutPlot.module.css';
 import { SimplePlotly } from '../plot';
 import { useIbexStore } from '../../stores';
 import { VerticalSlider } from '../verticalSlider';
+import { plotData } from 'src/renderer/utils';
 
 export const GridLayoutPlot = ({
   data,
@@ -51,6 +52,7 @@ export const GridLayoutPlot = ({
   );
   const [widthGrid, setWidthGrid] = useState(Math.floor(data.w * colWidth));
   const [valueSlider, setValueSlider] = useState(0);
+  const [dataSlider, setDataSlider] = useState([1,2,3,4,5,6,7,8,9,10]);
 
   useLayoutEffect(() => {
     if (gridSliderRef.current) {
@@ -65,7 +67,7 @@ export const GridLayoutPlot = ({
     setHeightGrid(data.h * rowHeight + (23 * (data.h * rowHeight)) / 100);
     setWidthGrid(Math.floor(data.w * colWidth));
     // console.log("widthGrid", widthGrid);
-    // console.log("data", data);  
+    // console.log("data", data);
   }, [data.h, rowHeight, data.w, colWidth]);
 
   /**
@@ -168,12 +170,16 @@ export const GridLayoutPlot = ({
         }}
       >
         <Grid.Col span={1} ref={gridSliderRef}>
-          <VerticalSlider
-            value={valueSlider}
-            onChange={setValueSlider}
-            height={heightGrid - 80}
-            disabled={!data.static}
-          />
+          {data.coordinates.map((item, index) => (
+            <VerticalSlider
+              value={valueSlider}
+              data={dataSlider}
+              onChange={setValueSlider}
+              height={heightGrid - 80}
+              disabled={!data.static}
+            />
+          ))}
+
         </Grid.Col>
         <Grid.Col
           span={11}
@@ -290,7 +296,7 @@ export const GridLayoutPlot = ({
 
           <SimplePlotly
             data={data.plot}
-            width={widthGrid - widthSlider- (widthSlider/2)}
+            width={widthGrid - widthSlider - widthSlider / 2}
             height={heightGrid}
             isStatic={data.static}
             title={data.title}

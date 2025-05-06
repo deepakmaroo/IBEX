@@ -21,7 +21,8 @@ export interface Axis {
 export interface Coordinates {
   name: string;
   shape: number[];
-  value: number[];
+  data: number[];
+  value: number;
 }
 
 export interface BaseDataPlotly {
