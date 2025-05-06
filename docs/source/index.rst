@@ -17,18 +17,18 @@ Manual
 ------
 
 .. toctree::
-   :caption: Getting Started
+   :caption: User's manual
    :maxdepth: 1
 
-   getting_started
+   users_manual/introduction
 
 
 .. toctree::
-   :caption: Backend development
+   :caption: Developer's manual
    :maxdepth: 1
 
-   backend_development_introduction
-   adding_new_data_source
+   developers_manual/frontend_development/frontend_development
+   developers_manual/backend_development/backend_development
 
 .. toctree::
    :caption: API docs
