@@ -21,3 +21,7 @@ export type PlotDataResponse = {
     coordinates: PlotCoordinatesResponse[];
   };
 };
+
+export type FieldValueResponse = {
+  value: number | number[];
+}

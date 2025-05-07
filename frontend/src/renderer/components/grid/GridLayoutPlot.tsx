@@ -7,7 +7,9 @@ import {
 } from 'react';
 import {
   Configuration,
+  Coordinates,
   DataGridPlot,
+  DataPlotly,
   GridLayoutPlotProps,
 } from 'src/renderer/types';
 import {
@@ -34,7 +36,21 @@ import classes from './GridLayoutPlot.module.css';
 import { SimplePlotly } from '../plot';
 import { useIbexStore } from '../../stores';
 import { VerticalSlider } from '../verticalSlider';
-import { plotData } from 'src/renderer/utils';
+import { fetchFieldValue } from 'src/renderer/utils';
+
+
+function updateUri(target: string, uri: string, value: number) {
+  const targetPath = target.replace(/^target\s*=\s*/, '').trim();
+  const targetMatch = targetPath.match(/([a-zA-Z0-9_]+)\[(\d+)\]$/);
+  if (!targetMatch) return uri;
+
+  const [_, targetName, targetIndex] = targetMatch;
+
+  return uri.replace(
+    new RegExp(`${targetName}\\[${targetIndex}\\]`),
+    `${targetName}[${value}]`
+  );
+}
 
 export const GridLayoutPlot = ({
   data,
@@ -151,17 +167,18 @@ export const GridLayoutPlot = ({
     [active],
   );
 
-  useEffect(() => {
-    console.log('data', data);
-  }, [data]);
-
-  const handleUpdateSliderValue = (name: string, value: number) => {
+  const handleUpdateSliderValue = async (coordinate: Coordinates, value: number, index: number) => {
     const updatedCoordinatesValue = data.coordinates.map((item) => {
-      if (item.name === name) {
+      if (item.name === coordinate.name) {
         return { ...item, value: value };
       }
       return item;
     });
+
+    console.log('target', coordinate.target);
+    const newURI = updateUri(coordinate.target, coordinate.nodeUri, index);
+    const responseYData = await fetchFieldValue(newURI);
+
     const updatedActive = {
       ...active,
       dataPlot: active.dataPlot.map((item) => {
@@ -169,13 +186,24 @@ export const GridLayoutPlot = ({
           return {
             ...item,
             coordinates: updatedCoordinatesValue,
+            plot: item.plot.map((plotItem): DataPlotly => {
+              if (plotItem.nodeUri === coordinate.nodeUri) {
+                return { ...plotItem, y: responseYData.value as number[] };
+              }
+              return plotItem;
+            }),
           };
         }
         return item;
       }),
     };
+    console.log('newURI', updateUri(coordinate.target, newURI, index));
     updatedConfiguration(updatedActive);
   };
+
+  useEffect(() => {
+    console.log('data', data);
+  }, [data]);
 
   return (
     <Container fluid w={widthGrid} p={0}>
@@ -195,8 +223,8 @@ export const GridLayoutPlot = ({
                 name={item.name}
                 value={item.value}
                 data={item.data}
-                onChange={(value) => {
-                  handleUpdateSliderValue(item.name, value);
+                getValue={(value, index) => {
+                  handleUpdateSliderValue(item, value, index);
                 }}
                 height={heightGrid - 80}
                 disabled={!data.isEditing || !data.static}

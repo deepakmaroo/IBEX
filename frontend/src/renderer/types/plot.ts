@@ -23,6 +23,8 @@ export interface Coordinates {
   shape: number[];
   data: number[];
   value: number;
+  target: string;
+  nodeUri: string;
 }
 
 export interface BaseDataPlotly {

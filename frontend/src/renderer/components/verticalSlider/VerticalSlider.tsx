@@ -6,7 +6,7 @@ interface VerticalSliderProps {
   name: string;
   value: number;
   data: number[];
-  onChange: (value: number) => void;
+  getValue: (value: number, index: number) => void;
   height?: number;
   disabled?: boolean;
 }
@@ -15,7 +15,7 @@ export const VerticalSlider = ({
   name,
   value,
   data,
-  onChange,
+  getValue,
   height = 200,
   disabled = false,
 }: VerticalSliderProps) => {
@@ -28,7 +28,7 @@ export const VerticalSlider = ({
 
     const index = Math.round((1 - y) * (steps - 1));
     const clampedIndex = Math.max(0, Math.min(index, steps - 1));
-    onChange(data[clampedIndex]);
+    getValue(data[clampedIndex], clampedIndex);
   });
 
   return (

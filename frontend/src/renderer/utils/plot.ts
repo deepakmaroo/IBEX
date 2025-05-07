@@ -113,7 +113,9 @@ export const handleNewPlot = async (
     name: coordinate.name,
     shape: coordinate.shape,
     data: isMatrix(coordinate.value) ? coordinate.value[0] : coordinate.value,
-    value: 0
+    value: 0,
+    target: coordinate.target,
+    nodeUri: defaultUri,
   }));
     
   const xAxis: Axis = {

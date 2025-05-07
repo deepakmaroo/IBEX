@@ -1,5 +1,6 @@
 import {
   DataIdsResponse,
+  FieldValueResponse,
   FormDbEntries,
   NodeInfoResponse,
   PlotDataResponse,
@@ -9,7 +10,7 @@ import {
 } from '../types';
 
 /**
- * Récupère la configuration API.
+ * Retrieves the API configuration.
  */
 const getConfig = async () => {
   try {
@@ -23,16 +24,16 @@ const getConfig = async () => {
 };
 
 /**
- * Gère les erreurs d'API.
+ * Handles API errors.
+ * You can also report the error to a monitoring service here (e.g., Sentry).
  */
 const handleError = (error: unknown, context: string) => {
   console.error(`Error in ${context}:`, error);
-  // Ici, tu peux aussi envoyer l'erreur à un service de monitoring (ex: Sentry)
-  throw error; // Optionnel : Tu peux choisir de ne pas throw et retourner null/undefined
+  throw error; // Optional: You could return null/undefined instead
 };
 
 /**
- * Effectue une requête API générique.
+ * Generic GET request to the API.
  */
 const fetchFromApi = async <T>(endpoint: string): Promise<T> => {
   try {
@@ -53,7 +54,11 @@ const fetchFromApi = async <T>(endpoint: string): Promise<T> => {
   }
 };
 
-// ---- Fonctions spécifiques ----
+// ---- Specific API calls ----
+
+/**
+ * Fetches information about a given node.
+ */
 export const fetchNodeInfos = async (
   nodeUri: string,
   showErrorBars: boolean,
@@ -63,6 +68,9 @@ export const fetchNodeInfos = async (
   );
 };
 
+/**
+ * Finds matching node paths based on a search value.
+ */
 export const fetchFindPaths = async (
   uri: string,
   value: string,
@@ -73,24 +81,45 @@ export const fetchFindPaths = async (
   );
 };
 
-export const fetchDataIds = async (uri: string) => {
-  return fetchFromApi<DataIdsResponse>(
-    `/data_entry/list_idses/?uri=${encodeURIComponent(uri)}`,
-  );
-};
-
+/**
+ * Retrieves plot data for a given URI.
+ */
 export const fetchDataPlot = async (uri: string) => {
   return fetchFromApi<PlotDataResponse>(
     `/data/plot_data/?uri=${encodeURIComponent(uri)}`,
   );
 };
 
+/**
+ * Retrieves field values for a given URI.
+ */
+export const fetchFieldValue = async (uri: string) => {
+  return fetchFromApi<FieldValueResponse>(
+    `/data/field_value/?uri=${encodeURIComponent(uri)}`,
+  );
+};
+
+/**
+ * Lists all available IDS IDs for a given URI.
+ */
+export const fetchDataIds = async (uri: string) => {
+  return fetchFromApi<DataIdsResponse>(
+    `/data_entry/list_idses/?uri=${encodeURIComponent(uri)}`,
+  );
+};
+
+/**
+ * Checks whether a specific URI exists.
+ */
 export const fetchURIExists = async (uri: string) => {
   return fetchFromApi<URIExistsResponse>(
     `/data_entry/exists/?uri=${encodeURIComponent(uri)}`,
   );
 };
 
+/**
+ * Retrieves available entries for a user/database configuration.
+ */
 export const fetchDataEntries = async (
   dataEntriesParameters: FormDbEntries,
 ) => {
