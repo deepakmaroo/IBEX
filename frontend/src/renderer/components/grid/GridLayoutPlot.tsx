@@ -36,7 +36,7 @@ import classes from './GridLayoutPlot.module.css';
 import { SimplePlotly } from '../plot';
 import { useIbexStore } from '../../stores';
 import { VerticalSlider } from '../verticalSlider';
-import { fetchFieldValue } from 'src/renderer/utils';
+import { fetchFieldValue } from '../../utils';
 
 
 function updateUri(target: string, uri: string, value: number) {
