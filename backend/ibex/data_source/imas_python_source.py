@@ -14,6 +14,8 @@ from imas.ids_data_type import IDSDataType  # type: ignore
 from imas.ids_base import IDSBase  # type: ignore
 from imas.ids_path import IDSPath  # type: ignore
 
+from itertools import zip_longest  # type: ignore
+
 from imas_core.exception import ImasCoreBackendException
 
 from ibex.data_source.data_source_interface import DataSourceInterface
@@ -547,8 +549,33 @@ class IMASPythonSource(DataSourceInterface):
 
         metadata, coordinates_dict = self._get_metadata_and_coordinates(uri, ids, node_path, occurrence)
 
-        # replace all dummy indexes by [:]. i.e. "itime", "i1", "i2", "i3"... -> [:]
-        coordinates_dict = {key: re.sub(r"[\[\(](.*?)[\]\)]", r"[:]", value) for key, value in coordinates_dict.items()}
+        # replace all dummy indexes i.e. "itime", "i1", "i2", "i3"... -> [<value_from_target_node>]
+        for _node_path, _coordinate_path in coordinates_dict.items():
+            if _coordinate_path == "1...N":
+                coordinates_dict[_node_path] = _coordinate_path
+                continue
+
+            _new_coordinate_path = ""
+
+            # iterate over path elements. X stands target node path element, while Y stands for coordinate path elements
+            # we do this in order to fill dummy indexes with indexes extracted from target node path
+            for x, y in zip_longest(_node_path.items(), IDSPath(_coordinate_path).items()):
+                # x[0] is node name in path eg. profiles_1d
+                # x[1] is slice or index. For instance x=profiles_1d[123] -> x[0]=profiles_1d & x[1]=123
+                # the same applies to y
+
+                y_slice = y[1] if y is not None else None
+
+                if y is not None:
+                    if x is not None and x[0] == y[0]:
+                        y_slice = x[1]
+                    # construct new coordinate path element from node_name and slice extracted from x[1]
+                    _new_coordinate_path += f"{y[0]}{self._slice_to_string(y_slice)}/"
+
+            # delete last "/" from path
+            _new_coordinate_path = _new_coordinate_path[:-1]
+
+            coordinates_dict[_node_path] = _new_coordinate_path
 
         # =================================
 
