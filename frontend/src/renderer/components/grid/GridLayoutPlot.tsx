@@ -51,8 +51,6 @@ export const GridLayoutPlot = ({
     data.h * rowHeight + (23 * (data.h * rowHeight)) / 100,
   );
   const [widthGrid, setWidthGrid] = useState(Math.floor(data.w * colWidth));
-  const [valueSlider, setValueSlider] = useState(0);
-  const [dataSlider, setDataSlider] = useState([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
 
   useLayoutEffect(() => {
     if (gridSliderRef.current) {
@@ -66,8 +64,6 @@ export const GridLayoutPlot = ({
   useEffect(() => {
     setHeightGrid(data.h * rowHeight + (23 * (data.h * rowHeight)) / 100);
     setWidthGrid(Math.floor(data.w * colWidth));
-    // console.log("widthGrid", widthGrid);
-    // console.log("data", data);
   }, [data.h, rowHeight, data.w, colWidth]);
 
   /**
@@ -124,7 +120,7 @@ export const GridLayoutPlot = ({
 
       const updatedDataPlot = active.dataPlot.map((item) =>
         item.i === id
-          ? { ...item, isEditing: !item.isEditing }
+          ? { ...item, isEditing: !item.isEditing}
           : { ...item, isEditing: false, static: false },
       );
 
@@ -165,8 +161,20 @@ export const GridLayoutPlot = ({
         return { ...item, value: value };
       }
       return item;
-    })
-    console.log('updatedCoordinatesValue', updatedCoordinatesValue);
+    });
+    const updatedActive = {
+      ...active,
+      dataPlot: active.dataPlot.map((item) => {
+        if (item.i === data.i) {
+          return {
+            ...item,
+            coordinates: updatedCoordinatesValue,
+          };
+        }
+        return item;
+      }),
+    };
+    updatedConfiguration(updatedActive);
   };
 
   return (
@@ -179,24 +187,25 @@ export const GridLayoutPlot = ({
           },
         }}
       >
-        <Grid.Col span={12} ref={gridSliderRef}>
+        <Grid.Col span={2} ref={gridSliderRef}>
           <Group justify="space-between" gap="xs">
             {data.coordinates.map((item, index) => (
               <VerticalSlider
                 key={index}
-                value={valueSlider}
+                name={item.name}
+                value={item.value}
                 data={item.data}
                 onChange={(value) => {
                   handleUpdateSliderValue(item.name, value);
                 }}
                 height={heightGrid - 80}
-                disabled={!data.static}
+                disabled={!data.isEditing || !data.static}
               />
             ))}
           </Group>
         </Grid.Col>
-        {/* <Grid.Col
-          span={11}
+        <Grid.Col
+          span={10}
           pos="relative"
           w="100%"
           h="100%"
@@ -318,7 +327,7 @@ export const GridLayoutPlot = ({
             yAxis={data.yAxis}
             y2Axis={data?.y2Axis}
           />
-        </Grid.Col> */}
+        </Grid.Col>
       </Grid>
     </Container>
   );

@@ -22,7 +22,7 @@ export const generateNewPlot = (
   return {
     title: title,
     i: generateUuid(),
-    static: false,
+    static: true,
     plot: [],
     xAxis: xAxis,
     yAxis: yAxis,

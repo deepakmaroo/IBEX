@@ -3,6 +3,7 @@ import { useMove } from '@mantine/hooks';
 import { IconCircle } from '@tabler/icons-react';
 
 interface VerticalSliderProps {
+  name: string;
   value: number;
   data: number[];
   onChange: (value: number) => void;
@@ -11,6 +12,7 @@ interface VerticalSliderProps {
 }
 
 export const VerticalSlider = ({
+  name,
   value,
   data,
   onChange,
@@ -31,6 +33,9 @@ export const VerticalSlider = ({
 
   return (
     <Flex justify="center" align="center" direction="column">
+      <Text ta="center" my="sm" w={50} fw='bold'>
+        {name}
+      </Text>
       <div
         ref={ref}
         style={{
