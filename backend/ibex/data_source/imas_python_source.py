@@ -552,7 +552,6 @@ class IMASPythonSource(DataSourceInterface):
         # replace all dummy indexes i.e. "itime", "i1", "i2", "i3"... -> [<value_from_target_node>]
         for _node_path, _coordinate_path in coordinates_dict.items():
             if _coordinate_path == "1...N":
-                coordinates_dict[_node_path] = _coordinate_path
                 continue
 
             _new_coordinate_path = ""
@@ -561,16 +560,16 @@ class IMASPythonSource(DataSourceInterface):
             # we do this in order to fill dummy indexes with indexes extracted from target node path
             for x, y in zip_longest(_node_path.items(), IDSPath(_coordinate_path).items()):
                 # x[0] is node name in path eg. profiles_1d
-                # x[1] is slice or index. For instance x=profiles_1d[123] -> x[0]=profiles_1d & x[1]=123
+                # x[1] is indices or single index. For instance x=profiles_1d[123] -> x[0]=profiles_1d & x[1]=123
                 # the same applies to y
 
-                y_slice = y[1] if y is not None else None
+                y_indices = y[1] if y is not None else None
 
                 if y is not None:
                     if x is not None and x[0] == y[0]:
-                        y_slice = x[1]
+                        y_indices = x[1]
                     # construct new coordinate path element from node_name and slice extracted from x[1]
-                    _new_coordinate_path += f"{y[0]}{self._slice_to_string(y_slice)}/"
+                    _new_coordinate_path += f"{y[0]}{self._slice_to_string(y_indices)}/"
 
             # delete last "/" from path
             _new_coordinate_path = _new_coordinate_path[:-1]
