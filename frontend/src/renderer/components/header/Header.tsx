@@ -34,10 +34,10 @@ export const Header = ({
   handleSaveConfiguration,
   handleLoadConfiguration,
   handleSelectConfiguration,
-  handleAddTree
+  handleAddTree,
 }: HeaderProps) => {
   const configurationButtons = (
-    <Group justify="flex-end" p={12}>
+    <Group >
       <Button onClick={handleAddConfiguration}>Add configuration</Button>
       <Button onClick={handleLoadConfiguration}>Load configuration</Button>
       <Button
@@ -59,15 +59,15 @@ export const Header = ({
 
   const visualisationButtons = (
     <Group justify="flex-end">
-    <Button
-      onClick={handleAddTree}
-      leftSection={<IconPlus size={20} />}
-      disabled={!active}
-    >
-      Select URIs
-    </Button>
-  </Group>
-  )
+      <Button
+        onClick={handleAddTree}
+        leftSection={<IconPlus size={20} />}
+        disabled={!active}
+      >
+        Select URIs
+      </Button>
+    </Group>
+  );
 
   return (
     <Container fluid p={5}>
@@ -102,10 +102,12 @@ export const Header = ({
           />
         </Grid.Col>
         <Grid.Col span={8}>
-          {configurationButtons}
-          <Divider orientation='vertical' />
-          {visualisationButtons}
-          </Grid.Col>
+          <Group justify="flex-end" p={12}>
+            {configurationButtons}
+            <Divider orientation="vertical" />
+            {visualisationButtons} 
+          </Group>
+        </Grid.Col>
       </Grid>
     </Container>
   );

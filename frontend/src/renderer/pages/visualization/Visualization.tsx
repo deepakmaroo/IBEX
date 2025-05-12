@@ -7,7 +7,7 @@ import { VisualizationMetaData } from './VisualizationMetaData';
 export const Visualization = () => {
   const { active, configurations } = useIbexStore();
 
-  const HEIGHT = configurations.length > 0 ? '84vh' : '85vh';
+  const HEIGHT = '89vh';
 
   return (
     <Container fluid p={10}>
