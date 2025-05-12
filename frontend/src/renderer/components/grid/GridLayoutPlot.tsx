@@ -39,17 +39,31 @@ import { VerticalSlider } from '../verticalSlider';
 import { fetchFieldValue } from '../../utils';
 
 
-function updateUri(target: string, uri: string, value: number) {
-  const targetPath = target.replace(/^target\s*=\s*/, '').trim();
-  const targetMatch = targetPath.match(/([a-zA-Z0-9_]+)\[(\d+)\]$/);
-  if (!targetMatch) return uri;
+function getLastIndexedField(target: string): string | null {
+  const matches = [...target.matchAll(/([a-zA-Z0-9_]+)\[\d+\]/g)];
+  if (matches.length === 0) return null;
+  return matches[matches.length - 1][1]; // Le dernier nom capturé
+}
 
-  const [_, targetName, targetIndex] = targetMatch;
+type UriUpdated = {
+  target: string;
+  uri: string;
+};
+function updateUriAndTarget(
+  target: string,
+  uri: string,
+  fieldName: string, // ex: "ion" ou "profiles_1d"
+  value: number
+): UriUpdated {
+  const regex = new RegExp(`(${fieldName})\\[(\\d+)\\]`);
 
-  return uri.replace(
-    new RegExp(`${targetName}\\[${targetIndex}\\]`),
-    `${targetName}[${value}]`
-  );
+  const newTarget = target.replace(regex, `${fieldName}[${value}]`);
+  const newUri = uri.replace(regex, `${fieldName}[${value}]`);
+
+  return {
+    target: newTarget,
+    uri: newUri,
+  };
 }
 
 export const GridLayoutPlot = ({
@@ -136,7 +150,7 @@ export const GridLayoutPlot = ({
 
       const updatedDataPlot = active.dataPlot.map((item) =>
         item.i === id
-          ? { ...item, isEditing: !item.isEditing}
+          ? { ...item, isEditing: !item.isEditing }
           : { ...item, isEditing: false, static: false },
       );
 
@@ -167,17 +181,30 @@ export const GridLayoutPlot = ({
     [active],
   );
 
-  const handleUpdateSliderValue = async (coordinate: Coordinates, value: number, index: number) => {
-    const updatedCoordinatesValue = data.coordinates.map((item) => {
-      if (item.name === coordinate.name) {
-        return { ...item, value: value };
-      }
-      return item;
-    });
+  const handleUpdateSliderValue = async (
+    coordinate: Coordinates,
+    value: number,
+    index: number,
+  ) => {
 
-    console.log('target', coordinate.target);
-    const newURI = updateUri(coordinate.target, coordinate.nodeUri, index);
-    const responseYData = await fetchFieldValue(newURI);
+    const lastTargetLastName = getLastIndexedField(coordinate.target);
+    const newUri = updateUriAndTarget(coordinate.target, coordinate.nodeUri,lastTargetLastName, index).uri;
+
+    const updatedCoordinatesValue = data.coordinates.map((item) => {
+      const lastTargetLastName = getLastIndexedField(coordinate.target);
+
+      const updated = updateUriAndTarget(item.target, newUri,lastTargetLastName, index);
+    
+      return {
+        ...item,
+        nodeUri: newUri, // unifié pour toutes les coordonnées
+        target: updated.target, // met à jour seulement si l'item.target contient un indice
+        value: item.name === coordinate.name ? value : item.value,
+      };
+    });
+    const responseYData = await fetchFieldValue(newUri);
+
+    console.log('responseYData', responseYData);
 
     const updatedActive = {
       ...active,
@@ -188,7 +215,11 @@ export const GridLayoutPlot = ({
             coordinates: updatedCoordinatesValue,
             plot: item.plot.map((plotItem): DataPlotly => {
               if (plotItem.nodeUri === coordinate.nodeUri) {
-                return { ...plotItem, y: responseYData.value as number[] };
+                return {
+                  ...plotItem,
+                  y: responseYData.value as number[],
+                  nodeUri: newUri,
+                };
               }
               return plotItem;
             }),
@@ -197,13 +228,14 @@ export const GridLayoutPlot = ({
         return item;
       }),
     };
-    console.log('newURI', updateUri(coordinate.target, newURI, index));
+    console.log('newURI', newUri);
+    console.log('newActive', updatedActive);
     updatedConfiguration(updatedActive);
   };
 
-  useEffect(() => {
-    console.log('data', data);
-  }, [data]);
+  // useEffect(() => {
+  //   console.log('data', data);
+  // }, [data]);
 
   return (
     <Container fluid w={widthGrid} p={0}>

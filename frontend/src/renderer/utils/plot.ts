@@ -36,6 +36,10 @@ export const generateNewPlot = (
   };
 };
 
+export function normalizeIndices(uri: string): string {
+  return uri.replace(/\[\d+\]/g, '[:]');
+}
+
 export async function plotData(
   dataPlot: DataGridPlot,
   xData: number[],
@@ -63,6 +67,8 @@ export async function plotData(
     labelUri: labelUri,
     yaxis: y2Axis ? 'y2' : '',
   };
+
+  console.log('trace', trace);
 
   dataPlot = {
     ...dataPlot,
@@ -92,7 +98,6 @@ export const handleNewPlot = async (
 
 
   const defaultUri = nodes[0].uri.replace(/\[:\]/g, '[0]');
-  console.log('defaultUri', defaultUri);
 
   const response = await fetchDataPlot(defaultUri);
 
@@ -142,7 +147,7 @@ export const handleNewPlot = async (
     newPlot,
     xCoordinatesValue,
     response.data.value,
-    nodes[0].uri,
+    defaultUri,
     yAxis,
     response.data.ndim,
     response.data.path,
@@ -163,9 +168,10 @@ export const handleExistingPlot = async (
   const dataToPlot = nodes.filter(
     (node) =>
       !findDataPlot.plot.some(
-        (plot) => plot.nodeUri === node.uri && plot.labelUri === node.name,
+        (plot) => normalizeIndices(plot.nodeUri) === node.uri && plot.labelUri === node.name,
       ),
   );
+  console.log('dataToPlot', dataToPlot);
 
   if (dataToPlot.length === 0) {
     return updateExistingPlots(nodes, findDataPlot, updatedActive);
