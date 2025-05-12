@@ -14,6 +14,7 @@ import {
 } from '../types';
 import { ConfigCreateModal, ConfirmModal, Header } from '../components';
 import { plotNodeUriLoaded, updateCustomDataTree } from '../utils';
+import { VisualizationURIModal } from '../pages';
 
 export function MainLayout() {
   const {
@@ -33,6 +34,11 @@ export function MainLayout() {
   const [
     isConfigDeleteModalOpen,
     { open: openConfigDeleteModal, close: closeConfigDeleteModal },
+  ] = useDisclosure(false);
+
+  const [
+    isAddTreeModalOpen,
+    { open: openAddTreeModal, close: closeAddTreeModal },
   ] = useDisclosure(false);
 
   const handleAddConfiguration = (config: ConfigForm) => {
@@ -176,6 +182,7 @@ export function MainLayout() {
           handleSaveConfiguration={handleSaveConfiguration}
           handleLoadConfiguration={handleLoadConfiguration}
           handleSelectConfiguration={handleSelectConfiguration}
+          handleAddTree={openAddTreeModal}
         />
       </AppShell.Header>
       <AppShell.Main>
@@ -196,6 +203,11 @@ export function MainLayout() {
             Are you sure you want to delete the configuration?
           </Text>
         </ConfirmModal>
+
+        <VisualizationURIModal
+          opened={isAddTreeModalOpen}
+          close={closeAddTreeModal}
+        />
       </AppShell.Main>
     </AppShell>
   );
