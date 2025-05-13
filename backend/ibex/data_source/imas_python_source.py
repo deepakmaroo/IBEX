@@ -16,8 +16,6 @@ from imas.ids_path import IDSPath  # type: ignore
 
 from itertools import zip_longest  # type: ignore
 
-from itertools import zip_longest  # type: ignore
-
 from imas_core.exception import ImasCoreBackendException
 
 from ibex.data_source.data_source_interface import DataSourceInterface
