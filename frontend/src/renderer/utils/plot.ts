@@ -164,6 +164,9 @@ export const handleExistingPlot = async (
   findDataPlot: DataGridPlot,
   updatedActive: Configuration,
 ): Promise<Configuration> => {
+
+
+
   const dataToPlot = nodes.filter(
     (node) =>
       !findDataPlot.plot.some(
@@ -178,6 +181,16 @@ export const handleExistingPlot = async (
   }
 
   for (const node of dataToPlot) {
+    if (findDataPlot.coordinates && findDataPlot.coordinates.length > 0) {
+      updatedActive.checkedNodeURI = nodes.filter((n) => n !== node);
+      showNotification({
+        title: 'Plot',
+        message: 'Cannot add data to a plot with multiple coordinates',
+        color: 'yellow',
+      });
+      return updatedActive;
+    }
+    
     const response = await fetchDataPlot(node.uri);
     if (!response || response.data.ndim !== 1) {
       showNotification({
