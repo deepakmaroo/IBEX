@@ -18,13 +18,17 @@ export interface Axis {
   path?: string;
 }
 
-export interface Coordinates {
+export interface BaseCoordinates {
+  target: string;
+  nodeUri: string;
+  value: number;
+}
+
+export interface Coordinates extends BaseCoordinates {
   name: string;
   shape: number[];
   data: number[];
   value: number;
-  target: string;
-  nodeUri: string;
 }
 
 export interface BaseDataPlotly {
@@ -65,4 +69,5 @@ export interface DataGridPlot extends Layout, BaseDataGridPlot {
 
 export interface DataGridPlotToSave extends BaseDataGridPlot {
   plot: BaseDataPlotly[];
+  coordinates: BaseCoordinates[];
 }

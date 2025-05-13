@@ -3,10 +3,12 @@ import { Outlet } from 'react-router-dom';
 import { useIbexStore } from '../stores';
 import { useDisclosure } from '@mantine/hooks';
 import {
+  BaseCoordinates,
   BaseDataPlotly,
   ConfigForm,
   Configuration,
   ConfigurationToSave,
+  Coordinates,
   DataGridPlot,
   DataGridPlotToSave,
   DataPlotly,
@@ -59,6 +61,7 @@ export function MainLayout() {
   };
 
   const handleSaveConfiguration = async () => {
+    console.log('save configuration', active);
     const dataGridWithoutData: DataGridPlotToSave[] = active.dataPlot.map(
       (dataGrid: DataGridPlot) => ({
         title: dataGrid.title,
@@ -70,6 +73,13 @@ export function MainLayout() {
         y: dataGrid.y,
         w: dataGrid.w,
         h: dataGrid.h,
+        coordinates: dataGrid.coordinates.map(
+          (coord: Coordinates): BaseCoordinates => ({
+            target: coord.target,
+            nodeUri: coord.nodeUri,
+            value: coord.value,
+          }),
+        ),
         plot: dataGrid.plot.map((plot): BaseDataPlotly => {
           const suffix = plot.nodeUri.split('#')[1];
           const newNodeUri = `${plot.labelUri}#${suffix}`;
@@ -117,11 +127,19 @@ export function MainLayout() {
         await window.api.fs.readFile(path).then(async (data) => {
           const newIbexState: ConfigurationToSave = JSON.parse(data);
 
-          const newDataPlot: DataGridPlot[] = newIbexState.dataPlot.map(
+          const newListDataGridPlot: DataGridPlot[] = newIbexState.dataPlot.map(
             (data): DataGridPlot => ({
               ...data,
               isEditing: false,
               static: false,
+              coordinates: data.coordinates && data.coordinates.length > 0 ? data.coordinates.map((coord: BaseCoordinates):Coordinates => {
+                return {
+                  ...coord,
+                  name: '',
+                  shape: [],
+                  data: [],
+                };
+              }) : [],
               plot: data.plot.map((plot): DataPlotly => {
                 const matched = newIbexState.dataURI.find(
                   (uri: URIData) => plot.labelUri === uri.name,
@@ -148,7 +166,7 @@ export function MainLayout() {
             dataURI: newIbexState.dataURI,
             customDataTree: updateCustomDataTree([], newIbexState.dataURI),
             checkedNodeURI: [],
-            dataPlot: await plotNodeUriLoaded(newDataPlot),
+            dataPlot: await plotNodeUriLoaded(newListDataGridPlot),
             saved: true,
             path: path,
           };

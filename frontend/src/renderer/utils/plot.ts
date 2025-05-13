@@ -95,8 +95,6 @@ export const handleNewPlot = async (
   nodes: URITreeNodeData[],
   updatedActive: Configuration,
 ): Promise<Configuration> => {
-
-
   const defaultUri = nodes[0].uri.replace(/\[:\]/g, '[0]');
 
   const response = await fetchDataPlot(defaultUri);
@@ -114,15 +112,17 @@ export const handleNewPlot = async (
   }
 
   //Get coordinates data for slider - all coordinates except the first one, is considered as x coordinates
-  const xCoordinatesData: Coordinates[] = response.data.coordinates.slice(1).map((coordinate: PlotCoordinatesResponse) => ({
-    name: coordinate.name,
-    shape: coordinate.shape,
-    data: isMatrix(coordinate.value) ? coordinate.value[0] : coordinate.value,
-    value: 0,
-    target: coordinate.target,
-    nodeUri: defaultUri,
-  }));
-    
+  const xCoordinatesData: Coordinates[] = response.data.coordinates
+    .slice(1)
+    .map((coordinate: PlotCoordinatesResponse) => ({
+      name: coordinate.name,
+      shape: coordinate.shape,
+      data: isMatrix(coordinate.value) ? coordinate.value[0] : coordinate.value,
+      value: 0,
+      target: coordinate.target,
+      nodeUri: defaultUri,
+    }));
+
   const xAxis: Axis = {
     name: response.data.coordinates[0].name,
     unit: response.data.coordinates[0].unit,
@@ -141,7 +141,9 @@ export const handleNewPlot = async (
     yAxis,
   );
 
-  const xCoordinatesValue  = isMatrix(response.data.coordinates[0].value) ? response.data.coordinates[0].value[0] : response.data.coordinates[0].value;
+  const xCoordinatesValue = isMatrix(response.data.coordinates[0].value)
+    ? response.data.coordinates[0].value[0]
+    : response.data.coordinates[0].value;
 
   const updatedPlot = await plotData(
     newPlot,
@@ -168,10 +170,11 @@ export const handleExistingPlot = async (
   const dataToPlot = nodes.filter(
     (node) =>
       !findDataPlot.plot.some(
-        (plot) => normalizeIndices(plot.nodeUri) === node.uri && plot.labelUri === node.name,
+        (plot) =>
+          normalizeIndices(plot.nodeUri) === node.uri &&
+          plot.labelUri === node.name,
       ),
   );
-  console.log('dataToPlot', dataToPlot);
 
   if (dataToPlot.length === 0) {
     return updateExistingPlots(nodes, findDataPlot, updatedActive);
@@ -323,6 +326,47 @@ export async function plotNodeUriLoaded(
                 unit: response.data.unit,
               };
 
+              if (dataGrid.coordinates.length > 0) {
+                for (const responseCoordinates of response.data.coordinates.slice(
+                  1,
+                )) {
+                  dataGrid.coordinates = dataGrid.coordinates.map((coord) => {
+                    if (
+                      coord.nodeUri === plot.nodeUri &&
+                      coord.target === responseCoordinates.target
+                    ) {
+                      return {
+                        ...coord,
+                        name: responseCoordinates.name,
+                        shape: responseCoordinates.shape,
+                        data: isMatrix(responseCoordinates.value)
+                          ? responseCoordinates.value[0]
+                          : responseCoordinates.value,
+                        target: responseCoordinates.target,
+                      };
+                    }
+
+                    return coord;
+                  });
+                }
+              } else {
+                for (const responseCoordinates of response.data.coordinates.slice(
+                  1,
+                )) {
+                  //Create new coordinates if coordinates do not exist in this configuration saved
+                  dataGrid.coordinates.push({
+                    name: responseCoordinates.name,
+                    shape: responseCoordinates.shape,
+                    data: isMatrix(responseCoordinates.value)
+                      ? responseCoordinates.value[0]
+                      : responseCoordinates.value,
+                    target: responseCoordinates.target,
+                    nodeUri: plot.nodeUri,
+                    value: 0,
+                  });
+                }
+              }
+
               return {
                 ...plot,
                 name: `${response.data.name}(${response.data.unit})_${plot.labelUri}`,
@@ -331,7 +375,9 @@ export async function plotNodeUriLoaded(
                 dimensions: response.data.ndim,
                 path: response.data.path,
                 shape: [],
-                x: response.data.coordinates?.[0]?.value?.map(String) ?? [],
+                x: isMatrix(response.data.coordinates[0].value)
+                  ? (response.data.coordinates[0].value[0].map(String) ?? [])
+                  : (response.data.coordinates[0].value.map(String) ?? []),
                 y: response.data.value ?? [],
               };
             } catch (error) {
@@ -342,10 +388,13 @@ export async function plotNodeUriLoaded(
           }),
         );
 
-        return {
+        const dataGridUpdated = {
           ...dataGrid,
           plot: updatedPlot,
         };
+
+        console.log('dataGridUpdated', dataGridUpdated);
+        return dataGridUpdated;
       }),
     );
 
@@ -366,6 +415,6 @@ export async function plotNodeUriLoaded(
       color: 'red',
     });
 
-    return [];
+    return dataGridPlot;
   }
 }
