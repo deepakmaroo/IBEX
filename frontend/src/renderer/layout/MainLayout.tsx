@@ -61,7 +61,6 @@ export function MainLayout() {
   };
 
   const handleSaveConfiguration = async () => {
-    console.log('save configuration', active);
     const dataGridWithoutData: DataGridPlotToSave[] = active.dataPlot.map(
       (dataGrid: DataGridPlot) => ({
         title: dataGrid.title,
@@ -74,11 +73,19 @@ export function MainLayout() {
         w: dataGrid.w,
         h: dataGrid.h,
         coordinates: dataGrid.coordinates.map(
-          (coord: Coordinates): BaseCoordinates => ({
-            target: coord.target,
-            nodeUri: coord.nodeUri,
-            value: coord.value,
-          }),
+          (coord: Coordinates): BaseCoordinates => {
+            const findUri = active.dataURI.find((uri: URIData) =>
+              coord.nodeUri.includes(uri.uri),
+            );
+
+            const suffix = coord.nodeUri.split('#')[1];
+            const newNodeUri = `${findUri?.name}#${suffix}`;
+            return {
+              target: coord.target,
+              nodeUri: newNodeUri,
+              value: coord.value,
+            };
+          },
         ),
         plot: dataGrid.plot.map((plot): BaseDataPlotly => {
           const suffix = plot.nodeUri.split('#')[1];
@@ -132,14 +139,32 @@ export function MainLayout() {
               ...data,
               isEditing: false,
               static: false,
-              coordinates: data.coordinates && data.coordinates.length > 0 ? data.coordinates.map((coord: BaseCoordinates):Coordinates => {
-                return {
-                  ...coord,
-                  name: '',
-                  shape: [],
-                  data: [],
-                };
-              }) : [],
+              coordinates:
+                data.coordinates && data.coordinates.length > 0
+                  ? data.coordinates.map(
+                      (coord: BaseCoordinates): Coordinates => {
+
+                        const prefix = coord.nodeUri.split('#')[0];
+
+                        const matched = newIbexState.dataURI.find(
+                          (uri: URIData) => uri.name === prefix,
+                        );
+
+                        let fullNodeUri = coord.nodeUri;
+                        if (matched){
+                          const suffix = coord.nodeUri.split('#')[1];
+                          fullNodeUri = `${matched.uri}${suffix}`;
+                        }
+                        return {
+                          ...coord,
+                          nodeUri: fullNodeUri,
+                          name: '',
+                          shape: [],
+                          data: [],
+                        };
+                      },
+                    )
+                  : [],
               plot: data.plot.map((plot): DataPlotly => {
                 const matched = newIbexState.dataURI.find(
                   (uri: URIData) => plot.labelUri === uri.name,

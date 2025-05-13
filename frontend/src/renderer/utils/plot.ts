@@ -11,6 +11,7 @@ import {
 import { fetchDataPlot } from './fetchData';
 import { generateUuid } from './uuid';
 import { isMatrix } from './matrix';
+import { data } from 'react-router-dom';
 
 export const generateNewPlot = (
   title: string,
@@ -68,8 +69,6 @@ export async function plotData(
     yaxis: y2Axis ? 'y2' : '',
   };
 
-  console.log('trace', trace);
-
   dataPlot = {
     ...dataPlot,
     title:
@@ -98,8 +97,6 @@ export const handleNewPlot = async (
   const defaultUri = nodes[0].uri.replace(/\[:\]/g, '[0]');
 
   const response = await fetchDataPlot(defaultUri);
-
-  console.log('response', response);
 
   if (!response || response.data.ndim !== 1) {
     showNotification({
@@ -330,22 +327,27 @@ export async function plotNodeUriLoaded(
                 for (const responseCoordinates of response.data.coordinates.slice(
                   1,
                 )) {
-                  dataGrid.coordinates = dataGrid.coordinates.map((coord) => {
-                    if (
-                      coord.nodeUri === plot.nodeUri &&
-                      coord.target === responseCoordinates.target
-                    ) {
-                      return {
-                        ...coord,
-                        name: responseCoordinates.name,
-                        shape: responseCoordinates.shape,
-                        data: isMatrix(responseCoordinates.value)
-                          ? responseCoordinates.value[0]
-                          : responseCoordinates.value,
-                        target: responseCoordinates.target,
-                      };
-                    }
+                  const findCoordinates = dataGrid.coordinates.find((coord) => {
+                    console.log(
+                      'target diff',
+                      coord.target,
+                      responseCoordinates.target,
+                    );
+                    return coord.target == responseCoordinates.target;
+                  });
 
+                  if (findCoordinates) {
+                    (findCoordinates.data = isMatrix(responseCoordinates.value)
+                      ? responseCoordinates.value[0]
+                      : responseCoordinates.value),
+                      (findCoordinates.name = responseCoordinates.name);
+                    findCoordinates.shape = responseCoordinates.shape;
+                  }
+
+                  dataGrid.coordinates = dataGrid.coordinates.map((coord) => {
+                    if (coord.target === findCoordinates.target) {
+                      return findCoordinates;
+                    }
                     return coord;
                   });
                 }
@@ -393,7 +395,6 @@ export async function plotNodeUriLoaded(
           plot: updatedPlot,
         };
 
-        console.log('dataGridUpdated', dataGridUpdated);
         return dataGridUpdated;
       }),
     );
