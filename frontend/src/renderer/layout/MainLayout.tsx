@@ -153,7 +153,7 @@ export function MainLayout() {
                         let fullNodeUri = coord.nodeUri;
                         if (matched){
                           const suffix = coord.nodeUri.split('#')[1];
-                          fullNodeUri = `${matched.uri}${suffix}`;
+                          fullNodeUri = `${matched.uri}#${suffix}`;
                         }
                         return {
                           ...coord,
