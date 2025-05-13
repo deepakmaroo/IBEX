@@ -59,13 +59,13 @@ In such cases, it's recommended to use Python's `requests` package to test the A
 Backend requirements
 ---------------------------
 
-The IBEX backend requires the IMASPy and IDStools packages to be installed.
+The IBEX backend requires the IMAS-Python and IDStools packages to be installed.
 
 On the SDCC machine, these packages are available through environment modules and can be easily loaded using the following command:
 
 .. code-block:: bash
 
-    module load IMASPy IDStools
+    module load IMAS-Python IDStools
 
 For local development, these packages must be installed manually by the developer.
 

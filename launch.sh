@@ -6,7 +6,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 echo "1. Loading required modules..."
-module load IMASPy IDStools nodejs
+module load IDStools IMAS-Python nodejs
 
 echo "2. Setting up Python virtual environment..."
 cd "$SCRIPT_DIR"

@@ -43,7 +43,7 @@ dynamic = ["version"]
 dependencies = [
     "fastapi[standard]",
     "packaging",
-    "imaspy",
+    "imas-python",
     "idstools",
 ]
 

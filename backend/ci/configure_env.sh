@@ -7,7 +7,7 @@ source /etc/profile.d/modules.sh
 module purge
 
 # Set up environment
-module load IMASPy/1.1.1-foss-2023b IDStools/2.1.0-intel-2023b
+module load IDStools/2.1.0-intel-2023b IMAS-Python/2.0.0-intel-2023b
 
 # Debuggging:
 echo "Done loading modules"

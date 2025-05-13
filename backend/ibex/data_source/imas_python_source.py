@@ -2,17 +2,17 @@
 
 from typing import Optional, Sequence, List
 
-import imaspy  # type: ignore
+import imas  # type: ignore
 import numpy as np  # type: ignore
 import re  # type: ignore
 from idstools.database import DBMaster  # type: ignore
-from imaspy.ids_metadata import IDSMetadata  # type: ignore
-from imaspy.ids_primitive import IDSNumericArray  # type: ignore
-from imaspy.ids_struct_array import IDSStructArray  # type: ignore
-from imaspy.ids_structure import IDSStructure  # type: ignore
-from imaspy.ids_data_type import IDSDataType  # type: ignore
-from imaspy.ids_base import IDSBase  # type: ignore
-from imaspy.ids_path import IDSPath  # type: ignore
+from imas.ids_metadata import IDSMetadata  # type: ignore
+from imas.ids_primitive import IDSNumericArray  # type: ignore
+from imas.ids_struct_array import IDSStructArray  # type: ignore
+from imas.ids_structure import IDSStructure  # type: ignore
+from imas.ids_data_type import IDSDataType  # type: ignore
+from imas.ids_base import IDSBase  # type: ignore
+from imas.ids_path import IDSPath  # type: ignore
 
 from imas_core.exception import ImasCoreBackendException
 
@@ -26,7 +26,7 @@ from ibex.data_source.exception import (
 )
 
 
-class IMASPySource(DataSourceInterface):
+class IMASPythonSource(DataSourceInterface):
     """
     Default data source for IBEX
     """
@@ -37,7 +37,7 @@ class IMASPySource(DataSourceInterface):
         """
         ...
 
-    def _open_entry(self, uri: str) -> imaspy.DBEntry:
+    def _open_entry(self, uri: str) -> imas.DBEntry:
         """
         Opens DBEntry with mode "r". Handles possible exceptions.
 
@@ -45,7 +45,7 @@ class IMASPySource(DataSourceInterface):
         :return: DBEntry object
         """
         try:
-            return imaspy.DBEntry(uri, mode="r")
+            return imas.DBEntry(uri, mode="r")
         except ImasCoreBackendException as e:
             raise EntryNotFoundException(e) from None
 
@@ -62,7 +62,7 @@ class IMASPySource(DataSourceInterface):
         try:
             ids_root = entry.get(ids, lazy=True, autoconvert=False, occurrence=occurrence)
             return ids_root
-        except imaspy.exception.IDSNameError as e:
+        except imas.exception.IDSNameError as e:
             raise IdsNotFoundException(e) from None
 
     def data_entry_exists(self, uri: str) -> bool:
@@ -107,9 +107,9 @@ class IMASPySource(DataSourceInterface):
 
     def _jsonify_metadata(self, metadata: IDSMetadata, recursive: bool = False, show_error_bars: bool = False) -> dict:
         """
-        Converts imaspy.ids_metadata.IDSMetadata into dictionary
+        Converts imas.ids_metadata.IDSMetadata into dictionary
 
-        :param metadata: imaspy.ids_metadata.IDSMetadata - metadata to be converted
+        :param metadata: imas.ids_metadata.IDSMetadata - metadata to be converted
         :param recursive: if it should append recursively metadata of children, children of children and so on...
         :param show_error_bars: whether error bar nodes should be returned, or not
         :return: metadata turned into dictionary with keys: `name`:str, `type`:str, `ndim`:str, `shape`:str, `children`:list[dict]
@@ -357,7 +357,7 @@ class IMASPySource(DataSourceInterface):
 
         return {"value": data_to_be_returned}
 
-    def _add_index_to_aos_in_path(self, ids_metadata: imaspy.ids_base.IDSBase, path_str: str):
+    def _add_index_to_aos_in_path(self, ids_metadata: imas.ids_base.IDSBase, path_str: str):
         """
         Helper function to add `[:]` to AoSs in path:
         eg: source/profiles_1d/time -> source[:]/profiles_1d[:]/time (core_sources)
@@ -397,14 +397,14 @@ class IMASPySource(DataSourceInterface):
         for ids in ids_list:
             try:
                 ids_obj = entry.get(ids, occurrence=0, autoconvert=False, lazy=True)
-                paths = [node for node in imaspy.util.find_paths(ids_obj, searched_node)]
+                paths = [node for node in imas.util.find_paths(ids_obj, searched_node)]
                 for path in paths:
                     if not show_error_bars and any(
                         error_node in path for error_node in ["_error_upper", "_error_lower", "_error_index"]
                     ):
                         continue
                     found_paths.append(f"#{ids}/{self._add_index_to_aos_in_path(ids_obj.metadata, path)}")
-            except imaspy.exception.DataEntryException:
+            except imas.exception.DataEntryException:
                 continue
 
         return {"paths": found_paths}
@@ -505,7 +505,7 @@ class IMASPySource(DataSourceInterface):
 
     def _serialize_data(self, data):
         """
-        Converts data IDS data into serializable values e.g. imaspy.int64 -> int
+        Converts data IDS data into serializable values e.g. imas.int64 -> int
 
         :param data:
         :return: Serializable data value
