@@ -38,7 +38,6 @@ import { useIbexStore } from '../../stores';
 import { VerticalSlider } from '../verticalSlider';
 import { fetchFieldValue } from '../../utils';
 
-
 function getLastIndexedField(target: string): string | null {
   const matches = [...target.matchAll(/([a-zA-Z0-9_]+)\[\d+\]/g)];
   if (matches.length === 0) return null;
@@ -53,7 +52,7 @@ function updateUriAndTarget(
   target: string,
   uri: string,
   fieldName: string, // ex: "ion" ou "profiles_1d"
-  value: number
+  value: number,
 ): UriUpdated {
   const regex = new RegExp(`(${fieldName})\\[(\\d+)\\]`);
 
@@ -186,15 +185,24 @@ export const GridLayoutPlot = ({
     value: number,
     index: number,
   ) => {
-
     const lastTargetLastName = getLastIndexedField(coordinate.target);
-    const newUri = updateUriAndTarget(coordinate.target, coordinate.nodeUri,lastTargetLastName, index).uri;
+    const newUri = updateUriAndTarget(
+      coordinate.target,
+      coordinate.nodeUri,
+      lastTargetLastName,
+      index,
+    ).uri;
 
     const updatedCoordinatesValue = data.coordinates.map((item) => {
       const lastTargetLastName = getLastIndexedField(coordinate.target);
 
-      const updated = updateUriAndTarget(item.target, newUri,lastTargetLastName, index);
-    
+      const updated = updateUriAndTarget(
+        item.target,
+        newUri,
+        lastTargetLastName,
+        index,
+      );
+
       return {
         ...item,
         nodeUri: newUri, // unifié pour toutes les coordonnées
@@ -247,25 +255,27 @@ export const GridLayoutPlot = ({
           },
         }}
       >
-        <Grid.Col span={2} ref={gridSliderRef}>
-          <Group justify="space-between" gap="xs">
-            {data.coordinates.map((item, index) => (
-              <VerticalSlider
-                key={index}
-                name={item.name}
-                value={item.value}
-                data={item.data}
-                getValue={(value, index) => {
-                  handleUpdateSliderValue(item, value, index);
-                }}
-                height={heightGrid - 80}
-                disabled={!data.isEditing || !data.static}
-              />
-            ))}
-          </Group>
-        </Grid.Col>
+        {data.coordinates.length > 0 && (
+          <Grid.Col span={2} ref={gridSliderRef}>
+            <Group justify="space-between" gap="xs">
+              {data.coordinates.map((item, index) => (
+                <VerticalSlider
+                  key={index}
+                  name={item.name}
+                  value={item.value}
+                  data={item.data}
+                  getValue={(value, index) => {
+                    handleUpdateSliderValue(item, value, index);
+                  }}
+                  height={heightGrid - 80}
+                  disabled={!data.isEditing || !data.static}
+                />
+              ))}
+            </Group>
+          </Grid.Col>
+        )}
         <Grid.Col
-          span={10}
+          span={data.coordinates.length > 0 ? 10 : 12}
           pos="relative"
           w="100%"
           h="100%"
@@ -379,7 +389,11 @@ export const GridLayoutPlot = ({
 
           <SimplePlotly
             data={data.plot}
-            width={widthGrid - widthSlider - widthSlider / 2}
+            width={
+              data.coordinates.length > 0
+                ? widthGrid - widthSlider - widthSlider / 2
+                : widthGrid - 40
+            }
             height={heightGrid}
             isStatic={data.static}
             title={data.title}
