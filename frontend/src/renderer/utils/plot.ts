@@ -10,8 +10,6 @@ import {
 } from '../types';
 import { fetchDataPlot } from './fetchData';
 import { generateUuid } from './uuid';
-import { isMatrix } from './matrix';
-import { data } from 'react-router-dom';
 
 export const generateNewPlot = (
   title: string,
@@ -114,7 +112,7 @@ export const handleNewPlot = async (
     .map((coordinate: PlotCoordinatesResponse) => ({
       name: coordinate.name,
       shape: coordinate.shape,
-      data: isMatrix(coordinate.value) ? coordinate.value[0] : coordinate.value,
+      data: coordinate.value as number[],
       value: 0,
       target: coordinate.target,
       nodeUri: defaultUri,
@@ -138,9 +136,7 @@ export const handleNewPlot = async (
     yAxis,
   );
 
-  const xCoordinatesValue = isMatrix(response.data.coordinates[0].value)
-    ? response.data.coordinates[0].value[0]
-    : response.data.coordinates[0].value;
+  const xCoordinatesValue = response.data.coordinates[0].value as number[];
 
   const updatedPlot = await plotData(
     newPlot,
@@ -350,9 +346,7 @@ export async function plotNodeUriLoaded(
                   });
 
                   if (findCoordinates) {
-                    (findCoordinates.data = isMatrix(responseCoordinates.value)
-                      ? responseCoordinates.value[0]
-                      : responseCoordinates.value),
+                    (findCoordinates.data = responseCoordinates.value as number[]),
                       (findCoordinates.name = responseCoordinates.name);
                     findCoordinates.shape = responseCoordinates.shape;
                   }
@@ -372,9 +366,7 @@ export async function plotNodeUriLoaded(
                   dataGrid.coordinates.push({
                     name: responseCoordinates.name,
                     shape: responseCoordinates.shape,
-                    data: isMatrix(responseCoordinates.value)
-                      ? responseCoordinates.value[0]
-                      : responseCoordinates.value,
+                    data:responseCoordinates.value as number[],
                     target: responseCoordinates.target,
                     nodeUri: plot.nodeUri,
                     value: 0,
@@ -390,9 +382,7 @@ export async function plotNodeUriLoaded(
                 dimensions: response.data.ndim,
                 path: response.data.path,
                 shape: [],
-                x: isMatrix(response.data.coordinates[0].value)
-                  ? (response.data.coordinates[0].value[0].map(String) ?? [])
-                  : (response.data.coordinates[0].value.map(String) ?? []),
+                x: response.data.coordinates[0].value.map(String) ?? [],
                 y: response.data.value ?? [],
               };
             } catch (error) {
