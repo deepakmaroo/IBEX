@@ -14,13 +14,16 @@ import {
 } from '../../types';
 import {
   ActionIcon,
+  Avatar,
   Container,
   Fieldset,
+  Group,
   Loader,
   Switch,
   TextInput,
+  Transition,
 } from '@mantine/core';
-import { IconSearch } from '@tabler/icons-react';
+import { IconChevronRight, IconSearch } from '@tabler/icons-react';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
 import {
@@ -34,13 +37,15 @@ import {
 
 interface VisualizationTreeProps {
   height: string;
+  extended?: boolean;
+  handleExtended?: () => void;
 }
 
 interface FormSearchNode {
   node: string;
 }
 
-export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
+export const VisualizationTree = ({ height, extended, handleExtended }: VisualizationTreeProps) => {
   const { active, updatedConfiguration } = useIbexStore();
 
   const [uriSelected, setUriSelected] = useState<URIData | null>();
@@ -49,9 +54,9 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
   const [searchNodeIsLoading, setSearchNodeIsLoading] =
     useState<boolean>(false);
 
-    // useEffect(() => {
-    //   console.log('active', active);
-    // }, [active]);
+  useEffect(() => {
+    console.log('refresh all');
+  }, []);
 
   const formSearchNode = useForm<FormSearchNode>({
     initialValues: {
@@ -108,8 +113,6 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
         const fetchChildrenNodeInfos = async (
           nodeInfoschildren: NodeInfoChildrenResponse[],
         ): Promise<CustomTreeNodeData[]> => {
-  
-
           if (nodeInfoschildren.length === 0) return;
 
           const newChildren: CustomTreeNodeData[] = nodeInfoschildren.map(
@@ -127,7 +130,6 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
                 type: child.type,
                 children: [],
                 uriLabel: uriSelected.name,
-        
               };
             },
           );
@@ -165,7 +167,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
                   /**
                    * Replace [:] and remove the last /
                    */
-                  targetUri =  targetUri.replace(/\[:\]/, '').slice(0, -1);
+                  targetUri = targetUri.replace(/\[:\]/, '').slice(0, -1);
 
                   const nodeInfos: NodeInfoResponse = await fetchNodeInfos(
                     targetUri,
@@ -173,7 +175,8 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
                   );
                   const nodeInfoschildren = nodeInfos.children || [];
 
-                  const newChildren = await fetchChildrenNodeInfos(nodeInfoschildren);
+                  const newChildren =
+                    await fetchChildrenNodeInfos(nodeInfoschildren);
 
                   return {
                     ...node,
@@ -327,6 +330,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
    */
   const handleAccordionChange = useCallback(
     (value: string) => {
+      console.log('func accordion value', value);
       if (value) {
         const selectedURIData = active.dataURI.find(
           (item) => item.uri === value,
@@ -335,6 +339,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
           setUriSelected(selectedURIData);
           fetchIDSData(selectedURIData);
         }
+        console.log('func uri selected', selectedURIData);
       }
     },
     [active],
@@ -392,7 +397,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
         });
       }
     },
-    [active, formSearchNode.values.node, uriSelected],
+    [active, formSearchNode.values.node],
   );
 
   /**
@@ -438,65 +443,116 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
     [active],
   );
 
+  useEffect(() => {
+    console.log('uriSelected', uriSelected);
+  }, [uriSelected]);
+
   return (
     <Container fluid p={0}>
-      <Container fluid pt={1}>
-        <Fieldset
-          variant="unstyled"
-          disabled={active.customDataTree.length === 0}
+      <Group justify="end" mr="sm">
+        <ActionIcon
+          variant="filled"
+          aria-label="Settings"
+          onClick={handleExtended}
+          style={{
+            rotate: extended ? '180deg' : '0deg',
+            transition: 'transform 0.3s ease',
+          }}
         >
-          <form
-            onSubmit={formSearchNode.onSubmit(() => {
-              handleSearchNode(showErrorBars);
-            })}
-          >
-            <TextInput
-              mt="sm"
-              label="Search node"
-              placeholder="Enter node name"
-              {...formSearchNode.getInputProps('node')}
-              rightSection={
-                searchNodeIsLoading ? (
-                  <Loader size="xs" />
-                ) : (
-                  <ActionIcon
-                    variant="filled"
-                    aria-label="Search node"
-                    component="button"
-                    type="submit"
-                  >
-                    <IconSearch
-                      style={{ width: '70%', height: '70%' }}
-                      stroke={1.5}
-                    />
-                  </ActionIcon>
-                )
-              }
-              disabled={searchNodeIsLoading}
-            />
-          </form>
-          <Switch
-            my="sm"
-            label="See errors"
-            labelPosition="left"
-            checked={showErrorBars}
-            onChange={() => handleSeeErrorBars(!showErrorBars)}
-            styles={{
-              labelWrapper: {
-                width: '100%',
-              },
-            }}
+          <IconChevronRight
+            style={{ width: '70%', height: '70%' }}
+            stroke={1.5}
           />
-        </Fieldset>
-      </Container>
-      <TreeLibrariesAccordion
-        customDataTree={active.customDataTree}
-        height={`calc(${height} - 113px)`}
-        checkedNodes={active.checkedNodeURI || []}
-        handleAccordionChange={handleAccordionChange}
-        handleSelectChildren={handleSelectChildren}
-        getNodesChecked={getNodesChecked}
-      />
+        </ActionIcon>
+      </Group>
+
+      <Transition
+        mounted={extended}
+        transition="scale-x"
+        duration={300}
+        timingFunction="ease"
+      >
+        {(styles) => (
+          <div style={styles}>
+            <Container fluid p={0}>
+              <Container fluid pt={1}>
+                <Fieldset
+                  variant="unstyled"
+                  disabled={active.customDataTree.length === 0}
+                >
+                  <form
+                    onSubmit={formSearchNode.onSubmit(() => {
+                      handleSearchNode(showErrorBars);
+                    })}
+                  >
+                    <TextInput
+                      label="Search node"
+                      placeholder="Enter node name"
+                      {...formSearchNode.getInputProps('node')}
+                      rightSection={
+                        searchNodeIsLoading ? (
+                          <Loader size="xs" />
+                        ) : (
+                          <ActionIcon
+                            variant="filled"
+                            aria-label="Search node"
+                            component="button"
+                            type="submit"
+                          >
+                            <IconSearch
+                              style={{ width: '70%', height: '70%' }}
+                              stroke={1.5}
+                            />
+                          </ActionIcon>
+                        )
+                      }
+                      disabled={searchNodeIsLoading}
+                    />
+                  </form>
+                  <Switch
+                    my="sm"
+                    label="See errors"
+                    labelPosition="left"
+                    checked={showErrorBars}
+                    onChange={() => handleSeeErrorBars(!showErrorBars)}
+                    styles={{
+                      labelWrapper: {
+                        width: '100%',
+                      },
+                    }}
+                  />
+                </Fieldset>
+              </Container>
+              <TreeLibrariesAccordion
+                defaultValue={uriSelected?.uri}
+                customDataTree={active.customDataTree}
+                height={`calc(${height} - 113px)`}
+                checkedNodes={active.checkedNodeURI || []}
+                handleAccordionChange={handleAccordionChange}
+                handleSelectChildren={handleSelectChildren}
+                getNodesChecked={getNodesChecked}
+              />
+            </Container>
+          </div>
+        )}
+      </Transition>
+
+      {!extended && (
+        <Group justify="center" mt="sm">
+        {active?.customDataTree.map((item) => {
+          return (
+            <Avatar
+              color={item.uriColor}
+              radius="xl"
+              onClick={() => {handleExtended(), handleAccordionChange(item.uri); }}
+            >
+              {item.name.charAt(0).toUpperCase()}
+              {item.name.charAt(item.name.length - 1).toUpperCase()}
+            </Avatar>
+          );
+        })}
+      </Group>
+      )}
     </Container>
   );
 };
