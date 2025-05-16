@@ -9,31 +9,7 @@ import {
   URITreeNodeData,
 } from '../types';
 import { fetchDataPlot } from './fetchData';
-import { generateUuid } from './uuid';
-
-export const generateNewPlot = (
-  title: string,
-  xCoordinates: Coordinates[],
-  xAxis: Axis,
-  yAxis: Axis,
-  y2Axis?: Axis,
-): DataGridPlot => {
-  return {
-    title: title,
-    i: generateUuid(),
-    static: true,
-    plot: [],
-    xAxis: xAxis,
-    yAxis: yAxis,
-    y2Axis: y2Axis,
-    isEditing: true,
-    coordinates: xCoordinates,
-    x: 0,
-    y: 0,
-    w: 6,
-    h: 12,
-  };
-};
+import { generateNewGrid } from './grid';
 
 export function normalizeIndices(uri: string): string {
   return uri.replace(/\[\d+\]/g, '[:]');
@@ -129,11 +105,13 @@ export const handleNewPlot = async (
     unit: response.data.unit,
   };
 
-  const newPlot = generateNewPlot(
+  const newPlot = generateNewGrid(
     `${response.data.name}(${response.data.unit})`,
     xCoordinatesData,
     xAxis,
     yAxis,
+    updatedActive.dataPlot
+    
   );
 
   const xCoordinatesValue = response.data.coordinates[0].value as number[];
