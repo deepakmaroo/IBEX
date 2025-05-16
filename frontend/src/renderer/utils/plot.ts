@@ -337,11 +337,6 @@ export async function plotNodeUriLoaded(
                   1,
                 )) {
                   const findCoordinates = dataGrid.coordinates.find((coord) => {
-                    console.log(
-                      'target diff',
-                      coord.target,
-                      responseCoordinates.target,
-                    );
                     return coord.target == responseCoordinates.target;
                   });
 

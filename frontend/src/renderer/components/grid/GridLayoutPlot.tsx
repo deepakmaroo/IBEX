@@ -212,8 +212,6 @@ export const GridLayoutPlot = ({
     });
     const responseYData = await fetchFieldValue(newUri);
 
-    console.log('responseYData', responseYData);
-
     const updatedActive = {
       ...active,
       dataPlot: active.dataPlot.map((item) => {
@@ -236,14 +234,8 @@ export const GridLayoutPlot = ({
         return item;
       }),
     };
-    console.log('newURI', newUri);
-    console.log('newActive', updatedActive);
     updatedConfiguration(updatedActive);
   };
-
-  // useEffect(() => {
-  //   console.log('data', data);
-  // }, [data]);
 
   return (
     <Container fluid w={widthGrid} p={0}>

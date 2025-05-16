@@ -164,7 +164,6 @@ function NodeIcon({
             name: uriLabel,
             uri: node.value,
           };
-          console.log('newCheckedNode', newCheckedNode);
           checkedNodes.push(newCheckedNode);
         }
         setChecked(!checked);

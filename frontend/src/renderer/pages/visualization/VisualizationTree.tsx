@@ -45,7 +45,11 @@ interface FormSearchNode {
   node: string;
 }
 
-export const VisualizationTree = ({ height, extended, handleExtended }: VisualizationTreeProps) => {
+export const VisualizationTree = ({
+  height,
+  extended,
+  handleExtended,
+}: VisualizationTreeProps) => {
   const { active, updatedConfiguration } = useIbexStore();
 
   const [uriSelected, setUriSelected] = useState<URIData | null>();
@@ -53,10 +57,6 @@ export const VisualizationTree = ({ height, extended, handleExtended }: Visualiz
   const [nodeSelected, setNodeSelected] = useState<string | null>();
   const [searchNodeIsLoading, setSearchNodeIsLoading] =
     useState<boolean>(false);
-
-  useEffect(() => {
-    console.log('refresh all');
-  }, []);
 
   const formSearchNode = useForm<FormSearchNode>({
     initialValues: {
@@ -330,7 +330,6 @@ export const VisualizationTree = ({ height, extended, handleExtended }: Visualiz
    */
   const handleAccordionChange = useCallback(
     (value: string) => {
-      console.log('func accordion value', value);
       if (value) {
         const selectedURIData = active.dataURI.find(
           (item) => item.uri === value,
@@ -339,7 +338,6 @@ export const VisualizationTree = ({ height, extended, handleExtended }: Visualiz
           setUriSelected(selectedURIData);
           fetchIDSData(selectedURIData);
         }
-        console.log('func uri selected', selectedURIData);
       }
     },
     [active],
@@ -443,10 +441,6 @@ export const VisualizationTree = ({ height, extended, handleExtended }: Visualiz
     [active],
   );
 
-  useEffect(() => {
-    console.log('uriSelected', uriSelected);
-  }, [uriSelected]);
-
   return (
     <Container fluid p={0}>
       <Group justify="end" mr="sm">
@@ -539,19 +533,22 @@ export const VisualizationTree = ({ height, extended, handleExtended }: Visualiz
 
       {!extended && (
         <Group justify="center" mt="sm">
-        {active?.customDataTree.map((item) => {
-          return (
-            <Avatar
-              color={item.uriColor}
-              radius="xl"
-              onClick={() => {handleExtended(), handleAccordionChange(item.uri); }}
-            >
-              {item.name.charAt(0).toUpperCase()}
-              {item.name.charAt(item.name.length - 1).toUpperCase()}
-            </Avatar>
-          );
-        })}
-      </Group>
+          {active?.customDataTree.map((item, index) => {
+            return (
+              <Avatar
+                key={`avatar-${index}-${item.uri}`}
+                color={item.uriColor}
+                radius="xl"
+                onClick={() => {
+                  handleExtended(), handleAccordionChange(item.uri);
+                }}
+              >
+                {item.name.charAt(0).toUpperCase()}
+                {item.name.charAt(item.name.length - 1).toUpperCase()}
+              </Avatar>
+            );
+          })}
+        </Group>
       )}
     </Container>
   );
