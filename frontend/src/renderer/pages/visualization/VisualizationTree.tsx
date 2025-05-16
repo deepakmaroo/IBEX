@@ -520,7 +520,7 @@ export const VisualizationTree = ({
               <TreeLibrariesAccordion
                 defaultValue={uriSelected?.uri}
                 customDataTree={active.customDataTree}
-                height={`calc(${height} - 113px)`}
+                height={`calc(${height} - 115px)`}
                 checkedNodes={active.checkedNodeURI || []}
                 handleAccordionChange={handleAccordionChange}
                 handleSelectChildren={handleSelectChildren}

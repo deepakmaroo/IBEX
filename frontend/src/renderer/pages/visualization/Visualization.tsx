@@ -14,7 +14,7 @@ export const Visualization = () => {
   const { active, configurations } = useIbexStore();
   const [opened, { toggle }] = useDisclosure(true);
 
-  const HEIGHT = '89vh';
+  const HEIGHT = '88vh';
 
   const leftWidth = opened ? '16.666%' : '3%'; // span=2 or 1 on 12
   const rightWidth = opened ? '83.333%' : '97%'; // span=10 or 11 on 12
