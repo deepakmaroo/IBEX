@@ -5,12 +5,16 @@ import { Configuration, DataGridPlot } from 'src/renderer/types';
 import GridLayout, { Layout } from 'react-grid-layout';
 import { GridLayoutPlot } from '../../components';
 
-export const VisualizationPlot = () => {
+interface VisualizationPlotProps {
+  extended?: boolean;
+}
+
+export const VisualizationPlot = ({extended}: VisualizationPlotProps) => {
   const { active, updatedConfiguration } = useIbexStore();
 
   const [dragEnabled, setDragEnabled] = useState(true);
   const [dragTimeout, setDragTimeout] = useState<NodeJS.Timeout | null>(null);
-  const gridWith = 1580;
+  const gridWith = extended ? 1835 : 1580;
   const colsNumber = 12;
   const colWidth = gridWith / colsNumber;
   const rowHeight = 30;

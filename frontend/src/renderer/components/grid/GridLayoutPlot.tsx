@@ -14,12 +14,9 @@ import {
 } from 'src/renderer/types';
 import {
   ActionIcon,
-  Center,
   Container,
   Grid,
   Group,
-  Slider,
-  Text,
   Tooltip,
 } from '@mantine/core';
 
