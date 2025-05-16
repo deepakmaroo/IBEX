@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { TreeLibrariesAccordion } from '../../components';
 import { useIbexStore } from '../../stores';
 import {
@@ -19,6 +19,7 @@ import {
   Fieldset,
   Group,
   Loader,
+  ScrollArea,
   Switch,
   TextInput,
   Transition,
@@ -57,6 +58,8 @@ export const VisualizationTree = ({
   const [nodeSelected, setNodeSelected] = useState<string | null>();
   const [searchNodeIsLoading, setSearchNodeIsLoading] =
     useState<boolean>(false);
+
+  const heightFormatted = `calc(${height} - 128px)`;
 
   const formSearchNode = useForm<FormSearchNode>({
     initialValues: {
@@ -520,7 +523,7 @@ export const VisualizationTree = ({
               <TreeLibrariesAccordion
                 defaultValue={uriSelected?.uri}
                 customDataTree={active.customDataTree}
-                height={`calc(${height} - 128px)`}
+                height={heightFormatted}
                 checkedNodes={active.checkedNodeURI || []}
                 handleAccordionChange={handleAccordionChange}
                 handleSelectChildren={handleSelectChildren}
@@ -532,23 +535,25 @@ export const VisualizationTree = ({
       </Transition>
 
       {!extended && (
-        <Group justify="center" mt="sm">
-          {active?.customDataTree.map((item, index) => {
-            return (
-              <Avatar
-                key={`avatar-${index}-${item.uri}`}
-                color={item.uriColor}
-                radius="xl"
-                onClick={() => {
-                  handleExtended(), handleAccordionChange(item.uri);
-                }}
-              >
-                {item.name.charAt(0).toUpperCase()}
-                {item.name.charAt(item.name.length - 1).toUpperCase()}
-              </Avatar>
-            );
-          })}
-        </Group>
+        <ScrollArea h={heightFormatted}>
+          <Group justify="center" mt="sm">
+            {active?.customDataTree.map((item, index) => {
+              return (
+                <Avatar
+                  key={`avatar-${index}-${item.uri}`}
+                  color={item.uriColor}
+                  radius="xl"
+                  onClick={() => {
+                    handleExtended(), handleAccordionChange(item.uri);
+                  }}
+                >
+                  {item.name.charAt(0).toUpperCase()}
+                  {item.name.charAt(item.name.length - 1).toUpperCase()}
+                </Avatar>
+              );
+            })}
+          </Group>
+        </ScrollArea>
       )}
     </Container>
   );
