@@ -8,7 +8,6 @@ export const generateNewGrid = (
   yAxis: Axis,
   y2Axis?: Axis,
 ): DataGridPlot => {
-  const cols = 12;
   return {
     title: title,
     i: generateUuid(),
