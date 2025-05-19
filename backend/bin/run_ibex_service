@@ -22,15 +22,16 @@ def get_frontend_dir():
     return frontend_dir
 
 
-def write_config(target_dir, api_port):
+def write_config(target_dir, api_host, api_port):
     """
     Write a config.json file to the user's home directory with the given API URL
 
     Parameters:
+    - api_port (str): Host address to store in the config.
     - api_port (int): The API port to store in the config.
     """
     content = f'''{{
-  "API_URL": "http://127.0.0.1:{api_port}"
+  "API_URL": "http://{api_host}:{api_port}"
 }}'''
 
     file_path = os.path.join(target_dir, "config.json")
@@ -46,6 +47,8 @@ def port_from_cmdln():
     Reads port number from commandline
 
     Returns:
+    tuple:
+    - api_host (str): Host address provided by the user. 127.0.0.1 otherwise.
     - api_port (int): The port provided by the user. 0 otherwise.
     """
     parser = argparse.ArgumentParser()
@@ -53,28 +56,36 @@ def port_from_cmdln():
         "-p",
         "--port",
         type=int,
+        default=0,
         help="""Specify port number to start server on {0..65535}""",
+    )
+    parser.add_argument(
+        "--host",
+        type=str,
+        default="127.0.0.1",
+        help="""Specify host of backend server. Default: 127.0.0.1""",
     )
     args = parser.parse_args(args=sys.argv[1:])
 
     api_port = args.port
+    api_host = args.host
 
-    if api_port and (api_port < 0 or api_port > 65535):
+    if api_port < 0 or api_port > 65535:
         print(
             f"Provided port number was {args.port} while it has to be in range (0..65535).",
             file=sys.stderr,
         )
         exit(-1)
 
-    return api_port if api_port else 0
+    return api_host, api_port
 
 if __name__ == "__main__":
 
     frontend_dir = get_frontend_dir()
 
-    port = port_from_cmdln()
+    host, port = port_from_cmdln()
 
-    config = uvicorn.Config(app, host="127.0.0.1", port=port)
+    config = uvicorn.Config(app, host=host, port=port)
     server = uvicorn.Server(config)
 
     # Start the server in a background thread or process
@@ -91,4 +102,4 @@ if __name__ == "__main__":
     sockets = server.servers[0].sockets
     port = sockets[0].getsockname()[1]
     print(f"Server is running on port {port}")
-    write_config(frontend_dir, port)
+    write_config(frontend_dir, host, port)
