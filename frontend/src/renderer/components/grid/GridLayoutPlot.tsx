@@ -325,8 +325,8 @@ export const GridLayoutPlot = ({
                   <Tooltip
                     label={
                       data.static
-                        ? 'Zoom in/out the plot and stop dragging'
-                        : 'Drag the plot'
+                        ? 'Drag the plot'
+                        : 'Zoom in/out the plot and stop dragging'
                     }
                   >
                     <ActionIcon
