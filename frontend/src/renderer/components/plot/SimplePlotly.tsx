@@ -19,7 +19,7 @@ export const SimplePlotly = ({
   const handleRelayout = (newLayout: Partial<Layout>) => {
     setLayoutPlot((prevLayout) => ({
       ...prevLayout,
-      ...newLayout, // Merge le nouveau layout avec l'existant
+      ...newLayout, // update the layout with new values
     }));
   };
 
@@ -43,6 +43,7 @@ export const SimplePlotly = ({
           },
         },
         showline: true,
+        zeroline: false,
       },
       yaxis: {
         ...prevLayout.yaxis,
