@@ -137,4 +137,3 @@ export const fetchArraySummary = async (uri: string) => {
     `/ids_info/array_summary/?uri=${encodeURIComponent(uri)}`,
   );
 };
-

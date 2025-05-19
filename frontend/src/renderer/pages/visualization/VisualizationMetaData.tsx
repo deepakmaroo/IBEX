@@ -131,7 +131,7 @@ const MetaDataInfos = ({ data, height, tabsSelected }: MetaDataInfosProps) => {
   }, [data.nodeUri, tabsSelected]);
 
   useEffect(() => {
-    const fetchSummary= async () => {
+    const fetchSummary = async () => {
       try {
         if (tabsSelected === data.name) {
           const response = await fetchArraySummary(data.nodeUri);
@@ -166,7 +166,8 @@ const MetaDataInfos = ({ data, height, tabsSelected }: MetaDataInfosProps) => {
           {summary && renderField('min', summary?.min)}
           {summary && renderField('max', summary?.max)}
           {summary && renderField('mean', summary?.mean)}
-          {summary && renderField('standard_deviation', summary?.standard_deviation)}
+          {summary &&
+            renderField('standard_deviation', summary?.standard_deviation)}
           {renderField('description', data?.description)}
           <RenderMetaDataCoordinates coordinates={coordinates} />
         </Table.Tbody>
