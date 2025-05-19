@@ -47,7 +47,7 @@ export const SimplePlotly = ({
       yaxis: {
         ...prevLayout.yaxis,
         title: {
-          text: yAxis.name,
+          text: yAxis.unit,
           font: {
             family: 'Courier New, monospace',
             size: 18,
@@ -68,7 +68,7 @@ export const SimplePlotly = ({
         y2Axis && y2Axis !== undefined
           ? {
               title: {
-                text: y2Axis.name,
+                text: y2Axis.unit,
                 font: {
                   family: 'Courier New, monospace',
                   size: 18,
