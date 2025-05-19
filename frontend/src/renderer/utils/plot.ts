@@ -110,7 +110,6 @@ export const handleNewPlot = async (
     xCoordinatesData,
     xAxis,
     yAxis,
-    updatedActive.dataPlot,
   );
 
   const xCoordinatesValue = response.data.coordinates[0].value as number[];
