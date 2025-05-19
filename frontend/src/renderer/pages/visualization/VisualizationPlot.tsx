@@ -7,9 +7,10 @@ import { GridLayoutPlot } from '../../components';
 
 interface VisualizationPlotProps {
   extended?: boolean;
+  height?: string;
 }
 
-export const VisualizationPlot = ({extended}: VisualizationPlotProps) => {
+export const VisualizationPlot = ({extended, height}: VisualizationPlotProps) => {
   const { active, updatedConfiguration } = useIbexStore();
 
   const [dragEnabled, setDragEnabled] = useState(true);
@@ -77,7 +78,7 @@ export const VisualizationPlot = ({extended}: VisualizationPlotProps) => {
 
   return active.dataPlot.length > 0 ? (
     <>
-      <ScrollArea h="84vh">
+      <ScrollArea h={height}>
         <GridLayout
           cols={colsNumber}
           rowHeight={rowHeight}

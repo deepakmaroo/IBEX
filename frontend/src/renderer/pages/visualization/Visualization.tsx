@@ -45,7 +45,7 @@ export const Visualization = () => {
               {active?.gridLayoutSelected ? (
                 <VisualizationMetaData />
               ) : (
-                <VisualizationPlot extended={!opened}/>
+                <VisualizationPlot extended={!opened} height={HEIGHT}/>
               )}
             </Paper>
           </div>

@@ -59,7 +59,7 @@ export const VisualizationTree = ({
   const [searchNodeIsLoading, setSearchNodeIsLoading] =
     useState<boolean>(false);
 
-  const heightFormatted = `calc(${height} - 128px)`;
+  const heightFormatted = `calc(${height} - 155px)`;
 
   const formSearchNode = useForm<FormSearchNode>({
     initialValues: {
