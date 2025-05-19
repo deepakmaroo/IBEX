@@ -405,7 +405,12 @@ class IMASPythonSource(DataSourceInterface):
                         error_node in path for error_node in ["_error_upper", "_error_lower", "_error_index"]
                     ):
                         continue
-                    found_paths.append(f"#{ids}/{self._add_index_to_aos_in_path(ids_obj.metadata, path)}")
+
+                    # collect only leaf nodes
+                    node_data_type = ids_obj.metadata[path].data_type
+                    if node_data_type.value != "structure" and node_data_type.value != "struct_array":
+                        found_paths.append(f"#{ids}/{self._add_index_to_aos_in_path(ids_obj.metadata, path)}")
+
             except imas.exception.DataEntryException:
                 continue
 
@@ -592,17 +597,34 @@ class IMASPythonSource(DataSourceInterface):
                 path_elements = list(ids_path.items())
                 coord_target_objects = self._get_raw_data(ids_obj, path_elements)
 
+                # collect labels for 1...N coordinates
+                labels = []
+                try:
+                    for element in coord_target_objects:
+                        if hasattr(element, "name"):
+                            labels.append(str(element.name))
+                        elif hasattr(element, "label"):
+                            labels.append(str(element.label))
+                        else:
+                            raise AttributeError("No <name> or <label> attribute in node")
+
+                    # if any label is empty, use indexes instead
+                    if any(s == "" for s in labels):
+                        labels = []
+                except AttributeError:
+                    labels = []
+
                 coord_values = self._extract_1_N_coord_values(coord_target_objects)
 
                 c = {
-                    "name": coord,
+                    "name": splitted_target[-1],
                     "target": f"#{ids}/{target}",
                     "unit": "-",
                     "shape": np.asarray(coord_values).shape,
                     "ndim": 1,  # 1...N coord always have 1 dimension
                     "path": "",
                     "description": "1...N",
-                    "value": coord_values,
+                    "value": labels if labels else coord_values,
                 }
                 coordinates_to_be_returned.append(c)
 
