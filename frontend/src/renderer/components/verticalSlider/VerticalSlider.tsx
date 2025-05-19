@@ -21,7 +21,7 @@ export const VerticalSlider = ({
 }: VerticalSliderProps) => {
   const steps = data.length;
   const currentIndex = data.findIndex((d) => d === value);
-  const valueRatio = currentIndex / (steps - 1); // entre 0 et 1
+  const valueRatio = currentIndex / (steps - 1); // Between 0 and 1
 
   const { ref } = useMove(({ y }) => {
     if (disabled) return;

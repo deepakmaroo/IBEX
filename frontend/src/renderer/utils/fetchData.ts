@@ -1,4 +1,5 @@
 import {
+  ArraySummaryResponse,
   DataIdsResponse,
   FieldValueResponse,
   FormDbEntries,
@@ -127,3 +128,13 @@ export const fetchDataEntries = async (
     `/data_entry/available_entries/?user=${dataEntriesParameters.user}&backend=${dataEntriesParameters.backend}&database=${dataEntriesParameters.database}&version=${dataEntriesParameters.version}`,
   );
 };
+
+/**
+ * Retrieves plot data for a given URI.
+ */
+export const fetchArraySummary = async (uri: string) => {
+  return fetchFromApi<ArraySummaryResponse>(
+    `/ids_info/array_summary/?uri=${encodeURIComponent(uri)}`,
+  );
+};
+
