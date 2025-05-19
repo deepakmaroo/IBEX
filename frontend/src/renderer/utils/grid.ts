@@ -1,10 +1,10 @@
-import { Axis, Coordinates, DataGridPlot } from "../types";
-import { generateUuid } from "./uuid";
+import { Axis, Coordinates, DataGridPlot } from '../types';
+import { generateUuid } from './uuid';
 
 export function findBestSlot(
   layouts: DataGridPlot[],
   itemWidth: number,
-  totalCols: number
+  totalCols: number,
 ): number {
   const columnHeights = new Array(totalCols).fill(0);
 

@@ -13,7 +13,7 @@ import {
 } from '@mantine/core';
 import { useIbexStore } from '../../stores';
 import { useCallback, useEffect, useState } from 'react';
-import { MatrixViewer, SimplePlotly, TabsListCustom } from '../../components';
+import { SimplePlotly, TabsListCustom } from '../../components';
 import {
   Configuration,
   DataGridPlot,

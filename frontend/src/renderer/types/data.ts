@@ -24,4 +24,4 @@ export type PlotDataResponse = {
 
 export type FieldValueResponse = {
   value: number | number[];
-}
+};

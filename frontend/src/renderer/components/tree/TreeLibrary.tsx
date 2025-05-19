@@ -20,7 +20,12 @@ import {
   IconTypography,
 } from '@tabler/icons-react';
 import classes from './TreeLibrary.module.css';
-import { CustomTreeNodeData, NodeInfoTypeEnum, URIData, URITreeNodeData } from '../../types';
+import {
+  CustomTreeNodeData,
+  NodeInfoTypeEnum,
+  URIData,
+  URITreeNodeData,
+} from '../../types';
 
 interface NodeIconProps {
   node: TreeNodeData;
@@ -79,7 +84,6 @@ function Element({
       await handleSelectChildren(node.value);
     }
   };
-
 
   useEffect(() => {
     if (selected) {

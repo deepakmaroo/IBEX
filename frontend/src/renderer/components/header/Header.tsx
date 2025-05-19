@@ -37,7 +37,7 @@ export const Header = ({
   handleAddTree,
 }: HeaderProps) => {
   const configurationButtons = (
-    <Group >
+    <Group>
       <Button onClick={handleAddConfiguration}>Add configuration</Button>
       <Button onClick={handleLoadConfiguration}>Load configuration</Button>
       <Button
@@ -105,7 +105,7 @@ export const Header = ({
           <Group justify="flex-end" p={12}>
             {configurationButtons}
             <Divider orientation="vertical" />
-            {visualisationButtons} 
+            {visualisationButtons}
           </Group>
         </Grid.Col>
       </Grid>

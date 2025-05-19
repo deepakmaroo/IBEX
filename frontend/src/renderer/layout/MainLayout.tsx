@@ -143,7 +143,6 @@ export function MainLayout() {
                 data.coordinates && data.coordinates.length > 0
                   ? data.coordinates.map(
                       (coord: BaseCoordinates): Coordinates => {
-
                         const prefix = coord.nodeUri.split('#')[0];
 
                         const matched = newIbexState.dataURI.find(
@@ -151,7 +150,7 @@ export function MainLayout() {
                         );
 
                         let fullNodeUri = coord.nodeUri;
-                        if (matched){
+                        if (matched) {
                           const suffix = coord.nodeUri.split('#')[1];
                           fullNodeUri = `${matched.uri}#${suffix}`;
                         }

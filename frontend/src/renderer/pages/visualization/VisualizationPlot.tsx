@@ -10,7 +10,10 @@ interface VisualizationPlotProps {
   height?: string;
 }
 
-export const VisualizationPlot = ({extended, height}: VisualizationPlotProps) => {
+export const VisualizationPlot = ({
+  extended,
+  height,
+}: VisualizationPlotProps) => {
   const { active, updatedConfiguration } = useIbexStore();
 
   const [dragEnabled, setDragEnabled] = useState(true);

@@ -1,9 +1,4 @@
-import {
-  Center,
-  Container,
-  Paper,
-  Text,
-} from '@mantine/core';
+import { Center, Container, Paper, Text } from '@mantine/core';
 import { useIbexStore } from '../../stores';
 import { VisualizationTree } from './VisualizationTree';
 import { VisualizationPlot } from './VisualizationPlot';
@@ -31,7 +26,11 @@ export const Visualization = () => {
             }}
           >
             <Paper shadow="md" h={HEIGHT} radius="md" pt="sm">
-              <VisualizationTree height={HEIGHT} extended={opened} handleExtended={toggle}/>
+              <VisualizationTree
+                height={HEIGHT}
+                extended={opened}
+                handleExtended={toggle}
+              />
             </Paper>
           </div>
 
@@ -45,7 +44,7 @@ export const Visualization = () => {
               {active?.gridLayoutSelected ? (
                 <VisualizationMetaData />
               ) : (
-                <VisualizationPlot extended={!opened} height={HEIGHT}/>
+                <VisualizationPlot extended={!opened} height={HEIGHT} />
               )}
             </Paper>
           </div>

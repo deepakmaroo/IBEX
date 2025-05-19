@@ -110,8 +110,7 @@ export const handleNewPlot = async (
     xCoordinatesData,
     xAxis,
     yAxis,
-    updatedActive.dataPlot
-    
+    updatedActive.dataPlot,
   );
 
   const xCoordinatesValue = response.data.coordinates[0].value as number[];
@@ -138,9 +137,6 @@ export const handleExistingPlot = async (
   findDataPlot: DataGridPlot,
   updatedActive: Configuration,
 ): Promise<Configuration> => {
-
-
-
   const dataToPlot = nodes.filter(
     (node) =>
       !findDataPlot.plot.some(
@@ -164,7 +160,7 @@ export const handleExistingPlot = async (
       });
       return updatedActive;
     }
-    
+
     const response = await fetchDataPlot(node.uri);
     if (!response || response.data.ndim !== 1) {
       showNotification({
@@ -319,7 +315,8 @@ export async function plotNodeUriLoaded(
                   });
 
                   if (findCoordinates) {
-                    (findCoordinates.data = responseCoordinates.value as number[]),
+                    (findCoordinates.data =
+                      responseCoordinates.value as number[]),
                       (findCoordinates.name = responseCoordinates.name);
                     findCoordinates.shape = responseCoordinates.shape;
                   }
@@ -339,7 +336,7 @@ export async function plotNodeUriLoaded(
                   dataGrid.coordinates.push({
                     name: responseCoordinates.name,
                     shape: responseCoordinates.shape,
-                    data:responseCoordinates.value as number[],
+                    data: responseCoordinates.value as number[],
                     target: responseCoordinates.target,
                     nodeUri: plot.nodeUri,
                     value: 0,

@@ -1,4 +1,4 @@
-import { Flex, Group, Text } from '@mantine/core';
+import { Flex, Text } from '@mantine/core';
 import { useMove } from '@mantine/hooks';
 import { IconCircle } from '@tabler/icons-react';
 
@@ -33,7 +33,7 @@ export const VerticalSlider = ({
 
   return (
     <Flex justify="center" align="center" direction="column">
-      <Text ta="center" my="sm" w={50} fw='bold'>
+      <Text ta="center" my="sm" w={50} fw="bold">
         {name}
       </Text>
       <div

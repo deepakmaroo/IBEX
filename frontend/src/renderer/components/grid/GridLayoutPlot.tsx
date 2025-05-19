@@ -12,13 +12,7 @@ import {
   DataPlotly,
   GridLayoutPlotProps,
 } from 'src/renderer/types';
-import {
-  ActionIcon,
-  Container,
-  Grid,
-  Group,
-  Tooltip,
-} from '@mantine/core';
+import { ActionIcon, Container, Grid, Group, Tooltip } from '@mantine/core';
 
 import {
   IconBrandDatabricks,
