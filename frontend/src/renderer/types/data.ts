@@ -21,3 +21,15 @@ export type PlotDataResponse = {
     coordinates: PlotCoordinatesResponse[];
   };
 };
+
+export type FieldValueResponse = {
+  value: number | number[];
+};
+
+export type ArraySummaryResponse = {
+  shape: number[];
+  min: number;
+  max: number;
+  mean: number;
+  standard_deviation: number;
+};

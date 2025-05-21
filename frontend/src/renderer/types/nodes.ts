@@ -13,7 +13,7 @@ export type NodeInfoChildrenResponse = {
 };
 
 export type NodeInfoResponse = NodeInfoChildrenResponse & {
-  shapes: number[];
+  shape: number[];
   coordinates: string[];
   children: NodeInfoChildrenResponse[];
 };

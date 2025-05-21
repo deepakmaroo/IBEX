@@ -50,7 +50,6 @@ def test_find_paths(entry_path):
 
     assert response.status_code == 200
     assert response.json()["paths"] == [
-        "#core_profiles/ids_properties/version_put",
         "#core_profiles/ids_properties/version_put/data_dictionary",
         "#core_profiles/ids_properties/version_put/access_layer",
         "#core_profiles/ids_properties/version_put/access_layer_language",

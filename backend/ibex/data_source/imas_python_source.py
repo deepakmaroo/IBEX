@@ -1,11 +1,23 @@
 """IMAS-Python data source - default for IBEX"""
 
-import re  # type: ignore
-from itertools import zip_longest  # type: ignore
 from typing import Optional, Sequence, List
 
 import imas  # type: ignore
 import numpy as np  # type: ignore
+import re  # type: ignore
+from idstools.database import DBMaster  # type: ignore
+from imas.ids_metadata import IDSMetadata  # type: ignore
+from imas.ids_primitive import IDSNumericArray  # type: ignore
+from imas.ids_struct_array import IDSStructArray  # type: ignore
+from imas.ids_structure import IDSStructure  # type: ignore
+from imas.ids_data_type import IDSDataType  # type: ignore
+from imas.ids_base import IDSBase  # type: ignore
+from imas.ids_path import IDSPath  # type: ignore
+
+from itertools import zip_longest  # type: ignore
+
+from imas_core.exception import ImasCoreBackendException
+
 from ibex.data_source.data_source_interface import DataSourceInterface
 from ibex.data_source.exception import (
     NodeNotFoundException,
@@ -14,15 +26,6 @@ from ibex.data_source.exception import (
     NotAnArrayException,
     EntryNotFoundException,
 )
-from idstools.database import DBMaster  # type: ignore
-from imas.ids_base import IDSBase  # type: ignore
-from imas.ids_data_type import IDSDataType  # type: ignore
-from imas.ids_metadata import IDSMetadata  # type: ignore
-from imas.ids_path import IDSPath  # type: ignore
-from imas.ids_primitive import IDSNumericArray  # type: ignore
-from imas.ids_struct_array import IDSStructArray  # type: ignore
-from imas.ids_structure import IDSStructure  # type: ignore
-from imas_core.exception import ImasCoreBackendException
 
 
 class IMASPythonSource(DataSourceInterface):

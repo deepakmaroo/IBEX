@@ -19,7 +19,7 @@ export const SimplePlotly = ({
   const handleRelayout = (newLayout: Partial<Layout>) => {
     setLayoutPlot((prevLayout) => ({
       ...prevLayout,
-      ...newLayout, // Merge le nouveau layout avec l'existant
+      ...newLayout, // update the layout with new values
     }));
   };
 
@@ -43,11 +43,12 @@ export const SimplePlotly = ({
           },
         },
         showline: true,
+        zeroline: false,
       },
       yaxis: {
         ...prevLayout.yaxis,
         title: {
-          text: yAxis.name,
+          text: yAxis.unit,
           font: {
             family: 'Courier New, monospace',
             size: 18,
@@ -68,7 +69,7 @@ export const SimplePlotly = ({
         y2Axis && y2Axis !== undefined
           ? {
               title: {
-                text: y2Axis.name,
+                text: y2Axis.unit,
                 font: {
                   family: 'Courier New, monospace',
                   size: 18,
@@ -84,6 +85,7 @@ export const SimplePlotly = ({
           : {},
       showlegend: true,
       plot_bgcolor: '#c7c7c7',
+      // paper_bgcolor: "#c8b8b8",
       dragmode: 'zoom',
     }));
   }, [title, xAxis, yAxis, height, width]);

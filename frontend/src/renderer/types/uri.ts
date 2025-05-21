@@ -4,6 +4,11 @@ export type URIData = {
   uriColor?: string;
 };
 
+export type URITreeNodeData = {
+  name: string;
+  uri: string;
+};
+
 export type URIExistsResponse = {
   exists: boolean;
 };

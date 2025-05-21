@@ -10,16 +10,21 @@ import {
   NodeInfoTypeEnum,
   SearchNodeResponse,
   URIData,
+  URITreeNodeData,
 } from '../../types';
 import {
   ActionIcon,
+  Avatar,
   Container,
   Fieldset,
+  Group,
   Loader,
+  ScrollArea,
   Switch,
   TextInput,
+  Transition,
 } from '@mantine/core';
-import { IconSearch } from '@tabler/icons-react';
+import { IconChevronRight, IconSearch } from '@tabler/icons-react';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
 import {
@@ -33,13 +38,19 @@ import {
 
 interface VisualizationTreeProps {
   height: string;
+  extended?: boolean;
+  handleExtended?: () => void;
 }
 
 interface FormSearchNode {
   node: string;
 }
 
-export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
+export const VisualizationTree = ({
+  height,
+  extended,
+  handleExtended,
+}: VisualizationTreeProps) => {
   const { active, updatedConfiguration } = useIbexStore();
 
   const [uriSelected, setUriSelected] = useState<URIData | null>();
@@ -47,6 +58,8 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
   const [nodeSelected, setNodeSelected] = useState<string | null>();
   const [searchNodeIsLoading, setSearchNodeIsLoading] =
     useState<boolean>(false);
+
+  const heightFormatted = `calc(${height} - 155px)`;
 
   const formSearchNode = useForm<FormSearchNode>({
     initialValues: {
@@ -101,21 +114,15 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
          */
 
         const fetchChildrenNodeInfos = async (
-          uri: string,
+          nodeInfoschildren: NodeInfoChildrenResponse[],
         ): Promise<CustomTreeNodeData[]> => {
-          const nodeInfos: NodeInfoResponse = await fetchNodeInfos(
-            uri.slice(0, -1),
-            showErrorBars,
-          );
-          const nodeInfoschildren = nodeInfos.children || [];
-
           if (nodeInfoschildren.length === 0) return;
 
           const newChildren: CustomTreeNodeData[] = nodeInfoschildren.map(
             (child: NodeInfoChildrenResponse) => {
               const newValue =
                 child.type === NodeInfoTypeEnum.ARRAY
-                  ? `${nodeUri}${child.name}[0]/`
+                  ? `${nodeUri}${child.name}[:]/`
                   : child.type === NodeInfoTypeEnum.STRUCTURE
                     ? `${nodeUri}${child.name}/`
                     : `${nodeUri}${child.name}`;
@@ -144,7 +151,13 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
           targetUri: string,
         ): Promise<CustomTreeNodeData[]> => {
           if (dataTree.length === 0) {
-            return await fetchChildrenNodeInfos(targetUri);
+            const nodeInfos: NodeInfoResponse = await fetchNodeInfos(
+              targetUri.slice(0, -1),
+              showErrorBars,
+            );
+            const nodeInfoschildren = nodeInfos.children || [];
+
+            return await fetchChildrenNodeInfos(nodeInfoschildren);
           }
 
           return Promise.all(
@@ -154,11 +167,24 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
                   node.children.length === 0 ||
                   node.seeErrorBars !== showErrorBars
                 ) {
-                  const newChildren = await fetchChildrenNodeInfos(targetUri);
+                  /**
+                   * Replace [:] and remove the last /
+                   */
+                  targetUri = targetUri.replace(/\[:\]/, '').slice(0, -1);
+
+                  const nodeInfos: NodeInfoResponse = await fetchNodeInfos(
+                    targetUri,
+                    showErrorBars,
+                  );
+                  const nodeInfoschildren = nodeInfos.children || [];
+
+                  const newChildren =
+                    await fetchChildrenNodeInfos(nodeInfoschildren);
 
                   return {
                     ...node,
                     seeErrorBars: showErrorBars,
+                    shape: nodeInfos.shape,
                     children: newChildren,
                   };
                 }
@@ -372,7 +398,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
         });
       }
     },
-    [active, formSearchNode.values.node, uriSelected],
+    [active, formSearchNode.values.node],
   );
 
   /**
@@ -381,7 +407,7 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
    * @param nodes
    */
   const getNodesChecked = useCallback(
-    async (nodes: URIData[]) => {
+    async (nodes: URITreeNodeData[]) => {
       let updatedActive: Configuration = {
         ...active,
         saved: false,
@@ -420,63 +446,115 @@ export const VisualizationTree = ({ height }: VisualizationTreeProps) => {
 
   return (
     <Container fluid p={0}>
-      <Container fluid pt={1}>
-        <Fieldset
-          variant="unstyled"
-          disabled={active.customDataTree.length === 0}
+      <Group justify="end" mr="sm">
+        <ActionIcon
+          variant="filled"
+          aria-label="Settings"
+          onClick={handleExtended}
+          style={{
+            rotate: extended ? '180deg' : '0deg',
+            transition: 'transform 0.3s ease',
+          }}
         >
-          <form
-            onSubmit={formSearchNode.onSubmit(() => {
-              handleSearchNode(showErrorBars);
-            })}
-          >
-            <TextInput
-              mt="sm"
-              label="Search node"
-              placeholder="Enter node name"
-              {...formSearchNode.getInputProps('node')}
-              rightSection={
-                searchNodeIsLoading ? (
-                  <Loader size="xs" />
-                ) : (
-                  <ActionIcon
-                    variant="filled"
-                    aria-label="Search node"
-                    component="button"
-                    type="submit"
-                  >
-                    <IconSearch
-                      style={{ width: '70%', height: '70%' }}
-                      stroke={1.5}
-                    />
-                  </ActionIcon>
-                )
-              }
-              disabled={searchNodeIsLoading}
-            />
-          </form>
-          <Switch
-            my="sm"
-            label="See errors"
-            labelPosition="left"
-            checked={showErrorBars}
-            onChange={() => handleSeeErrorBars(!showErrorBars)}
-            styles={{
-              labelWrapper: {
-                width: '100%',
-              },
-            }}
+          <IconChevronRight
+            style={{ width: '70%', height: '70%' }}
+            stroke={1.5}
           />
-        </Fieldset>
-      </Container>
-      <TreeLibrariesAccordion
-        customDataTree={active.customDataTree}
-        height={`calc(${height} - 113px)`}
-        checkedNodes={active.checkedNodeURI || []}
-        handleAccordionChange={handleAccordionChange}
-        handleSelectChildren={handleSelectChildren}
-        getNodesChecked={getNodesChecked}
-      />
+        </ActionIcon>
+      </Group>
+
+      <Transition
+        mounted={extended}
+        transition="scale-x"
+        duration={300}
+        timingFunction="ease"
+      >
+        {(styles) => (
+          <div style={styles}>
+            <Container fluid p={0}>
+              <Container fluid pt={1}>
+                <Fieldset
+                  variant="unstyled"
+                  disabled={active.customDataTree.length === 0}
+                >
+                  <form
+                    onSubmit={formSearchNode.onSubmit(() => {
+                      handleSearchNode(showErrorBars);
+                    })}
+                  >
+                    <TextInput
+                      label="Search node"
+                      placeholder="Enter node name"
+                      {...formSearchNode.getInputProps('node')}
+                      rightSection={
+                        searchNodeIsLoading ? (
+                          <Loader size="xs" />
+                        ) : (
+                          <ActionIcon
+                            variant="filled"
+                            aria-label="Search node"
+                            component="button"
+                            type="submit"
+                          >
+                            <IconSearch
+                              style={{ width: '70%', height: '70%' }}
+                              stroke={1.5}
+                            />
+                          </ActionIcon>
+                        )
+                      }
+                      disabled={searchNodeIsLoading}
+                    />
+                  </form>
+                  <Switch
+                    my="sm"
+                    label="See errors"
+                    labelPosition="left"
+                    checked={showErrorBars}
+                    onChange={() => handleSeeErrorBars(!showErrorBars)}
+                    styles={{
+                      labelWrapper: {
+                        width: '100%',
+                      },
+                    }}
+                  />
+                </Fieldset>
+              </Container>
+              <TreeLibrariesAccordion
+                defaultValue={uriSelected?.uri}
+                customDataTree={active.customDataTree}
+                height={heightFormatted}
+                checkedNodes={active.checkedNodeURI || []}
+                handleAccordionChange={handleAccordionChange}
+                handleSelectChildren={handleSelectChildren}
+                getNodesChecked={getNodesChecked}
+              />
+            </Container>
+          </div>
+        )}
+      </Transition>
+
+      {!extended && (
+        <ScrollArea h={heightFormatted}>
+          <Group justify="center" mt="sm">
+            {active?.customDataTree.map((item, index) => {
+              return (
+                <Avatar
+                  key={`avatar-${index}-${item.uri}`}
+                  color={item.uriColor}
+                  radius="xl"
+                  onClick={() => {
+                    handleExtended(), handleAccordionChange(item.uri);
+                  }}
+                >
+                  {item.name.charAt(0).toUpperCase()}
+                  {item.name.charAt(item.name.length - 1).toUpperCase()}
+                </Avatar>
+              );
+            })}
+          </Group>
+        </ScrollArea>
+      )}
     </Container>
   );
 };

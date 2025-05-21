@@ -3,6 +3,7 @@ import {
   Center,
   ComboboxData,
   Container,
+  Divider,
   Grid,
   Group,
   Image,
@@ -12,6 +13,7 @@ import {
 } from '@mantine/core';
 import logoPath from '../../assets/imas_extra.png';
 import { Configuration } from 'src/renderer/types';
+import { IconPlus } from '@tabler/icons-react';
 
 interface HeaderProps {
   active: Configuration;
@@ -21,6 +23,7 @@ interface HeaderProps {
   handleSaveConfiguration: () => void;
   handleLoadConfiguration: () => void;
   handleSelectConfiguration: (value: string) => void;
+  handleAddTree: () => void;
 }
 
 export const Header = ({
@@ -31,9 +34,10 @@ export const Header = ({
   handleSaveConfiguration,
   handleLoadConfiguration,
   handleSelectConfiguration,
+  handleAddTree,
 }: HeaderProps) => {
-  const actions = (
-    <Group justify="flex-end" p={12}>
+  const configurationButtons = (
+    <Group>
       <Button onClick={handleAddConfiguration}>Add configuration</Button>
       <Button onClick={handleLoadConfiguration}>Load configuration</Button>
       <Button
@@ -49,6 +53,18 @@ export const Header = ({
         color="red"
       >
         Delete Configuration
+      </Button>
+    </Group>
+  );
+
+  const visualisationButtons = (
+    <Group justify="flex-end">
+      <Button
+        onClick={handleAddTree}
+        leftSection={<IconPlus size={20} />}
+        disabled={!active}
+      >
+        Select URIs
       </Button>
     </Group>
   );
@@ -85,7 +101,13 @@ export const Header = ({
             )}
           />
         </Grid.Col>
-        <Grid.Col span={8}>{actions}</Grid.Col>
+        <Grid.Col span={8}>
+          <Group justify="flex-end" p={12}>
+            {configurationButtons}
+            <Divider orientation="vertical" />
+            {visualisationButtons}
+          </Group>
+        </Grid.Col>
       </Grid>
     </Container>
   );

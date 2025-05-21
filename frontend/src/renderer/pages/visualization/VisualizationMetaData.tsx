@@ -13,14 +13,15 @@ import {
 } from '@mantine/core';
 import { useIbexStore } from '../../stores';
 import { useCallback, useEffect, useState } from 'react';
-import { MatrixViewer, SimplePlotly, TabsListCustom } from '../../components';
+import { SimplePlotly, TabsListCustom } from '../../components';
 import {
+  ArraySummaryResponse,
   Configuration,
   DataGridPlot,
   DataPlotly,
   PlotCoordinatesResponse,
 } from 'src/renderer/types';
-import { fetchDataPlot, isMatrix } from '../../utils';
+import { fetchArraySummary, fetchDataPlot } from '../../utils';
 
 interface MetaDataInfosProps {
   data: DataPlotly;
@@ -83,16 +84,9 @@ const RenderMetaDataCoordinates = ({
         {renderField('unit', coordinate.unit)}
         {renderSpoiler('shape', coordinate.shape)}
         {renderField('ndim', coordinate.ndim)}
-        {isMatrix(coordinate.value) ? (
-          <Table.Tr>
-            <Table.Td fw="bold">value</Table.Td>
-            <Table.Td>
-              <MatrixViewer value={coordinate.value as number[][]} />
-            </Table.Td>
-          </Table.Tr>
-        ) : (
-          renderSpoiler('value', coordinate.value)
-        )}
+
+        {renderSpoiler('value', coordinate.value as number[])}
+
         {renderField('description', coordinate.description)}
         {renderField('target', coordinate.target)}
       </Table.Tbody>
@@ -118,6 +112,7 @@ const RenderMetaDataCoordinates = ({
 
 const MetaDataInfos = ({ data, height, tabsSelected }: MetaDataInfosProps) => {
   const [coordinates, setCoordinates] = useState<PlotCoordinatesResponse[]>([]);
+  const [summary, setSummary] = useState<ArraySummaryResponse>(null);
 
   useEffect(() => {
     const fetchCoordinates = async () => {
@@ -134,6 +129,21 @@ const MetaDataInfos = ({ data, height, tabsSelected }: MetaDataInfosProps) => {
 
     fetchCoordinates();
   }, [data.nodeUri, tabsSelected]);
+
+  useEffect(() => {
+    const fetchSummary = async () => {
+      try {
+        if (tabsSelected === data.name) {
+          const response = await fetchArraySummary(data.nodeUri);
+          setSummary(response);
+        }
+      } catch (error) {
+        console.error('Error fetching array summary:', error);
+      }
+    };
+
+    fetchSummary();
+  }, [tabsSelected]);
 
   return (
     <ScrollArea h={height || '79vh'}>
@@ -153,6 +163,11 @@ const MetaDataInfos = ({ data, height, tabsSelected }: MetaDataInfosProps) => {
           {renderSpoiler('shape', data.shape as (string | number)[])}
           {renderField('dimension', data?.dimensions)}
           {renderSpoiler('value', data.y as (string | number)[])}
+          {summary && renderField('min', summary?.min)}
+          {summary && renderField('max', summary?.max)}
+          {summary && renderField('mean', summary?.mean)}
+          {summary &&
+            renderField('standard_deviation', summary?.standard_deviation)}
           {renderField('description', data?.description)}
           <RenderMetaDataCoordinates coordinates={coordinates} />
         </Table.Tbody>

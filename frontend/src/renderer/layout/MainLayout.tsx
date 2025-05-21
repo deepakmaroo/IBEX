@@ -3,10 +3,12 @@ import { Outlet } from 'react-router-dom';
 import { useIbexStore } from '../stores';
 import { useDisclosure } from '@mantine/hooks';
 import {
+  BaseCoordinates,
   BaseDataPlotly,
   ConfigForm,
   Configuration,
   ConfigurationToSave,
+  Coordinates,
   DataGridPlot,
   DataGridPlotToSave,
   DataPlotly,
@@ -14,6 +16,7 @@ import {
 } from '../types';
 import { ConfigCreateModal, ConfirmModal, Header } from '../components';
 import { plotNodeUriLoaded, updateCustomDataTree } from '../utils';
+import { VisualizationURIModal } from '../pages';
 
 export function MainLayout() {
   const {
@@ -33,6 +36,11 @@ export function MainLayout() {
   const [
     isConfigDeleteModalOpen,
     { open: openConfigDeleteModal, close: closeConfigDeleteModal },
+  ] = useDisclosure(false);
+
+  const [
+    isAddTreeModalOpen,
+    { open: openAddTreeModal, close: closeAddTreeModal },
   ] = useDisclosure(false);
 
   const handleAddConfiguration = (config: ConfigForm) => {
@@ -64,6 +72,21 @@ export function MainLayout() {
         y: dataGrid.y,
         w: dataGrid.w,
         h: dataGrid.h,
+        coordinates: dataGrid.coordinates.map(
+          (coord: Coordinates): BaseCoordinates => {
+            const findUri = active.dataURI.find((uri: URIData) =>
+              coord.nodeUri.includes(uri.uri),
+            );
+
+            const suffix = coord.nodeUri.split('#')[1];
+            const newNodeUri = `${findUri?.name}#${suffix}`;
+            return {
+              target: coord.target,
+              nodeUri: newNodeUri,
+              value: coord.value,
+            };
+          },
+        ),
         plot: dataGrid.plot.map((plot): BaseDataPlotly => {
           const suffix = plot.nodeUri.split('#')[1];
           const newNodeUri = `${plot.labelUri}#${suffix}`;
@@ -111,11 +134,36 @@ export function MainLayout() {
         await window.api.fs.readFile(path).then(async (data) => {
           const newIbexState: ConfigurationToSave = JSON.parse(data);
 
-          const newDataPlot: DataGridPlot[] = newIbexState.dataPlot.map(
+          const newListDataGridPlot: DataGridPlot[] = newIbexState.dataPlot.map(
             (data): DataGridPlot => ({
               ...data,
               isEditing: false,
               static: false,
+              coordinates:
+                data.coordinates && data.coordinates.length > 0
+                  ? data.coordinates.map(
+                      (coord: BaseCoordinates): Coordinates => {
+                        const prefix = coord.nodeUri.split('#')[0];
+
+                        const matched = newIbexState.dataURI.find(
+                          (uri: URIData) => uri.name === prefix,
+                        );
+
+                        let fullNodeUri = coord.nodeUri;
+                        if (matched) {
+                          const suffix = coord.nodeUri.split('#')[1];
+                          fullNodeUri = `${matched.uri}#${suffix}`;
+                        }
+                        return {
+                          ...coord,
+                          nodeUri: fullNodeUri,
+                          name: '',
+                          shape: [],
+                          data: [],
+                        };
+                      },
+                    )
+                  : [],
               plot: data.plot.map((plot): DataPlotly => {
                 const matched = newIbexState.dataURI.find(
                   (uri: URIData) => plot.labelUri === uri.name,
@@ -142,7 +190,7 @@ export function MainLayout() {
             dataURI: newIbexState.dataURI,
             customDataTree: updateCustomDataTree([], newIbexState.dataURI),
             checkedNodeURI: [],
-            dataPlot: await plotNodeUriLoaded(newDataPlot),
+            dataPlot: await plotNodeUriLoaded(newListDataGridPlot),
             saved: true,
             path: path,
           };
@@ -176,6 +224,7 @@ export function MainLayout() {
           handleSaveConfiguration={handleSaveConfiguration}
           handleLoadConfiguration={handleLoadConfiguration}
           handleSelectConfiguration={handleSelectConfiguration}
+          handleAddTree={openAddTreeModal}
         />
       </AppShell.Header>
       <AppShell.Main>
@@ -196,6 +245,11 @@ export function MainLayout() {
             Are you sure you want to delete the configuration?
           </Text>
         </ConfirmModal>
+
+        <VisualizationURIModal
+          opened={isAddTreeModalOpen}
+          close={closeAddTreeModal}
+        />
       </AppShell.Main>
     </AppShell>
   );

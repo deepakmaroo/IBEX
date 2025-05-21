@@ -39,9 +39,9 @@ app.add_exception_handler(EntryNotFoundException, general_exception_handler)
 
 
 try:
-    # add ALException handler only if imaspy was used as data source
-    import imaspy
+    # add ALException handler only if imas-python was used as data source
+    import imas
 
-    app.add_exception_handler(imaspy.exception.ALException, general_exception_handler)
+    app.add_exception_handler(imas.exception.ALException, general_exception_handler)
 except ImportError:
     ...

@@ -20,7 +20,12 @@ import {
   IconTypography,
 } from '@tabler/icons-react';
 import classes from './TreeLibrary.module.css';
-import { CustomTreeNodeData, NodeInfoTypeEnum, URIData } from '../../types';
+import {
+  CustomTreeNodeData,
+  NodeInfoTypeEnum,
+  URIData,
+  URITreeNodeData,
+} from '../../types';
 
 interface NodeIconProps {
   node: TreeNodeData;
@@ -31,7 +36,7 @@ interface NodeIconProps {
   tree: UseTreeReturnType;
   textRef: React.RefObject<HTMLDivElement>;
   isOverflowing: boolean;
-  getCheckedNodes: (nodes: URIData[]) => void;
+  getCheckedNodes: (nodes: URITreeNodeData[]) => void;
 }
 
 interface TreeLibraryProps {
@@ -40,7 +45,7 @@ interface TreeLibraryProps {
   checkedNodes?: URIData[];
   expendAll?: boolean;
   handleSelectChildren: (node: string) => void;
-  getCheckedNodes?: (nodes: URIData[]) => void;
+  getCheckedNodes?: (nodes: URITreeNodeData[]) => void;
 }
 
 interface ElementProps extends RenderTreeNodePayload {
@@ -51,7 +56,7 @@ interface ElementProps extends RenderTreeNodePayload {
   tree: UseTreeReturnType;
   setSelectedNode: (node: string | null) => void;
   handleSelectChildren: (node: string) => void;
-  getCheckedNodes: (nodes: URIData[]) => void;
+  getCheckedNodes: (nodes: URITreeNodeData[]) => void;
 }
 
 function Element({
@@ -159,7 +164,7 @@ function NodeIcon({
           );
         } else {
           tree.checkNode(node.value);
-          const newCheckedNode: URIData = {
+          const newCheckedNode: URITreeNodeData = {
             name: uriLabel,
             uri: node.value,
           };

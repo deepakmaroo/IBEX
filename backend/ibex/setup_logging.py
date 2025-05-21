@@ -47,19 +47,19 @@ def setup_rich_log_handler(quiet: bool) -> None:
     """Setup rich.logging.RichHandler on the root logger.
 
     Args:
-        quiet: When True: set log level of the `imaspy` logger to WARNING or higher.
+        quiet: When True: set log level of the `imas-python` logger to WARNING or higher.
     """
     try:
-        # we want to silence imaspy logger only if imaspy data source is used
-        # in other cases imaspy may be not even installed
-        import imaspy  # noqa: F401, imported to overwrite logging handlers at correct timing
+        # we want to silence imas-python logger only if imas-python data source is used
+        # in other cases imas-python may be not even installed
+        import imas  # noqa: F401, imported to overwrite logging handlers at correct timing
 
-        # Disable default imaspy log handler
-        imaspy_logger = logging.getLogger("imaspy")
-        for handler in imaspy_logger.handlers:
-            imaspy_logger.removeHandler(handler)
-        if quiet:  # Silence IMASPy INFO messages
+        # Disable default imas-python log handler
+        imas_python_logger = logging.getLogger("imas")
+        for handler in imas_python_logger.handlers:
+            imas_python_logger.removeHandler(handler)
+        if quiet:  # Silence IMAS-Python INFO messages
             # If loglevel is less than WARNING, set it to WARNING:
-            imaspy_logger.setLevel(max(logging.WARNING, imaspy_logger.getEffectiveLevel()))
+            imas_python_logger.setLevel(max(logging.WARNING, imas_python_logger.getEffectiveLevel()))
     except ImportError:
         ...

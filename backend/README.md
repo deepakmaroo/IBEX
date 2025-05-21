@@ -7,7 +7,7 @@
 Load required modules
 
 ```commandline
-module load IMASPy IDStools
+module load IDStools IMAS-Python
 ```
 
 ## Development setup

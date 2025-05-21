@@ -5,7 +5,7 @@ import re
 from functools import wraps  # for measure_execution_time()
 from typing import Any, Callable, Optional, Sequence, List
 
-from ibex.data_source.imaspy_source import IMASPySource
+from ibex.data_source.imas_python_source import IMASPythonSource
 from dataclasses import dataclass
 
 
@@ -65,7 +65,7 @@ class IMAS_URI:
         )
 
 
-data_source = IMASPySource()
+data_source = IMASPythonSource()
 
 
 # helper decorator used during development
