@@ -1,21 +1,11 @@
 """IMAS-Python data source - default for IBEX"""
 
+import re  # type: ignore
+from itertools import zip_longest  # type: ignore
 from typing import Optional, Sequence, List
 
-import imaspy  # type: ignore
+import imas  # type: ignore
 import numpy as np  # type: ignore
-import re  # type: ignore
-from idstools.database import DBMaster  # type: ignore
-from imaspy.ids_metadata import IDSMetadata  # type: ignore
-from imaspy.ids_primitive import IDSNumericArray  # type: ignore
-from imaspy.ids_struct_array import IDSStructArray  # type: ignore
-from imaspy.ids_structure import IDSStructure  # type: ignore
-from imaspy.ids_data_type import IDSDataType  # type: ignore
-from imaspy.ids_base import IDSBase  # type: ignore
-from imaspy.ids_path import IDSPath  # type: ignore
-
-from imas_core.exception import ImasCoreBackendException
-
 from ibex.data_source.data_source_interface import DataSourceInterface
 from ibex.data_source.exception import (
     NodeNotFoundException,
@@ -24,9 +14,18 @@ from ibex.data_source.exception import (
     NotAnArrayException,
     EntryNotFoundException,
 )
+from idstools.database import DBMaster  # type: ignore
+from imas.ids_base import IDSBase  # type: ignore
+from imas.ids_data_type import IDSDataType  # type: ignore
+from imas.ids_metadata import IDSMetadata  # type: ignore
+from imas.ids_path import IDSPath  # type: ignore
+from imas.ids_primitive import IDSNumericArray  # type: ignore
+from imas.ids_struct_array import IDSStructArray  # type: ignore
+from imas.ids_structure import IDSStructure  # type: ignore
+from imas_core.exception import ImasCoreBackendException
 
 
-class IMASPySource(DataSourceInterface):
+class IMASPythonSource(DataSourceInterface):
     """
     Default data source for IBEX
     """
@@ -37,7 +36,7 @@ class IMASPySource(DataSourceInterface):
         """
         ...
 
-    def _open_entry(self, uri: str) -> imaspy.DBEntry:
+    def _open_entry(self, uri: str) -> imas.DBEntry:
         """
         Opens DBEntry with mode "r". Handles possible exceptions.
 
@@ -45,7 +44,7 @@ class IMASPySource(DataSourceInterface):
         :return: DBEntry object
         """
         try:
-            return imaspy.DBEntry(uri, mode="r")
+            return imas.DBEntry(uri, mode="r")
         except ImasCoreBackendException as e:
             raise EntryNotFoundException(e) from None
 
@@ -62,7 +61,7 @@ class IMASPySource(DataSourceInterface):
         try:
             ids_root = entry.get(ids, lazy=True, autoconvert=False, occurrence=occurrence)
             return ids_root
-        except imaspy.exception.IDSNameError as e:
+        except imas.exception.IDSNameError as e:
             raise IdsNotFoundException(e) from None
 
     def data_entry_exists(self, uri: str) -> bool:
@@ -107,9 +106,9 @@ class IMASPySource(DataSourceInterface):
 
     def _jsonify_metadata(self, metadata: IDSMetadata, recursive: bool = False, show_error_bars: bool = False) -> dict:
         """
-        Converts imaspy.ids_metadata.IDSMetadata into dictionary
+        Converts imas.ids_metadata.IDSMetadata into dictionary
 
-        :param metadata: imaspy.ids_metadata.IDSMetadata - metadata to be converted
+        :param metadata: imas.ids_metadata.IDSMetadata - metadata to be converted
         :param recursive: if it should append recursively metadata of children, children of children and so on...
         :param show_error_bars: whether error bar nodes should be returned, or not
         :return: metadata turned into dictionary with keys: `name`:str, `type`:str, `ndim`:str, `shape`:str, `children`:list[dict]
@@ -150,7 +149,7 @@ class IMASPySource(DataSourceInterface):
         :param occurrence: ids occurrence number
         :param recursive: If True, creates node_info tree. If False, returns only pointed node and it's children node_info
         :param show_error_bars: whether error bar nodes should be returned, or not
-        :return:
+        :return: dictionary containing node metadata
         """
 
         metadata, coordinates = self._get_metadata_and_coordinates(uri, ids, node_path, occurrence)
@@ -292,7 +291,7 @@ class IMASPySource(DataSourceInterface):
         for i in range(1, len(path_elements) + 1):
             ancestors_and_path.append(IDSPath("/".join(path_elements[:i])))
 
-        # sort list to contain leaf nodes coordinates at the beginning
+        # sort list to contain leaf nodes at the beginning
         ancestors_and_path.sort(key=lambda x: len(str(x)), reverse=True)
 
         return ancestors_and_path
@@ -327,6 +326,7 @@ class IMASPySource(DataSourceInterface):
         for element in ancestors_and_path:
             element_metadata = element.goto_metadata(ids_obj.metadata)
 
+            # replace time-based coordinates with generic "time", if time is homogeneous
             for coord in element_metadata.coordinates:
                 if is_time_homogeneous and coord.is_time_coordinate:
                     coordinates[element] = "time"
@@ -357,7 +357,7 @@ class IMASPySource(DataSourceInterface):
 
         return {"value": data_to_be_returned}
 
-    def _add_index_to_aos_in_path(self, ids_metadata: imaspy.ids_base.IDSBase, path_str: str):
+    def _add_index_to_aos_in_path(self, ids_metadata: imas.ids_base.IDSBase, path_str: str):
         """
         Helper function to add `[:]` to AoSs in path:
         eg: source/profiles_1d/time -> source[:]/profiles_1d[:]/time (core_sources)
@@ -372,6 +372,7 @@ class IMASPySource(DataSourceInterface):
         for element in path_elements:
             ids_path = IDSPath(element)
             ids_metadata = ids_path.goto_metadata(ids_metadata)
+
             result += element
             if ids_metadata.data_type == IDSDataType.STRUCT_ARRAY:
                 result += "[:]"
@@ -397,14 +398,19 @@ class IMASPySource(DataSourceInterface):
         for ids in ids_list:
             try:
                 ids_obj = entry.get(ids, occurrence=0, autoconvert=False, lazy=True)
-                paths = [node for node in imaspy.util.find_paths(ids_obj, searched_node)]
+                paths = [node for node in imas.util.find_paths(ids_obj, searched_node)]
                 for path in paths:
                     if not show_error_bars and any(
                         error_node in path for error_node in ["_error_upper", "_error_lower", "_error_index"]
                     ):
                         continue
-                    found_paths.append(f"#{ids}/{self._add_index_to_aos_in_path(ids_obj.metadata, path)}")
-            except imaspy.exception.DataEntryException:
+
+                    # collect only leaf nodes
+                    node_data_type = ids_obj.metadata[path].data_type
+                    if node_data_type.value != "structure" and node_data_type.value != "struct_array":
+                        found_paths.append(f"#{ids}/{self._add_index_to_aos_in_path(ids_obj.metadata, path)}")
+
+            except imas.exception.DataEntryException:
                 continue
 
         return {"paths": found_paths}
@@ -425,10 +431,6 @@ class IMASPySource(DataSourceInterface):
 
         ids_obj = self._open_entry_and_get_ids(uri, ids, occurrence)
         ids_data = self._get_raw_data(ids_obj, path_elements)
-
-        # test if all values are the same type
-        # if not all(type(x) == type(ids_data[0]) for x in ids_data):
-        #    raise DifferentTypesException(f"Nodes pointed by path {node_path} have different types and cannot be summarized")
 
         if isinstance(ids_data, IDSStructure) or isinstance(ids_data, IDSStructArray):
             raise NotALeafNodeException(f"Path {node_path} does not point to a leaf node")
@@ -471,6 +473,7 @@ class IMASPySource(DataSourceInterface):
         except FileNotFoundError as e:
             raise e  # TODO: return HTTP error to client
 
+        # Part of IDStools dblist script
         for dbname, dvs in dbs:
             if database and database not in dbname:
                 continue
@@ -490,7 +493,7 @@ class IMASPySource(DataSourceInterface):
 
     def _extract_1_N_coord_values(self, data):
         """
-        Goes through list of IDSStructArray (or lists of lists of lists...) and returns all 1...N coordinates
+        Goes through list of IDSStructArray (or lists of lists of lists...) and returns all 1...N coordinates values
 
         :param data: flat or nested list of IDSStructArray
         :return: list of 1...N values. Has the same shape as input list
@@ -505,7 +508,7 @@ class IMASPySource(DataSourceInterface):
 
     def _serialize_data(self, data):
         """
-        Converts data IDS data into serializable values e.g. imaspy.int64 -> int
+        Converts data IDS data into serializable values e.g. imas.int64 -> int
 
         :param data:
         :return: Serializable data value
@@ -547,8 +550,32 @@ class IMASPySource(DataSourceInterface):
 
         metadata, coordinates_dict = self._get_metadata_and_coordinates(uri, ids, node_path, occurrence)
 
-        # replace all dummy indexes by [:]. i.e. "itime", "i1", "i2", "i3"... -> [:]
-        coordinates_dict = {key: re.sub(r"[\[\(](.*?)[\]\)]", r"[:]", value) for key, value in coordinates_dict.items()}
+        # replace all dummy indexes i.e. "itime", "i1", "i2", "i3"... -> [<value_from_target_node>]
+        for _node_path, _coordinate_path in coordinates_dict.items():
+            if _coordinate_path == "1...N":
+                continue
+
+            _new_coordinate_path = ""
+
+            # iterate over path elements. X stands target node path element, while Y stands for coordinate path elements
+            # we do this in order to fill dummy indexes with indexes extracted from target node path
+            for x, y in zip_longest(_node_path.items(), IDSPath(_coordinate_path).items()):
+                # x[0] is node name in path eg. profiles_1d
+                # x[1] is indices or single index. For instance x=profiles_1d[123] -> x[0]=profiles_1d & x[1]=123
+                # the same applies to y
+
+                y_indices = y[1] if y is not None else None
+
+                if y is not None:
+                    if x is not None and x[0] == y[0]:
+                        y_indices = x[1]
+                    # construct new coordinate path element from node_name and slice extracted from x[1]
+                    _new_coordinate_path += f"{y[0]}{self._slice_to_string(y_indices)}/"
+
+            # delete last "/" from path
+            _new_coordinate_path = _new_coordinate_path[:-1]
+
+            coordinates_dict[_node_path] = _new_coordinate_path
 
         # =================================
 
@@ -566,17 +593,34 @@ class IMASPySource(DataSourceInterface):
                 path_elements = list(ids_path.items())
                 coord_target_objects = self._get_raw_data(ids_obj, path_elements)
 
+                # collect labels for 1...N coordinates
+                labels = []
+                try:
+                    for element in coord_target_objects:
+                        if hasattr(element, "name"):
+                            labels.append(str(element.name))
+                        elif hasattr(element, "label"):
+                            labels.append(str(element.label))
+                        else:
+                            raise AttributeError("No <name> or <label> attribute in node")
+
+                    # if any label is empty, use indexes instead
+                    if any(s == "" for s in labels):
+                        labels = []
+                except AttributeError:
+                    labels = []
+
                 coord_values = self._extract_1_N_coord_values(coord_target_objects)
 
                 c = {
-                    "name": coord,
+                    "name": splitted_target[-1],
                     "target": f"#{ids}/{target}",
                     "unit": "-",
                     "shape": np.asarray(coord_values).shape,
                     "ndim": 1,  # 1...N coord always have 1 dimension
                     "path": "",
                     "description": "1...N",
-                    "value": coord_values,
+                    "value": labels if labels else coord_values,
                 }
                 coordinates_to_be_returned.append(c)
 
