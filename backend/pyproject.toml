@@ -57,6 +57,10 @@ linting = [
     "ruff",
 ]
 
+benchmark = [
+    "asv>=0.6.2"
+]
+
 [project.urls]
 homepage = "https://git.iter.org/projects/IMEX/repos/ibex"
 

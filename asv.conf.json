@@ -33,7 +33,8 @@
 
     // List of branches to benchmark. If not provided, defaults to "main"
     // (for git) or "default" (for mercurial).
-    "branches": ["master", "develop"],
+    //"branches": ["master", "develop"],
+    "branches": ["feature/backend_benchmarks_2"],
 
     // The DVCS being used.  If not set, it will be automatically
     // determined from "repo" by looking at the protocol in the URL

@@ -1,25 +1,36 @@
 from fastapi.testclient import TestClient
 from ibex.main import app
-import sys
+from . import uris, uris_label
 
 
-class TimeDataEntryEndpoints:
-    class TimeSuite:
-        param_names = ["pulsefile uri"]
-        params = [
-            "imas:mdsplus?pulse=135012;run=1;user=public;database=iter;version=3",  # 245 slices
-            "imas:mdsplus?pulse=135014;run=1;user=public;database=iter;version=3",  # 984 slices
-            "imas:mdsplus?user=public;database=ITER;pulse=135009;run=5;version=3",  # 11808 slices
-            "imas:mdsplus?user=public;database=ITER;pulse=135010;run=5;version=3",  # 70340 slices
-            "imas:mdsplus?user=public;database=ITER;pulse=135002;run=5;version=3",  # 127340 slices
-        ]
+class TimeDataEntryEndpointsSuite:
+    param_names = uris_label
+    params = uris
 
-        def setup(self):
-            self.test_client = TestClient(app)
+    def setup(self, *args):
+        self.test_client = TestClient(app)
 
-        def time_exists(self, uri):
-            print(f"RUNNING BENCHMARK FOR URI: {uri}", file=sys.stderr)
-            parameters = {"uri": uri}
+    def time_exists(self, uri):
+        parameters = {"uri": uri}
+        self.test_client.get("/data_entry/exists", params=parameters)
 
-            self.test_client.get("/data_entry/exists", params=parameters)
-            # ibex.endpoints.data_entry.exists(uri)
+    def time_list_idses(self, uri):
+        parameters = {"uri": uri}
+        self.test_client.get("/data_entry/list_idses", params=parameters)
+
+    def time_available_entries(self, backend, database, user, version):
+        parameters = {
+            "backend": backend,
+            "database": database,
+            "user": user,
+            "version": version,
+        }
+        self.test_client.get("/data_entry/available_entries", params=parameters)
+
+    time_available_entries.params = (
+        ["mdsplus", "hdf5"],
+        ["iter", "ITER"],
+        ["public"],
+        ["3"],
+    )
+    time_available_entries.param_names = ["backend", "database", "user", "version"]
