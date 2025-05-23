@@ -6,6 +6,8 @@ When you save a configuration, a file in the following format will be created. I
 
 You can also manually edit the file before loading it—for example, if you want to change a specific URI. (Make sure the URI exists before making any manual changes.)
 
+Exemple configuration file :
+
 .. code-block:: bash
 
   {
