@@ -44,7 +44,7 @@ dependencies = [
     "fastapi[standard]",
     "packaging",
     "imas-python",
-    "IDStools",
+    #"IDStools",
     "imas-core",
 ]
 
