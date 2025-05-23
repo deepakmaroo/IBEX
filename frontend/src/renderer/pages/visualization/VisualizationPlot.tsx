@@ -105,8 +105,8 @@ export const VisualizationPlot = ({
                   w: plotData.w,
                   h: plotData.h,
                   static: plotData.static,
-                  minH: 8,
-                  minW: 4,
+                  minH: plotData.coordinates.length > 0 ? 12 : 8,
+                  minW: plotData.coordinates.length > 0 ? 6 : 4,
                 }}
                 style={{
                   width: '100%',

@@ -20,8 +20,8 @@ Manual
    :caption: User's manual
    :maxdepth: 1
 
-   users_manual/introduction
-
+   users_manual/how_to_launch
+   users_manual/features
 
 .. toctree::
    :caption: Developer's manual

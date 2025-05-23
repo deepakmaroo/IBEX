@@ -277,8 +277,9 @@ export const GridLayoutPlot = ({
             {(hovered || data.static || data.isEditing) && (
               <Group
                 pos="absolute"
-                right={data.static || data.isEditing ? 5 : 1}
+                right={data.static || data.isEditing ? 3 : 1}
                 top={5}
+                grow
               >
                 <Tooltip label="Inpect metadatas information">
                   <ActionIcon
@@ -374,7 +375,7 @@ export const GridLayoutPlot = ({
             data={data.plot}
             width={
               data.coordinates.length > 0
-                ? widthGrid - widthSlider - widthSlider / 2
+                ? widthGrid - widthSlider - 30
                 : widthGrid - 40
             }
             height={heightGrid}
