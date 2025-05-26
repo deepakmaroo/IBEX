@@ -9,6 +9,13 @@ set -e -o pipefail
 BACKEND_ROOT_DIR=$(realpath "$(dirname "$(realpath "${BASH_SOURCE[0]}")")/..")
 source ${BACKEND_ROOT_DIR}/ci/configure_env.sh
 
+BENCHMARKS_DIR=$(realpath "$PWD/ibex_benchmarks")
+if [[ "$(uname -n)" == *"bamboo"* ]]; then
+    set -e -o pipefail
+    # create
+    BENCHMARKS_DIR=$(realpath "/mnt/bamboo_deploy/ibex/benchmarks/")
+fi
+
 #set -x
 cd ${BACKEND_ROOT_DIR}
 
@@ -20,13 +27,25 @@ echo "PWD: " `pwd`
 # PREPARE THE ENVIRONMENT
 pip install --upgrade ./[benchmark]
 
-# The code correctness check
+# Run benchmarks
 echo -e "Running benchmarks..."
 cd ..
-python -m asv run --python=same --verbose
+asv run --skip-existing-successful HEAD^!
+asv run --skip-existing-successful develop^!
+asv run --skip-existing-successful master^!
 
-if [ $? -ne 0 ]; then
-    echo -e "Benchmark failed. Please fix the issues..."
- fi
+# Compare results
+if [ `git rev-parse --abbrev-ref HEAD` == develop ]
+then
+    asv compare master develop --machine $(hostname) || echo "asv compare failed"
+else
+    asv compare develop HEAD --machine $(hostname) || echo "asv compare failed"
+fi
+
+# Publish results
+asv publish
+
+# And persistently store them
+cp -rf .asv/{results,html} "$BENCHMARKS_DIR"
 
 exit 0
