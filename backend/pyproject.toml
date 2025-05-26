@@ -45,7 +45,7 @@ dependencies = [
     "packaging",
     "imas-python",
     #"IDStools",
-    "imas-core",
+    #"imas-core",
 ]
 
 [project.optional-dependencies]
