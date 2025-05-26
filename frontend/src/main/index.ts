@@ -5,15 +5,18 @@ import { config } from 'dotenv';
 
 config();
 
+
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
   app.quit();
 }
 
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on('ready', () => {
+  app.commandLine.appendSwitch('remote-debugging-port', '9222');
   createWindow();
 
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
@@ -41,6 +44,7 @@ app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) {
     createWindow();
   }
+  console.log('[ELECTRON] Port debug activé : 9222');
 });
 
 // In this file you can include the rest of your app's specific main process

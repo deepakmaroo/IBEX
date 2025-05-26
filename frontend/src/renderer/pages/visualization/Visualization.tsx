@@ -4,10 +4,12 @@ import { VisualizationTree } from './VisualizationTree';
 import { VisualizationPlot } from './VisualizationPlot';
 import { VisualizationMetaData } from './VisualizationMetaData';
 import { useDisclosure } from '@mantine/hooks';
+import { useState } from 'react';
 
 export const Visualization = () => {
   const { active, configurations } = useIbexStore();
   const [opened, { toggle }] = useDisclosure(true);
+  const [message, setMessage] = useState('Aucun clic');
 
   const HEIGHT = '88.5vh';
 
@@ -16,6 +18,12 @@ export const Visualization = () => {
 
   return (
     <Container fluid p={10}>
+      <div>
+      <button data-testid="create-button">
+      Créer
+    </button>
+        <div className="result">{message}</div>
+      </div>
       {configurations.length > 0 ? (
         <div style={{ display: 'flex', transition: 'width 0.3s ease' }}>
           <div
