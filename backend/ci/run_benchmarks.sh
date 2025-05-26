@@ -19,6 +19,8 @@ fi
 #set -x
 cd ${BACKEND_ROOT_DIR}
 
+export ASV_PYTHONPATH="$PYTHONPATH"
+
 # Create a venv
 python -m venv venv
 . venv/bin/activate

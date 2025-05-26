@@ -25,19 +25,11 @@
         "python -m pip install build",
         "python -m build",
         "python -m build --wheel -o {build_cache_dir} {build_dir}",
+        //"python -m pip wheel --no-deps -w {build_cache_dir} {build_dir}"
     ],
     // Customizable commands for installing and uninstalling the project.
     // See asv.conf.json documentation.
     "install_command": [
-        // copy al-core and idstools python packages
-        "/bin/bash -c 'cp -r /work/imas/opt/EasyBuild/software/IDStools/2.2.0-intel-2023b/lib/python3.11/site-packages/idstools {env_dir}/lib/python3.11/site-packages'",
-        "/bin/bash -c 'cp -r /work/imas/opt/EasyBuild/software/IDStools/2.2.0-intel-2023b/lib/python3.11/site-packages/IDStools-0.0.dist-info {env_dir}/lib/python3.11/site-packages'",
-
-        "/bin/bash -c 'cp -r /work/imas/opt/EasyBuild/software/IMAS-AL-Core/5.4.3-intel-2023b/lib/python3.11/site-packages/imas_core {env_dir}/lib/python3.11/site-packages'",
-        "/bin/bash -c 'cp -r /work/imas/opt/EasyBuild/software/IMAS-AL-Core/5.4.3-intel-2023b/lib/python3.11/site-packages/imas_core-5.4.3.dist-info {env_dir}/lib/python3.11/site-packages'",
-        "/bin/bash -c 'cp -r /work/imas/opt/EasyBuild/software/IMAS-AL-Core/5.4.3-intel-2023b/lib/python3.11/site-packages/imas_core.libs {env_dir}/lib/python3.11/site-packages'",
-        "/bin/bash -c 'cp -r /work/imas/opt/EasyBuild/software/IMAS-AL-Core/5.4.3-intel-2023b/lib/python3.11/site-packages/share {env_dir}/lib/python3.11/site-packages'",
-
         "python -mpip list",
         "in-dir={env_dir} python -mpip install {wheel_file}"],
     // "uninstall_command": ["return-code=any python -mpip uninstall -y {project}"],
