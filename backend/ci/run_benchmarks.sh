@@ -34,12 +34,13 @@ echo -e "Running benchmarks..."
 cd ..
 asv run --skip-existing-successful HEAD^!
 asv run --skip-existing-successful develop^!
-asv run --skip-existing-successful master^!
+#asv run --skip-existing-successful master^!
 
 # Compare results
 if [ `git rev-parse --abbrev-ref HEAD` == develop ]
 then
-    asv compare master develop --machine $(hostname) || echo "asv compare failed"
+    echo "skipping master -> develop comparison"
+    #asv compare master develop --machine $(hostname) || echo "asv compare failed"
 else
     asv compare develop HEAD --machine $(hostname) || echo "asv compare failed"
 fi
