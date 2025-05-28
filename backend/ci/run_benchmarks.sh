@@ -49,6 +49,5 @@ fi
 asv publish
 
 # And persistently store them
-cp -rf .asv/{results,html} "$BENCHMARKS_DIR"
-
+mkdir -p "$BENCHMARKS_DIR" && cp -rf .asv/{results,html} "$BENCHMARKS_DIR"
 exit 0

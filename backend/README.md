@@ -46,3 +46,9 @@ make -C docs html
 ```commandline
 python -m pytest tests/ #make sure to run pythest with python -m. Otherwise it won't see installed fastapi packages
 ```
+
+## Benchmarking
+```commandline
+./ci/run_benchmarks.sh
+# results will be saved in `cwd`/ibex_benchmarks
+```
