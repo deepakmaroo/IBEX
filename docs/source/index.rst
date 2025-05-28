@@ -29,6 +29,7 @@ Manual
 
    developers_manual/frontend_development/frontend_development
    developers_manual/backend_development/backend_development
+   developers_manual/backend_development/benchmarking
 
 
 LICENSE
