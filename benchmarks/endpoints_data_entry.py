@@ -28,8 +28,8 @@ class TimeDataEntryEndpointsSuite:
         self.test_client.get("/data_entry/available_entries", params=parameters)
 
     time_available_entries.params = (
-        ["mdsplus", "hdf5"],
-        ["iter", "ITER"],
+        ["mdsplus"],
+        ["ITER"],
         ["public"],
         ["3"],
     )

@@ -20,10 +20,10 @@ class TimeIdsInfoEndpointsSuite:
         [
             "#core_profiles:0/",  # IDS_BASE
             "#core_profiles:0/ids_properties",  # STRUCTURE
-            "#core_profiles:0/ids_properties/version_put/access_layer",  # STR
+            "#core_profiles:0/ids_properties/version_put/access_layer",  # LEAF
             "#core_profiles:0/profiles_1d",  # AoS
             "#core_profiles:0/profiles_1d[0]",  # AoS element
-            "#core_profiles:0/profiles_1d[0]/t_i_average",
+            "#core_profiles:0/profiles_1d[0]/t_i_average",  # LEAF,
         ],
     )
 

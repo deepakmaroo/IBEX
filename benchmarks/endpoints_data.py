@@ -18,9 +18,9 @@ class TimeIdsInfoEndpointsSuite:
     time_field_value.params = (
         uris,
         [
-            "#core_profiles:0/time",
-            "#core_profiles:0/profiles_1d[0]/t_i_average",
-            "#core_profiles:0/profiles_1d[0:100]/t_i_average",
+            "#core_profiles:0/time",  # LEAF
+            "#core_profiles:0/profiles_1d[0]/t_i_average"  # LEAF IN AoS,
+            "#core_profiles:0/profiles_1d[0:100]/t_i_average",  # LEAF IN AoS SLICE,
         ],
     )
 
@@ -32,8 +32,8 @@ class TimeIdsInfoEndpointsSuite:
     time_plot_data.params = (
         uris,
         [
-            "#core_profiles:0/time",
-            "#core_profiles:0/profiles_1d[0]/t_i_average",
-            "#core_profiles:0/profiles_1d[0:100]/t_i_average",
+            "#core_profiles:0/time",  # LEAF
+            "#core_profiles:0/profiles_1d[0]/t_i_average"  # LEAF IN AoS,
+            "#core_profiles:0/profiles_1d[0:100]/t_i_average",  # LEAF IN AoS SLICE,
         ],
     )
