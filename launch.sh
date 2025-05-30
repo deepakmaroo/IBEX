@@ -30,7 +30,7 @@ port=49152
 found_ports=()
 
 while [ ${#found_ports[@]} -lt 2 ]; do
-  if [ -n "$(ss -tan4H "sport = $port")" ]; then
+  if [ -z "$(ss -tan4H "sport = $port")" ]; then
     found_ports+=($port)
   fi
   port=$((port+1))
