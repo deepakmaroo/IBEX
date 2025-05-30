@@ -26,6 +26,8 @@ echo "5. Installing frontend dependencies..."
 cd "$SCRIPT_DIR/frontend"
 
 # Search for 2 open ports, one for webpack renderer and one for webpack logger
+# The range 49152–65535 contains dynamic or private ports.
+# This range is used for private or customized services, for temporary purposes, and for automatic allocation of ephemeral ports.
 port=49152
 found_ports=()
 
