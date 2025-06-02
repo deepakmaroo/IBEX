@@ -12,7 +12,7 @@
     "lint": "eslint --ext .ts,.tsx .",
     "format": "prettier --write .",
     "debug": "DEBUG=electron-forge:* electron-forge start",
-    "test-ui": "node src/tests/test-ui.js",
+    "test:ui": "mocha src/tests",
     "start-chromedriver": "npx chromedriver --port=9222"
   },
   "devDependencies": {
@@ -32,6 +32,7 @@
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "@typescript-eslint/parser": "^5.62.0",
     "@vercel/webpack-asset-relocator-loader": "1.7.3",
+    "chai": "^5.2.0",
     "chromedriver": "^136.0.0",
     "css-loader": "^6.0.0",
     "electron": "^36.1.0",
@@ -42,6 +43,7 @@
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-prettier": "^5.2.6",
     "fork-ts-checker-webpack-plugin": "^7.2.13",
+    "mocha": "^11.5.0",
     "node-loader": "^2.0.0",
     "postcss": "^8.4.49",
     "postcss-preset-mantine": "^1.17.0",
