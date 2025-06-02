@@ -29,6 +29,11 @@ echo "PWD: " `pwd`
 # PREPARE THE ENVIRONMENT
 pip install --upgrade ./[benchmark]
 
+# Copy previous results (if any)
+mkdir -p "$BENCHMARKS_DIR/results"
+mkdir -p .asv
+cp -rf "$BENCHMARKS_DIR/results" .asv/
+
 # Run benchmarks
 echo -e "Running benchmarks..."
 cd ..
