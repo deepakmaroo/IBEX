@@ -12,7 +12,7 @@
     "lint": "eslint --ext .ts,.tsx .",
     "format": "prettier --write .",
     "debug": "DEBUG=electron-forge:* electron-forge start",
-    "test:ui": "mocha src/tests",
+    "test:ui": "mocha -r ts-node/register src/tests/*.spec.ts",
     "start-chromedriver": "npx chromedriver --port=9222"
   },
   "devDependencies": {
@@ -25,10 +25,14 @@
     "@electron-forge/plugin-fuses": "^7.8.0",
     "@electron-forge/plugin-webpack": "^7.8.0",
     "@electron/fuses": "^1.8.0",
+    "@types/chai": "^5.2.2",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^22.15.29",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@types/react-grid-layout": "^1.3.5",
     "@types/react-plotly.js": "^2.6.3",
+    "@types/selenium-webdriver": "^4.1.28",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "@typescript-eslint/parser": "^5.62.0",
     "@vercel/webpack-asset-relocator-loader": "1.7.3",
@@ -52,7 +56,7 @@
     "selenium-webdriver": "^4.33.0",
     "style-loader": "^3.0.0",
     "ts-loader": "^9.5.1",
-    "ts-node": "^10.0.0",
+    "ts-node": "^10.9.2",
     "typescript": "5.1"
   },
   "keywords": [],

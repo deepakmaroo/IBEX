@@ -4,12 +4,10 @@ import { VisualizationTree } from './VisualizationTree';
 import { VisualizationPlot } from './VisualizationPlot';
 import { VisualizationMetaData } from './VisualizationMetaData';
 import { useDisclosure } from '@mantine/hooks';
-import { useState } from 'react';
 
 export const Visualization = () => {
   const { active, configurations } = useIbexStore();
   const [opened, { toggle }] = useDisclosure(true);
-  const [message, setMessage] = useState('Aucun clic');
 
   const HEIGHT = '88.5vh';
 
@@ -18,12 +16,6 @@ export const Visualization = () => {
 
   return (
     <Container fluid p={10}>
-      <div>
-      <button data-testid="create-button">
-      Créer
-    </button>
-        <div className="result">{message}</div>
-      </div>
       {configurations.length > 0 ? (
         <div style={{ display: 'flex', transition: 'width 0.3s ease' }}>
           <div
@@ -33,7 +25,13 @@ export const Visualization = () => {
               marginRight: '10px',
             }}
           >
-            <Paper shadow="md" h={HEIGHT} radius="md" pt="sm">
+            <Paper
+              shadow="md"
+              h={HEIGHT}
+              radius="md"
+              pt="sm"
+              data-testid="viz-tree"
+            >
               <VisualizationTree
                 height={HEIGHT}
                 extended={opened}
@@ -48,18 +46,20 @@ export const Visualization = () => {
               transition: 'width 0.3s ease',
             }}
           >
-            <Paper shadow="md" h={HEIGHT} radius="md">
-              {active?.gridLayoutSelected ? (
+            {active?.gridLayoutSelected ? (
+              <Paper shadow="md" h={HEIGHT} radius="md" data-testid="viz-meta">
                 <VisualizationMetaData />
-              ) : (
+              </Paper>
+            ) : (
+              <Paper shadow="md" h={HEIGHT} radius="md" data-testid="viz-plot">
                 <VisualizationPlot extended={!opened} height={HEIGHT} />
-              )}
-            </Paper>
+              </Paper>
+            )}
           </div>
         </div>
       ) : (
         <Center h={HEIGHT}>
-          <Text>No configurations available</Text>
+          <Text data-testid="no-config">No configurations available</Text>
         </Center>
       )}
     </Container>
