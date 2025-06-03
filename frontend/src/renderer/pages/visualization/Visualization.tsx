@@ -15,7 +15,7 @@ export const Visualization = () => {
   const rightWidth = opened ? '83.333%' : '97%'; // span=10 or 11 on 12
 
   return (
-    <Container fluid p={10}>
+    <Container fluid p={10} data-testid="visualization-container">
       {configurations.length > 0 ? (
         <div style={{ display: 'flex', transition: 'width 0.3s ease' }}>
           <div
@@ -24,18 +24,14 @@ export const Visualization = () => {
               transition: 'width 0.3s ease',
               marginRight: '10px',
             }}
+            data-testid="visualization-left-panel"
           >
-            <Paper
-              shadow="md"
-              h={HEIGHT}
-              radius="md"
-              pt="sm"
-              data-testid="viz-tree"
-            >
+            <Paper shadow="md" h={HEIGHT} radius="md" pt="sm">
               <VisualizationTree
                 height={HEIGHT}
                 extended={opened}
                 handleExtended={toggle}
+                data-testid="visualization-tree"
               />
             </Paper>
           </div>
@@ -45,21 +41,24 @@ export const Visualization = () => {
               width: rightWidth,
               transition: 'width 0.3s ease',
             }}
+            data-testid="visualization-right-panel"
           >
-            {active?.gridLayoutSelected ? (
-              <Paper shadow="md" h={HEIGHT} radius="md" data-testid="viz-meta">
-                <VisualizationMetaData />
-              </Paper>
-            ) : (
-              <Paper shadow="md" h={HEIGHT} radius="md" data-testid="viz-plot">
-                <VisualizationPlot extended={!opened} height={HEIGHT} />
-              </Paper>
-            )}
+            <Paper shadow="md" h={HEIGHT} radius="md">
+              {active?.gridLayoutSelected ? (
+                <VisualizationMetaData data-testid="visualization-metadata" />
+              ) : (
+                <VisualizationPlot
+                  extended={!opened}
+                  height={HEIGHT}
+                  data-testid="visualization-plot"
+                />
+              )}
+            </Paper>
           </div>
         </div>
       ) : (
         <Center h={HEIGHT}>
-          <Text data-testid="no-config">No configurations available</Text>
+          <Text>No configurations available</Text>
         </Center>
       )}
     </Container>

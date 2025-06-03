@@ -1,6 +1,7 @@
-import { ipcMain, dialog } from 'electron';
+import { ipcMain, dialog, BrowserWindow } from 'electron';
 import * as fs from 'fs';
 import { getConfigSync } from '../config';
+import { ConfigurationState } from 'src/renderer/types';
 
 export default {
   initialize() {
@@ -53,6 +54,17 @@ export default {
 
     ipcMain.handle('getConfig', async () => {
       return config;
+    });
+
+    ipcMain.handle('setTestState', async (event, testState: Partial<ConfigurationState>) => {
+      console.log('[Main] setTestState invoked with:', testState); 
+      const win = BrowserWindow.getAllWindows()[0]; // ou autre moyen d'avoir ta fenêtre principale
+      if (win) {
+        console.log('[Main] Sending updateTestState to renderer:', testState);
+        win.webContents.send('updateTestState', testState);
+        return true;
+      }
+      return false;
     });
   },
 };

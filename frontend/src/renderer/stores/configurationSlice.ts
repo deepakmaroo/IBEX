@@ -61,4 +61,12 @@ export const configurationSlice: StateCreator<ConfigurationState> = (set) => ({
       };
     });
   },
+  setState: (newState) => {
+    console.log('Zustand setState called with:', newState);
+
+    set((state) => ({
+      ...state,
+      ...newState,
+    }));
+  },
 });
