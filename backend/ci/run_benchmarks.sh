@@ -39,7 +39,7 @@ asv machine --yes
 
 # Run benchmarks
 echo -e "Running benchmarks..."
-cd ..
+cd ${BACKEND_ROOT_DIR}/..
 asv run --skip-existing-successful HEAD^!
 asv run --skip-existing-successful develop^!
 #asv run --skip-existing-successful master^!
