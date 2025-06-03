@@ -34,12 +34,9 @@ mkdir -p "$BENCHMARKS_DIR/results"
 mkdir -p .asv
 cp -rf "$BENCHMARKS_DIR/results" .asv/
 
-# Ensure there is a machine configuration
-asv machine --yes
-
 # Run benchmarks
 echo -e "Running benchmarks..."
-cd ${BACKEND_ROOT_DIR}/..
+cd ..
 asv run --skip-existing-successful HEAD^!
 asv run --skip-existing-successful develop^!
 #asv run --skip-existing-successful master^!
