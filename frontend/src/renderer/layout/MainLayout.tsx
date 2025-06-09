@@ -17,6 +17,7 @@ import {
 import { ConfigCreateModal, ConfirmModal, Header } from '../components';
 import { plotNodeUriLoaded, updateCustomDataTree } from '../utils';
 import { VisualizationURIModal } from '../pages';
+import { showNotification } from '@mantine/notifications';
 
 export function MainLayout() {
   const {
@@ -133,6 +134,18 @@ export function MainLayout() {
       if (path) {
         await window.api.fs.readFile(path).then(async (data) => {
           const newIbexState: ConfigurationToSave = JSON.parse(data);
+
+          const configurationExists = configurations.find(
+            (config) => config.name === newIbexState.name && path === config.path,
+          );
+          if (configurationExists) {
+            showNotification({
+              title: 'Configuration already loaded',
+              message: `The configuration ${newIbexState.name} is already loaded.`,
+              color: 'red',
+            });
+            return;
+          }
 
           const newListDataGridPlot: DataGridPlot[] = newIbexState.dataPlot.map(
             (data): DataGridPlot => ({
