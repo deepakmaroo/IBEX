@@ -87,30 +87,6 @@ export const GridLayoutPlot = ({
   }, [data.h, rowHeight, data.w, colWidth]);
 
   /**
-   * Handle the drag static event
-   */
-  const handleDragStatic = useCallback(
-    (id: string) => {
-      const newDataPlot: DataGridPlot[] = active.dataPlot.map(
-        (item: DataGridPlot) => {
-          if (item.i === id) {
-            return { ...item, static: !item.static };
-          }
-          return { ...item, static: false, isEditing: false };
-        },
-      );
-      const newActive: Configuration = {
-        ...active,
-        saved: false,
-        dataPlot: newDataPlot,
-      };
-
-      updatedConfiguration(newActive);
-    },
-    [active],
-  );
-
-  /**
    * Handle the delete grid event
    */
   const handleDeleteGrid = useCallback(
@@ -140,7 +116,7 @@ export const GridLayoutPlot = ({
 
       const updatedDataPlot = active.dataPlot.map((item) =>
         item.i === id
-          ? { ...item, isEditing: !item.isEditing }
+          ? { ...item, isEditing: !item.isEditing, static: !item.isEditing}
           : { ...item, isEditing: false, static: false },
       );
 
@@ -251,7 +227,7 @@ export const GridLayoutPlot = ({
                     handleUpdateSliderValue(item, value, index);
                   }}
                   height={heightGrid - 80}
-                  disabled={!data.isEditing || !data.static}
+                  disabled={!data.isEditing}
                 />
               ))}
             </Group>
@@ -271,13 +247,13 @@ export const GridLayoutPlot = ({
             ref={hoverRef}
             className={classes.containerButton}
             style={{
-              width: data.static ? '95%' : '100%',
+              width: data.isEditing ? '95%' : '100%',
             }}
           >
-            {(hovered || data.static || data.isEditing) && (
+            {(hovered || data.isEditing) && (
               <Group
                 pos="absolute"
-                right={data.static || data.isEditing ? 3 : 1}
+                right={data.isEditing ? 3 : 1}
                 top={5}
                 grow
               >
@@ -322,35 +298,6 @@ export const GridLayoutPlot = ({
                   </ActionIcon>
                 </Tooltip>
 
-                {handleDragStatic && (
-                  <Tooltip
-                    label={
-                      data.static
-                        ? 'Drag the plot'
-                        : 'Zoom in/out the plot and stop dragging'
-                    }
-                  >
-                    <ActionIcon
-                      variant="filled"
-                      aria-label="StaticLayout"
-                      onClick={() => handleDragStatic(data.i)}
-                      className={classes.actionButton}
-                    >
-                      {data.static ? (
-                        <IconHandMove
-                          style={{ width: '70%', height: '70%' }}
-                          stroke={1.5}
-                        />
-                      ) : (
-                        <IconZoomIn
-                          style={{ width: '70%', height: '70%' }}
-                          stroke={1.5}
-                        />
-                      )}
-                    </ActionIcon>
-                  </Tooltip>
-                )}
-
                 {handleDeleteGrid && (
                   <Tooltip label="Delete the grid">
                     <ActionIcon
@@ -379,7 +326,7 @@ export const GridLayoutPlot = ({
                 : widthGrid - 40
             }
             height={heightGrid}
-            isStatic={data.static}
+            isStatic={data.isEditing}
             title={data.title}
             xAxis={data.xAxis}
             yAxis={data.yAxis}

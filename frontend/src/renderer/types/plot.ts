@@ -61,7 +61,6 @@ export interface BaseDataGridPlot {
 }
 
 export interface DataGridPlot extends Layout, BaseDataGridPlot {
-  static: boolean;
   plot: DataPlotly[];
   isEditing: boolean;
   coordinates: Coordinates[];
