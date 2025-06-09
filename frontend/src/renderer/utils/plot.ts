@@ -89,7 +89,7 @@ export const handleNewPlot = async (
       name: coordinate.name,
       shape: coordinate.shape,
       data: coordinate.value as number[],
-      value: 0,
+      value: coordinate.value[0] as number,
       target: coordinate.target,
       nodeUri: defaultUri,
     }));
