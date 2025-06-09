@@ -32,7 +32,7 @@ export async function plotData(
     x: xData,
     y: yData,
     name: `${yAxis.name}(${yAxis.unit})_${labelUri}`,
-    mode: 'lines',
+    mode: "lines+markers",
     nodeUri: nodeUri,
     yAxis: yAxis,
     description: description,
