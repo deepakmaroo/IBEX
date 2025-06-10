@@ -260,20 +260,20 @@ describe('UI Tests for Visualization Component', function () {
     });
 
     // Passed
-    // const noConfigText = await driver.wait(
-    //   until.elementLocated(
-    //     By.xpath("//*[contains(text(), 'No chart generates')]"),
-    //   ),
-    //   10000,
-    // );
-
-    // Failed
     const noConfigText = await driver.wait(
       until.elementLocated(
-        By.xpath("//*[contains(text(), 'No configurations available')]"),
+        By.xpath("//*[contains(text(), 'No chart generates')]"),
       ),
       10000,
     );
+
+    // // Failed
+    // const noConfigText = await driver.wait(
+    //   until.elementLocated(
+    //     By.xpath("//*[contains(text(), 'No configurations available')]"),
+    //   ),
+    //   10000,
+    // );
 
     const isDisplayed = await noConfigText.isDisplayed();
     expect(isDisplayed).to.be.true;
