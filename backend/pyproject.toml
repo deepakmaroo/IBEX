@@ -51,11 +51,18 @@ dependencies = [
 [project.optional-dependencies]
 # these self-dependencies are available since pip 21.2
 all = [
-    "ibex[linting]"
+    "ibex[linting]",
+    "ibex[docs]",
 ]
 
 linting = [
     "ruff",
+]
+
+docs =[
+    "sphinx",
+    "sphinx-autosummary-accessors",
+    "sphinx_immaterial",
 ]
 
 benchmark = [

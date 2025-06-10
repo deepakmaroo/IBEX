@@ -3,7 +3,7 @@ Features
 =======================
 
 Description of features
-------------
+-----------------------
 
 .. toctree::
    :maxdepth: 1

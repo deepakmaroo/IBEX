@@ -1,8 +1,8 @@
 .. _`Delete configuration`:
 
-===================
+====================
 Delete configuration
-===================
+====================
 
 You can delete the current configuration by clicking the red "Delete Configuration" button.
 
