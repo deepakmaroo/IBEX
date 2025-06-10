@@ -238,7 +238,7 @@ describe('UI Tests for Visualization Component', function () {
   });
 
 
-    it('Should "No configurations available" is display', async () => {
+    it('Should "No configurations available / No chart generates" is display', async () => {
     // Sample configuration
     await setTestState({
       configurations: [
@@ -259,7 +259,7 @@ describe('UI Tests for Visualization Component', function () {
       },
     });
 
-    // // Passed
+    // Passed
     // const noConfigText = await driver.wait(
     //   until.elementLocated(
     //     By.xpath("//*[contains(text(), 'No chart generates')]"),
