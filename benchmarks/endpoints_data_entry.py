@@ -18,6 +18,8 @@ class TimeDataEntryEndpointsSuite:
         parameters = {"uri": uri}
         self.test_client.get("/data_entry/list_idses", params=parameters)
 
+    # disabled due to timeouts when bamboo had high load
+    """
     def time_available_entries(self, backend, database, user, version):
         parameters = {
             "backend": backend,
@@ -34,3 +36,4 @@ class TimeDataEntryEndpointsSuite:
         ["3"],
     )
     time_available_entries.param_names = ["backend", "database", "user", "version"]
+    """
