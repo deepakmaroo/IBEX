@@ -236,4 +236,47 @@ describe('UI Tests for Visualization Component', function () {
     expect(leftRatio).to.be.closeTo(0.1666, 0.01);   // ~16.67%
     expect(rightRatio).to.be.closeTo(0.8333, 0.01);  // ~83.33%
   });
+
+
+    it('Should "No configurations available" is display', async () => {
+    // Sample configuration
+    await setTestState({
+      configurations: [
+        {
+          name: 'TestConfig1',
+          dataURI: [],
+          checkedNodeURI: [],
+          customDataTree: [],
+          dataPlot: [],
+        },
+      ],
+      active: {
+        name: 'TestConfig1',
+        dataURI: [],
+        checkedNodeURI: [],
+        customDataTree: [],
+        dataPlot: [],
+      },
+    });
+
+    // // Passed
+    // const noConfigText = await driver.wait(
+    //   until.elementLocated(
+    //     By.xpath("//*[contains(text(), 'No chart generates')]"),
+    //   ),
+    //   10000,
+    // );
+
+    // Failed
+    const noConfigText = await driver.wait(
+      until.elementLocated(
+        By.xpath("//*[contains(text(), 'No configurations available')]"),
+      ),
+      10000,
+    );
+
+    const isDisplayed = await noConfigText.isDisplayed();
+    expect(isDisplayed).to.be.true;
+
+  });
 });
