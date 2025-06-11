@@ -12,7 +12,7 @@
     "lint": "eslint --ext .ts,.tsx .",
     "format": "prettier --write .",
     "debug": "DEBUG=electron-forge:* electron-forge start",
-    "test": "mocha -r ts-node/register src/tests/simple.spec.ts",
+    "test": "mocha -r ts-node/register src/tests/*.spec.ts",
     "start-chromedriver": "npx chromedriver --port=9222"
   },
   "devDependencies": {
@@ -37,10 +37,10 @@
     "@typescript-eslint/parser": "^5.62.0",
     "@vercel/webpack-asset-relocator-loader": "1.7.3",
     "chai": "^5.2.0",
-    "chromedriver": "^136.0.3",
+    "chromedriver": "^134.0.5",
     "css-loader": "^6.0.0",
     "electron": "^35.5.1",
-    "electron-chromedriver": "^36.3.2",
+    "electron-chromedriver": "^35.5.0",
     "eslint": "^8.0.1",
     "eslint-config-prettier": "^10.1.2",
     "eslint-import-resolver-typescript": "^3.7.0",

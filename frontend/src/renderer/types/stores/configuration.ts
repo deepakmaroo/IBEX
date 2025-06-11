@@ -2,7 +2,7 @@ import { Configuration } from '..';
 
 export interface ConfigurationState {
   configurations: Configuration[];
-  active: Configuration;
+  active: Configuration | null;
 
   addConfiguration?: (configuration: Configuration) => void;
   updatedConfiguration?: (configuration: Configuration) => void;
