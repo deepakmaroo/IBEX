@@ -1,17 +1,15 @@
 {
   "compilerOptions": {
-    "target": "ES6",
-    "allowJs": true,
-    "module": "Commonjs",
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "noImplicitAny": true,
-    "sourceMap": true,
-    "baseUrl": ".",
-    "outDir": "dist",
+    "target": "es2020",
+    "module": "commonjs",
     "moduleResolution": "node",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "outDir": "dist",
+    "rootDir": "src",
     "resolveJsonModule": true,
-    // "typeRoots": ["./node_modules/@types"],
+
     "types": ["node", "mocha"],
     "paths": {
       "*": ["node_modules/*"],
