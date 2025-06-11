@@ -5,6 +5,7 @@ import * as chrome from 'selenium-webdriver/chrome';
 import { Builder, By, until, WebDriver } from 'selenium-webdriver';
 import { Options } from 'selenium-webdriver/chrome';
 import { ConfigurationState } from 'src/renderer/types';
+import { mockConfigurationState, mockemptyConfigurationsState } from './utils';
 
 /**
  * UI Test Suite for the Visualization Component
@@ -109,10 +110,7 @@ describe('UI Tests for Visualization Component', function () {
 
   it('Should show "No configurations available" text if configurations is empty', async () => {
     // Empty state
-    await setTestState({
-      configurations: [],
-      active: null,
-    });
+    await setTestState(mockemptyConfigurationsState);
 
     // Wait for and locate the "no configurations" message
     const noConfigText = await driver.wait(
@@ -128,24 +126,7 @@ describe('UI Tests for Visualization Component', function () {
 
   it('Should display the Visualization component and show the left and right panels', async () => {
     // Sample configuration
-    await setTestState({
-      configurations: [
-        {
-          name: 'TestConfig1',
-          dataURI: [],
-          checkedNodeURI: [],
-          customDataTree: [],
-          dataPlot: [],
-        },
-      ],
-      active: {
-        name: 'TestConfig1',
-        dataURI: [],
-        checkedNodeURI: [],
-        customDataTree: [],
-        dataPlot: [],
-      },
-    });
+    await setTestState(mockConfigurationState);
 
     // Locate all required elements
     const container = await driver.wait(
@@ -170,24 +151,7 @@ describe('UI Tests for Visualization Component', function () {
 
   it('Should verify the correct width for the left and right panels', async () => {
     // Sample configuration
-    await setTestState({
-      configurations: [
-        {
-          name: 'TestConfig1',
-          dataURI: [],
-          checkedNodeURI: [],
-          customDataTree: [],
-          dataPlot: [],
-        },
-      ],
-      active: {
-        name: 'TestConfig1',
-        dataURI: [],
-        checkedNodeURI: [],
-        customDataTree: [],
-        dataPlot: [],
-      },
-    });
+    await setTestState(mockConfigurationState);
 
     // Locate all required elements
     const container = await driver.wait(
@@ -249,26 +213,34 @@ describe('UI Tests for Visualization Component', function () {
 
   it('Should get active name from current state', async () => {
     // Sample configuration
-    await setTestState({
-      configurations: [
-        {
-          name: 'TestConfig1',
-          dataURI: [],
-          checkedNodeURI: [],
-          customDataTree: [],
-          dataPlot: [],
-        },
-      ],
-      active: {
-        name: 'TestConfig1',
-        dataURI: [],
-        checkedNodeURI: [],
-        customDataTree: [],
-        dataPlot: [],
-      },
-    });
+    await setTestState(mockConfigurationState);
 
     const currentState = await getTestState();
-    expect(currentState.active?.name).to.equal('TestConfig1');
+    expect(currentState.active?.name).to.equal('Test Configuration 1');
+  });
+
+  it('Should update the active configuration when a new one is selected', async () => {
+    // Sample configuration
+    await setTestState(mockConfigurationState);
+
+    const select = await driver.wait(
+      until.elementLocated(
+        By.css('[data-testid="header-select-configuration"]'),
+      ),
+      1000,
+    );
+
+    await select.click();
+
+    const secondOption = await driver.wait(
+      until.elementLocated(By.xpath('//div[@data-combobox-option][2]')),
+      1000,
+    );
+
+    await secondOption.click();
+
+    // Verify that the active configuration has been updated
+    const currentState = await getTestState();
+    expect(currentState.active?.name).to.equal('Test Configuration 2');
   });
 });

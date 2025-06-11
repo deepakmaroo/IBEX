@@ -38,8 +38,8 @@ export const Header = ({
 }: HeaderProps) => {
   const configurationButtons = (
     <Group>
-      <Button onClick={handleAddConfiguration}>Add configuration</Button>
-      <Button onClick={handleLoadConfiguration}>Load configuration</Button>
+      <Button onClick={handleAddConfiguration}  data-testid="header-add-configuration">Add configuration</Button>
+      <Button onClick={handleLoadConfiguration}  data-testid="header-load-configuration">Load configuration</Button>
       <Button
         onClick={handleSaveConfiguration}
         disabled={configurations.length === 0 || active?.saved}
@@ -51,6 +51,7 @@ export const Header = ({
         disabled={configurations.length === 0}
         variant="outline"
         color="red"
+        data-testid="header-select-configuration"
       >
         Delete Configuration
       </Button>
@@ -82,6 +83,7 @@ export const Header = ({
         </Grid.Col>
         <Grid.Col span={2}>
           <Select
+            data-testid="header-select-configuration"
             size="xs"
             key={active?.name || 'default'}
             placeholder="Configuration"
