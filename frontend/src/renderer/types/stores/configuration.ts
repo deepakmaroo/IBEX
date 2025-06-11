@@ -9,4 +9,5 @@ export interface ConfigurationState {
   removeConfiguration?: (name: string) => void;
   setActive?: (name: string) => void;
   setState?: (state: Partial<ConfigurationState>) => void;
+  getState?: () => ConfigurationState;
 }

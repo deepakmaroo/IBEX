@@ -12,7 +12,11 @@ export default {
         const fileContent: string = fs.readFileSync(filePath, 'utf-8');
         return fileContent;
       } catch (error) {
-        throw new Error(`Failed to read file: ${error.message}`);
+        if (error instanceof Error) {
+          throw new Error(`Failed to read file: ${error.message}`);
+        } else {
+          throw new Error(`Failed to read file: ${String(error)}`);
+        }
       }
     });
 
@@ -56,15 +60,35 @@ export default {
       return config;
     });
 
-    ipcMain.handle('setTestState', async (event, testState: Partial<ConfigurationState>) => {
-      console.log('[Main] setTestState invoked with:', testState); 
-      const win = BrowserWindow.getAllWindows()[0]; // ou autre moyen d'avoir ta fenêtre principale
-      if (win) {
-        console.log('[Main] Sending updateTestState to renderer:', testState);
-        win.webContents.send('updateTestState', testState);
-        return true;
-      }
-      return false;
+    ipcMain.handle(
+      'setTestState',
+      async (event, testState: Partial<ConfigurationState>) => {
+        console.log('[Main] setTestState invoked with:', testState);
+        const win = BrowserWindow.getAllWindows()[0]; // ou autre moyen d'avoir ta fenêtre principale
+        if (win) {
+          console.log('[Main] Sending updateTestState to renderer:', testState);
+          win.webContents.send('updateTestState', testState);
+          return true;
+        }
+        return false;
+      },
+    );
+
+    ipcMain.handle('getTestState', async () => {
+      const win = BrowserWindow.getAllWindows()[0];
+      if (!win) return null;
+
+      return new Promise<ConfigurationState>((resolve) => {
+        const replyChannel = 'getTestState:reply';
+
+        const listener = (_event: any, state: ConfigurationState) => {
+          ipcMain.removeListener(replyChannel, listener);
+          resolve(state);
+        };
+
+        ipcMain.on(replyChannel, listener);
+        win.webContents.send('getTestState', replyChannel);
+      });
     });
   },
 };

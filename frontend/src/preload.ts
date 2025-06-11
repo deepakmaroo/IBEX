@@ -1,7 +1,7 @@
 // See the Electron documentation for details on how to use preload scripts:
 // https://www.electronjs.org/docs/latest/tutorial/process-model#preload-scripts
 
-import { ConfigurationState } from "./renderer/types";
+import { ConfigurationState } from './renderer/types';
 
 const { contextBridge, ipcRenderer } = require('electron');
 export const API = {
@@ -21,16 +21,30 @@ export const API = {
 
   setTestState: (testState: Partial<ConfigurationState>) =>
     ipcRenderer.invoke('setTestState', testState),
-  
-  onUpdateTestState: (callback: (event: Electron.IpcRendererEvent, state: Partial<ConfigurationState>) => void) => {
+
+  getTestState: () => ipcRenderer.invoke('getTestState'),
+
+  onUpdateTestState: (
+    callback: (
+      event: Electron.IpcRendererEvent,
+      state: Partial<ConfigurationState>,
+    ) => void,
+  ) => {
     ipcRenderer.on('updateTestState', callback);
   },
 
   removeUpdateTestStateListener: (
-    callback: (event: Electron.IpcRendererEvent, state: Partial<ConfigurationState>) => void,
+    callback: (
+      event: Electron.IpcRendererEvent,
+      state: Partial<ConfigurationState>,
+    ) => void,
   ) => {
     ipcRenderer.removeListener('updateTestState', callback);
   },
+
+  on: ipcRenderer.on.bind(ipcRenderer),
+  send: ipcRenderer.send.bind(ipcRenderer),
+  removeListener: ipcRenderer.removeListener.bind(ipcRenderer),
 };
 // Use `contextBridge` APIs to expose the API to the renderer process
 

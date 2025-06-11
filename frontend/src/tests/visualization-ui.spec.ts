@@ -43,6 +43,17 @@ describe('UI Tests for Visualization Component', function () {
   };
 
   /**
+   * Get the current application state for testing purposes
+   * Uses the exposed test API to retrieve the app's configuration state
+   */
+  const getTestState = async (): Promise<ConfigurationState> => {
+    return await driver.executeScript(() => {
+      // @ts-ignore
+      return window.api.getTestState();
+    });
+  };
+
+  /**
    * Setup phase: Start Electron app and initialize WebDriver
    * Runs once before all tests in this suite
    */
@@ -56,8 +67,8 @@ describe('UI Tests for Visualization Component', function () {
       cwd: appDir,
       env: {
         ...process.env,
-        ELECTRON_ENABLE_LOGGING: 'true',        // Enable detailed logging
-        ELECTRON_ENABLE_STACK_DUMPING: 'true',  // Enable stack traces on crashes
+        ELECTRON_ENABLE_LOGGING: 'true', // Enable detailed logging
+        ELECTRON_ENABLE_STACK_DUMPING: 'true', // Enable stack traces on crashes
       },
     });
 
@@ -95,7 +106,6 @@ describe('UI Tests for Visualization Component', function () {
     if (driver) await driver.quit();
     if (electron) electron.kill();
   });
-
 
   it('Should show "No configurations available" text if configurations is empty', async () => {
     // Empty state
@@ -233,12 +243,11 @@ describe('UI Tests for Visualization Component', function () {
 
     // Assert expected ratios: 1/6 for left panel, 5/6 for right panel
     // Using closeTo() to account for floating-point precision and browser rendering differences
-    expect(leftRatio).to.be.closeTo(0.1666, 0.01);   // ~16.67%
-    expect(rightRatio).to.be.closeTo(0.8333, 0.01);  // ~83.33%
+    expect(leftRatio).to.be.closeTo(0.1666, 0.01); // ~16.67%
+    expect(rightRatio).to.be.closeTo(0.8333, 0.01); // ~83.33%
   });
 
-
-    it('Should "No configurations available / No chart generates" is display', async () => {
+  it('Should get active name from current state', async () => {
     // Sample configuration
     await setTestState({
       configurations: [
@@ -259,24 +268,7 @@ describe('UI Tests for Visualization Component', function () {
       },
     });
 
-    // Passed
-    const noConfigText = await driver.wait(
-      until.elementLocated(
-        By.xpath("//*[contains(text(), 'No chart generates')]"),
-      ),
-      10000,
-    );
-
-    // // Failed
-    // const noConfigText = await driver.wait(
-    //   until.elementLocated(
-    //     By.xpath("//*[contains(text(), 'No configurations available')]"),
-    //   ),
-    //   10000,
-    // );
-
-    const isDisplayed = await noConfigText.isDisplayed();
-    expect(isDisplayed).to.be.true;
-
+    const currentState = await getTestState();
+    expect(currentState.active?.name).to.equal('TestConfig1');
   });
 });

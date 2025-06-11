@@ -1,7 +1,7 @@
 import { StateCreator } from 'zustand';
 import { ConfigurationState } from 'src/renderer/types';
 
-export const configurationSlice: StateCreator<ConfigurationState> = (set) => ({
+export const configurationSlice: StateCreator<ConfigurationState> = (set, get) => ({
   configurations: [],
   active: null,
 
@@ -68,5 +68,9 @@ export const configurationSlice: StateCreator<ConfigurationState> = (set) => ({
       ...state,
       ...newState,
     }));
+  },
+
+  getState: () => {
+    return get();
   },
 });

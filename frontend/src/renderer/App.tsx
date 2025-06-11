@@ -7,24 +7,30 @@ import { useIbexStore } from './stores';
 import { ConfigurationState } from './types';
 
 export function App() {
-  const { setState } = useIbexStore();
+  const { setState, getState } = useIbexStore();
 
   useEffect(() => {
-    console.log('[App] useEffect mounted');
+    const updateHandler = (event: any, testState: ConfigurationState) => {
+      setState(testState);
+    };
 
-    
-  const handler = (event: any, testState: ConfigurationState) => {
-    console.log('[App] updateTestState received:', testState);
-    setState(testState);
-  };
+    const getStateHandler = (_event: any, replyChannel: string) => {
+      const fullState = getState();
+      const { configurations, active } = fullState;
 
-  window.api.onUpdateTestState?.(handler); // ⬅️ Utiliser le vrai handler ici
+      // N'envoie que ce qui est sérialisable
+      const serializableState: ConfigurationState = { configurations, active };
+      window.api.send(replyChannel, serializableState);
+    };
 
-  return () => {
-    window.api.removeUpdateTestStateListener(handler);
-  };
-}, []);
+    window.api.onUpdateTestState(updateHandler);
+    window.api.on('getTestState', getStateHandler);
 
+    return () => {
+      window.api.removeUpdateTestStateListener(updateHandler);
+      window.api.removeListener('getTestState', getStateHandler);
+    };
+  }, []);
 
   return (
     <div>
