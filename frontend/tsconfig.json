@@ -9,6 +9,7 @@
     "outDir": "dist",
     "rootDir": "src",
     "resolveJsonModule": true,
+    "baseUrl": ".",
 
     "types": ["node", "mocha"],
     "paths": {
