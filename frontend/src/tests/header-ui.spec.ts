@@ -14,7 +14,7 @@ import {
 /**
  * UI Test Suite for the Visualization Component
  */
-describe('UI Tests for Visualization Component', function () {
+describe('UI Tests for Header Component', function () {
   this.timeout(30000);
   let driver: WebDriver;
 
@@ -54,19 +54,19 @@ describe('UI Tests for Visualization Component', function () {
   it('Should create new configuration from header', async () => {
     const newConfigButton = await driver.wait(
       until.elementLocated(By.css('[data-testid="header-add-configuration"]')),
-      10000,
+      2000,
     );
     await newConfigButton.click();
 
     const configCreateModal = await driver.wait(
       until.elementLocated(By.css('[data-testid="config-create-modal"]')),
-      10000,
+      2000,
     );
     expect(await configCreateModal.isDisplayed()).to.be.true;
 
     const input = await driver.wait(
       until.elementLocated(By.css('[data-testid="config-create-name-input"]')),
-      10000,
+      2000,
     );
     await input.sendKeys('My New Config');
 
@@ -74,7 +74,7 @@ describe('UI Tests for Visualization Component', function () {
       until.elementLocated(
         By.css('[data-testid="config-create-submit-button"]'),
       ),
-      10000,
+      2000,
     );
     await createButton.click();
 
@@ -90,7 +90,7 @@ describe('UI Tests for Visualization Component', function () {
       until.elementLocated(
         By.css('[data-testid="header-delete-configuration"]'),
       ),
-      10000,
+      2000,
     );
     await deleteButton.click();
 
@@ -98,10 +98,10 @@ describe('UI Tests for Visualization Component', function () {
       until.elementIsVisible(
         await driver.wait(
           until.elementLocated(By.css('[data-testid="confirm-modal"]')),
-          10000,
+          2000,
         ),
       ),
-      10000,
+      2000,
     );
     expect(await confirmationModal.isDisplayed()).to.be.true;
 
@@ -109,7 +109,7 @@ describe('UI Tests for Visualization Component', function () {
       until.elementLocated(
         By.css('[data-testid="config-delete-confirmation-text"]'),
       ),
-      10000,
+      2000,
     );
     const confirmationText = await confirmationTextElement.getText();
     expect(confirmationText).to.equal(
@@ -118,7 +118,7 @@ describe('UI Tests for Visualization Component', function () {
 
     const confirmButton = await driver.wait(
       until.elementLocated(By.css('[data-testid="confirm-modal-confirm-button"]')),
-      10000,
+      2000,
     );
     await confirmButton.click(); 
 
