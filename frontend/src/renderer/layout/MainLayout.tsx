@@ -255,7 +255,7 @@ export function MainLayout() {
           onClose={closeConfigDeleteModal}
           onConfirm={handleRemoveConfiguration}
         >
-          <Text size="sm">
+          <Text size="sm" data-testid="config-delete-confirmation-text">
             Are you sure you want to delete the configuration?
           </Text>
         </ConfirmModal>

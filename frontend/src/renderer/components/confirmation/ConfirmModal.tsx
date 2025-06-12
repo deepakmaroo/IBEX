@@ -16,6 +16,7 @@ export function ConfirmModal({ isOpen, onClose, onConfirm, children }: Props) {
       title="Confirmation"
       size="auto"
       centered
+      data-testid="confirm-modal"
     >
       <form
         onSubmit={(e) => {
@@ -40,6 +41,7 @@ export function ConfirmModal({ isOpen, onClose, onConfirm, children }: Props) {
               onClick={() => {
                 onConfirm();
               }}
+              data-testid="confirm-modal-confirm-button"
             >
               Confirm
             </Button>

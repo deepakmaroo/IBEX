@@ -2,7 +2,14 @@ import { expect } from 'chai';
 import { By, until, WebDriver } from 'selenium-webdriver';
 import { ConfigurationState } from 'src/renderer/types';
 import { mockConfigurationState, mockemptyConfigurationsState } from './utils';
-import { startApp, getDriver, stopApp, waitForApi, setTestState, getTestState } from './setup';
+import {
+  startApp,
+  getDriver,
+  stopApp,
+  waitForApi,
+  setTestState,
+  getTestState,
+} from './setup';
 
 /**
  * UI Test Suite for the Visualization Component
@@ -10,7 +17,6 @@ import { startApp, getDriver, stopApp, waitForApi, setTestState, getTestState } 
 describe('UI Tests for Visualization Component', function () {
   this.timeout(30000);
   let driver: WebDriver;
-
 
   before(async () => {
     await startApp();
@@ -20,6 +26,25 @@ describe('UI Tests for Visualization Component', function () {
 
   afterEach(async () => {
     await setTestState({ configurations: [], active: null });
+
+    // Ferme les modales restantes si besoin
+    try {
+      const modalOverlay = await driver.findElement(
+        By.css('.mantine-Modal-overlay'),
+      );
+      const isDisplayed = await modalOverlay.isDisplayed();
+      if (isDisplayed) {
+        const closeButton = await driver.findElement(
+          By.css('[data-testid="modal-close-button"]'),
+        );
+        await closeButton.click();
+
+        // Attends la disparition de l'overlay
+        await driver.wait(until.stalenessOf(modalOverlay), 3000);
+      }
+    } catch (e) {
+      // Ignore si la modale n'existe pas
+    }
   });
 
   after(async () => {

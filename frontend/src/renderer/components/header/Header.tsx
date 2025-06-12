@@ -51,7 +51,7 @@ export const Header = ({
         disabled={configurations.length === 0}
         variant="outline"
         color="red"
-        data-testid="header-select-configuration"
+        data-testid="header-delete-configuration"
       >
         Delete Configuration
       </Button>
