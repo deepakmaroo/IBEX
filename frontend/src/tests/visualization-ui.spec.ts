@@ -1,111 +1,29 @@
-import { spawn, ChildProcessWithoutNullStreams } from 'child_process';
-import path from 'path';
 import { expect } from 'chai';
-import * as chrome from 'selenium-webdriver/chrome';
-import { Builder, By, until, WebDriver } from 'selenium-webdriver';
-import { Options } from 'selenium-webdriver/chrome';
+import { By, until, WebDriver } from 'selenium-webdriver';
 import { ConfigurationState } from 'src/renderer/types';
 import { mockConfigurationState, mockemptyConfigurationsState } from './utils';
+import { startApp, getDriver, stopApp, waitForApi, setTestState, getTestState } from './setup';
 
 /**
  * UI Test Suite for the Visualization Component
- * Tests the Electron application's visualization interface using Selenium WebDriver
  */
 describe('UI Tests for Visualization Component', function () {
-  // Extended timeout to accommodate Electron startup and UI rendering
   this.timeout(30000);
-
   let driver: WebDriver;
-  let electron: ChildProcessWithoutNullStreams;
 
-  /**
-   * Waits for the Electron app's API to be available in the renderer process
-   * This ensures all IPC communication is ready before running tests
-   */
-  const waitForApi = async () => {
-    await driver.wait(async () => {
-      const result = await driver.executeScript(
-        'return typeof window.api !== "undefined"',
-      );
-      return result === true;
-    }, 10000);
-  };
 
-  /**
-   * Sets the application state for testing purposes
-   * Uses the exposed test API to manipulate the app's configuration state
-   * @param state - Partial configuration state to apply
-   */
-  const setTestState = async (state: Partial<ConfigurationState>) => {
-    await driver.executeScript((s: Partial<ConfigurationState>) => {
-      // @ts-ignore
-      return window.api.setTestState(s);
-    }, state);
-  };
-
-  /**
-   * Get the current application state for testing purposes
-   * Uses the exposed test API to retrieve the app's configuration state
-   */
-  const getTestState = async (): Promise<ConfigurationState> => {
-    return await driver.executeScript(() => {
-      // @ts-ignore
-      return window.api.getTestState();
-    });
-  };
-
-  /**
-   * Setup phase: Start Electron app and initialize WebDriver
-   * Runs once before all tests in this suite
-   */
   before(async () => {
-    // Get the Electron binary path from node_modules
-    const electronBinary = require('electron');
-    const appDir = path.resolve(__dirname, '..', '..');
-
-    // Spawn the Electron application process
-    electron = spawn(electronBinary, ['.'], {
-      cwd: appDir,
-      env: {
-        ...process.env,
-        ELECTRON_ENABLE_LOGGING: 'true', // Enable detailed logging
-        ELECTRON_ENABLE_STACK_DUMPING: 'true', // Enable stack traces on crashes
-      },
-    });
-
-    // Wait for Electron app to fully initialize
-    await new Promise((r) => setTimeout(r, 5000));
-
-    const options = new Options()
-      .addArguments('--remote-debugging-port=9222')
-      .addArguments('--no-sandbox')
-      .addArguments('--disable-dev-shm-usage');
-
-    // Initialize WebDriver to connect to Electron's Chromium instance
-    driver = await new Builder()
-      .forBrowser('chrome')
-      .setChromeOptions(options as chrome.Options)
-      .build();
-
-    // Ensure the app's API is ready before proceeding with tests
+    await startApp();
+    driver = getDriver();
     await waitForApi();
   });
 
-  /**
-   * Cleanup after each test: Reset application state
-   * Ensures tests don't interfere with each other
-   */
   afterEach(async () => {
     await setTestState({ configurations: [], active: null });
   });
 
-  /**
-   * Final cleanup: Close WebDriver and terminate Electron process
-   * Runs once after all tests in this suite
-   */
   after(async () => {
-    if (driver) await driver.quit();
-    if (electron) electron.kill();
+    await stopApp();
   });
 
   it('Should show "No configurations available" text if configurations is empty', async () => {
