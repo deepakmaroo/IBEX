@@ -11,6 +11,7 @@ if (require('electron-squirrel-startup')) {
 }
 
 app.whenReady().then(() => {
+  console.log('App is ready, environment:', process.env.NODE_ENV);
   createWindow();
 
   ipc.initialize();

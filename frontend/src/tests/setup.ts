@@ -18,15 +18,19 @@ export async function startApp() {
   const appDir = path.resolve(__dirname, '..', '..');
   const electronEntry = path.join(appDir, '.webpack', 'main', 'index.js');
 
-  electron = spawn(electronBinary, ['--remote-debugging-port=9222', electronEntry], {
+  electron = spawn(
+    electronBinary,
+    ['--remote-debugging-port=9222', electronEntry],
+    {
       cwd: appDir,
       env: {
         ...process.env,
         ELECTRON_ENABLE_LOGGING: 'true',
         ELECTRON_ENABLE_STACK_DUMPING: 'true',
-      // E2E_TEST: 'true',
+        // E2E_TEST: 'true',
+      },
     },
-  });
+  );
 
   await new Promise((r) => setTimeout(r, 5000));
 
@@ -82,8 +86,7 @@ export const waitForApi = async () => {
 export const setTestState = async (state: Partial<ConfigurationState>) => {
   await driver.executeScript((s: Partial<ConfigurationState>) => {
     //eslint-disable-next-line @typescript-eslint/no-explicit-any
-    // @ts-ignore
-    return window.api.setTestState(s);
+    return (window as any).api.setTestState(s);
   }, state);
 };
 
@@ -95,7 +98,6 @@ export const setTestState = async (state: Partial<ConfigurationState>) => {
 export const getTestState = async (): Promise<ConfigurationState> => {
   return await driver.executeScript(() => {
     //eslint-disable-next-line @typescript-eslint/no-explicit-any
-    // @ts-ignore
-    return window.api.getTestState();
+    return (window as any).api.getTestState();
   });
 };

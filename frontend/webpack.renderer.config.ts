@@ -2,9 +2,6 @@ import type { Configuration } from 'webpack';
 
 import { rules } from './webpack.rules';
 import { plugins } from './webpack.plugins';
-import dotenv from 'dotenv';
-dotenv.config();
-
 
 rules.push({
   test: /\.css$/,
