@@ -78,7 +78,7 @@ export const VisualizationTree = ({
                 ...item,
                 data: item.data.map((node) => ({
                   ...node,
-                  children: [],
+                  children: [] as CustomTreeNodeData[],
                   seeErrorBars: showErrorBars,
                 })),
                 expendAll: false,
@@ -131,7 +131,7 @@ export const VisualizationTree = ({
                 value: newValue,
                 seeErrorBars: showErrorBars,
                 type: child.type,
-                children: [],
+                children: [] as CustomTreeNodeData[],
                 uriLabel: uriSelected.name,
               };
             },

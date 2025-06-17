@@ -41,6 +41,8 @@ export async function plotData(
     shape: shape,
     labelUri: labelUri,
     yaxis: y2Axis ? 'y2' : '',
+    
+    
   };
 
   dataPlot = {
@@ -92,6 +94,7 @@ export const handleNewPlot = async (
       value: coordinate.value[0] as number,
       target: coordinate.target,
       nodeUri: defaultUri,
+      
     }));
 
   const xAxis: Axis = {
@@ -110,6 +113,8 @@ export const handleNewPlot = async (
     xCoordinatesData,
     xAxis,
     yAxis,
+    updatedActive.dataPlot || [],
+
   );
 
   const xCoordinatesValue = response.data.coordinates[0].value as number[];
