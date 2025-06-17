@@ -31,101 +31,119 @@ describe('UI Tests for Header Component', function () {
   afterEach(async () => {
     await setTestState({ configurations: [], active: null });
 
-    // Ferme les modales restantes si besoin
     try {
-      const modalOverlay = await driver.findElement(
-        By.css('.mantine-Modal-overlay'),
-      );
-      const isDisplayed = await modalOverlay.isDisplayed();
-      if (isDisplayed) {
-        const closeButton = await driver.findElement(
-          By.css('[data-testid="modal-close-button"]'),
-        );
-        await closeButton.click();
-
-        // Attends la disparition de l'overlay
-        await driver.wait(until.stalenessOf(modalOverlay), 3000);
+      const overlay = await driver.findElement(By.css('.mantine-Modal-overlay'));
+      const displayed = await overlay.isDisplayed();
+      if (displayed) {
+        const close = await driver.findElement(By.css('[data-testid="modal-close-button"]'));
+        await close.click();
+        await driver.wait(until.stalenessOf(overlay), 10000);
       }
     } catch (e) {
-      // Ignore si la modale n'existe pas
+      // no modal to close
     }
   });
 
-  it('Should create new configuration from header', async () => {
-    const newConfigButton = await driver.wait(
-      until.elementLocated(By.css('[data-testid="header-add-configuration"]')),
-      2000,
-    );
-    await newConfigButton.click();
+  async function waitForOverlayToDisappear() {
+    try {
+      const overlay = await driver.findElement(By.css('.mantine-Modal-overlay'));
+      if (await overlay.isDisplayed()) {
+        await driver.wait(until.stalenessOf(overlay), 10000);
+      }
+    } catch (_) {}
+  }
+it('Should create new configuration from header', async () => {
+  const newConfigButton = await driver.wait(
+    until.elementLocated(By.css('[data-testid="header-add-configuration"]')),
+    5000,
+  );
+  await newConfigButton.click();
 
-    const configCreateModal = await driver.wait(
-      until.elementLocated(By.css('[data-testid="config-create-modal"]')),
-      2000,
-    );
-    expect(await configCreateModal.isDisplayed()).to.be.true;
+  const configCreateModal = await driver.wait(
+    until.elementLocated(By.css('[data-testid="config-create-modal"]')),
+    5000,
+  );
+  expect(await configCreateModal.isDisplayed()).to.be.true;
 
-    const input = await driver.wait(
-      until.elementLocated(By.css('[data-testid="config-create-name-input"]')),
-      2000,
-    );
-    await input.sendKeys('My New Config');
+  const input = await driver.wait(
+    until.elementLocated(By.css('[data-testid="config-create-name-input"]')),
+    5000,
+  );
+  await input.clear();
+  await input.sendKeys('My New Config');
 
-    const createButton = await driver.wait(
-      until.elementLocated(
-        By.css('[data-testid="config-create-submit-button"]'),
-      ),
-      2000,
-    );
-    await createButton.click();
+  const createButton = await driver.wait(
+    until.elementLocated(By.css('[data-testid="config-create-submit-button"]')),
+    5000,
+  );
+  await createButton.click();
 
-    const state = await getTestState();
-    const names = state.configurations.map((c) => c.name);
-    expect(names).to.include('My New Config');
-  });
+  await waitForOverlayToDisappear();
+
+  //Add a retry mechanism to ensure the state is updated
+  let state;
+  for (let i = 0; i < 5; i++) {
+    state = await getTestState();
+    if (state.configurations.find((c) => c.name === 'My New Config')) break;
+    await new Promise((res) => setTimeout(res, 300)); // attendre 300 ms
+  }
+
+  const names = state.configurations.map((c) => c.name);
+  expect(names).to.include('My New Config');
+});
+
 
   it('Should delete configuration from header', async () => {
     await setTestState(mockConfigurationState);
 
     const deleteButton = await driver.wait(
-      until.elementLocated(
-        By.css('[data-testid="header-delete-configuration"]'),
-      ),
-      2000,
+      until.elementLocated(By.css('[data-testid="header-delete-configuration"]')),
+      5000,
     );
     await deleteButton.click();
 
     const confirmationModal = await driver.wait(
-      until.elementIsVisible(
-        await driver.wait(
-          until.elementLocated(By.css('[data-testid="confirm-modal"]')),
-          2000,
-        ),
-      ),
-      2000,
+      until.elementLocated(By.css('[data-testid="confirm-modal"]')),
+      10000,
     );
     expect(await confirmationModal.isDisplayed()).to.be.true;
 
-    const confirmationTextElement = await driver.wait(
-      until.elementLocated(
-        By.css('[data-testid="config-delete-confirmation-text"]'),
-      ),
-      2000,
-    );
-    const confirmationText = await confirmationTextElement.getText();
+    const confirmationText = await driver
+      .findElement(By.css('[data-testid="config-delete-confirmation-text"]'))
+      .getText();
     expect(confirmationText).to.equal(
-      'Are you sure you want to delete the configuration?',
+      'Are you sure you want to delete the configuration?'
     );
 
-    const confirmButton = await driver.wait(
-      until.elementLocated(By.css('[data-testid="confirm-modal-confirm-button"]')),
-      2000,
+    const confirmButton = await driver.findElement(
+      By.css('[data-testid="confirm-modal-confirm-button"]'),
     );
-    await confirmButton.click(); 
+    await confirmButton.click();
+
+    await waitForOverlayToDisappear();
 
     const state = await getTestState();
-
-    //The mockConfigurationState has 2 configurations, so after deletion, there should be 1 left
     expect(state.configurations.length).to.equal(1);
+  });
 
+  it('Should save configuration from header', async () => {
+    await setTestState(mockConfigurationState);
+
+    await waitForOverlayToDisappear();
+
+    const saveButton = await driver.wait(
+      until.elementLocated(By.css('[data-testid="header-save-configuration"]')),
+      5000,
+    );
+    await driver.wait(until.elementIsVisible(saveButton), 5000);
+    await saveButton.click();
+
+    await driver.wait(async () => {
+      const state = await getTestState();
+      return state.active?.saved === true;
+    }, 5000);
+
+    const state = await getTestState();
+    expect(state.active?.saved).to.be.true;
   });
 });

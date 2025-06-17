@@ -43,6 +43,7 @@ export const Header = ({
       <Button
         onClick={handleSaveConfiguration}
         disabled={configurations.length === 0 || active?.saved}
+        data-testid="header-save-configuration"
       >
         {active?.path ? 'Save configuration' : 'Save as configuration'}
       </Button>

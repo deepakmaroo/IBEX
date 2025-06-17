@@ -17,6 +17,12 @@ export function ConfirmModal({ isOpen, onClose, onConfirm, children }: Props) {
       size="auto"
       centered
       data-testid="confirm-modal"
+      transitionProps={
+        {
+          transition: 'fade',
+          duration: 0,
+        }
+      }
     >
       <form
         onSubmit={(e) => {

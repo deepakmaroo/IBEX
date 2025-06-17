@@ -113,7 +113,7 @@ export function MainLayout() {
     } else {
       await window.api.fs
         .saveAsDialog(`${active.name}IbexState.json`, 'json')
-        .then((path) => {
+        .then((path: string) => {
           if (path) {
             active.path = path;
             window.api.fs.writeFile(path, JSON.stringify(newIbexState));
@@ -130,10 +130,12 @@ export function MainLayout() {
   };
 
   const handleLoadConfiguration = async () => {
-    await window.api.fs.getFilePathDialog('json').then(async (path) => {
-      if (path) {
-        await window.api.fs.readFile(path).then(async (data) => {
-          const newIbexState: ConfigurationToSave = JSON.parse(data);
+    await window.api.fs
+      .getFilePathDialog('json')
+      .then(async (path: string | null) => {
+        if (path) {
+          await window.api.fs.readFile(path).then(async (data: string) => {
+            const newIbexState: ConfigurationToSave = JSON.parse(data);
 
           const configurationExists = configurations.find(
             (config) =>
@@ -148,72 +150,73 @@ export function MainLayout() {
             return;
           }
 
-          const newListDataGridPlot: DataGridPlot[] = newIbexState.dataPlot.map(
-            (data): DataGridPlot => ({
-              ...data,
-              isEditing: false,
-              static: false,
-              coordinates:
-                data.coordinates && data.coordinates.length > 0
-                  ? data.coordinates.map(
-                      (coord: BaseCoordinates): Coordinates => {
-                        const prefix = coord.nodeUri.split('#')[0];
+            const newListDataGridPlot: DataGridPlot[] =
+              newIbexState.dataPlot.map(
+                (data): DataGridPlot => ({
+                  ...data,
+                  isEditing: false,
+                  static: false,
+                  coordinates:
+                    data.coordinates && data.coordinates.length > 0
+                      ? data.coordinates.map(
+                          (coord: BaseCoordinates): Coordinates => {
+                            const prefix = coord.nodeUri.split('#')[0];
 
-                        const matched = newIbexState.dataURI.find(
-                          (uri: URIData) => uri.name === prefix,
-                        );
+                            const matched = newIbexState.dataURI.find(
+                              (uri: URIData) => uri.name === prefix,
+                            );
 
-                        let fullNodeUri = coord.nodeUri;
-                        if (matched) {
-                          const suffix = coord.nodeUri.split('#')[1];
-                          fullNodeUri = `${matched.uri}#${suffix}`;
-                        }
-                        return {
-                          ...coord,
-                          nodeUri: fullNodeUri,
-                          name: '',
-                          shape: [],
-                          data: [],
-                        };
-                      },
-                    )
-                  : [],
-              plot: data.plot.map((plot): DataPlotly => {
-                const matched = newIbexState.dataURI.find(
-                  (uri: URIData) => plot.labelUri === uri.name,
-                );
+                            let fullNodeUri = coord.nodeUri;
+                            if (matched) {
+                              const suffix = coord.nodeUri.split('#')[1];
+                              fullNodeUri = `${matched.uri}#${suffix}`;
+                            }
+                            return {
+                              ...coord,
+                              nodeUri: fullNodeUri,
+                              name: '',
+                              shape: [],
+                              data: [],
+                            };
+                          },
+                        )
+                      : [],
+                  plot: data.plot.map((plot): DataPlotly => {
+                    const matched = newIbexState.dataURI.find(
+                      (uri: URIData) => plot.labelUri === uri.name,
+                    );
 
-                let fullNodeUri = plot.nodeUri;
-                if (matched) {
-                  const suffix = plot.nodeUri.slice(matched.name.length);
-                  fullNodeUri = `${matched.uri}${suffix}`;
-                }
+                    let fullNodeUri = plot.nodeUri;
+                    if (matched) {
+                      const suffix = plot.nodeUri.slice(matched.name.length);
+                      fullNodeUri = `${matched.uri}${suffix}`;
+                    }
 
-                return {
-                  ...plot,
-                  nodeUri: fullNodeUri,
-                  x: [],
-                  y: [],
-                };
-              }),
-            }),
-          );
+                    return {
+                      ...plot,
+                      nodeUri: fullNodeUri,
+                      x: [],
+                      y: [],
+                    };
+                  }),
+                }),
+              );
 
-          const newConfig: Configuration = {
-            name: newIbexState.name,
-            dataURI: newIbexState.dataURI,
-            customDataTree: updateCustomDataTree([], newIbexState.dataURI),
-            checkedNodeURI: [],
-            dataPlot: await plotNodeUriLoaded(newListDataGridPlot),
-            saved: true,
-            path: path,
-          };
+            const newConfig: Configuration = {
+              name: newIbexState.name,
+              dataURI: newIbexState.dataURI,
+              customDataTree: updateCustomDataTree([], newIbexState.dataURI),
+              checkedNodeURI: [],
+              dataPlot: await plotNodeUriLoaded(newListDataGridPlot),
+              saved: true,
+              path: path,
+            };
 
-          addConfiguration(newConfig);
-          setActive(newConfig.name);
-        });
-      }
-    });
+            addConfiguration(newConfig);
+            setActive(newConfig.name);
+          });
+        }
+      });
   };
 
   const handleSelectConfiguration = (value: string) => {

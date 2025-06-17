@@ -44,6 +44,12 @@ export default {
     });
 
     ipcMain.handle('saveAsDialog', async (event, name: string, ext: string) => {
+      console.log('[Main] process.env.E2E_TEST after start and run npm run test:', process.env.E2E_TEST);
+      if (process.env.E2E_TEST === 'true') {
+        // For E2E tests, we save to a temporary file
+        return `/tmp/${name}.${ext}`;
+      }
+
       const result = await dialog.showSaveDialog({
         title: 'Save As',
         defaultPath: name,
@@ -63,10 +69,8 @@ export default {
     ipcMain.handle(
       'setTestState',
       async (event, testState: Partial<ConfigurationState>) => {
-        console.log('[Main] setTestState invoked with:', testState);
         const win = BrowserWindow.getAllWindows()[0]; // ou autre moyen d'avoir ta fenêtre principale
         if (win) {
-          console.log('[Main] Sending updateTestState to renderer:', testState);
           win.webContents.send('updateTestState', testState);
           return true;
         }

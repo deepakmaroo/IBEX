@@ -1,5 +1,9 @@
 import type { Configuration } from 'webpack';
 import { rules } from './webpack.rules';
+import dotenv from 'dotenv';
+import webpack from 'webpack';
+
+dotenv.config();
 
 export const mainConfig: Configuration = {
   entry: './src/main',
@@ -10,10 +14,11 @@ export const mainConfig: Configuration = {
     extensions: ['.ts', '.tsx', '.js'],
     fallback: {
       path: false,
-      // crypto: require.resolve('crypto-browserify'),
-      // stream: require.resolve('stream-browserify'),
-      // buffer: require.resolve('buffer/'),
-      // assert: require.resolve('assert/'),
     },
   },
+  plugins: [
+    new webpack.DefinePlugin({
+      'process.env.E2E_TEST': JSON.stringify(process.env.E2E_TEST || 'false'),
+    }),
+  ],
 };

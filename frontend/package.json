@@ -12,8 +12,8 @@
     "lint": "eslint --ext .ts,.tsx .",
     "format": "prettier --write .",
     "debug": "DEBUG=electron-forge:* electron-forge start",
-    "test": "mocha -r ts-node/register src/tests/*.spec.ts",
-    "start-chromedriver": "npx chromedriver --port=9222"
+    "start:e2e": "cross-env E2E_TEST=true electron-forge start -- --remote-debugging-port=9222",
+    "test": "mocha -r ts-node/register src/tests/*.spec.ts"
   },
   "devDependencies": {
     "@electron-forge/cli": "^7.8.0",
@@ -38,6 +38,7 @@
     "@vercel/webpack-asset-relocator-loader": "1.7.3",
     "chai": "^5.2.0",
     "chromedriver": "^134.0.5",
+    "cross-env": "^7.0.3",
     "css-loader": "^6.0.0",
     "electron": "^35.5.1",
     "electron-chromedriver": "^35.5.0",

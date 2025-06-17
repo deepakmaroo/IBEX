@@ -15,17 +15,19 @@ let electron: ChildProcessWithoutNullStreams;
 export async function startApp() {
   const electronBinary = require('electron');
   const appDir = path.resolve(__dirname, '..', '..');
+  const electronEntry = path.join(appDir, '.webpack', 'main', 'index.js');
 
-  electron = spawn(electronBinary, ['.'], {
+  electron = spawn(electronBinary, ['--remote-debugging-port=9222', electronEntry], {
     cwd: appDir,
     env: {
       ...process.env,
       ELECTRON_ENABLE_LOGGING: 'true',
       ELECTRON_ENABLE_STACK_DUMPING: 'true',
+      // E2E_TEST: 'true',
     },
   });
 
-  await new Promise((r) => setTimeout(r, 5000)); // attendre que l'app démarre
+  await new Promise((r) => setTimeout(r, 5000));
 
   const options = new chrome.Options()
     .addArguments('--remote-debugging-port=9222')
