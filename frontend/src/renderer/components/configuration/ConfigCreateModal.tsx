@@ -45,7 +45,13 @@ export function ConfigCreateModal({
   }
 
   return (
-    <Modal opened={isOpen} onClose={onClose} title="Create config" size="sm" data-testid="config-create-modal">
+    <Modal
+      opened={isOpen}
+      onClose={onClose}
+      title="Create config"
+      size="sm"
+      data-testid="config-create-modal"
+    >
       <form onSubmit={form.onSubmit(handleSubmit, handleValidationError)}>
         <Stack>
           <TextInput
@@ -55,7 +61,9 @@ export function ConfigCreateModal({
             data-testid="config-create-name-input"
           />
           <Center mt="md">
-            <Button type="submit" data-testid="config-create-submit-button">Create</Button>
+            <Button type="submit" data-testid="config-create-submit-button">
+              Create
+            </Button>
           </Center>
         </Stack>
       </form>

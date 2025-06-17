@@ -7,18 +7,21 @@ export default {
   initialize() {
     const config = getConfigSync();
 
-    ipcMain.handle('readFile', async (event, filePath: string) => {
-      try {
-        const fileContent: string = fs.readFileSync(filePath, 'utf-8');
-        return fileContent;
-      } catch (error) {
-        if (error instanceof Error) {
-          throw new Error(`Failed to read file: ${error.message}`);
-        } else {
-          throw new Error(`Failed to read file: ${String(error)}`);
+    ipcMain.handle(
+      'readFile',
+      async (event: Electron.IpcMainInvokeEvent, filePath: string) => {
+        try {
+          const fileContent: string = fs.readFileSync(filePath, 'utf-8');
+          return fileContent;
+        } catch (error) {
+          if (error instanceof Error) {
+            throw new Error(`Failed to read file: ${error.message}`);
+          } else {
+            throw new Error(`Failed to read file: ${String(error)}`);
+          }
         }
-      }
-    });
+      },
+    );
 
     ipcMain.handle('writeFile', (event, path, data) => {
       try {
@@ -29,22 +32,24 @@ export default {
       }
     });
 
-    ipcMain.handle('getFilePathDialog', async (event, type: string) => {
-      const result = await dialog.showOpenDialog({
-        properties: ['openFile'],
-        filters: [
-          { name: `${type.toLocaleUpperCase} File`, extensions: [type] },
-        ],
-      });
-      if (!result.canceled && result.filePaths.length > 0) {
-        return result.filePaths[0];
-      }
+    ipcMain.handle(
+      'getFilePathDialog',
+      async (event: Electron.IpcMainInvokeEvent, type: string) => {
+        const result = await dialog.showOpenDialog({
+          properties: ['openFile'],
+          filters: [
+            { name: `${type.toLocaleUpperCase} File`, extensions: [type] },
+          ],
+        });
+        if (!result.canceled && result.filePaths.length > 0) {
+          return result.filePaths[0];
+        }
 
-      return null;
-    });
+        return null;
+      },
+    );
 
     ipcMain.handle('saveAsDialog', async (event, name: string, ext: string) => {
-      console.log('[Main] process.env.E2E_TEST after start and run npm run test:', process.env.E2E_TEST);
       if (process.env.E2E_TEST === 'true') {
         // For E2E tests, we save to a temporary file
         return `/tmp/${name}.${ext}`;
@@ -85,7 +90,10 @@ export default {
       return new Promise<ConfigurationState>((resolve) => {
         const replyChannel = 'getTestState:reply';
 
-        const listener = (_event: any, state: ConfigurationState) => {
+        const listener = (
+          _event: Electron.IpcMainEvent,
+          state: ConfigurationState,
+        ) => {
           ipcMain.removeListener(replyChannel, listener);
           resolve(state);
         };

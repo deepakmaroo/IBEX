@@ -11,8 +11,6 @@ if (require('electron-squirrel-startup')) {
 }
 
 app.whenReady().then(() => {
-
-
   createWindow();
 
   ipc.initialize();

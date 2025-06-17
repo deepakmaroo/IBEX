@@ -13,16 +13,17 @@ let electron: ChildProcessWithoutNullStreams;
  * @returns WebDriver instance connected to the Electron app
  */
 export async function startApp() {
+  //eslint-disable-next-line @typescript-eslint/no-var-requires
   const electronBinary = require('electron');
   const appDir = path.resolve(__dirname, '..', '..');
   const electronEntry = path.join(appDir, '.webpack', 'main', 'index.js');
 
   electron = spawn(electronBinary, ['--remote-debugging-port=9222', electronEntry], {
-    cwd: appDir,
-    env: {
-      ...process.env,
-      ELECTRON_ENABLE_LOGGING: 'true',
-      ELECTRON_ENABLE_STACK_DUMPING: 'true',
+      cwd: appDir,
+      env: {
+        ...process.env,
+        ELECTRON_ENABLE_LOGGING: 'true',
+        ELECTRON_ENABLE_STACK_DUMPING: 'true',
       // E2E_TEST: 'true',
     },
   });
@@ -49,14 +50,6 @@ export async function startApp() {
  */
 export function getDriver(): WebDriver {
   return driver;
-}
-
-/**
- * Gets the Electron ChildProcess instance.
- * @returns ChildProcess instance of the Electron app
- */
-export function getElectron(): ChildProcessWithoutNullStreams {
-  return electron;
 }
 
 /**
@@ -88,6 +81,7 @@ export const waitForApi = async () => {
  */
 export const setTestState = async (state: Partial<ConfigurationState>) => {
   await driver.executeScript((s: Partial<ConfigurationState>) => {
+    //eslint-disable-next-line @typescript-eslint/no-explicit-any
     // @ts-ignore
     return window.api.setTestState(s);
   }, state);
@@ -100,6 +94,7 @@ export const setTestState = async (state: Partial<ConfigurationState>) => {
  */
 export const getTestState = async (): Promise<ConfigurationState> => {
   return await driver.executeScript(() => {
+    //eslint-disable-next-line @typescript-eslint/no-explicit-any
     // @ts-ignore
     return window.api.getTestState();
   });

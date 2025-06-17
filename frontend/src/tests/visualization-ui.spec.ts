@@ -1,6 +1,5 @@
 import { expect } from 'chai';
 import { By, until, WebDriver } from 'selenium-webdriver';
-import { ConfigurationState } from 'src/renderer/types';
 import { mockConfigurationState, mockemptyConfigurationsState } from './utils';
 import {
   startApp,
@@ -115,21 +114,21 @@ describe('UI Tests for Visualization Component', function () {
     expect(await rightPanel.isDisplayed()).to.be.true;
 
     // Get bounding rectangles for dimension calculations
-    const containerRect: any = await driver.executeScript(() => {
+    const containerRect: DOMRect | null = await driver.executeScript(() => {
       const el = document.querySelector(
         '[data-testid="visualization-container"]',
       );
       return el?.getBoundingClientRect();
     });
 
-    const leftRect: any = await driver.executeScript(() => {
+    const leftRect: DOMRect | null = await driver.executeScript(() => {
       const el = document.querySelector(
         '[data-testid="visualization-left-panel"]',
       );
       return el?.getBoundingClientRect();
     });
 
-    const rightRect: any = await driver.executeScript(() => {
+    const rightRect: DOMRect | null = await driver.executeScript(() => {
       const el = document.querySelector(
         '[data-testid="visualization-right-panel"]',
       );

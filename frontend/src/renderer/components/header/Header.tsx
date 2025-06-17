@@ -38,8 +38,18 @@ export const Header = ({
 }: HeaderProps) => {
   const configurationButtons = (
     <Group>
-      <Button onClick={handleAddConfiguration}  data-testid="header-add-configuration">Add configuration</Button>
-      <Button onClick={handleLoadConfiguration}  data-testid="header-load-configuration">Load configuration</Button>
+      <Button
+        onClick={handleAddConfiguration}
+        data-testid="header-add-configuration"
+      >
+        Add configuration
+      </Button>
+      <Button
+        onClick={handleLoadConfiguration}
+        data-testid="header-load-configuration"
+      >
+        Load configuration
+      </Button>
       <Button
         onClick={handleSaveConfiguration}
         disabled={configurations.length === 0 || active?.saved}

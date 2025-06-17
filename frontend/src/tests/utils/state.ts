@@ -1,4 +1,4 @@
-import { ConfigurationState } from "src/renderer/types";
+import { ConfigurationState } from 'src/renderer/types';
 
 export const mockConfigurationState: Partial<ConfigurationState> = {
   configurations: [
@@ -25,9 +25,9 @@ export const mockConfigurationState: Partial<ConfigurationState> = {
     customDataTree: [],
     dataPlot: [],
   },
-}
+};
 
 export const mockemptyConfigurationsState: Partial<ConfigurationState> = {
   configurations: [],
   active: null,
-}
+};

@@ -10,11 +10,17 @@ export function App() {
   const { setState, getState } = useIbexStore();
 
   useEffect(() => {
-    const updateHandler = (event: any, testState: ConfigurationState) => {
+    const updateHandler = (
+      event: Electron.IpcRendererEvent,
+      testState: ConfigurationState,
+    ) => {
       setState(testState);
     };
 
-    const getStateHandler = (_event: any, replyChannel: string) => {
+    const getStateHandler = (
+      _event: Electron.IpcRendererEvent,
+      replyChannel: string,
+    ) => {
       const fullState = getState();
       const { configurations, active } = fullState;
 

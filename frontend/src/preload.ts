@@ -3,7 +3,7 @@
 
 import { ConfigurationState } from './renderer/types';
 
-const { contextBridge, ipcRenderer } = require('electron');
+import { contextBridge, ipcRenderer } from 'electron';
 export const API = {
   fs: {
     readFile: (filePath: string) => ipcRenderer.invoke('readFile', filePath),
