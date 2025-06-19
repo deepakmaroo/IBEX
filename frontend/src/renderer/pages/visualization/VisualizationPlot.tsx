@@ -18,7 +18,7 @@ export const VisualizationPlot = ({
 
   const [dragEnabled, setDragEnabled] = useState(true);
   const [dragTimeout, setDragTimeout] = useState<NodeJS.Timeout | null>(null);
-  const gridWith = extended ? 1835 : 1580;
+  const gridWith = extended ? 1800 : 1500;
   const colsNumber = 12;
   const colWidth = gridWith / colsNumber;
   const rowHeight = 30;

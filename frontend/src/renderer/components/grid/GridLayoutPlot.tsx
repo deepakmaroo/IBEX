@@ -226,7 +226,7 @@ const handleUpdateCoordinate = async (
       >
         {data.coordinates.length > 0 && (
           <Grid.Col span={2} ref={gridSliderRef}>
-            <Group justify="space-between" gap="xs">
+            <Group justify="space-between" gap="0">
               {data.coordinates.map((item, index) => (
                 <VerticalSlider
                   key={index}
@@ -238,6 +238,7 @@ const handleUpdateCoordinate = async (
                   }}
                   height={heightGrid - 80}
                   disabled={!data.isEditing}
+        
                 />
               ))}
             </Group>
