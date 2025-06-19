@@ -1,4 +1,4 @@
-import { Flex, Text } from '@mantine/core';
+import { Flex, NumberFormatter, Text, Tooltip } from '@mantine/core';
 import { useMove } from '@mantine/hooks';
 import { IconCircle } from '@tabler/icons-react';
 import { useState, useEffect, useRef } from 'react';
@@ -47,6 +47,8 @@ export const VerticalSlider = ({
     };
   }, []);
 
+  const isNumber = typeof data[index] === 'number';
+
   return (
     <Flex justify="center" align="center" direction="column">
       <Text ta="center" my="sm" w={50} fw="bold">
@@ -55,7 +57,9 @@ export const VerticalSlider = ({
       <div
         ref={(node) => {
           if (node) {
-            (move.ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
+            (
+              move.ref as React.MutableRefObject<HTMLDivElement | null>
+            ).current = node;
             sliderRef.current = node;
           }
         }}
@@ -108,22 +112,29 @@ export const VerticalSlider = ({
           }}
         />
 
-        <IconCircle
-          color="var(--mantine-color-blue-7)"
-          width={22}
-          height={22}
-          fill="white"
-          strokeWidth={6}
-          style={{
-            position: 'absolute',
-            bottom: `calc(${valueRatio * 100}% - 8px)`,
-            left: '-3px',
-          }}
-        />
+        <Tooltip label={`Value: ${data[index]}`} position="right" withArrow>
+          <IconCircle
+            color="var(--mantine-color-blue-7)"
+            width={22}
+            height={22}
+            fill="white"
+            strokeWidth={6}
+            style={{
+              position: 'absolute',
+              bottom: `calc(${valueRatio * 100}% - 8px)`,
+              left: '-3px',
+              pointerEvents: 'auto',
+              zIndex: 2,
+            }}
+          />
+        </Tooltip>
       </div>
-
-      <Text ta="center" mt="sm" w={50}>
-        {data[index]}
+      <Text ta="center" mt="xs" fw="bold">
+        {isNumber ? (
+          <NumberFormatter value={data[index]} decimalScale={3} />
+        ) : (
+          data[index]
+        )}
       </Text>
     </Flex>
   );
