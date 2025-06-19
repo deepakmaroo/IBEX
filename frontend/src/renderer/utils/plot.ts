@@ -91,7 +91,7 @@ export const handleNewPlot = async (
       name: coordinate.name,
       shape: coordinate.shape,
       data: coordinate.value as number[],
-      value: coordinate.value[0] as number,
+      index: 0,
       target: coordinate.target,
       nodeUri: defaultUri,
       
@@ -343,7 +343,7 @@ export async function plotNodeUriLoaded(
                     data: responseCoordinates.value as number[],
                     target: responseCoordinates.target,
                     nodeUri: plot.nodeUri,
-                    value: 0,
+                    index: 0
                   });
                 }
               }

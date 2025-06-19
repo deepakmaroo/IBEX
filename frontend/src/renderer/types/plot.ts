@@ -21,14 +21,13 @@ export interface Axis {
 export interface BaseCoordinates {
   target: string;
   nodeUri: string;
-  value: number;
+  index: number;
 }
 
 export interface Coordinates extends BaseCoordinates {
   name: string;
   shape: number[];
-  data: number[];
-  value: number;
+  data: number[] | string[];
 }
 
 export interface BaseDataPlotly {

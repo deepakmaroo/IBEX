@@ -18,9 +18,7 @@ import {
   IconBrandDatabricks,
   IconCheck,
   IconEdit,
-  IconHandMove,
   IconTrash,
-  IconZoomIn,
 } from '@tabler/icons-react';
 import { useHover } from '@mantine/hooks';
 import classes from './GridLayoutPlot.module.css';
@@ -147,62 +145,60 @@ export const GridLayoutPlot = ({
     [active],
   );
 
-  const handleUpdateSliderValue = async (
-    coordinate: Coordinates,
-    value: number,
-    index: number,
-  ) => {
-    const lastTargetLastName = getLastIndexedField(coordinate.target);
-    const newUri = updateUriAndTarget(
-      coordinate.target,
-      coordinate.nodeUri,
-      lastTargetLastName,
+const handleUpdateCoordinate = async (
+  coordinate: Coordinates,
+  index: number,
+) => {
+  const lastTargetLastName = getLastIndexedField(coordinate.target);
+  if (!lastTargetLastName) return coordinate.index ?? 0;
+
+  const { uri: newUri, target: newTarget } = updateUriAndTarget(
+    coordinate.target,
+    coordinate.nodeUri,
+    lastTargetLastName,
+    index,
+  );
+
+  const updatedCoordinatesValue = data.coordinates.map((item) => {
+    if (item.name !== coordinate.name) return item;
+
+    return {
+      ...item,
+      nodeUri: newUri,
+      target: newTarget,
       index,
-    ).uri;
-
-    const updatedCoordinatesValue = data.coordinates.map((item) => {
-      const lastTargetLastName = getLastIndexedField(coordinate.target);
-
-      const updated = updateUriAndTarget(
-        item.target,
-        newUri,
-        lastTargetLastName,
-        index,
-      );
-
-      return {
-        ...item,
-        nodeUri: newUri, // unifié pour toutes les coordonnées
-        target: updated.target, // met à jour seulement si l'item.target contient un indice
-        value: item.name === coordinate.name ? value : item.value,
-      };
-    });
-    const responseYData = await fetchFieldValue(newUri);
-
-    const updatedActive = {
-      ...active,
-      dataPlot: active.dataPlot.map((item) => {
-        if (item.i === data.i) {
-          return {
-            ...item,
-            coordinates: updatedCoordinatesValue,
-            plot: item.plot.map((plotItem): DataPlotly => {
-              if (plotItem.nodeUri === coordinate.nodeUri) {
-                return {
-                  ...plotItem,
-                  y: responseYData.value as number[],
-                  nodeUri: newUri,
-                };
-              }
-              return plotItem;
-            }),
-          };
-        }
-        return item;
-      }),
     };
-    updatedConfiguration(updatedActive);
+  });
+
+  const responseYData = await fetchFieldValue(newUri);
+
+  const updatedActive = {
+    ...active,
+    dataPlot: active.dataPlot.map((item) => {
+      if (item.i === data.i) {
+        return {
+          ...item,
+          coordinates: updatedCoordinatesValue,
+          plot: item.plot.map((plotItem): DataPlotly => {
+            if (plotItem.nodeUri === coordinate.nodeUri) {
+              return {
+                ...plotItem,
+                y: responseYData.value as number[],
+                nodeUri: newUri,
+              };
+            }
+            return plotItem;
+          }),
+        };
+      }
+      return item;
+    }),
   };
+
+  updatedConfiguration(updatedActive);
+
+};
+
 
   return (
     <Container fluid w={widthGrid} p={0}>
@@ -221,10 +217,10 @@ export const GridLayoutPlot = ({
                 <VerticalSlider
                   key={index}
                   name={item.name}
-                  value={item.value}
+                  index={item.index || 0}
                   data={item.data}
-                  getValue={(value, index) => {
-                    handleUpdateSliderValue(item, value, index);
+                  getValue={(index) => {
+                    handleUpdateCoordinate(item, index);
                   }}
                   height={heightGrid - 80}
                   disabled={!data.isEditing}

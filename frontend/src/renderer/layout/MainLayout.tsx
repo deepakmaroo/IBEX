@@ -84,7 +84,7 @@ export function MainLayout() {
             return {
               target: coord.target,
               nodeUri: newNodeUri,
-              value: coord.value,
+              index: coord.index,
             };
           },
         ),

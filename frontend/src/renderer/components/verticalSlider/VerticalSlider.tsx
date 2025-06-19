@@ -1,35 +1,58 @@
 import { Flex, Text } from '@mantine/core';
 import { useMove } from '@mantine/hooks';
 import { IconCircle } from '@tabler/icons-react';
+import { useState, useEffect, useRef } from 'react';
+
 
 interface VerticalSliderProps {
   name: string;
-  value: number;
-  data: number[];
-  getValue: (value: number, index: number) => void;
+  index: number;
+  data: string[] | number[];
+  getValue: (index: number) => void;
   height?: number;
   disabled?: boolean;
 }
 
 export const VerticalSlider = ({
   name,
-  value,
+  index,
   data,
   getValue,
   height = 200,
   disabled = false,
 }: VerticalSliderProps) => {
   const steps = data.length;
-  const currentIndex = data.findIndex((d) => d === value);
-  const valueRatio = currentIndex / (steps - 1); // Between 0 and 1
+  const valueRatio = index / (steps - 1);
+  const [isFocused, setIsFocused] = useState(false);
+  const sliderRef = useRef<HTMLDivElement | null>(null);
 
-  const { ref } = useMove(({ y }) => {
+  const move = useMove(({ y }) => {
     if (disabled) return;
-
-    const index = Math.round((1 - y) * (steps - 1));
-    const clampedIndex = Math.max(0, Math.min(index, steps - 1));
-    getValue(data[clampedIndex], clampedIndex);
+    const newIndex = Math.round((1 - y) * (steps - 1));
+    const clampedIndex = Math.max(0, Math.min(newIndex, steps - 1));
+    getValue(clampedIndex);
   });
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        sliderRef.current &&
+        !sliderRef.current.contains(event.target as Node)
+      ) {
+        setIsFocused(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  useEffect(() => {
+    console.log('data', data);
+    console.log('index', index);
+    console.log('valueRatio', valueRatio);
+  }, [data, index, valueRatio]);
 
   return (
     <Flex justify="center" align="center" direction="column">
@@ -37,8 +60,36 @@ export const VerticalSlider = ({
         {name}
       </Text>
       <div
-        ref={ref}
+        ref={(node) => {
+          if (node) {
+            (move.ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
+            sliderRef.current = node;
+          }
+        }}
+        tabIndex={0}
+        role="slider"
+        aria-valuenow={index}
+        aria-valuemin={0}
+        aria-valuemax={steps - 1}
+        onClick={(e) => {
+          (e.currentTarget as HTMLDivElement).focus();
+          setIsFocused(true);
+        }}
+        onKeyDown={(e) => {
+          if (disabled) return;
+
+          if (e.key === 'ArrowUp') {
+            const newIndex = Math.min(steps - 1, index + 1);
+            getValue(newIndex);
+            e.preventDefault();
+          } else if (e.key === 'ArrowDown') {
+            const newIndex = Math.max(0, index - 1);
+            getValue(newIndex);
+            e.preventDefault();
+          }
+        }}
         style={{
+          outline: isFocused ? '2px solid var(--mantine-color-blue-6)' : 'none',
           margin: 'auto',
           width: 15,
           height,
@@ -52,7 +103,6 @@ export const VerticalSlider = ({
           pointerEvents: disabled ? 'none' : 'auto',
         }}
       >
-        {/* Filled bar */}
         <div
           style={{
             position: 'absolute',
@@ -66,7 +116,6 @@ export const VerticalSlider = ({
           }}
         />
 
-        {/* Thumb */}
         <IconCircle
           color="var(--mantine-color-blue-7)"
           width={22}
@@ -82,7 +131,7 @@ export const VerticalSlider = ({
       </div>
 
       <Text ta="center" mt="sm" w={50}>
-        {value}
+        {data[index]}
       </Text>
     </Flex>
   );
