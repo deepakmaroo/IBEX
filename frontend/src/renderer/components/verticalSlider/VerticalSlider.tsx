@@ -3,7 +3,6 @@ import { useMove } from '@mantine/hooks';
 import { IconCircle } from '@tabler/icons-react';
 import { useState, useEffect, useRef } from 'react';
 
-
 interface VerticalSliderProps {
   name: string;
   index: number;
@@ -22,12 +21,12 @@ export const VerticalSlider = ({
   disabled = false,
 }: VerticalSliderProps) => {
   const steps = data.length;
-  const valueRatio = index / (steps - 1);
+  const valueRatio = steps > 1 ? index / (steps - 1) : 1;
   const [isFocused, setIsFocused] = useState(false);
   const sliderRef = useRef<HTMLDivElement | null>(null);
 
   const move = useMove(({ y }) => {
-    if (disabled) return;
+    if (disabled || steps <= 1) return;
     const newIndex = Math.round((1 - y) * (steps - 1));
     const clampedIndex = Math.max(0, Math.min(newIndex, steps - 1));
     getValue(clampedIndex);
@@ -47,12 +46,6 @@ export const VerticalSlider = ({
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
-
-  useEffect(() => {
-    console.log('data', data);
-    console.log('index', index);
-    console.log('valueRatio', valueRatio);
-  }, [data, index, valueRatio]);
 
   return (
     <Flex justify="center" align="center" direction="column">
@@ -76,7 +69,7 @@ export const VerticalSlider = ({
           setIsFocused(true);
         }}
         onKeyDown={(e) => {
-          if (disabled) return;
+          if (disabled || steps <= 1) return;
 
           if (e.key === 'ArrowUp') {
             const newIndex = Math.min(steps - 1, index + 1);
@@ -112,7 +105,6 @@ export const VerticalSlider = ({
             backgroundColor: 'var(--mantine-color-blue-filled)',
             opacity: 0.7,
             borderRadius: '8px',
-            border: 'solid 1px var(--mantine-color-blue-7)',
           }}
         />
 
