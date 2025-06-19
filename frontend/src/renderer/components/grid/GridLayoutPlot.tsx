@@ -41,12 +41,12 @@ function updateUriAndTarget(
   target: string,
   uri: string,
   fieldName: string, // ex: "ion" ou "profiles_1d"
-  value: number,
+  index: number,
 ): UriUpdated {
   const regex = new RegExp(`(${fieldName})\\[(\\d+)\\]`);
 
-  const newTarget = target.replace(regex, `${fieldName}[${value}]`);
-  const newUri = uri.replace(regex, `${fieldName}[${value}]`);
+  const newTarget = target.replace(regex, `${fieldName}[${index}]`);
+  const newUri = uri.replace(regex, `${fieldName}[${index}]`);
 
   return {
     target: newTarget,
@@ -133,6 +133,9 @@ export const GridLayoutPlot = ({
     [active],
   );
 
+  /**
+   * Inspect metadata of plot
+   */
   const handleInspectMetadata = useCallback(
     (id: string) => {
       const updateActive: Configuration = {
@@ -145,6 +148,10 @@ export const GridLayoutPlot = ({
     [active],
   );
 
+
+  /**
+   * updateslider coordinate value
+   */
 const handleUpdateCoordinate = async (
   coordinate: Coordinates,
   index: number,
@@ -159,16 +166,23 @@ const handleUpdateCoordinate = async (
     index,
   );
 
-  const updatedCoordinatesValue = data.coordinates.map((item) => {
-    if (item.name !== coordinate.name) return item;
+    const updatedCoordinatesValue = data.coordinates.map((item) => {
+      const lastTargetLastName = getLastIndexedField(coordinate.target);
 
-    return {
-      ...item,
-      nodeUri: newUri,
-      target: newTarget,
-      index,
-    };
-  });
+      const updated = updateUriAndTarget(
+        item.target,
+        newUri,
+        lastTargetLastName,
+        index,
+      );
+
+      return {
+        ...item,
+        nodeUri: newUri, // Update the nodeUri to the new one
+        target: updated.target, // Update the target to the new one
+        index: item.name === coordinate.name ? index : item.index,
+      };
+    });
 
   const responseYData = await fetchFieldValue(newUri);
 
