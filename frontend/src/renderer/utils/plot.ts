@@ -362,7 +362,7 @@ export async function plotNodeUriLoaded(
             } catch (error) {
               console.error(`Error fetching data for ${plot.nodeUri}:`, error);
               errorHasOccurred = true;
-              return plot; // Retourne l'original si une erreur survient
+              return plot; 
             }
           }),
         );

@@ -131,7 +131,7 @@ export const VerticalSlider = ({
       </div>
       <Text ta="center" mt="xs" fw="bold">
         {isNumber ? (
-          <NumberFormatter value={data[index]} decimalScale={3} />
+          <NumberFormatter value={data[index]} decimalScale={2} />
         ) : (
           data[index]
         )}
