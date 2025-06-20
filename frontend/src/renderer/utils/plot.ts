@@ -31,7 +31,7 @@ export async function plotData(
   const trace: DataPlotly = {
     x: xData,
     y: yData,
-    name: `${yAxis.name}(${yAxis.unit})_${labelUri}`,
+    name: `${yAxis.name}_${labelUri}`,
     mode: "lines",
     nodeUri: nodeUri,
     yAxis: yAxis,
@@ -47,7 +47,9 @@ export async function plotData(
 
   dataPlot = {
     ...dataPlot,
+    
     title:
+      // If the dataPlot already has a title, append the trace name to it
       dataPlot.title === ''
         ? `${trace.name}`
         : `${dataPlot.title} / ${trace.name}`,
@@ -90,7 +92,7 @@ export const handleNewPlot = async (
     .map((coordinate: PlotCoordinatesResponse) => ({
       name: coordinate.name,
       shape: coordinate.shape,
-      data: coordinate.value as number[],
+      data: coordinate.value as number[] | string[],
       index: 0,
       target: coordinate.target,
       nodeUri: defaultUri,
@@ -109,7 +111,6 @@ export const handleNewPlot = async (
   };
 
   const newPlot = generateNewGrid(
-    `${response.data.name}(${response.data.unit})`,
     xCoordinatesData,
     xAxis,
     yAxis,
@@ -122,7 +123,7 @@ export const handleNewPlot = async (
   const updatedPlot = await plotData(
     newPlot,
     xCoordinatesValue,
-    response.data.value,
+    response.data.value  as number[],
     defaultUri,
     yAxis,
     response.data.ndim,
@@ -205,7 +206,7 @@ export const handleExistingPlot = async (
       const updatedPlot = await plotData(
         findDataPlot,
         response.data.coordinates[0].value as number[],
-        response.data.value,
+        response.data.value  as number[],
         node.uri,
         yAxis,
         response.data.ndim,
@@ -229,7 +230,7 @@ export const handleExistingPlot = async (
       const updatedPlot = await plotData(
         findDataPlot,
         response.data.coordinates[0].value as number[],
-        response.data.value,
+        response.data.value as number[],
         node.uri,
         yAxis,
         response.data.ndim,
