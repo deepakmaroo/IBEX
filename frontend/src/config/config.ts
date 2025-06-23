@@ -1,6 +1,7 @@
 // src/config-sync.ts
 import * as fs from 'fs';
 import * as path from 'path';
+import { app } from 'electron';
 
 export type TConfig = {
   API_URL: string;
@@ -17,7 +18,7 @@ const defaultConfig: TConfig = {
 const getConfigPath = (): string => {
   const isProd = process.env.NODE_ENV === 'production';
   return isProd
-    ? path.join(process.resourcesPath, 'config.json')
+    ? path.join(app.getAppPath(), 'config.json')
     : path.join(__dirname, '../../config.json');
 };
 
