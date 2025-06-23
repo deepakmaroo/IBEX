@@ -1,3 +1,5 @@
 {
   "API_URL": Backend API url 
+  "WEBPACK_PORT": Frontend Webpack dev server port
+  "WEBPACK_HOST": Frontend Webpack dev server host
 }

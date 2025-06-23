@@ -7,15 +7,16 @@ import { AutoUnpackNativesPlugin } from '@electron-forge/plugin-auto-unpack-nati
 import { WebpackPlugin } from '@electron-forge/plugin-webpack';
 import { FusesPlugin } from '@electron-forge/plugin-fuses';
 import { FuseV1Options, FuseVersion } from '@electron/fuses';
-
+import { getConfigSync } from './src/config';
 import { mainConfig } from './webpack.main.config';
 import { rendererConfig } from './webpack.renderer.config';
 
 /* eslint-disable import/no-named-as-default-member */
 /* eslint-disable import/no-unused-modules */
-
 import dotenv from 'dotenv';
 dotenv.config();
+
+const configVaribles = getConfigSync();
 
 const config: ForgeConfig = {
   packagerConfig: {
@@ -32,8 +33,8 @@ const config: ForgeConfig = {
     new AutoUnpackNativesPlugin({}),
     new WebpackPlugin({
       mainConfig,
-      port: parseInt(process.env.WEBPACK_PORT || '3001', 10),
-      loggerPort: parseInt(process.env.LOGGER_PORT || '9013', 10),
+      port: configVaribles.WEBPACK_PORT,
+      loggerPort: configVaribles.LOGGER_PORT,
       renderer: {
         config: rendererConfig,
         entryPoints: [
