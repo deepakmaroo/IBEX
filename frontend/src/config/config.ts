@@ -33,7 +33,7 @@ export const getConfigSync = (): TConfig => {
       fs.writeFileSync(
         configPath,
         JSON.stringify(defaultConfig, null, 2),
-        'utf-8'
+        'utf-8',
       );
     }
 
