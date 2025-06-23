@@ -1,7 +1,6 @@
-// src/config-sync.ts
 import * as fs from 'fs';
 import * as path from 'path';
-import { app } from 'electron';
+import os from 'os';
 
 export type TConfig = {
   API_URL: string;
@@ -16,10 +15,14 @@ const defaultConfig: TConfig = {
 };
 
 const getConfigPath = (): string => {
-  const isProd = process.env.NODE_ENV === 'production';
-  return isProd
-    ? path.join(app.getAppPath(), 'config.json')
-    : path.join(__dirname, '../../config.json');
+  const configDir = path.join(os.homedir(), '.config', 'ibex');
+  const configPath = path.join(configDir, 'config.json');
+
+  if (!fs.existsSync(configDir)) {
+    fs.mkdirSync(configDir, { recursive: true });
+  }
+
+  return configPath;
 };
 
 export const getConfigSync = (): TConfig => {
@@ -30,7 +33,7 @@ export const getConfigSync = (): TConfig => {
       fs.writeFileSync(
         configPath,
         JSON.stringify(defaultConfig, null, 2),
-        'utf-8',
+        'utf-8'
       );
     }
 
