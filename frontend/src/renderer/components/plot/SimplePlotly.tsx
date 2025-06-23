@@ -103,11 +103,10 @@ export const SimplePlotly = ({
         displayModeBar: true,
         showTips: true,
         displaylogo: false,
-        modeBarButtonsToRemove: ['lasso2d', 'select2d']
+        modeBarButtonsToRemove: ['lasso2d', 'select2d'],
       }}
       useResizeHandler={false}
       style={{ width: '100%', height: '100%' }}
-      
     />
   );
 };

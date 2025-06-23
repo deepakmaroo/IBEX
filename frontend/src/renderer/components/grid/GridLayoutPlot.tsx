@@ -114,7 +114,7 @@ export const GridLayoutPlot = ({
 
       const updatedDataPlot = active.dataPlot.map((item) =>
         item.i === id
-          ? { ...item, isEditing: !item.isEditing, static: !item.isEditing}
+          ? { ...item, isEditing: !item.isEditing, static: !item.isEditing }
           : { ...item, isEditing: false, static: false },
       );
 
@@ -148,23 +148,22 @@ export const GridLayoutPlot = ({
     [active],
   );
 
-
   /**
    * updateslider coordinate value
    */
-const handleUpdateCoordinate = async (
-  coordinate: Coordinates,
-  index: number,
-) => {
-  const lastTargetLastName = getLastIndexedField(coordinate.target);
-  if (!lastTargetLastName) return coordinate.index ?? 0;
+  const handleUpdateCoordinate = async (
+    coordinate: Coordinates,
+    index: number,
+  ) => {
+    const lastTargetLastName = getLastIndexedField(coordinate.target);
+    if (!lastTargetLastName) return coordinate.index ?? 0;
 
-  const { uri: newUri, target: newTarget } = updateUriAndTarget(
-    coordinate.target,
-    coordinate.nodeUri,
-    lastTargetLastName,
-    index,
-  );
+    const { uri: newUri } = updateUriAndTarget(
+      coordinate.target,
+      coordinate.nodeUri,
+      lastTargetLastName,
+      index,
+    );
 
     const updatedCoordinatesValue = data.coordinates.map((item) => {
       const lastTargetLastName = getLastIndexedField(coordinate.target);
@@ -184,35 +183,33 @@ const handleUpdateCoordinate = async (
       };
     });
 
-  const responseYData = await fetchFieldValue(newUri);
+    const responseYData = await fetchFieldValue(newUri);
 
-  const updatedActive = {
-    ...active,
-    dataPlot: active.dataPlot.map((item) => {
-      if (item.i === data.i) {
-        return {
-          ...item,
-          coordinates: updatedCoordinatesValue,
-          plot: item.plot.map((plotItem): DataPlotly => {
-            if (plotItem.nodeUri === coordinate.nodeUri) {
-              return {
-                ...plotItem,
-                y: responseYData.value as number[],
-                nodeUri: newUri,
-              };
-            }
-            return plotItem;
-          }),
-        };
-      }
-      return item;
-    }),
+    const updatedActive = {
+      ...active,
+      dataPlot: active.dataPlot.map((item) => {
+        if (item.i === data.i) {
+          return {
+            ...item,
+            coordinates: updatedCoordinatesValue,
+            plot: item.plot.map((plotItem): DataPlotly => {
+              if (plotItem.nodeUri === coordinate.nodeUri) {
+                return {
+                  ...plotItem,
+                  y: responseYData.value as number[],
+                  nodeUri: newUri,
+                };
+              }
+              return plotItem;
+            }),
+          };
+        }
+        return item;
+      }),
+    };
+
+    updatedConfiguration(updatedActive);
   };
-
-  updatedConfiguration(updatedActive);
-
-};
-
 
   return (
     <Container fluid w={widthGrid} p={0}>
@@ -238,7 +235,6 @@ const handleUpdateCoordinate = async (
                   }}
                   height={heightGrid - 80}
                   disabled={!data.isEditing}
-        
                 />
               ))}
             </Group>
@@ -262,12 +258,7 @@ const handleUpdateCoordinate = async (
             }}
           >
             {(hovered || data.isEditing) && (
-              <Group
-                pos="absolute"
-                right={data.isEditing ? 3 : 1}
-                top={5}
-                grow
-              >
+              <Group pos="absolute" right={data.isEditing ? 3 : 1} top={5} grow>
                 <Tooltip label="Inpect metadatas information">
                   <ActionIcon
                     variant="filled"

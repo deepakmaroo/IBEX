@@ -32,7 +32,7 @@ export async function plotData(
     x: xData,
     y: yData,
     name: `${yAxis.name}_${labelUri}`,
-    mode: "lines",
+    mode: 'lines',
     nodeUri: nodeUri,
     yAxis: yAxis,
     description: description,
@@ -41,13 +41,11 @@ export async function plotData(
     shape: shape,
     labelUri: labelUri,
     yaxis: y2Axis ? 'y2' : '',
-    
-    
   };
 
   dataPlot = {
     ...dataPlot,
-    
+
     title:
       // If the dataPlot already has a title, append the trace name to it
       dataPlot.title === ''
@@ -96,7 +94,6 @@ export const handleNewPlot = async (
       index: 0,
       target: coordinate.target,
       nodeUri: defaultUri,
-      
     }));
 
   const xAxis: Axis = {
@@ -115,7 +112,6 @@ export const handleNewPlot = async (
     xAxis,
     yAxis,
     updatedActive.dataPlot || [],
-
   );
 
   const xCoordinatesValue = response.data.coordinates[0].value as number[];
@@ -123,7 +119,7 @@ export const handleNewPlot = async (
   const updatedPlot = await plotData(
     newPlot,
     xCoordinatesValue,
-    response.data.value  as number[],
+    response.data.value as number[],
     defaultUri,
     yAxis,
     response.data.ndim,
@@ -206,7 +202,7 @@ export const handleExistingPlot = async (
       const updatedPlot = await plotData(
         findDataPlot,
         response.data.coordinates[0].value as number[],
-        response.data.value  as number[],
+        response.data.value as number[],
         node.uri,
         yAxis,
         response.data.ndim,
@@ -344,7 +340,7 @@ export async function plotNodeUriLoaded(
                     data: responseCoordinates.value as number[],
                     target: responseCoordinates.target,
                     nodeUri: plot.nodeUri,
-                    index: 0
+                    index: 0,
                   });
                 }
               }
@@ -363,7 +359,7 @@ export async function plotNodeUriLoaded(
             } catch (error) {
               console.error(`Error fetching data for ${plot.nodeUri}:`, error);
               errorHasOccurred = true;
-              return plot; 
+              return plot;
             }
           }),
         );

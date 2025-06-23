@@ -136,7 +136,8 @@ export function MainLayout() {
           const newIbexState: ConfigurationToSave = JSON.parse(data);
 
           const configurationExists = configurations.find(
-            (config) => config.name === newIbexState.name && path === config.path,
+            (config) =>
+              config.name === newIbexState.name && path === config.path,
           );
           if (configurationExists) {
             showNotification({
