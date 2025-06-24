@@ -41,6 +41,7 @@ classifiers = [
 ]
 dynamic = ["version"]
 dependencies = [
+    "uvicorn",
     "fastapi[standard]",
     "packaging",
     "imas-python",

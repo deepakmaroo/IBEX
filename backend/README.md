@@ -1,4 +1,4 @@
-# Ibex
+# Ibex backend
 
 ## Installation
 

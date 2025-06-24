@@ -28,27 +28,31 @@ get_free_ports() {
 # Get the directory where this script is located
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-export PYTHONPATH=${SCRIPT_DIR}/ibex_venv/lib/python3.11/site-packages:${PYTHONPATH}
-
-echo "0. Load modules..."
+echo "1. Loading required modules..."
 module load IMAS-Python IDStools nodejs
 
+echo "2. Setting up Python virtual environment..."
+cd ~
+python -m venv ibex_venv
+source ibex_venv/bin/activate
 
-echo "1. Launch backend server..."
+echo "3. Installing backend in editable mode..."
+# install requirements: to be modified later for central installation
+cd "$SCRIPT_DIR/backend"
+pip install -e .
+
+echo "4. Launch backend server..."
 
 read -r -a found_ports < <(get_free_ports)
 echo "Selected free ports: ${found_ports[@]}"
 echo "Setting IBEX BACKEND PORT = ${found_ports[0]}"
 
-which python
-
-python -c "import uvicorn"
-
-${SCRIPT_DIR}/backend/bin/run_ibex_service -p ${found_ports[0]} &
+./bin/run_ibex_service -p ${found_ports[0]} &
 BACKEND_PID=$!
 cd "$SCRIPT_DIR"
 
-echo "2. Configuring frontend"
+echo "5. Installing frontend dependencies..."
+cd "$SCRIPT_DIR/frontend"
 
 # Search for 2 open ports, one for webpack renderer and one for webpack logger
 # The range 49152–65535 contains dynamic or private ports.
@@ -71,8 +75,10 @@ cat > ~/.config/ibex/config.json <<EOF
 }
 EOF
 
-echo "3. Launch frontend server..."
-"$SCRIPT_DIR/frontend/out/ibex-linux-x64/ibex" &
+npm install
+
+echo "6. Launch frontend server..."
+npm run start &
 FRONTEND_PID=$!
 cd "$SCRIPT_DIR"
 
