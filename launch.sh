@@ -33,7 +33,7 @@ get_free_ports() {
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 echo "1. Loading required modules..."
-module load IDStools IMAS-Python nodejs
+module load IMAS-Python IDStools nodejs
 
 echo "2. Setting up Python virtual environment..."
 cd "$SCRIPT_DIR"
@@ -45,7 +45,12 @@ cd "$SCRIPT_DIR/backend"
 pip install -e .
 
 echo "4. Launch backend server..."
-./bin/run_ibex_service &
+
+read -r -a found_ports < <(get_free_ports)
+echo "Selected free ports: ${found_ports[@]}"
+echo "Setting IBEX BACKEND PORT = ${found_ports[0]}"
+
+./bin/run_ibex_service -p ${found_ports[0]} &
 BACKEND_PID=$!
 cd "$SCRIPT_DIR"
 
@@ -56,17 +61,21 @@ cd "$SCRIPT_DIR/frontend"
 # The range 49152–65535 contains dynamic or private ports.
 # This range is used for private or customized services, for temporary purposes, and for automatic allocation of ephemeral ports.
 
-read -r -a found_ports < <(get_free_ports)
-echo "Selected free ports: ${found_ports[@]}"
-echo "Setting WEBPACK_RENDERER PORT = ${found_ports[0]}"
-echo "Setting WEBPACK_LOGGER PORT = ${found_ports[1]}"
+echo "Setting WEBPACK_RENDERER PORT = ${found_ports[1]}"
+echo "Setting WEBPACK_LOGGER PORT = ${found_ports[2]}"
 
-cat > ".env" <<EOF
-# Webpack renderer port
-WEBPACK_PORT=${found_ports[0]}
+echo "CREATING CONFIG FILE IN ~/.config/ibex/config.json"
+mkdir -p ~/.config/ibex
+rm -f ~/.config/ibex/config.json
+touch ~/.config/ibex/config.json
+echo "DONE CREATING CONFIG FILE"
 
-# Webpack logger port
-LOGGER_PORT=${found_ports[1]}
+cat > ~/.config/ibex/config.json <<EOF
+{
+  "API_URL": "http://localhost:${found_ports[0]}",
+  "WEBPACK_PORT": ${found_ports[1]},
+  "LOGGER_PORT": ${found_ports[2]}
+}
 EOF
 
 npm install
