@@ -31,6 +31,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 export PYTHONPATH=${SCRIPT_DIR}/ibex_venv/lib/python3.11/site-packages:${PYTHONPATH}
 
 echo "0. Load modules..."
+module purge
 module load IMAS-Python IDStools nodejs
 
 
@@ -77,4 +78,5 @@ FRONTEND_PID=$!
 cd "$SCRIPT_DIR"
 
 # Wait for both processes to finish
-wait $BACKEND_PID $FRONTEND_PID
+wait $FRONTEND_PID
+kill $BACKEND_PID

@@ -81,6 +81,8 @@ celerybeat-schedule
 # virtualenv
 .venv/
 venv/
+.ibex_venv/
+ibex_venv/
 ENV/
 venv4linting/
 
