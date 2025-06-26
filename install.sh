@@ -21,6 +21,6 @@ pip install .
 echo "5. Installing frontend dependencies..."
 cd "$SCRIPT_DIR/frontend"
 npm install
-npm run package
+TMPDIR=~/tmp/ibex-build npm run package
 chmod 755 "$SCRIPT_DIR/frontend/out/ibex-linux-x64"
 chmod -R 755 "$SCRIPT_DIR/frontend/out/ibex-linux-x64/ibex"
