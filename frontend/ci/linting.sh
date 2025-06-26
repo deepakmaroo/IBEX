@@ -2,6 +2,15 @@
 
 # Bamboo CI script for linting
 
+# Load module
+echo "Loading Node.js module..."
+module load nodejs
+
+echo "Node.js version:"
+node -v
+echo "NPM version:"
+npm -v
+
 # Root directory of the frontend
 FRONTEND_ROOT_DIR=$(realpath "$(dirname "$(realpath "${BASH_SOURCE[0]}")")/..")
 
