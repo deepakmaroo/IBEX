@@ -4,7 +4,7 @@ import path from 'path';
 import * as chrome from 'selenium-webdriver/chrome';
 import { Builder, WebDriver } from 'selenium-webdriver';
 import { ConfigurationState } from 'src/renderer/types';
-import { ipcMain, dialog } from 'electron';
+
 let driver: WebDriver;
 let electron: ChildProcessWithoutNullStreams;
 /**
