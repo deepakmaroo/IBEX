@@ -2,7 +2,7 @@ import { ipcMain, dialog, BrowserWindow } from 'electron';
 import * as fs from 'fs';
 import { getConfigSync } from '../config';
 import { ConfigurationState } from 'src/renderer/types';
-
+import { PlotCoordinatesResponse } from 'src/renderer/types';
 export default {
   initialize() {
     const config = getConfigSync();
