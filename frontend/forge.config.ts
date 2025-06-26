@@ -11,8 +11,7 @@ import { getConfigSync } from './src/config';
 import { mainConfig } from './webpack.main.config';
 import { rendererConfig } from './webpack.renderer.config';
 
-/* eslint-disable import/no-named-as-default-member */
-/* eslint-disable import/no-unused-modules */
+
 import dotenv from 'dotenv';
 dotenv.config();
 

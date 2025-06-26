@@ -359,9 +359,10 @@ export async function plotNodeUriLoaded(
 
                   if (findCoordinates) {
                     // If coordinates exist, update the data and shape
-                    (findCoordinates.data =
+
+                    ((findCoordinates.data =
                       responseCoordinates.value as number[]),
-                      (findCoordinates.name = responseCoordinates.name);
+                      (findCoordinates.name = responseCoordinates.name));
                     findCoordinates.shape = responseCoordinates.shape;
                   }
 

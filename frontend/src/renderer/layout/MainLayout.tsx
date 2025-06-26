@@ -137,18 +137,18 @@ export function MainLayout() {
           await window.api.fs.readFile(path).then(async (data: string) => {
             const newIbexState: ConfigurationToSave = JSON.parse(data);
 
-          const configurationExists = configurations.find(
-            (config) =>
-              config.name === newIbexState.name && path === config.path,
-          );
-          if (configurationExists) {
-            showNotification({
-              title: 'Configuration already loaded',
-              message: `The configuration ${newIbexState.name} is already loaded.`,
-              color: 'red',
-            });
-            return;
-          }
+            const configurationExists = configurations.find(
+              (config) =>
+                config.name === newIbexState.name && path === config.path,
+            );
+            if (configurationExists) {
+              showNotification({
+                title: 'Configuration already loaded',
+                message: `The configuration ${newIbexState.name} is already loaded.`,
+                color: 'red',
+              });
+              return;
+            }
 
             const newListDataGridPlot: DataGridPlot[] =
               newIbexState.dataPlot.map(
