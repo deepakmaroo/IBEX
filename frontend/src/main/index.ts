@@ -6,7 +6,10 @@ import { config } from 'dotenv';
 config();
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
-if (require('electron-squirrel-startup')) {
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const isSquirrelStartup: boolean = require('electron-squirrel-startup');
+
+if (isSquirrelStartup) {
   app.quit();
 }
 

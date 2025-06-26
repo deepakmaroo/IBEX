@@ -41,7 +41,7 @@ describe('UI Tests for Visualization Component', function () {
         // Attends la disparition de l'overlay
         await driver.wait(until.stalenessOf(modalOverlay), 3000);
       }
-    } catch (e) {
+    } catch {
       // Ignore si la modale n'existe pas
     }
   });
@@ -62,8 +62,7 @@ describe('UI Tests for Visualization Component', function () {
       10000,
     );
 
-    const isDisplayed = await noConfigText.isDisplayed();
-    expect(isDisplayed).to.be.true;
+    expect(await noConfigText.isDisplayed()).to.be.true;
   });
 
   it('Should display the Visualization component and show the left and right panels', async () => {

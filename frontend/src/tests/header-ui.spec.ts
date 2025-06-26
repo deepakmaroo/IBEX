@@ -42,7 +42,7 @@ describe('UI Tests for Header Component', function () {
         await close.click();
         await driver.wait(until.stalenessOf(overlay), 10000);
       }
-    } catch (e) {
+    } catch {
       // no modal to close
     }
   });
@@ -55,7 +55,7 @@ describe('UI Tests for Header Component', function () {
       if (await overlay.isDisplayed()) {
         await driver.wait(until.stalenessOf(overlay), 10000);
       }
-    } catch (e) {
+    } catch {
       console.warn('No overlay to wait for');
     }
   }

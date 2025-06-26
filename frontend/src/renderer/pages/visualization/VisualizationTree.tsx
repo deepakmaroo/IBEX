@@ -544,7 +544,8 @@ export const VisualizationTree = ({
                   color={item.uriColor}
                   radius="xl"
                   onClick={() => {
-                    (handleExtended(), handleAccordionChange(item.uri));
+                    handleExtended();
+                    handleAccordionChange(item.uri);
                   }}
                 >
                   {item.name.charAt(0).toUpperCase()}

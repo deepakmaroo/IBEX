@@ -4,16 +4,15 @@ import path from 'path';
 import * as chrome from 'selenium-webdriver/chrome';
 import { Builder, WebDriver } from 'selenium-webdriver';
 import { ConfigurationState } from 'src/renderer/types';
-
+import { ipcMain, dialog } from 'electron';
 let driver: WebDriver;
 let electron: ChildProcessWithoutNullStreams;
-
 /**
  * Starts the Electron app and initializes WebDriver to connect to it.
  * @returns WebDriver instance connected to the Electron app
  */
 export async function startApp() {
-  //eslint-disable-next-line @typescript-eslint/no-var-requires
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const electronBinary = require('electron');
   const appDir = path.resolve(__dirname, '..', '..');
   const electronEntry = path.join(appDir, '.webpack', 'main', 'index.js');
