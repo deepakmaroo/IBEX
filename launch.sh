@@ -28,22 +28,18 @@ get_free_ports() {
 # Get the directory where this script is located
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-export PYTHONPATH=${SCRIPT_DIR}/ibex_venv/lib/python3.11/site-packages:${PYTHONPATH}
-
 echo "0. Load modules..."
 module purge
 module load IMAS-Python IDStools nodejs
 
+PYTHON_VERSION=$(python --version | cut -d ' ' -f 2 | cut -d '.' -f1,2)
+export PYTHONPATH=${SCRIPT_DIR}/ibex_venv/lib/python${PYTHON_VERSION}/site-packages:${PYTHONPATH}
 
 echo "1. Launch backend server..."
 
 read -r -a found_ports < <(get_free_ports)
 echo "Selected free ports: ${found_ports[@]}"
 echo "Setting IBEX BACKEND PORT = ${found_ports[0]}"
-
-which python
-
-python -c "import uvicorn"
 
 ${SCRIPT_DIR}/backend/bin/run_ibex_service -p ${found_ports[0]} &
 BACKEND_PID=$!
