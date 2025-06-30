@@ -6,10 +6,11 @@ import {
   DataGridPlot,
   DataPlotly,
   PlotCoordinatesResponse,
+  PlotDataResponse,
   URITreeNodeData,
 } from '../types';
 import { fetchDataPlot } from './fetchData';
-import { generateNewGrid } from './grid';
+import { generateNewGrid, generateNewGridPlot } from './grid';
 
 export function normalizeIndices(uri: string): string {
   return uri.replace(/\[\d+\]/g, '[:]');
@@ -32,7 +33,7 @@ export async function plotData(
     x: xData,
     y: yData,
     name: `${yAxis.name}_${labelUri}`,
-    mode: 'lines',
+    mode: yData.length > 1 ? 'lines' : 'lines+markers',
     nodeUri: nodeUri,
     yAxis: yAxis,
     description: description,
@@ -70,11 +71,18 @@ export const handleNewPlot = async (
   nodes: URITreeNodeData[],
   updatedActive: Configuration,
 ): Promise<Configuration> => {
+  //By default we take index 0 of the first node data
   const defaultUri = nodes[0].uri.replace(/\[:\]/g, '[0]');
 
-  const response = await fetchDataPlot(defaultUri);
+  const response: PlotDataResponse = await fetchDataPlot(defaultUri);
+  console.log('Response from fetchDataPlot:', response);
 
-  if (!response || response.data.ndim !== 1) {
+  if(response.data.ndim == 0 && typeof response.data.value === 'number') {
+    // If the data is a single number, we convert it to an array for plotting
+    response.data.value = [response.data.value];
+  }
+
+  if (!response || response.data.ndim > 1) {
     showNotification({
       title: 'Plot',
       message: 'Cannot plot data with more than one dimension',
@@ -82,6 +90,18 @@ export const handleNewPlot = async (
     });
     updatedActive.checkedNodeURI = nodes.filter((n) => n !== nodes[0]);
     return updatedActive;
+  }
+
+  if(response.data.coordinates.length === 0) {
+    showNotification({
+      title: 'Plot',
+      message: 'No coordinates found for plotting',
+      color: 'yellow',
+    });
+
+    // const emptyPlot: DataGridPlot = {
+    //   i: updatedActive.dataPlot.length,
+
   }
 
   //Get coordinates data for slider - all coordinates except the first one, is considered as x coordinates
@@ -107,7 +127,7 @@ export const handleNewPlot = async (
     unit: response.data.unit,
   };
 
-  const newPlot = generateNewGrid(
+  const newPlot = generateNewGridPlot(
     xCoordinatesData,
     xAxis,
     yAxis,
@@ -116,7 +136,7 @@ export const handleNewPlot = async (
 
   const xCoordinatesValue = response.data.coordinates[0].value as number[];
 
-  const updatedPlot = await plotData(
+  const updatedPlot: DataGridPlot = await plotData(
     newPlot,
     xCoordinatesValue,
     response.data.value as number[],
@@ -354,7 +374,7 @@ export async function plotNodeUriLoaded(
                 path: response.data.path,
                 shape: [],
                 x: response.data.coordinates[0].value.map(String) ?? [],
-                y: response.data.value ?? [],
+                y: response.data.value as number[] ?? [],
               };
             } catch (error) {
               console.error(`Error fetching data for ${plot.nodeUri}:`, error);

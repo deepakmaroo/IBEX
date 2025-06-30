@@ -9,12 +9,26 @@ export const findNextAvailableY = (existingPlots: DataGridPlot[]): number => {
   return maxY;
 };
 
-export const generateNewGrid = (
+export const generateNewGridPlot = (
   xCoordinates: Coordinates[],
   xAxis: Axis,
   yAxis: Axis,
   existingPlots: DataGridPlot[],
   y2Axis?: Axis,
+): DataGridPlot => {
+  let newGrid = generateNewGrid(existingPlots);
+
+  return {
+    ...newGrid,
+    xAxis: xAxis,
+    yAxis: yAxis,
+    y2Axis: y2Axis,
+    coordinates: xCoordinates,
+  };
+};
+
+export const generateNewGrid = (
+  existingPlots: DataGridPlot[],
 ): DataGridPlot => {
   return {
     title: '',
@@ -22,10 +36,6 @@ export const generateNewGrid = (
     isEditing: true,
     static: true,
     plot: [],
-    xAxis: xAxis,
-    yAxis: yAxis,
-    y2Axis: y2Axis,
-    coordinates: xCoordinates,
     x: 0,
     y: findNextAvailableY(existingPlots),
     w: 6,

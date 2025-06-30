@@ -54,15 +54,15 @@ export interface BaseDataGridPlot {
   w: number;
   h: number;
   title: string;
-  xAxis: Axis;
-  yAxis: Axis;
+  xAxis?: Axis;
+  yAxis?: Axis;
   y2Axis?: Axis;
 }
 
 export interface DataGridPlot extends Layout, BaseDataGridPlot {
   plot: DataPlotly[];
   isEditing: boolean;
-  coordinates: Coordinates[];
+  coordinates?: Coordinates[];
 }
 
 export interface DataGridPlotToSave extends BaseDataGridPlot {

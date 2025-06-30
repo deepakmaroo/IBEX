@@ -13,7 +13,7 @@ export type PlotDataResponse = {
   data: {
     name: string;
     unit: string;
-    value: number[] | string[];
+    value: number[] | string[] | number | string;
     shape: number[];
     ndim: number;
     path: string;
