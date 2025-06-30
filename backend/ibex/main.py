@@ -6,6 +6,7 @@ import logging  # type: ignore
 from ibex.endpoints.data import router as data_router
 from ibex.endpoints.data_entry import router as data_entry_router
 from ibex.endpoints.ids_info import router as ids_info_router
+from ibex.endpoints.info import router as info_router
 
 from ibex.data_source.exception import (
     NodeNotFoundException,
@@ -24,6 +25,7 @@ app = FastAPI()
 app.include_router(data_entry_router)
 app.include_router(ids_info_router)
 app.include_router(data_router)
+app.include_router(info_router)
 
 app.add_exception_handler(Exception, general_exception_handler)
 app.add_exception_handler(ValueError, general_exception_handler)
