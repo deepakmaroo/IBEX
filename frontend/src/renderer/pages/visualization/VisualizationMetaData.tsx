@@ -10,6 +10,7 @@ import {
   Stack,
   Table,
   Tabs,
+  Text,
 } from '@mantine/core';
 import { useIbexStore } from '../../stores';
 import { useCallback, useEffect, useState } from 'react';
@@ -33,19 +34,20 @@ interface RenderMetaDataCoordinatesProps {
   coordinates: PlotCoordinatesResponse[];
 }
 
-const renderField = (label: string, value?: string | number) =>
-  value && (
-    <Table.Tr>
-      <Table.Td fw="bold">{label}</Table.Td>
-      <Table.Td>{value}</Table.Td>
-    </Table.Tr>
-  );
+const renderField = (label: string, value?: string | number) => (
+  <Table.Tr>
+    <Table.Td fw="bold">{label}</Table.Td>
+    <Table.Td>{value ? value : 'N/A'}</Table.Td>
+  </Table.Tr>
+);
 
-const renderSpoiler = (label: string, value?: (string | number)[]) =>
-  value && (
-    <Table.Tr>
-      <Table.Td fw="bold">{label}</Table.Td>
-      <Table.Td>
+const renderSpoiler = (label: string, value?: (string | number)[]) => (
+  <Table.Tr>
+    <Table.Td fw="bold">{label}</Table.Td>
+    <Table.Td>
+      {value === undefined || value.length === 0 ? (
+        'N/A'
+      ) : (
         <ScrollArea h={value.length > 5 ? 150 : 'auto'}>
           <Spoiler
             maxHeight={value.length > 5 ? 150 : 50}
@@ -62,9 +64,10 @@ const renderSpoiler = (label: string, value?: (string | number)[]) =>
             </Stack>
           </Spoiler>
         </ScrollArea>
-      </Table.Td>
-    </Table.Tr>
-  );
+      )}
+    </Table.Td>
+  </Table.Tr>
+);
 
 const RenderMetaDataCoordinates = ({
   coordinates,
@@ -83,7 +86,7 @@ const RenderMetaDataCoordinates = ({
         {renderField('path', coordinate.path)}
         {renderField('unit', coordinate.unit)}
         {renderSpoiler('shape', coordinate.shape)}
-        {renderField('ndim', coordinate.ndim)}
+        {renderField('ndim', coordinate.ndim.toString())}
 
         {renderSpoiler('value', coordinate.value as number[])}
 
@@ -97,14 +100,20 @@ const RenderMetaDataCoordinates = ({
     <Table.Tr>
       <Table.Td fw="bold">Coordinates</Table.Td>
       <Table.Td>
-        <Accordion chevronPosition="left" variant="filled">
-          {coordinates.map((coordinate, index) => (
-            <Accordion.Item key={index} value={coordinate.name}>
-              <AccordionControl>{coordinate.name}</AccordionControl>
-              <Accordion.Panel>{renderCoordinates(coordinate)}</Accordion.Panel>
-            </Accordion.Item>
-          ))}
-        </Accordion>
+        {coordinates.length === 0 ? (
+          'N/A'
+        ) : (
+          <Accordion chevronPosition="left" variant="filled">
+            {coordinates.map((coordinate, index) => (
+              <Accordion.Item key={index} value={coordinate.name}>
+                <AccordionControl>{coordinate.name}</AccordionControl>
+                <Accordion.Panel>
+                  {renderCoordinates(coordinate)}
+                </Accordion.Panel>
+              </Accordion.Item>
+            ))}
+          </Accordion>
+        )}
       </Table.Td>
     </Table.Tr>
   );
@@ -161,7 +170,7 @@ const MetaDataInfos = ({ data, height, tabsSelected }: MetaDataInfosProps) => {
           {renderField('path', data?.path)}
           {renderField('unit', data.yAxis.unit)}
           {renderSpoiler('shape', data.shape as (string | number)[])}
-          {renderField('dimension', data?.dimensions)}
+          {renderField('dimension', data?.dimensions.toString())}
           {renderSpoiler('value', data.y as (string | number)[])}
           {summary && renderField('min', summary?.min)}
           {summary && renderField('max', summary?.max)}
