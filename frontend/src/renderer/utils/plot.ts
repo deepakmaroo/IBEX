@@ -32,7 +32,7 @@ export async function plotData(
   const trace: DataPlotly = {
     x: xData,
     y: yData,
-    name: `${yAxis.name}_${labelUri}`,
+    name: yAxis ? `${yAxis.name}_${labelUri}` : '',
     mode: yData.length > 1 ? 'lines' : 'lines+markers',
     nodeUri: nodeUri,
     yAxis: yAxis,
@@ -77,7 +77,7 @@ export const handleNewPlot = async (
   const response: PlotDataResponse = await fetchDataPlot(defaultUri);
   console.log('Response from fetchDataPlot:', response);
 
-  if(response.data.ndim == 0 && typeof response.data.value === 'number') {
+  if (response.data.ndim == 0 && typeof response.data.value === 'number') {
     // If the data is a single number, we convert it to an array for plotting
     response.data.value = [response.data.value];
   }
@@ -92,36 +92,35 @@ export const handleNewPlot = async (
     return updatedActive;
   }
 
-  if(response.data.coordinates.length === 0) {
-    showNotification({
-      title: 'Plot',
-      message: 'No coordinates found for plotting',
-      color: 'yellow',
-    });
+  let xCoordinatesData: Coordinates[] = [];
+  let xCoordinatesValue: number[] = [];
+  let xAxis: Axis = null;
 
-    // const emptyPlot: DataGridPlot = {
-    //   i: updatedActive.dataPlot.length,
+  if (response.data.coordinates.length > 1) {
+    // Get the xCoordinatesValue from the first coordinate
+    xCoordinatesValue = response.data.coordinates[0].value as number[];
 
+    //Get coordinates data for slider - all coordinates except the first one, is considered as x coordinates
+    xCoordinatesData = response.data.coordinates
+      .slice(1)
+      .map((coordinate: PlotCoordinatesResponse) => ({
+        name: coordinate.name,
+        shape: coordinate.shape,
+        data: coordinate.value as number[] | string[],
+        index: 0,
+        target: coordinate.target,
+        nodeUri: defaultUri,
+      }));
+
+    // Set the xAxis properties
+    xAxis = {
+      name: response.data.coordinates[0].name,
+      unit: response.data.coordinates[0].unit,
+      path: response.data.coordinates[0].path,
+    };
   }
 
-  //Get coordinates data for slider - all coordinates except the first one, is considered as x coordinates
-  const xCoordinatesData: Coordinates[] = response.data.coordinates
-    .slice(1)
-    .map((coordinate: PlotCoordinatesResponse) => ({
-      name: coordinate.name,
-      shape: coordinate.shape,
-      data: coordinate.value as number[] | string[],
-      index: 0,
-      target: coordinate.target,
-      nodeUri: defaultUri,
-    }));
-
-  const xAxis: Axis = {
-    name: response.data.coordinates[0].name,
-    unit: response.data.coordinates[0].unit,
-    path: response.data.coordinates[0].path,
-  };
-
+  // Set the yAxis properties
   const yAxis: Axis = {
     name: response.data.name,
     unit: response.data.unit,
@@ -133,8 +132,7 @@ export const handleNewPlot = async (
     yAxis,
     updatedActive.dataPlot || [],
   );
-
-  const xCoordinatesValue = response.data.coordinates[0].value as number[];
+  console.log('New plot generated:', newPlot);
 
   const updatedPlot: DataGridPlot = await plotData(
     newPlot,
@@ -148,6 +146,8 @@ export const handleNewPlot = async (
     nodes[0].name,
     response.data.description,
   );
+
+  console.log('Updated plot:', updatedPlot);
 
   updatedActive.dataPlot.push(updatedPlot);
   return updatedActive;
@@ -336,9 +336,9 @@ export async function plotNodeUriLoaded(
                   });
 
                   if (findCoordinates) {
-                    (findCoordinates.data =
+                    ((findCoordinates.data =
                       responseCoordinates.value as number[]),
-                      (findCoordinates.name = responseCoordinates.name);
+                      (findCoordinates.name = responseCoordinates.name));
                     findCoordinates.shape = responseCoordinates.shape;
                   }
 
@@ -374,7 +374,7 @@ export async function plotNodeUriLoaded(
                 path: response.data.path,
                 shape: [],
                 x: response.data.coordinates[0].value.map(String) ?? [],
-                y: response.data.value as number[] ?? [],
+                y: (response.data.value as number[]) ?? [],
               };
             } catch (error) {
               console.error(`Error fetching data for ${plot.nodeUri}:`, error);
