@@ -44,6 +44,7 @@ export const SimplePlotly = ({
         },
         rangemode: 'tozero',
         showline: true,
+        zeroline: false
       },
       yaxis: {
         ...prevLayout.yaxis,
@@ -55,8 +56,10 @@ export const SimplePlotly = ({
             color: '#7f7f7f',
           },
         },
-        showline: true,
         rangemode: 'tozero',
+        showline: true,
+        zeroline: false
+
       },
       modebar: {
         orientation: 'v',
@@ -80,6 +83,10 @@ export const SimplePlotly = ({
               tickfont: { color: 'rgb(148, 103, 189)' },
               overlaying: 'y',
               side: 'right',
+              rangemode: 'tozero',
+              showline: true,
+              zeroline: false
+
             }
           : {},
       showline: true,
