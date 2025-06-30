@@ -276,7 +276,7 @@ export const GridLayoutPlot = ({
 
                 <Tooltip
                   label={
-                    data.isEditing ? 'Stop editing the grid' : 'Edit the grid'
+                    data.isEditing ? 'Validate/Close editing the grid' : 'Open editing the grid'
                   }
                 >
                   <ActionIcon
