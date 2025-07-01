@@ -69,19 +69,6 @@ export const plotData = (
     labelUri: labelUri,
     yaxis: y2Axis ? 'y2' : '',
   };
-
-  dataPlot = {
-    ...dataPlot,
-
-    title:
-      // If the dataPlot already has a title, append the trace name to it
-      dataPlot.title === ''
-        ? `${trace.name}`
-        : `${dataPlot.title} / ${trace.name}`,
-  };
-
-  dataPlot.plot.push(trace);
-
   if (yData.length === 0) {
     showNotification({
       title: 'Plot',
@@ -90,7 +77,17 @@ export const plotData = (
     });
   }
 
-  return dataPlot;
+  const currentPlot = Array.isArray(dataPlot.plot) ? dataPlot.plot : [];
+
+  return {
+    ...dataPlot,
+    title:
+      // If the dataPlot already has a title, append the trace name to it
+      dataPlot.title === ''
+        ? `${trace.name}`
+        : `${dataPlot.title} / ${trace.name}`,
+    plot: [...currentPlot, trace],
+  };
 };
 
 export const handleNewPlot = async (
@@ -101,7 +98,6 @@ export const handleNewPlot = async (
   const defaultUri = nodes[0].uri.replace(/\[:\]/g, '[0]');
 
   let response: PlotDataResponse = await fetchDataPlot(defaultUri);
-  console.log('Response from fetchDataPlot:', response);
 
   response = checkDimension0(response);
 
@@ -154,6 +150,7 @@ export const handleNewPlot = async (
     updatedActive.dataPlot || [],
   );
 
+
   const updatedPlot: DataGridPlot = plotData(
     newPlot,
     xCoordinatesValue,
@@ -167,8 +164,6 @@ export const handleNewPlot = async (
     response.data.description,
   );
 
-  console.log('Updated plot:', updatedPlot);
-
   updatedActive.dataPlot.push(updatedPlot);
   return updatedActive;
 };
@@ -178,6 +173,7 @@ export const handleExistingPlot = async (
   findDataPlot: DataGridPlot,
   updatedActive: Configuration,
 ): Promise<Configuration> => {
+
   const dataToPlot = nodes.filter(
     (node) =>
       !findDataPlot.plot.some(
@@ -352,9 +348,9 @@ export async function plotNodeUriLoaded(
                   });
 
                   if (findCoordinates) {
-                    (findCoordinates.data =
+                    ((findCoordinates.data =
                       responseCoordinates.value as number[]),
-                      (findCoordinates.name = responseCoordinates.name);
+                      (findCoordinates.name = responseCoordinates.name));
                     findCoordinates.shape = responseCoordinates.shape;
                   }
 
