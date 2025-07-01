@@ -16,13 +16,13 @@ export const generateNewGridPlot = (
   existingPlots: DataGridPlot[],
   y2Axis?: Axis,
 ): DataGridPlot => {
-  let newGrid = generateNewGrid(existingPlots);
+  const newGrid = generateNewGrid(existingPlots);
 
   return {
     ...newGrid,
-    xAxis: xAxis,
-    yAxis: yAxis,
-    y2Axis: y2Axis,
+    xAxisData: xAxis,
+    yAxisData: yAxis,
+    y2AxisData: y2Axis,
     coordinates: xCoordinates,
   };
 };

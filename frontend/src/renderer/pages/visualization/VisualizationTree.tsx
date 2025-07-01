@@ -421,6 +421,7 @@ export const VisualizationTree = ({
 
         if (!findDataPlot) {
           updatedActive = await handleNewPlot(nodes, updatedActive);
+          console.log('New plot created:', updatedActive);
           findDataPlot = updatedActive.dataPlot.find((plot) => plot.isEditing);
         }
 

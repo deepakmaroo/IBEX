@@ -44,7 +44,7 @@ export const SimplePlotly = ({
         },
         rangemode: 'tozero',
         showline: true,
-        zeroline: false
+        zeroline: false,
       },
       yaxis: {
         ...prevLayout.yaxis,
@@ -58,8 +58,7 @@ export const SimplePlotly = ({
         },
         rangemode: 'tozero',
         showline: true,
-        zeroline: false
-
+        zeroline: false,
       },
       modebar: {
         orientation: 'v',
@@ -85,8 +84,7 @@ export const SimplePlotly = ({
               side: 'right',
               rangemode: 'tozero',
               showline: true,
-              zeroline: false
-
+              zeroline: false,
             }
           : {},
       showline: true,
@@ -96,6 +94,10 @@ export const SimplePlotly = ({
       dragmode: 'zoom',
     }));
   }, [title, xAxis, yAxis, height, width]);
+
+  useEffect(() => {
+    console.log('data in SimplePlotly:', data);
+  }, [data]);
 
   return (
     <Plot

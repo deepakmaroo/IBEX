@@ -20,7 +20,7 @@ import {
   DataGridPlot,
   DataPlotly,
   PlotCoordinatesResponse,
-  Axis
+  Axis,
 } from 'src/renderer/types';
 import { fetchArraySummary, fetchDataPlot } from '../../utils';
 
@@ -120,7 +120,12 @@ const RenderMetaDataCoordinates = ({
   );
 };
 
-const MetaDataInfos = ({ data, yAxis, height, tabsSelected }: MetaDataInfosProps) => {
+const MetaDataInfos = ({
+  data,
+  yAxis,
+  height,
+  tabsSelected,
+}: MetaDataInfosProps) => {
   const [coordinates, setCoordinates] = useState<PlotCoordinatesResponse[]>([]);
   const [summary, setSummary] = useState<ArraySummaryResponse>(null);
 
@@ -240,13 +245,13 @@ export const VisualizationMetaData = () => {
         />
 
         {dataGridLayout &&
-          dataGridLayout.plot.map(
-            (item: DataPlotly, index) => {
-              item = {
-                ...item,
-                yaxis: '',      
-              }
-              return item?.name && (
+          dataGridLayout.plot.map((item: DataPlotly, index) => {
+            item = {
+              ...item,
+              yaxis: '',
+            };
+            return (
+              item?.name && (
                 <Tabs.Panel key={index} value={item?.name}>
                   <Grid type="container">
                     <Grid.Col span={5}>
@@ -277,15 +282,20 @@ export const VisualizationMetaData = () => {
                     <Grid.Col span={7}>
                       <MetaDataInfos
                         data={item}
-                        yAxis={item.yaxis !== '' ? dataGridLayout.y2AxisData : dataGridLayout.yAxisData}
+                        yAxis={
+                          item.yaxis !== ''
+                            ? dataGridLayout.y2AxisData
+                            : dataGridLayout.yAxisData
+                        }
                         height={HEIGHT}
                         tabsSelected={tabsValue}
                       />
                     </Grid.Col>
                   </Grid>
                 </Tabs.Panel>
-              )},
-          )}
+              )
+            );
+          })}
       </Tabs>
     </Container>
   );

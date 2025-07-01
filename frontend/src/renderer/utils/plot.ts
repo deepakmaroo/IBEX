@@ -10,7 +10,7 @@ import {
   URITreeNodeData,
 } from '../types';
 import { fetchDataPlot } from './fetchData';
-import { generateNewGrid, generateNewGridPlot } from './grid';
+import { generateNewGridPlot } from './grid';
 
 export function normalizeIndices(uri: string): string {
   return uri.replace(/\[\d+\]/g, '[:]');
@@ -43,7 +43,7 @@ export const checkDimension1 = (
   return true;
 };
 
-export async function plotData(
+export const plotData = (
   dataPlot: DataGridPlot,
   xData: number[],
   yData: number[],
@@ -55,7 +55,7 @@ export async function plotData(
   labelUri: string,
   description?: string,
   y2Axis?: boolean,
-): Promise<DataGridPlot> {
+): DataGridPlot => {
   const trace: DataPlotly = {
     x: xData,
     y: yData,
@@ -80,6 +80,8 @@ export async function plotData(
         : `${dataPlot.title} / ${trace.name}`,
   };
 
+  dataPlot.plot.push(trace);
+
   if (yData.length === 0) {
     showNotification({
       title: 'Plot',
@@ -88,10 +90,8 @@ export async function plotData(
     });
   }
 
-  dataPlot.plot.push(trace);
-
   return dataPlot;
-}
+};
 
 export const handleNewPlot = async (
   nodes: URITreeNodeData[],
@@ -117,7 +117,6 @@ export const handleNewPlot = async (
   let xCoordinatesValue: number[] = [];
   let xAxis: Axis = null;
 
-  
   if (response.data.coordinates.length > 0) {
     // Get the xCoordinatesValue from the first coordinate
     xCoordinatesValue = response.data.coordinates[0].value as number[];
@@ -155,7 +154,7 @@ export const handleNewPlot = async (
     updatedActive.dataPlot || [],
   );
 
-  const updatedPlot: DataGridPlot = await plotData(
+  const updatedPlot: DataGridPlot = plotData(
     newPlot,
     xCoordinatesValue,
     response.data.value as number[],
@@ -210,7 +209,6 @@ export const handleExistingPlot = async (
     if (!checkDimension1(response, updatedActive, nodes)) {
       return updatedActive;
     }
-
 
     const unit = response.data.unit;
     const unitExists =
@@ -354,9 +352,9 @@ export async function plotNodeUriLoaded(
                   });
 
                   if (findCoordinates) {
-                    ((findCoordinates.data =
+                    (findCoordinates.data =
                       responseCoordinates.value as number[]),
-                      (findCoordinates.name = responseCoordinates.name));
+                      (findCoordinates.name = responseCoordinates.name);
                     findCoordinates.shape = responseCoordinates.shape;
                   }
 
