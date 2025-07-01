@@ -421,20 +421,19 @@ export const VisualizationTree = ({
 
         if (!findDataPlot) {
           updatedActive = await handleNewPlot(nodes, updatedActive);
-          console.log('New plot created:', updatedActive);
           findDataPlot = updatedActive.dataPlot.find((plot) => plot.isEditing);
-        }
-
-        if (nodes.length === 0) {
-          updatedActive.dataPlot = active.dataPlot.filter(
-            (plot) => !plot.isEditing,
-          );
         } else {
-          updatedActive = await handleExistingPlot(
-            nodes,
-            findDataPlot,
-            updatedActive,
-          );
+          if (nodes.length === 0) {
+            updatedActive.dataPlot = active.dataPlot.filter(
+              (plot) => !plot.isEditing,
+            );
+          } else {
+            updatedActive = await handleExistingPlot(
+              nodes,
+              findDataPlot,
+              updatedActive,
+            );
+          }
         }
       } catch (error) {
         console.error(error);
@@ -442,7 +441,7 @@ export const VisualizationTree = ({
         updatedConfiguration(updatedActive);
       }
     },
-    [active],
+    [active, updatedConfiguration],
   );
 
   return (
@@ -545,7 +544,7 @@ export const VisualizationTree = ({
                   color={item.uriColor}
                   radius="xl"
                   onClick={() => {
-                    handleExtended(), handleAccordionChange(item.uri);
+                    (handleExtended(), handleAccordionChange(item.uri));
                   }}
                 >
                   {item.name.charAt(0).toUpperCase()}
