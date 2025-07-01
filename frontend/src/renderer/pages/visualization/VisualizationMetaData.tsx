@@ -10,7 +10,6 @@ import {
   Stack,
   Table,
   Tabs,
-  Text,
 } from '@mantine/core';
 import { useIbexStore } from '../../stores';
 import { useCallback, useEffect, useState } from 'react';
@@ -21,11 +20,13 @@ import {
   DataGridPlot,
   DataPlotly,
   PlotCoordinatesResponse,
+  Axis
 } from 'src/renderer/types';
 import { fetchArraySummary, fetchDataPlot } from '../../utils';
 
 interface MetaDataInfosProps {
   data: DataPlotly;
+  yAxis: Axis;
   tabsSelected: string | null;
   height?: string;
 }
@@ -119,7 +120,7 @@ const RenderMetaDataCoordinates = ({
   );
 };
 
-const MetaDataInfos = ({ data, height, tabsSelected }: MetaDataInfosProps) => {
+const MetaDataInfos = ({ data, yAxis, height, tabsSelected }: MetaDataInfosProps) => {
   const [coordinates, setCoordinates] = useState<PlotCoordinatesResponse[]>([]);
   const [summary, setSummary] = useState<ArraySummaryResponse>(null);
 
@@ -168,7 +169,7 @@ const MetaDataInfos = ({ data, height, tabsSelected }: MetaDataInfosProps) => {
           {renderField('uri', data?.nodeUri)}
           {renderField('name', data?.name)}
           {renderField('path', data?.path)}
-          {renderField('unit', data.yAxis.unit)}
+          {renderField('unit', yAxis.unit)}
           {renderSpoiler('shape', data.shape as (string | number)[])}
           {renderField('dimension', data?.dimensions.toString())}
           {renderSpoiler('value', data.y as (string | number)[])}
@@ -219,6 +220,10 @@ export const VisualizationMetaData = () => {
     updatedConfiguration(updatedActive);
   }, [active]);
 
+  useEffect(() => {
+    console.log('DataGridLayout:', dataGridLayout);
+  }, [dataGridLayout]);
+
   return (
     <Container fluid pb={10}>
       <Tabs value={tabsValue} onChange={setTabsValue}>
@@ -236,8 +241,12 @@ export const VisualizationMetaData = () => {
 
         {dataGridLayout &&
           dataGridLayout.plot.map(
-            (item, index) =>
-              item?.name && (
+            (item: DataPlotly, index) => {
+              item = {
+                ...item,
+                yaxis: '',      
+              }
+              return item?.name && (
                 <Tabs.Panel key={index} value={item?.name}>
                   <Grid type="container">
                     <Grid.Col span={5}>
@@ -255,11 +264,11 @@ export const VisualizationMetaData = () => {
                             height={HEIGHT_PLOT}
                             isStatic={true}
                             title={item.name}
-                            xAxis={dataGridLayout.xAxis}
+                            xAxis={dataGridLayout.xAxisData}
                             yAxis={
                               item.yaxis !== ''
-                                ? dataGridLayout.y2Axis
-                                : dataGridLayout.yAxis
+                                ? dataGridLayout.y2AxisData
+                                : dataGridLayout.yAxisData
                             }
                           />
                         </Paper>
@@ -268,13 +277,14 @@ export const VisualizationMetaData = () => {
                     <Grid.Col span={7}>
                       <MetaDataInfos
                         data={item}
+                        yAxis={item.yaxis !== '' ? dataGridLayout.y2AxisData : dataGridLayout.yAxisData}
                         height={HEIGHT}
                         tabsSelected={tabsValue}
                       />
                     </Grid.Col>
                   </Grid>
                 </Tabs.Panel>
-              ),
+              )},
           )}
       </Tabs>
     </Container>

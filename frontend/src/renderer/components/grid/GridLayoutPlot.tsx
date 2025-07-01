@@ -330,9 +330,9 @@ export const GridLayoutPlot = ({
             height={heightGrid}
             isStatic={data.isEditing}
             title={data.title}
-            xAxis={data.xAxis}
-            yAxis={data.yAxis}
-            y2Axis={data?.y2Axis}
+            xAxis={data.xAxisData}
+            yAxis={data.yAxisData}
+            y2Axis={data?.y2AxisData}
           />
         </Grid.Col>
       </Grid>

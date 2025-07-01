@@ -16,6 +16,33 @@ export function normalizeIndices(uri: string): string {
   return uri.replace(/\[\d+\]/g, '[:]');
 }
 
+export const checkDimension0 = (
+  response: PlotDataResponse,
+): PlotDataResponse => {
+  if (response.data.ndim == 0 && typeof response.data.value === 'number') {
+    // If the data is a single number, we convert it to an array for plotting
+    response.data.value = [response.data.value];
+  }
+  return response;
+};
+
+export const checkDimension1 = (
+  response: PlotDataResponse,
+  updatedActive: Configuration,
+  nodes: URITreeNodeData[],
+): boolean => {
+  if (!response || response.data.ndim > 1) {
+    showNotification({
+      title: 'Plot',
+      message: 'Cannot plot data with more than one dimension',
+      color: 'yellow',
+    });
+    updatedActive.checkedNodeURI = nodes.filter((n) => n !== nodes[0]);
+    return false;
+  }
+  return true;
+};
+
 export async function plotData(
   dataPlot: DataGridPlot,
   xData: number[],
@@ -35,7 +62,6 @@ export async function plotData(
     name: yAxis ? `${yAxis.name}_${labelUri}` : '',
     mode: yData.length > 1 ? 'lines' : 'lines+markers',
     nodeUri: nodeUri,
-    yAxis: yAxis,
     description: description,
     path: path,
     dimensions: dimensions,
@@ -74,29 +100,25 @@ export const handleNewPlot = async (
   //By default we take index 0 of the first node data
   const defaultUri = nodes[0].uri.replace(/\[:\]/g, '[0]');
 
-  const response: PlotDataResponse = await fetchDataPlot(defaultUri);
+  let response: PlotDataResponse = await fetchDataPlot(defaultUri);
   console.log('Response from fetchDataPlot:', response);
 
-  if (response.data.ndim == 0 && typeof response.data.value === 'number') {
-    // If the data is a single number, we convert it to an array for plotting
-    response.data.value = [response.data.value];
-  }
+  response = checkDimension0(response);
 
-  if (!response || response.data.ndim > 1) {
-    showNotification({
-      title: 'Plot',
-      message: 'Cannot plot data with more than one dimension',
-      color: 'yellow',
-    });
-    updatedActive.checkedNodeURI = nodes.filter((n) => n !== nodes[0]);
+  if (!checkDimension1(response, updatedActive, nodes)) {
     return updatedActive;
   }
 
+  /**
+   * Build data for dimension 1 and 0
+   * Todo - handle dimension 2 and more
+   */
   let xCoordinatesData: Coordinates[] = [];
   let xCoordinatesValue: number[] = [];
   let xAxis: Axis = null;
 
-  if (response.data.coordinates.length > 1) {
+  
+  if (response.data.coordinates.length > 0) {
     // Get the xCoordinatesValue from the first coordinate
     xCoordinatesValue = response.data.coordinates[0].value as number[];
 
@@ -132,7 +154,6 @@ export const handleNewPlot = async (
     yAxis,
     updatedActive.dataPlot || [],
   );
-  console.log('New plot generated:', newPlot);
 
   const updatedPlot: DataGridPlot = await plotData(
     newPlot,
@@ -182,26 +203,24 @@ export const handleExistingPlot = async (
       return updatedActive;
     }
 
-    const response = await fetchDataPlot(node.uri);
-    if (!response || response.data.ndim !== 1) {
-      showNotification({
-        title: 'Plot',
-        message: 'Cannot plot data with more than one dimension',
-        color: 'yellow',
-      });
-      updatedActive.checkedNodeURI = nodes.filter((n) => n !== node);
-      continue;
+    let response = await fetchDataPlot(node.uri);
+
+    response = checkDimension0(response);
+
+    if (!checkDimension1(response, updatedActive, nodes)) {
+      return updatedActive;
     }
+
 
     const unit = response.data.unit;
     const unitExists =
-      findDataPlot.yAxis.unit === unit ||
-      (findDataPlot.y2Axis && findDataPlot.y2Axis.unit === unit);
+      findDataPlot.yAxisData.unit === unit ||
+      (findDataPlot.y2AxisData && findDataPlot.y2AxisData.unit === unit);
 
     const xAxisMatched =
-      findDataPlot.xAxis.name === response.data.coordinates[0].name &&
-      findDataPlot.xAxis.unit === response.data.coordinates[0].unit &&
-      response.data.coordinates[0].path === findDataPlot.xAxis.path;
+      findDataPlot.xAxisData.name === response.data.coordinates[0].name &&
+      findDataPlot.xAxisData.unit === response.data.coordinates[0].unit &&
+      response.data.coordinates[0].path === findDataPlot.xAxisData.path;
 
     if (!xAxisMatched) {
       showNotification({
@@ -237,8 +256,8 @@ export const handleExistingPlot = async (
         ),
         updatedPlot,
       ];
-    } else if (!findDataPlot.y2Axis) {
-      findDataPlot.y2Axis = {
+    } else if (!findDataPlot.y2AxisData) {
+      findDataPlot.y2AxisData = {
         name: unit,
         unit: unit,
       };
@@ -284,14 +303,18 @@ const updateExistingPlots = (
       (node) => node.uri === plot.nodeUri && node.name === plot.labelUri,
     ),
   );
-  if (plots.every((plot) => plot.yAxis.unit === plots[0].yAxis.unit)) {
-    findDataPlot.yAxis = plots[0].yAxis;
-    findDataPlot.y2Axis = undefined;
 
-    for (const plot of plots) {
-      plot.yaxis = '';
-    }
-  }
+  /**
+   * If all plots have the same yAxis unit, we can set the yAxis and remove the yaxis property from each plot
+   */
+  // if (plots.every((plot) => plot.yAxisData.unit === plots[0].yAxisData.unit)) {
+  //   findDataPlot.yAxisData = plots[0].yAxisData;
+  //   findDataPlot.y2AxisData = undefined;
+
+  //   for (const plot of plots) {
+  //     plot.yaxis = '';
+  //   }
+  // }
 
   findDataPlot.plot = plots;
   findDataPlot.title = plots.map((plot) => plot.name).join('/');
@@ -321,11 +344,6 @@ export async function plotNodeUriLoaded(
                 errorHasOccurred = true;
                 return plot;
               }
-
-              const yAxis: Axis = {
-                name: response.data.name,
-                unit: response.data.unit,
-              };
 
               if (dataGrid.coordinates.length > 0) {
                 for (const responseCoordinates of response.data.coordinates.slice(
@@ -368,7 +386,6 @@ export async function plotNodeUriLoaded(
               return {
                 ...plot,
                 name: `${response.data.name}(${response.data.unit})_${plot.labelUri}`,
-                yAxis: yAxis,
                 description: response.data.description,
                 dimensions: response.data.ndim,
                 path: response.data.path,

@@ -43,7 +43,6 @@ export type DataPlotly = BaseDataPlotly &
     path?: string;
     dimensions?: number;
     shape?: number[];
-    yAxis?: Axis;
     description?: string;
   };
 
@@ -54,9 +53,9 @@ export interface BaseDataGridPlot {
   w: number;
   h: number;
   title: string;
-  xAxis?: Axis;
-  yAxis?: Axis;
-  y2Axis?: Axis;
+  xAxisData?: Axis;
+  yAxisData?: Axis;
+  y2AxisData?: Axis;
 }
 
 export interface DataGridPlot extends Layout, BaseDataGridPlot {

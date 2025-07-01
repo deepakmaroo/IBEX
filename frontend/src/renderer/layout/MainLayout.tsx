@@ -65,9 +65,9 @@ export function MainLayout() {
     const dataGridWithoutData: DataGridPlotToSave[] = active.dataPlot.map(
       (dataGrid: DataGridPlot) => ({
         title: dataGrid.title,
-        xAxis: dataGrid.xAxis,
-        yAxis: dataGrid.yAxis,
-        y2Axis: dataGrid.y2Axis,
+        xAxis: dataGrid.xAxisData,
+        yAxis: dataGrid.yAxisData,
+        y2Axis: dataGrid.y2AxisData,
         i: dataGrid.i,
         x: dataGrid.x,
         y: dataGrid.y,
