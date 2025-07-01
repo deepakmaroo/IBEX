@@ -59,6 +59,7 @@ export const SimplePlotly = ({
         rangemode: 'tozero',
         showline: true,
         zeroline: false,
+        showgrid: true,
       },
       modebar: {
         orientation: 'v',
@@ -83,21 +84,16 @@ export const SimplePlotly = ({
               overlaying: 'y',
               side: 'right',
               rangemode: 'tozero',
-              showline: true,
+              showline: false,
               zeroline: false,
+              showgrid: false,
             }
           : {},
-      showline: true,
-      rangemode: 'tozero',
       plot_bgcolor: '#c7c7c7',
       // paper_bgcolor: "#c8b8b8",
       dragmode: 'zoom',
     }));
   }, [title, xAxis, yAxis, height, width]);
-
-  useEffect(() => {
-    console.log('data in SimplePlotly:', data);
-  }, [data]);
 
   return (
     <Plot
