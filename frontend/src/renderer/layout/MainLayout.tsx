@@ -63,11 +63,11 @@ export function MainLayout() {
 
   const handleSaveConfiguration = async () => {
     const dataGridWithoutData: DataGridPlotToSave[] = active.dataPlot.map(
-      (dataGrid: DataGridPlot) => ({
+      (dataGrid: DataGridPlot): DataGridPlotToSave => ({
         title: dataGrid.title,
-        xAxis: dataGrid.xAxisData,
-        yAxis: dataGrid.yAxisData,
-        y2Axis: dataGrid.y2AxisData,
+        xAxisData: dataGrid.xAxisData,
+        yAxisData: dataGrid.yAxisData,
+        y2AxisData: dataGrid?.y2AxisData,
         i: dataGrid.i,
         x: dataGrid.x,
         y: dataGrid.y,

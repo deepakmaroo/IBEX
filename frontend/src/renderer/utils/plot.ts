@@ -332,7 +332,10 @@ export async function plotNodeUriLoaded(
             if (!plot.nodeUri) return plot;
 
             try {
-              const response = await fetchDataPlot(plot.nodeUri);
+              let response = await fetchDataPlot(plot.nodeUri);
+
+              response = checkDimension0(response);
+
               if (!response || !response.data) {
                 console.warn(`No data returned for nodeUri: ${plot.nodeUri}`);
                 errorHasOccurred = true;
@@ -343,11 +346,13 @@ export async function plotNodeUriLoaded(
                 for (const responseCoordinates of response.data.coordinates.slice(
                   1,
                 )) {
+                  // Check if coordinates already exist in this configuration saved
                   const findCoordinates = dataGrid.coordinates.find((coord) => {
                     return coord.target == responseCoordinates.target;
                   });
 
                   if (findCoordinates) {
+                    // If coordinates exist, update the data and shape
                     ((findCoordinates.data =
                       responseCoordinates.value as number[]),
                       (findCoordinates.name = responseCoordinates.name));
@@ -376,6 +381,7 @@ export async function plotNodeUriLoaded(
                   });
                 }
               }
+              console.log('Response from fetchDataPlot load conf:', response);
 
               return {
                 ...plot,
@@ -394,11 +400,14 @@ export async function plotNodeUriLoaded(
             }
           }),
         );
+        
 
         const dataGridUpdated = {
           ...dataGrid,
           plot: updatedPlot,
         };
+
+        console.log('Updated data grid:', dataGridUpdated);
 
         return dataGridUpdated;
       }),
