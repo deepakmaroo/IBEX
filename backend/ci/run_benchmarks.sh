@@ -2,6 +2,10 @@
 
 # Bamboo CI script for linting
 
+# Fetch develop and main for `ASV compare`
+git fetch origin develop
+git fetch origin main
+
 # Debuggging:
 set -e -o pipefail
 
