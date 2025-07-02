@@ -15,7 +15,7 @@ async def exists(uri: str) -> dict:
     """
     IBEX endpoint. Checks if pulsefile exists and can be opened.
     """
-    return ibex_service.data_entry_exists(uri)
+    return ibex_service.data_entry_exists(uri.strip())
 
 
 @router.get("/data_entry/list_idses/")
@@ -24,7 +24,7 @@ async def list_idses(uri: str) -> dict:
     """
     IBEX endpoint. Returns list of available IDSes and occurrences from pulsefile.
     """
-    return ibex_service.list_idses(uri)
+    return ibex_service.list_idses(uri.strip())
 
 
 @router.get("/data_entry/available_entries/")

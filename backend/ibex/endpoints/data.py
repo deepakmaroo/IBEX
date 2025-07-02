@@ -15,7 +15,7 @@ async def field_value(uri: str, range: List[int] = Query(None)) -> dict:
     """
     IBEX endpoint. Checks if given URI points to pulsefile.
     """
-    return ibex_service.get_data(uri, range)
+    return ibex_service.get_data(uri.strip(), range)
 
 
 @router.get("/data/plot_data")
@@ -24,4 +24,4 @@ async def plot_data(uri: str) -> dict:
     """
     IBEX endpoint. Prepares and returns full information about data node and it's coordinates.
     """
-    return ibex_service.get_plot_data(uri)
+    return ibex_service.get_plot_data(uri.strip())

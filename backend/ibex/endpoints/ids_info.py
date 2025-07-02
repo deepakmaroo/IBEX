@@ -13,7 +13,7 @@ async def node_info(uri: str, show_error_bars: bool = False) -> dict:
     """
     IBEX endpoint. Returns metadata of a node (leaf or intermediate).
     """
-    return ibex_service.get_node_info(uri, show_error_bars)
+    return ibex_service.get_node_info(uri.strip(), show_error_bars)
 
 
 @router.get("/ids_info/find_paths/")
@@ -22,7 +22,7 @@ async def find_field(uri: str, searched_node: str, show_error_bars: bool = False
     """
     IBEX endpoint. Returns list of nodes that have searched text within it's name.
     """
-    return ibex_service.find_paths(uri, searched_node, show_error_bars)
+    return ibex_service.find_paths(uri.strip(), searched_node, show_error_bars)
 
 
 @router.get("/ids_info/array_summary/")
@@ -31,4 +31,4 @@ async def array_summary(uri: str) -> dict:
     """
     IBEX endpoint. Returns summary of an array node.
     """
-    return ibex_service.array_summary(uri)
+    return ibex_service.array_summary(uri.strip())
