@@ -186,6 +186,7 @@ export const handleExistingPlot = async (
   }
 
   for (const node of dataToPlot) {
+    //Not allow to add data to a plot with multiple coordinates
     if (findDataPlot.coordinates && findDataPlot.coordinates.length > 0) {
       updatedActive.checkedNodeURI = nodes.filter((n) => n !== node);
       showNotification({
@@ -209,15 +210,22 @@ export const handleExistingPlot = async (
       findDataPlot.yAxisData.unit === unit ||
       (findDataPlot.y2AxisData && findDataPlot.y2AxisData.unit === unit);
 
-    const xAxisMatched =
-      findDataPlot.xAxisData.name === response.data.coordinates[0].name &&
-      findDataPlot.xAxisData.unit === response.data.coordinates[0].unit &&
-      response.data.coordinates[0].path === findDataPlot.xAxisData.path;
+    const xAxisData = findDataPlot.xAxisData;
+    const coords = response.data.coordinates;
 
-    if (!xAxisMatched) {
+    const xAxisMissingOrMismatch =
+      (!xAxisData && coords.length > 0) ||
+      (xAxisData && coords.length === 0) ||
+      (xAxisData &&
+        coords.length > 0 &&
+        (xAxisData.name !== coords[0].name ||
+          xAxisData.unit !== coords[0].unit ||
+          xAxisData.path !== coords[0].path));
+
+    if (xAxisMissingOrMismatch) {
       showNotification({
         title: 'Plot',
-        message: 'X axis does not match',
+        message: 'X axis data is missing or does not match',
         color: 'yellow',
       });
       updatedActive.checkedNodeURI = nodes.filter((n) => n !== node);
