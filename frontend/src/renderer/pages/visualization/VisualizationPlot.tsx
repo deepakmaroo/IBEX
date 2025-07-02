@@ -1,6 +1,6 @@
 import { Paper, ScrollArea, Stack, Text } from '@mantine/core';
 import { useIbexStore } from '../../stores';
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useRef, useEffect } from 'react';
 import { Configuration, DataGridPlot } from 'src/renderer/types';
 import GridLayout, { Layout } from 'react-grid-layout';
 import { GridLayoutPlot } from '../../components';
@@ -15,6 +15,7 @@ export const VisualizationPlot = ({
   height,
 }: VisualizationPlotProps) => {
   const { active, updatedConfiguration } = useIbexStore();
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   const [dragEnabled, setDragEnabled] = useState(true);
   const [dragTimeout, setDragTimeout] = useState<NodeJS.Timeout | null>(null);
@@ -79,9 +80,21 @@ export const VisualizationPlot = ({
     [active],
   );
 
+  /* 
+  * Scroll to the bottom of the scroll area when new data is added or removed 
+  */
+  useEffect(() => {
+  if (scrollAreaRef.current) {
+    scrollAreaRef.current.scrollTo({
+      top: scrollAreaRef.current.scrollHeight,
+      behavior: 'smooth',
+    });
+  }
+}, [active.dataPlot.length]);
+
   return active.dataPlot.length > 0 ? (
     <>
-      <ScrollArea h={height}>
+      <ScrollArea h={height} viewportRef={scrollAreaRef}>
         <GridLayout
           cols={colsNumber}
           rowHeight={rowHeight}
