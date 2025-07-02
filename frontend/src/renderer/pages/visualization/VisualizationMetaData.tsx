@@ -21,6 +21,7 @@ import {
   DataPlotly,
   PlotCoordinatesResponse,
   Axis,
+  PlotDataResponse,
 } from 'src/renderer/types';
 import { fetchArraySummary, fetchDataPlot } from '../../utils';
 
@@ -133,7 +134,7 @@ const MetaDataInfos = ({
     const fetchCoordinates = async () => {
       try {
         if (tabsSelected === data.name) {
-          const response = await fetchDataPlot(data.nodeUri);
+          const response: PlotDataResponse = await fetchDataPlot(data.nodeUri);
 
           setCoordinates(response.data.coordinates);
         }
@@ -149,8 +150,11 @@ const MetaDataInfos = ({
     const fetchSummary = async () => {
       try {
         if (tabsSelected === data.name) {
-          const response = await fetchArraySummary(data.nodeUri);
+          const response: ArraySummaryResponse = await fetchArraySummary(
+            data.nodeUri,
+          );
           setSummary(response);
+
         }
       } catch (error) {
         console.error('Error fetching array summary:', error);
@@ -178,11 +182,10 @@ const MetaDataInfos = ({
           {renderSpoiler('shape', data.shape as (string | number)[])}
           {renderField('dimension', data?.dimensions.toString())}
           {renderSpoiler('value', data.y as (string | number)[])}
-          {summary && renderField('min', summary?.min)}
-          {summary && renderField('max', summary?.max)}
-          {summary && renderField('mean', summary?.mean)}
-          {summary &&
-            renderField('standard_deviation', summary?.standard_deviation)}
+          {renderField('min', summary?.min)}
+          {renderField('max', summary?.max)}
+          {renderField('mean', summary?.mean)}
+          {renderField('standard_deviation', summary?.standard_deviation)}
           {renderField('description', data?.description)}
           <RenderMetaDataCoordinates coordinates={coordinates} />
         </Table.Tbody>

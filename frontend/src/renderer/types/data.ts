@@ -32,4 +32,5 @@ export type ArraySummaryResponse = {
   max: number;
   mean: number;
   standard_deviation: number;
+  message?: string;
 };
