@@ -154,7 +154,6 @@ const MetaDataInfos = ({
             data.nodeUri,
           );
           setSummary(response);
-
         }
       } catch (error) {
         console.error('Error fetching array summary:', error);
@@ -227,10 +226,6 @@ export const VisualizationMetaData = () => {
     };
     updatedConfiguration(updatedActive);
   }, [active]);
-
-  useEffect(() => {
-    console.log('DataGridLayout:', dataGridLayout);
-  }, [dataGridLayout]);
 
   return (
     <Container fluid pb={10}>

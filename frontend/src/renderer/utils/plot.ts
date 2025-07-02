@@ -150,7 +150,6 @@ export const handleNewPlot = async (
     updatedActive.dataPlot || [],
   );
 
-
   const updatedPlot: DataGridPlot = plotData(
     newPlot,
     xCoordinatesValue,
@@ -173,7 +172,6 @@ export const handleExistingPlot = async (
   findDataPlot: DataGridPlot,
   updatedActive: Configuration,
 ): Promise<Configuration> => {
-
   const dataToPlot = nodes.filter(
     (node) =>
       !findDataPlot.plot.some(
@@ -353,9 +351,9 @@ export async function plotNodeUriLoaded(
 
                   if (findCoordinates) {
                     // If coordinates exist, update the data and shape
-                    ((findCoordinates.data =
+                    (findCoordinates.data =
                       responseCoordinates.value as number[]),
-                      (findCoordinates.name = responseCoordinates.name));
+                      (findCoordinates.name = responseCoordinates.name);
                     findCoordinates.shape = responseCoordinates.shape;
                   }
 
@@ -381,7 +379,6 @@ export async function plotNodeUriLoaded(
                   });
                 }
               }
-              console.log('Response from fetchDataPlot load conf:', response);
 
               return {
                 ...plot,
@@ -400,14 +397,11 @@ export async function plotNodeUriLoaded(
             }
           }),
         );
-        
 
         const dataGridUpdated = {
           ...dataGrid,
           plot: updatedPlot,
         };
-
-        console.log('Updated data grid:', dataGridUpdated);
 
         return dataGridUpdated;
       }),

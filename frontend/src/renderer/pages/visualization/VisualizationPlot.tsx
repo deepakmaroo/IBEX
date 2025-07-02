@@ -80,17 +80,17 @@ export const VisualizationPlot = ({
     [active],
   );
 
-  /* 
-  * Scroll to the bottom of the scroll area when new data is added or removed 
-  */
+  /*
+   * Scroll to the bottom of the scroll area when new data is added or removed
+   */
   useEffect(() => {
-  if (scrollAreaRef.current) {
-    scrollAreaRef.current.scrollTo({
-      top: scrollAreaRef.current.scrollHeight,
-      behavior: 'smooth',
-    });
-  }
-}, [active.dataPlot.length]);
+    if (scrollAreaRef.current) {
+      scrollAreaRef.current.scrollTo({
+        top: scrollAreaRef.current.scrollHeight,
+        behavior: 'smooth',
+      });
+    }
+  }, [active.dataPlot.length]);
 
   return active.dataPlot.length > 0 ? (
     <>

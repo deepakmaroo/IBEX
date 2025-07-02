@@ -46,7 +46,9 @@ const fetchFromApi = async <T>(endpoint: string): Promise<T> => {
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.message || errorData.detail || 'Failed to fetch data');
+      throw new Error(
+        errorData.message || errorData.detail || 'Failed to fetch data',
+      );
     }
 
     return response.json();
