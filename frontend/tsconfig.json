@@ -7,6 +7,7 @@
     "noImplicitAny": true,
     "sourceMap": true,
     "esModuleInterop": true,
+    "skipLibCheck": true,
     "allowSyntheticDefaultImports": true,
     "strict": false,
     "outDir": "dist",
@@ -16,10 +17,9 @@
 
     "types": ["node", "mocha"],
     "paths": {
-      "*": ["node_modules/*"],
       "src/*": ["src/*"]
     },
     "jsx": "react-jsx"
   },
-  "include": ["src/**/*", "__tests__/**/*"]
+  "include": ["src/**/*"]
 }

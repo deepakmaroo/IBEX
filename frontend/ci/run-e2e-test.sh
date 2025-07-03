@@ -1,53 +1,45 @@
 #!/bin/bash
 
-# Bamboo CI script for linting
+set -euo pipefail
 
-# Debuggging:
-set -e -o pipefail
+FRONTEND_ROOT_DIR=$(realpath "$(dirname "${BASH_SOURCE[0]}")/..")
+source "${FRONTEND_ROOT_DIR}/ci/configure-env.sh"
+cd "${FRONTEND_ROOT_DIR}"
 
-# Root directory of the frontend
-FRONTEND_ROOT_DIR=$(realpath "$(dirname "$(realpath "${BASH_SOURCE[0]}")")/..")
-source ${FRONTEND_ROOT_DIR}/ci/configure-env.sh
+LOG_FILE="./logs/electron.log"
+READY_MESSAGE="App is ready"
 
-# Set up environment
-cd ${FRONTEND_ROOT_DIR}
+mkdir -p ./logs
+> "$LOG_FILE"
 
-#Install packages
-echo "Cleaning and installing packages..."
-npm ci 
-if [ $? -ne 0 ]; then
-    echo "Failed to install dependencies. Please check the npm logs."
-    exit 1
-fi
-
-# Run selenium tests
-
-echo "Start electron app test mode..."
-npm run start:e2e &
+echo "Starting Electron in test mode..."
+npm run start:e2e > "$LOG_FILE" 2>&1 &
 ELECTRON_PID=$!
-echo "Waiting for electron app to start..."
-sleep 10
 
-# Run tests
-echo "Running tests..."
+cleanup() {
+  echo "Cleaning up..."
+  kill "$ELECTRON_PID" || true
+}
+trap cleanup EXIT
+
+echo "Waiting for Electron to be ready..."
+
+# Lire le fichier de log en live, dans le même shell
+READY=0
+SECONDS=0
+while IFS= read -r line; do
+  echo "[electron log] $line"
+  if [[ "$line" == *"$READY_MESSAGE"* ]]; then
+    READY=1
+    break
+  fi
+  [[ $SECONDS -gt 30 ]] && break
+done < <(tail -n +1 -F "$LOG_FILE")
+
+if [[ $READY -ne 1 ]]; then
+  echo "Electron did not become ready in time."
+  exit 1
+fi
+
+echo "Electron is ready. Running Selenium tests..."
 npm run test:e2e
-if [ $? -ne 0 ]; then
-    echo "Tests failed. Please check the test logs."
-    kill $ELECTRON_PID
-    exit 1
-fi
-
-# Kill the electron app
-echo "Killing electron app..."
-kill $ELECTRON_PID
-if [ $? -ne 0 ]; then
-    echo "Failed to kill electron app. Please check the process."
-    exit 1
-fi
-echo "All tests passed successfully."
-# Exit successfully
-exit 0
-
-# End of script
-# This script is used to run user interface tests in the frontend of the application.
-

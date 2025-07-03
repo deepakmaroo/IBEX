@@ -21,4 +21,5 @@ export const mainConfig: Configuration = {
       'process.env.E2E_TEST': JSON.stringify(process.env.E2E_TEST || 'false'),
     }),
   ],
+  watch: false
 };
