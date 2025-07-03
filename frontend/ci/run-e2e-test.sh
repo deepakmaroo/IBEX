@@ -1,4 +1,9 @@
 #!/bin/bash
+# In progress ...
+# We need to run start:e2e and test:e2e in the same terminal, 
+# but since start:e2e never stops, test:e2e doesn't run. 
+# Selenium needs the interface to run user-interface tests.
+echo "....SCRIPT IN PROGRESS...."
 
 set -euo pipefail
 
