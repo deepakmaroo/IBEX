@@ -2,6 +2,7 @@ import { Data } from 'plotly.js';
 import { Layout } from 'react-grid-layout';
 
 export interface SimplePlotlyProps {
+  key: string;
   title: string;
   xAxis: Axis;
   yAxis: Axis;

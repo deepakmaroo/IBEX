@@ -16,6 +16,11 @@ export function normalizeIndices(uri: string): string {
   return uri.replace(/\[\d+\]/g, '[:]');
 }
 
+export const getDefaultUri = (url: string): string => {
+  // Replace the last occurrence of '[:]' with '[0]'
+  return url.replace(/\[:\]/g, '[0]');
+};
+
 export const checkDimension0 = (
   response: PlotDataResponse,
 ): PlotDataResponse => {
@@ -95,7 +100,7 @@ export const handleNewPlot = async (
   updatedActive: Configuration,
 ): Promise<Configuration> => {
   //By default we take index 0 of the first node data
-  const defaultUri = nodes[0].uri.replace(/\[:\]/g, '[0]');
+  const defaultUri = getDefaultUri(nodes[0].uri);
 
   let response: PlotDataResponse = await fetchDataPlot(defaultUri);
 
@@ -187,17 +192,20 @@ export const handleExistingPlot = async (
 
   for (const node of dataToPlot) {
     //Not allow to add data to a plot with multiple coordinates
-    if (findDataPlot.coordinates && findDataPlot.coordinates.length > 0) {
-      updatedActive.checkedNodeURI = nodes.filter((n) => n !== node);
-      showNotification({
-        title: 'Plot',
-        message: 'Cannot add data to a plot with multiple coordinates',
-        color: 'yellow',
-      });
-      return updatedActive;
-    }
+    // if (findDataPlot.coord inates && findDataPlot.coordinates.length > 0) {
+    // updatedActive.checkedNodeURI = nodes.filter((n) => n !== node);
+    // showNotification({
+    //   title: 'Plot',
+    //   message: 'Cannot add data to a plot with multiple coordinates',
+    //   color: 'yellow',
+    // });
+    // return updatedActive;
+    // }
 
-    let response = await fetchDataPlot(node.uri);
+    const defaultUri = getDefaultUri(node.uri);
+    console.log('defaultUri', defaultUri);
+
+    let response = await fetchDataPlot(defaultUri);
 
     response = checkDimension0(response);
 
@@ -211,16 +219,30 @@ export const handleExistingPlot = async (
       (findDataPlot.y2AxisData && findDataPlot.y2AxisData.unit === unit);
 
     const xAxisData = findDataPlot.xAxisData;
-    const coords = response.data.coordinates;
+    const coordsResponse = response.data.coordinates;
+
+    console.log('findDataPlot', findDataPlot);
+    console.log('response coords', coordsResponse);
+    console.log('xAxisData', xAxisData);
+    console.log('findDataPlot coords', findDataPlot.coordinates);
 
     const xAxisMissingOrMismatch =
-      (!xAxisData && coords.length > 0) ||
-      (xAxisData && coords.length === 0) ||
+      (!xAxisData && coordsResponse.length > 0) ||
+      (xAxisData && coordsResponse.length === 0) ||
       (xAxisData &&
-        coords.length > 0 &&
-        (xAxisData.name !== coords[0].name ||
-          xAxisData.unit !== coords[0].unit ||
-          xAxisData.path !== coords[0].path));
+        coordsResponse.slice(1).length == findDataPlot.coordinates.length &&
+        // Check if the xAxisData matches the first coordinate
+        (xAxisData.name !== coordsResponse[0].name ||
+          xAxisData.unit !== coordsResponse[0].unit ||
+          xAxisData.path !== coordsResponse[0].path)) ||
+      //Verifier si le reste des coordonnées correspondent au coordonnées de findDataPlot.coordinates
+      (findDataPlot.coordinates.length > 0 &&
+        coordsResponse.slice(1).some((coord, index) => {
+          const findCoord = findDataPlot.coordinates[index];
+          return (
+            findCoord.name !== coord.name || findCoord.target !== coord.target
+          );
+        }));
 
     if (xAxisMissingOrMismatch) {
       showNotification({
@@ -242,7 +264,7 @@ export const handleExistingPlot = async (
         findDataPlot,
         response.data.coordinates[0].value as number[],
         response.data.value as number[],
-        node.uri,
+        defaultUri,
         yAxis,
         response.data.ndim,
         response.data.path,
@@ -266,7 +288,7 @@ export const handleExistingPlot = async (
         findDataPlot,
         response.data.coordinates[0].value as number[],
         response.data.value as number[],
-        node.uri,
+        defaultUri,
         yAxis,
         response.data.ndim,
         response.data.path,
@@ -305,16 +327,17 @@ const updateExistingPlots = (
   );
 
   /**
-   * If all plots have the same yAxis unit, we can set the yAxis and remove the yaxis property from each plot
+   * If all plots have the same y axis with reference(plots[0]), we can set the reference y axis for all plots and remove y2AxisData
    */
-  // if (plots.every((plot) => plot.yAxisData.unit === plots[0].yAxisData.unit)) {
-  //   findDataPlot.yAxisData = plots[0].yAxisData;
-  //   findDataPlot.y2AxisData = undefined;
+  if (plots.every((plot) => plot.yaxis === plots[0].yaxis)) {
+    findDataPlot.yAxisData =
+      plots[0].yaxis == 'y2' ? findDataPlot.y2AxisData : findDataPlot.yAxisData;
+    findDataPlot.y2AxisData = undefined;
 
-  //   for (const plot of plots) {
-  //     plot.yaxis = '';
-  //   }
-  // }
+    for (const plot of plots) {
+      plot.yaxis = '';
+    }
+  }
 
   findDataPlot.plot = plots;
   findDataPlot.title = plots.map((plot) => plot.name).join('/');

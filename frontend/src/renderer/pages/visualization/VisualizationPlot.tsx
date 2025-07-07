@@ -105,7 +105,7 @@ export const VisualizationPlot = ({
           isDraggable={dragEnabled}
           onLayoutChange={(layout) => handleUpdateLayout(layout)}
         >
-          {active.dataPlot.map((plotData: DataGridPlot) => {
+          {active.dataPlot.map((plotData: DataGridPlot, index: number) => {
             return (
               <Paper
                 shadow="sm"
@@ -130,6 +130,7 @@ export const VisualizationPlot = ({
                 }}
               >
                 <GridLayoutPlot
+                  key={`${plotData.i}-${index}`}
                   data={plotData}
                   colWidth={colWidth}
                   rowHeight={rowHeight}

@@ -55,6 +55,7 @@ function updateUriAndTarget(
 }
 
 export const GridLayoutPlot = ({
+  key,
   data,
   colWidth,
   rowHeight,
@@ -323,6 +324,7 @@ export const GridLayoutPlot = ({
           </div>
 
           <SimplePlotly
+            key={key}
             data={data.plot}
             width={
               data.coordinates.length > 0

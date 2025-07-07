@@ -244,52 +244,56 @@ export const VisualizationMetaData = () => {
 
         {dataGridLayout &&
           dataGridLayout.plot.map((item: DataPlotly, index) => {
-            item = {
-              ...item,
-              yaxis: '',
-            };
+            const yAxis =
+              item.yaxis !== ''
+                ? dataGridLayout.y2AxisData
+                : dataGridLayout.yAxisData;
+
             return (
               item?.name && (
-                <Tabs.Panel key={index} value={item?.name}>
-                  <Grid type="container">
-                    <Grid.Col span={5}>
-                      <Center h={HEIGHT}>
-                        <Paper
-                          style={{
-                            height: HEIGHT_PLOT,
-                          }}
-                          shadow="md"
-                          radius="md"
-                        >
-                          <SimplePlotly
-                            data={[item]}
-                            width={WIDTH_PLOT}
-                            height={HEIGHT_PLOT}
-                            isStatic={true}
-                            title={item.name}
-                            xAxis={dataGridLayout.xAxisData}
+                <Tabs.Panel key={index} value={item.name}>
+                  {tabsValue === item.name && (
+                    <Grid type="container">
+                      <Grid.Col span={5}>
+                        <Center h={HEIGHT}>
+                          <Paper
+                            style={{
+                              height: HEIGHT_PLOT,
+                            }}
+                            shadow="md"
+                            radius="md"
+                          >
+                            <SimplePlotly
+                              key={`${item.name}-metadata-${index}`}
+                              data={[item]}
+                              width={WIDTH_PLOT}
+                              height={HEIGHT_PLOT}
+                              isStatic={true}
+                              title={item.name}
+                              xAxis={dataGridLayout.xAxisData}
                             yAxis={
                               item.yaxis !== ''
                                 ? dataGridLayout.y2AxisData
                                 : dataGridLayout.yAxisData
                             }
-                          />
-                        </Paper>
-                      </Center>
-                    </Grid.Col>
-                    <Grid.Col span={7}>
-                      <MetaDataInfos
-                        data={item}
+                            />
+                          </Paper>
+                        </Center>
+                      </Grid.Col>
+                      <Grid.Col span={7}>
+                        <MetaDataInfos
+                          data={item}
                         yAxis={
                           item.yaxis !== ''
                             ? dataGridLayout.y2AxisData
                             : dataGridLayout.yAxisData
                         }
-                        height={HEIGHT}
-                        tabsSelected={tabsValue}
-                      />
-                    </Grid.Col>
-                  </Grid>
+                          height={HEIGHT}
+                          tabsSelected={tabsValue}
+                        />
+                      </Grid.Col>
+                    </Grid>
+                  )}
                 </Tabs.Panel>
               )
             );
