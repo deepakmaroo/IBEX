@@ -21,6 +21,10 @@ pip install .
 echo "5. Installing frontend dependencies..."
 cd "$SCRIPT_DIR/frontend"
 npm install
+
+# replace version in package.json with current version
+python -c "import json;import ibex; filename='package.json'; data=json.load(open(filename)); data['version']=ibex.__version__; json.dump(data, open(filename, 'w'), indent=2)"
+
 TMPDIR=~/tmp/ibex-build npm run package
 chmod 755 "$SCRIPT_DIR/frontend/out/ibex-linux-x64"
 chmod -R 755 "$SCRIPT_DIR/frontend/out/ibex-linux-x64/ibex"
