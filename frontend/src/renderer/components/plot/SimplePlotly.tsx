@@ -96,11 +96,6 @@ export const SimplePlotly = ({
     }));
   }, [title, xAxis, yAxis, height, width, y2Axis]);
 
-  useEffect(() => {
-    console.log('yAxis', yAxis);
-    console.log('y2Axis', y2Axis);
-  }, [yAxis, y2Axis]);
-
   return (
     <Plot
       key={key}

@@ -203,8 +203,6 @@ export const handleExistingPlot = async (
     // }
 
     const defaultUri = getDefaultUri(node.uri);
-    console.log('defaultUri', defaultUri);
-
     let response = await fetchDataPlot(defaultUri);
 
     response = checkDimension0(response);
@@ -221,10 +219,46 @@ export const handleExistingPlot = async (
     const xAxisData = findDataPlot.xAxisData;
     const coordsResponse = response.data.coordinates;
 
-    console.log('findDataPlot', findDataPlot);
-    console.log('response coords', coordsResponse);
-    console.log('xAxisData', xAxisData);
-    console.log('findDataPlot coords', findDataPlot.coordinates);
+    const coordinatesExistAndMatch =
+      findDataPlot.coordinates.length === coordsResponse.slice(1).length &&
+      findDataPlot.coordinates.every((coord, index) => {
+        const responseCoord = coordsResponse[index + 1]; // Skip the first coordinate
+        return (
+          coord.name === responseCoord.name &&
+          coord.target === responseCoord.target
+        );
+      });
+
+    if (
+      findDataPlot.coordinates.length > 0 &&
+      coordsResponse.length > 0 &&
+      !coordinatesExistAndMatch
+    ) {
+      showNotification({
+        title: 'Plot',
+        message: 'Coordinates do not match or are missing',
+        color: 'yellow',
+      });
+      updatedActive.checkedNodeURI = nodes.filter((n) => n !== node);
+      continue;
+    }
+
+    // Check if the xAxisData matches the first coordinate
+    if (xAxisData && coordsResponse.length > 0) {
+      if (
+        xAxisData.name !== coordsResponse[0].name ||
+        xAxisData.unit !== coordsResponse[0].unit ||
+        xAxisData.path !== coordsResponse[0].path
+      ) {
+        showNotification({
+          title: 'Plot',
+          message: 'X axis data does not match the first coordinate',
+          color: 'yellow',
+        });
+        updatedActive.checkedNodeURI = nodes.filter((n) => n !== node);
+        continue;
+      }
+    }
 
     const xAxisMissingOrMismatch =
       (!xAxisData && coordsResponse.length > 0) ||
@@ -234,15 +268,7 @@ export const handleExistingPlot = async (
         // Check if the xAxisData matches the first coordinate
         (xAxisData.name !== coordsResponse[0].name ||
           xAxisData.unit !== coordsResponse[0].unit ||
-          xAxisData.path !== coordsResponse[0].path)) ||
-      //Verifier si le reste des coordonnées correspondent au coordonnées de findDataPlot.coordinates
-      (findDataPlot.coordinates.length > 0 &&
-        coordsResponse.slice(1).some((coord, index) => {
-          const findCoord = findDataPlot.coordinates[index];
-          return (
-            findCoord.name !== coord.name || findCoord.target !== coord.target
-          );
-        }));
+          xAxisData.path !== coordsResponse[0].path));
 
     if (xAxisMissingOrMismatch) {
       showNotification({
