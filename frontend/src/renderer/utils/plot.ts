@@ -191,18 +191,7 @@ export const handleExistingPlot = async (
   }
 
   for (const node of dataToPlot) {
-    //Not allow to add data to a plot with multiple coordinates
-    // if (findDataPlot.coord inates && findDataPlot.coordinates.length > 0) {
-    // updatedActive.checkedNodeURI = nodes.filter((n) => n !== node);
-    // showNotification({
-    //   title: 'Plot',
-    //   message: 'Cannot add data to a plot with multiple coordinates',
-    //   color: 'yellow',
-    // });
-    // return updatedActive;
-    // }
-
-    const defaultUri = getDefaultUri(node.uri);
+    let defaultUri = getDefaultUri(node.uri);
     let response = await fetchDataPlot(defaultUri);
 
     response = checkDimension0(response);
@@ -225,7 +214,7 @@ export const handleExistingPlot = async (
       coordsResponse.length > 0;
 
     if (coordinatesExist) {
-      const coordResponses = coordsResponse.slice(1); // éviter de refaire slice à chaque fois
+      const coordResponses = coordsResponse.slice(1); 
 
       coordResponses.forEach((coordRes) => {
         const matchingCoord = findDataPlot.coordinates.find(
@@ -244,9 +233,18 @@ export const handleExistingPlot = async (
             matchingCoord.index,
           );
         });
+
+        defaultUri = updateIndexFieldName(
+          defaultUri,
+          lastField,
+          matchingCoord.index,
+        );
       });
+
+      // const newValuesData = await 
+
     }
-    
+
     const coordinatesExistAndMatch =
       findDataPlot.coordinates.length === coordsResponse.slice(1).length &&
       findDataPlot.coordinates.every((coord, index) => {
