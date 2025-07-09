@@ -219,8 +219,29 @@ export const handleExistingPlot = async (
     const xAxisData = findDataPlot.xAxisData;
     const coordsResponse = response.data.coordinates;
 
-    const coordinatesExistAndMatch =
-      findDataPlot.coordinates.length === coordsResponse.slice(1).length &&
+    const coordinatesExist =
+      findDataPlot.coordinates &&
+      findDataPlot.coordinates.length > 0 &&
+      coordsResponse.length > 0;
+
+    if (coordinatesExist) {
+      for (const coord of coordsResponse.slice(1)) {
+        for (const existingCoord of findDataPlot.coordinates) {
+          const updatedTarget = updateIndexFieldName(
+            existingCoord.target,
+            coord.target,
+            existingCoord.index,
+          );
+          if (updatedTarget === coord.target) {
+            coord.target = updatedTarget;
+          }
+        }
+      }
+      console.log('Coordinates exist:', findDataPlot.coordinates);
+      console.log('Response coordinates:', coordsResponse.slice(1));
+    }
+
+    const coordinatesExistAndMatch = findDataPlot.coordinates.length === coordsResponse.slice(1).length &&
       findDataPlot.coordinates.every((coord, index) => {
         const responseCoord = coordsResponse[index + 1]; // Skip the first coordinate
         return (
@@ -230,8 +251,7 @@ export const handleExistingPlot = async (
       });
 
     if (
-      findDataPlot.coordinates.length > 0 &&
-      coordsResponse.length > 0 &&
+      coordinatesExist &&
       !coordinatesExistAndMatch
     ) {
       showNotification({
@@ -431,7 +451,6 @@ export async function plotNodeUriLoaded(
                     shape: responseCoordinates.shape,
                     data: responseCoordinates.value as number[],
                     target: responseCoordinates.target,
-                    nodeUri: plot.nodeUri,
                     index: 0,
                   });
                 }
@@ -483,4 +502,23 @@ export async function plotNodeUriLoaded(
 
     return dataGridPlot;
   }
+}
+
+
+/**
+ * Update the index of a field in a target string.
+ * @param target The target string to update.
+ * @param fieldName The name of the field to update. ex: "ion" or "profiles_1d"
+ * @param index The new index to set.
+ * @returns The updated target string.
+ */
+export function updateIndexFieldName(
+  target: string,
+  fieldName: string,
+  index: number,
+): string {
+  const regex = new RegExp(`(${fieldName})\\[(\\d+)\\]`);
+  const newTarget = target.replace(regex, `${fieldName}[${index}]`);
+
+  return newTarget;
 }

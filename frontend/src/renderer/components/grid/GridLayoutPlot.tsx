@@ -9,7 +9,6 @@ import {
   Configuration,
   Coordinates,
   DataGridPlot,
-  DataPlotly,
   GridLayoutPlotProps,
 } from 'src/renderer/types';
 import { ActionIcon, Container, Grid, Group, Tooltip } from '@mantine/core';
@@ -25,33 +24,12 @@ import classes from './GridLayoutPlot.module.css';
 import { SimplePlotly } from '../plot';
 import { useIbexStore } from '../../stores';
 import { VerticalSlider } from '../verticalSlider';
-import { fetchFieldValue } from '../../utils';
+import { fetchFieldValue, updateIndexFieldName } from '../../utils';
 
 function getLastIndexedField(target: string): string | null {
   const matches = [...target.matchAll(/([a-zA-Z0-9_]+)\[\d+\]/g)];
   if (matches.length === 0) return null;
   return matches[matches.length - 1][1]; // Le dernier nom capturé
-}
-
-type UriUpdated = {
-  target: string;
-  uri: string;
-};
-function updateUriAndTarget(
-  target: string,
-  uri: string,
-  fieldName: string, // ex: "ion" ou "profiles_1d"
-  index: number,
-): UriUpdated {
-  const regex = new RegExp(`(${fieldName})\\[(\\d+)\\]`);
-
-  const newTarget = target.replace(regex, `${fieldName}[${index}]`);
-  const newUri = uri.replace(regex, `${fieldName}[${index}]`);
-
-  return {
-    target: newTarget,
-    uri: newUri,
-  };
 }
 
 export const GridLayoutPlot = ({
@@ -156,57 +134,70 @@ export const GridLayoutPlot = ({
     coordinate: Coordinates,
     index: number,
   ) => {
+    console.log('data', data);
+    console.log('handleUpdateCoordinate', coordinate, index);
+    // Check if the coordinate has a target and nodeUri
     const lastTargetLastName = getLastIndexedField(coordinate.target);
     if (!lastTargetLastName) return coordinate.index ?? 0;
-
-    const { uri: newUri } = updateUriAndTarget(
-      coordinate.target,
-      coordinate.nodeUri,
-      lastTargetLastName,
-      index,
-    );
 
     const updatedCoordinatesValue = data.coordinates.map((item) => {
       const lastTargetLastName = getLastIndexedField(coordinate.target);
 
-      const updated = updateUriAndTarget(
+      const updatedTarget = updateIndexFieldName(
         item.target,
-        newUri,
         lastTargetLastName,
         index,
       );
 
       return {
         ...item,
-        nodeUri: newUri, // Update the nodeUri to the new one
-        target: updated.target, // Update the target to the new one
+        target: updatedTarget, // Update the target to the new one
         index: item.name === coordinate.name ? index : item.index,
       };
     });
 
-    const responseYData = await fetchFieldValue(newUri);
-
     const updatedActive = {
       ...active,
-      dataPlot: active.dataPlot.map((item) => {
-        if (item.i === data.i) {
-          return {
-            ...item,
-            coordinates: updatedCoordinatesValue,
-            plot: item.plot.map((plotItem): DataPlotly => {
-              if (plotItem.nodeUri === coordinate.nodeUri) {
+      dataPlot: await Promise.all(
+        active.dataPlot.map(async (item) => {
+          if (item.i === data.i) {
+            const updatedPlot = await Promise.all(
+              item.plot.map(async (plotItem) => {
+                const updatedNodeUri = updateIndexFieldName(
+                  plotItem.nodeUri,
+                  lastTargetLastName,
+                  index,
+                );
+
+                const updatedPath = updateIndexFieldName(
+                  plotItem.path || '',
+                  lastTargetLastName,
+                  index,
+                );
+
+                const responseYData = await fetchFieldValue(
+                  updatedNodeUri,
+                );
+
                 return {
                   ...plotItem,
                   y: responseYData.value as number[],
-                  nodeUri: newUri,
+                  nodeUri: updatedNodeUri,
+                  path: updatedPath,
                 };
-              }
-              return plotItem;
-            }),
-          };
-        }
-        return item;
-      }),
+              }),
+            );
+
+            return {
+              ...item,
+              coordinates: updatedCoordinatesValue,
+              plot: updatedPlot,
+            };
+          }
+
+          return item;
+        }),
+      ),
     };
 
     updatedConfiguration(updatedActive);

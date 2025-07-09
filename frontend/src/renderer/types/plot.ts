@@ -21,7 +21,6 @@ export interface Axis {
 
 export interface BaseCoordinates {
   target: string;
-  nodeUri: string;
   index: number;
 }
 

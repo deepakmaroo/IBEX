@@ -271,11 +271,11 @@ export const VisualizationMetaData = () => {
                               isStatic={true}
                               title={item.name}
                               xAxis={dataGridLayout.xAxisData}
-                            yAxis={
-                              item.yaxis !== ''
-                                ? dataGridLayout.y2AxisData
-                                : dataGridLayout.yAxisData
-                            }
+                              yAxis={
+                                item.yaxis !== ''
+                                  ? dataGridLayout.y2AxisData
+                                  : dataGridLayout.yAxisData
+                              }
                             />
                           </Paper>
                         </Center>
@@ -283,11 +283,11 @@ export const VisualizationMetaData = () => {
                       <Grid.Col span={7}>
                         <MetaDataInfos
                           data={item}
-                        yAxis={
-                          item.yaxis !== ''
-                            ? dataGridLayout.y2AxisData
-                            : dataGridLayout.yAxisData
-                        }
+                          yAxis={
+                            item.yaxis !== ''
+                              ? dataGridLayout.y2AxisData
+                              : dataGridLayout.yAxisData
+                          }
                           height={HEIGHT}
                           tabsSelected={tabsValue}
                         />
