@@ -225,23 +225,30 @@ export const handleExistingPlot = async (
       coordsResponse.length > 0;
 
     if (coordinatesExist) {
-      for (const coord of coordsResponse.slice(1)) {
-        for (const existingCoord of findDataPlot.coordinates) {
-          const updatedTarget = updateIndexFieldName(
-            existingCoord.target,
-            coord.target,
-            existingCoord.index,
-          );
-          if (updatedTarget === coord.target) {
-            coord.target = updatedTarget;
-          }
-        }
-      }
-      console.log('Coordinates exist:', findDataPlot.coordinates);
-      console.log('Response coordinates:', coordsResponse.slice(1));
-    }
+      const coordResponses = coordsResponse.slice(1); // éviter de refaire slice à chaque fois
 
-    const coordinatesExistAndMatch = findDataPlot.coordinates.length === coordsResponse.slice(1).length &&
+      coordResponses.forEach((coordRes) => {
+        const matchingCoord = findDataPlot.coordinates.find(
+          (c) => c.name === coordRes.name,
+        );
+
+        if (!matchingCoord) return;
+
+        const lastField = getLastIndexedField(coordRes.target);
+        if (!lastField) return;
+
+        coordResponses.forEach((res) => {
+          res.target = updateIndexFieldName(
+            res.target,
+            lastField,
+            matchingCoord.index,
+          );
+        });
+      });
+    }
+    
+    const coordinatesExistAndMatch =
+      findDataPlot.coordinates.length === coordsResponse.slice(1).length &&
       findDataPlot.coordinates.every((coord, index) => {
         const responseCoord = coordsResponse[index + 1]; // Skip the first coordinate
         return (
@@ -250,10 +257,7 @@ export const handleExistingPlot = async (
         );
       });
 
-    if (
-      coordinatesExist &&
-      !coordinatesExistAndMatch
-    ) {
+    if (coordinatesExist && !coordinatesExistAndMatch) {
       showNotification({
         title: 'Plot',
         message: 'Coordinates do not match or are missing',
@@ -504,7 +508,6 @@ export async function plotNodeUriLoaded(
   }
 }
 
-
 /**
  * Update the index of a field in a target string.
  * @param target The target string to update.
@@ -521,4 +524,10 @@ export function updateIndexFieldName(
   const newTarget = target.replace(regex, `${fieldName}[${index}]`);
 
   return newTarget;
+}
+
+export function getLastIndexedField(target: string): string | null {
+  const matches = [...target.matchAll(/([a-zA-Z0-9_]+)\[\d+\]/g)];
+  if (matches.length === 0) return null;
+  return matches[matches.length - 1][1]; // Last indexed field name is captured
 }
