@@ -9,7 +9,7 @@ import {
   PlotDataResponse,
   URITreeNodeData,
 } from '../types';
-import { fetchDataPlot } from './fetchData';
+import { fetchDataPlot, fetchFieldValue } from './fetchData';
 import { generateNewGridPlot } from './grid';
 
 export function normalizeIndices(uri: string): string {
@@ -241,7 +241,13 @@ export const handleExistingPlot = async (
         );
       });
 
-      // const newValuesData = await 
+      const responseNewFieldValues = await fetchFieldValue(
+        defaultUri
+      );
+
+      if(!responseNewFieldValues || !responseNewFieldValues.value) {
+        response.data.value = responseNewFieldValues.value;
+      }
 
     }
 
