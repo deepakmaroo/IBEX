@@ -12,15 +12,23 @@ import {
 import { fetchDataPlot, fetchFieldValue } from './fetchData';
 import { generateNewGridPlot } from './grid';
 
-export function normalizeIndices(uri: string): string {
-  return uri.replace(/\[\d+\]/g, '[:]');
-}
-
+/**
+ * @description Generates a default URI by replacing the last occurrence of '[:]' with '[0]'.
+ * This is used to ensure that the URI is in a valid format for plotting.
+ * @param url The original URL to modify.
+ * @returns The modified URL with '[:]' replaced by '[0]'.
+ */
 export const getDefaultUri = (url: string): string => {
   // Replace the last occurrence of '[:]' with '[0]'
   return url.replace(/\[:\]/g, '[0]');
 };
 
+/**
+ * @description Checks if the response data has zero dimensions.
+ * If it does, it converts the value to an array for plotting.
+ * @param response The PlotDataResponse to check.
+ * @returns The updated PlotDataResponse with value as an array if ndim is 0.
+ */
 export const checkDimension0 = (
   response: PlotDataResponse,
 ): PlotDataResponse => {
@@ -31,6 +39,14 @@ export const checkDimension0 = (
   return response;
 };
 
+/**
+ * @description Checks if the response data has more than one dimension.
+ * If it does, it shows a notification and updates the active configuration to remove the first node.
+ * @param response The PlotDataResponse to check.
+ * @param updatedActive The updated active configuration.
+ * @param nodes The nodes to update.
+ * @returns A boolean indicating whether the dimension check passed.
+ */
 export const checkDimension1 = (
   response: PlotDataResponse,
   updatedActive: Configuration,
@@ -48,6 +64,14 @@ export const checkDimension1 = (
   return true;
 };
 
+/**
+ * @description Generates a new DataGridPlot with the provided coordinates, xAxis, and yAxis.
+ * @param coordinates The coordinates to include in the plot.
+ * @param xAxis The x-axis data for the plot.
+ * @param yAxis The y-axis data for the plot.
+ * @param dataPlot The existing DataGridPlot to update or create a new one.
+ * @returns A new DataGridPlot object with the provided data.
+ */
 export const plotData = (
   dataPlot: DataGridPlot,
   xData: number[],
@@ -95,6 +119,12 @@ export const plotData = (
   };
 };
 
+/**
+ * @description Handles new plots by fetching data for the provided nodes.
+ * @param nodes The nodes to create new plots for.
+ * @param updatedActive The updated active configuration.
+ * @returns The updated active configuration.
+ */
 export const handleNewPlot = async (
   nodes: URITreeNodeData[],
   updatedActive: Configuration,
@@ -172,6 +202,14 @@ export const handleNewPlot = async (
   return updatedActive;
 };
 
+/**
+ * @description Handles existing plots by checking if the nodes match the plot's nodes.
+ * If they do, it updates the plot; otherwise, it fetches new data for the nodes.
+ * @param nodes The nodes to update plots for.
+ * @param findDataPlot The data plot to find and update.
+ * @param updatedActive The updated active configuration.
+ * @returns The updated active configuration.
+ */
 export const handleExistingPlot = async (
   nodes: URITreeNodeData[],
   findDataPlot: DataGridPlot,
@@ -180,14 +218,12 @@ export const handleExistingPlot = async (
   const dataToPlot = nodes.filter(
     (node) =>
       !findDataPlot.plot.some(
-        (plot) =>
-          normalizeIndices(plot.nodeUri) === node.uri &&
-          plot.labelUri === node.name,
+        (plot) => plot.nodeUri === node.uri && plot.labelUri === node.name,
       ),
   );
 
   if (dataToPlot.length === 0) {
-    return updateExistingPlots(nodes, findDataPlot, updatedActive);
+    return updateExistingPlot(nodes, findDataPlot, updatedActive);
   }
 
   for (const node of dataToPlot) {
@@ -249,7 +285,6 @@ export const handleExistingPlot = async (
           response.data.value = responseNewFieldValues.value;
         }
         defaultUri = updateDefaultUri;
-        console.log(`Updated default URI to: ${defaultUri}`);
       }
     }
 
@@ -371,7 +406,14 @@ export const handleExistingPlot = async (
   return updatedActive;
 };
 
-const updateExistingPlots = (
+/**
+ * @description Updates existing plot if deselected nodes match the plot's nodes.
+ * @param nodes The nodes to update plots for.
+ * @param findDataPlot The data plot to find and update.
+ * @param updatedActive The updated active configuration.
+ * @returns The updated active configuration.
+ */
+const updateExistingPlot = (
   nodes: URITreeNodeData[],
   findDataPlot: DataGridPlot,
   updatedActive: Configuration,
@@ -404,6 +446,11 @@ const updateExistingPlots = (
   return updatedActive;
 };
 
+/**
+ * @description Fetches data for each plot in the provided DataGridPlot from file configuration.
+ * @param dataGridPlot The array of DataGridPlot objects to fetch data for.
+ * @returns A promise that resolves to an array of updated DataGridPlot objects.
+ */
 export async function plotNodeUriLoaded(
   dataGridPlot: DataGridPlot[],
 ): Promise<DataGridPlot[]> {
@@ -515,7 +562,7 @@ export async function plotNodeUriLoaded(
 }
 
 /**
- * Update the index of a field in a target string.
+ * @description Update the index of a field in a target string.
  * @param target The target string to update.
  * @param fieldName The name of the field to update. ex: "ion" or "profiles_1d"
  * @param index The new index to set.
@@ -532,6 +579,11 @@ export function updateIndexFieldName(
   return newTarget;
 }
 
+/**
+ * @description Get the last indexed field from a target string.
+ * @param target The target string to search for indexed fields.
+ * @returns The name of the last indexed field, or null if none found.
+ */
 export function getLastIndexedField(target: string): string | null {
   const matches = [...target.matchAll(/([a-zA-Z0-9_]+)\[\d+\]/g)];
   if (matches.length === 0) return null;
