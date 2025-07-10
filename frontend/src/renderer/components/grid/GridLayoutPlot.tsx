@@ -24,7 +24,11 @@ import classes from './GridLayoutPlot.module.css';
 import { SimplePlotly } from '../plot';
 import { useIbexStore } from '../../stores';
 import { VerticalSlider } from '../verticalSlider';
-import { fetchFieldValue, getLastIndexedField, updateIndexFieldName } from '../../utils';
+import {
+  fetchFieldValue,
+  getLastIndexedField,
+  updateIndexFieldName,
+} from '../../utils';
 
 export const GridLayoutPlot = ({
   key,
@@ -130,7 +134,8 @@ export const GridLayoutPlot = ({
   ) => {
     // Check if the coordinate has a target
     const lastTargetLastName = getLastIndexedField(coordinate.target);
-    if (!lastTargetLastName) return console.warn('No indexed field found in target');
+    if (!lastTargetLastName)
+      return console.warn('No indexed field found in target');
 
     const updatedCoordinatesValue = data.coordinates.map((item) => {
       const lastTargetLastName = getLastIndexedField(coordinate.target);
@@ -167,9 +172,7 @@ export const GridLayoutPlot = ({
                   index,
                 );
 
-                const responseYData = await fetchFieldValue(
-                  updatedNodeUri,
-                );
+                const responseYData = await fetchFieldValue(updatedNodeUri);
 
                 return {
                   ...plotItem,

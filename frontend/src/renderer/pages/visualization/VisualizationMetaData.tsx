@@ -244,11 +244,6 @@ export const VisualizationMetaData = () => {
 
         {dataGridLayout &&
           dataGridLayout.plot.map((item: DataPlotly, index) => {
-            const yAxis =
-              item.yaxis !== ''
-                ? dataGridLayout.y2AxisData
-                : dataGridLayout.yAxisData;
-
             return (
               item?.name && (
                 <Tabs.Panel key={index} value={item.name}>
