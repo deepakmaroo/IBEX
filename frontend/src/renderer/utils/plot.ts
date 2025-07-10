@@ -214,7 +214,8 @@ export const handleExistingPlot = async (
       coordsResponse.length > 0;
 
     if (coordinatesExist) {
-      const coordResponses = coordsResponse.slice(1); 
+      const coordResponses = coordsResponse.slice(1);
+      let updateDefaultUri = defaultUri;
 
       coordResponses.forEach((coordRes) => {
         const matchingCoord = findDataPlot.coordinates.find(
@@ -234,21 +235,22 @@ export const handleExistingPlot = async (
           );
         });
 
-        defaultUri = updateIndexFieldName(
-          defaultUri,
+        updateDefaultUri = updateIndexFieldName(
+          updateDefaultUri,
           lastField,
           matchingCoord.index,
         );
       });
 
-      const responseNewFieldValues = await fetchFieldValue(
-        defaultUri
-      );
+      if (updateDefaultUri !== defaultUri) {
+        const responseNewFieldValues = await fetchFieldValue(updateDefaultUri);
 
-      if(!responseNewFieldValues || !responseNewFieldValues.value) {
-        response.data.value = responseNewFieldValues.value;
+        if (!responseNewFieldValues || !responseNewFieldValues.value) {
+          response.data.value = responseNewFieldValues.value;
+        }
+        defaultUri = updateDefaultUri;
+        console.log(`Updated default URI to: ${defaultUri}`);
       }
-
     }
 
     const coordinatesExistAndMatch =
