@@ -9,6 +9,13 @@ class IbexException(Exception):
         super().__init__(message)
 
 
+class EmptyNodeException(IbexException):
+    "Raised when requested data-node is empty"
+
+    def __init__(self, message: str, code: int = 404):
+        self.code = code
+        super().__init__(message, code)
+
 class NodeNotFoundException(IbexException):
     "Raised when requested data-node cannot be found"
 
