@@ -5,7 +5,7 @@ from typing import Optional, Sequence, List
 import imas  # type: ignore
 import numpy as np  # type: ignore
 import re  # type: ignore
-from enum import Enum # type: ignore
+from enum import Enum  # type: ignore
 from idstools.database import DBMaster  # type: ignore
 from imas.ids_metadata import IDSMetadata  # type: ignore
 from imas.ids_primitive import IDSNumericArray  # type: ignore
@@ -532,7 +532,7 @@ class IMASPythonSource(DataSourceInterface):
             return data.value
 
     class DownsamplingMethods(Enum):
-        STEP = 1,
+        STEP = (1,)
         STEP_AVERAGE = 2
 
     def _downsample_data(self, data: List, target_size: int, method=None):
@@ -543,10 +543,13 @@ class IMASPythonSource(DataSourceInterface):
         :param method:
         """
 
+        if method is None:
+            return data
+
         if not isinstance(data, list):
             return data
 
-        if len(data) > target_size/2:
+        if len(data) / target_size < 2:
             return data
 
         # if data elements are lists, return merged down-sampled lists
@@ -555,15 +558,17 @@ class IMASPythonSource(DataSourceInterface):
 
         else:
             if method == self.DownsamplingMethods.STEP:
-                step = int(len(data)/target_size)
+                step = int(len(data) / target_size)
                 if step == 0:
                     step = 1
                 return data[::step]
             elif method == self.DownsamplingMethods.STEP_AVERAGE:
-                #def average(self, arr, n):
                 group_size = len(data) / target_size
-                return np.mean(data.reshape(-1, group_size), 1)
+                last_index = int(len(data) / target_size) * target_size
 
+                res = np.mean(np.asarray(data[:last_index]).reshape(-1, int(group_size)), 1)
+                res = np.append(res, np.mean(np.asarray(data[last_index:])))
+                return res
 
     def get_plot_data(self, uri: str, ids: str, node_path: str, occurrence: int = 0):
         """
@@ -692,7 +697,7 @@ class IMASPythonSource(DataSourceInterface):
         while isinstance(first_value, list):
             first_value = first_value[0]
 
-        data_to_be_returned = self._downsample_data(data_to_be_returned, 100)
+        data_to_be_returned = self._downsample_data(data_to_be_returned, 100).tolist()
 
         result = {
             "data": {
