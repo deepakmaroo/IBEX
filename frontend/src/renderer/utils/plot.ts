@@ -424,9 +424,11 @@ const updateExistingPlot = (
   findDataPlot: DataGridPlot,
   updatedActive: Configuration,
 ): Configuration => {
-  const plots = findDataPlot?.plot.filter((plot) =>
+  const plots = findDataPlot?.plot.filter((plot: DataPlotly) =>
     nodes.some(
-      (node) => node.uri === plot.nodeUri && node.name === plot.labelUri,
+      (node: URITreeNodeData) =>
+        node.uri === normalizeIndices(plot.nodeUri) &&
+        node.name === plot.labelUri,
     ),
   );
 
