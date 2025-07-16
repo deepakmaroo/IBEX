@@ -62,6 +62,7 @@ export function MainLayout() {
   };
 
   const handleSaveConfiguration = async () => {
+    console.log('Saving configuration', active);
     const dataGridWithoutData: DataGridPlotToSave[] = active.dataPlot.map(
       (dataGrid: DataGridPlot): DataGridPlotToSave => ({
         title: dataGrid.title,
@@ -75,15 +76,8 @@ export function MainLayout() {
         h: dataGrid.h,
         coordinates: dataGrid.coordinates.map(
           (coord: Coordinates): BaseCoordinates => {
-            const findUri = active.dataURI.find((uri: URIData) =>
-              coord.nodeUri.includes(uri.uri),
-            );
-
-            const suffix = coord.nodeUri.split('#')[1];
-            const newNodeUri = `${findUri?.name}#${suffix}`;
             return {
               target: coord.target,
-              nodeUri: newNodeUri,
               index: coord.index,
             };
           },
@@ -160,20 +154,9 @@ export function MainLayout() {
                     data.coordinates && data.coordinates.length > 0
                       ? data.coordinates.map(
                           (coord: BaseCoordinates): Coordinates => {
-                            const prefix = coord.nodeUri.split('#')[0];
-
-                            const matched = newIbexState.dataURI.find(
-                              (uri: URIData) => uri.name === prefix,
-                            );
-
-                            let fullNodeUri = coord.nodeUri;
-                            if (matched) {
-                              const suffix = coord.nodeUri.split('#')[1];
-                              fullNodeUri = `${matched.uri}#${suffix}`;
-                            }
+         
                             return {
                               ...coord,
-                              nodeUri: fullNodeUri,
                               name: '',
                               shape: [],
                               data: [],
