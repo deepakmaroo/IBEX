@@ -13,6 +13,15 @@ import { fetchDataPlot, fetchFieldValue } from './fetchData';
 import { generateNewGridPlot } from './grid';
 
 /**
+ * @description Normalizes the indices in a URI by replacing numeric indices with a wildcard.
+ * @param uri The URI to normalize.
+ * @returns The normalized URI.
+ */
+export function normalizeUri(uri: string): string {
+  return uri.replace(/\[\d+\]/g, '[:]');
+}
+
+/**
  * @description Generates a default URI by replacing the last occurrence of '[:]' with '[0]'.
  * This is used to ensure that the URI is in a valid format for plotting.
  * @param url The original URL to modify.
@@ -130,7 +139,7 @@ export const handleNewPlot = async (
   updatedActive: Configuration,
 ): Promise<Configuration> => {
   //By default we take index 0 of the first node data
-  const defaultUri = getDefaultUri(nodes[0].uri);
+  let defaultUri = getDefaultUri(nodes[0].uri);
 
   let response: PlotDataResponse = await fetchDataPlot(defaultUri);
 
@@ -151,6 +160,14 @@ export const handleNewPlot = async (
   if (response.data.coordinates.length > 0) {
     // Get the xCoordinatesValue from the first coordinate
     xCoordinatesValue = response.data.coordinates[0].value as number[];
+
+    if (response.data.coordinates.length === 1) {
+      defaultUri = normalizeUri(defaultUri);
+      const responseVectorData = await fetchDataPlot(normalizeUri(defaultUri));
+
+      response.data.shape = responseVectorData.data.shape;
+      response.data.value = responseVectorData.data.value;
+    }
 
     //Get coordinates data for slider - all coordinates except the first one, is considered as x coordinates
     xCoordinatesData = response.data.coordinates
@@ -244,12 +261,20 @@ export const handleExistingPlot = async (
     const xAxisData = findDataPlot.xAxisData;
     const coordsResponse = response.data.coordinates;
 
-    const coordinatesExist =
+    if (coordsResponse.length === 1) {
+      defaultUri = normalizeUri(defaultUri);
+      const responseVectorData = await fetchDataPlot(normalizeUri(defaultUri));
+
+      response.data.shape = responseVectorData.data.shape;
+      response.data.value = responseVectorData.data.value;
+    }
+
+    const sliderExist =
       findDataPlot.coordinates &&
       findDataPlot.coordinates.length > 0 &&
-      coordsResponse.length > 0;
+      coordsResponse.length > 1;
 
-    if (coordinatesExist) {
+    if (sliderExist) {
       const coordResponses = coordsResponse.slice(1);
       let updateDefaultUri = defaultUri;
 
@@ -298,7 +323,7 @@ export const handleExistingPlot = async (
         );
       });
 
-    if (coordinatesExist && !coordinatesExistAndMatch) {
+    if (sliderExist && !coordinatesExistAndMatch) {
       showNotification({
         title: 'Plot',
         message: 'Coordinates do not match or are missing',
