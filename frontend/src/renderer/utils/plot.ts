@@ -11,26 +11,7 @@ import {
 } from '../types';
 import { fetchDataPlot, fetchFieldValue } from './fetchData';
 import { generateNewGridPlot } from './grid';
-
-/**
- * @description Normalizes the indices in a URI by replacing numeric indices with a wildcard.
- * @param uri The URI to normalize.
- * @returns The normalized URI.
- */
-export function normalizeUri(uri: string): string {
-  return uri.replace(/\[\d+\]/g, '[:]');
-}
-
-/**
- * @description Generates a default URI by replacing the last occurrence of '[:]' with '[0]'.
- * This is used to ensure that the URI is in a valid format for plotting.
- * @param url The original URL to modify.
- * @returns The modified URL with '[:]' replaced by '[0]'.
- */
-export const getDefaultUri = (url: string): string => {
-  // Replace the last occurrence of '[:]' with '[0]'
-  return url.replace(/\[:\]/g, '[0]');
-};
+import { getDefaultUri, normalizeIndices } from './uri';
 
 /**
  * @description Checks if the response data has zero dimensions.
@@ -162,8 +143,8 @@ export const handleNewPlot = async (
     xCoordinatesValue = response.data.coordinates[0].value as number[];
 
     if (response.data.coordinates.length === 1) {
-      defaultUri = normalizeUri(defaultUri);
-      const responseVectorData = await fetchDataPlot(normalizeUri(defaultUri));
+      defaultUri = normalizeIndices(defaultUri);
+      const responseVectorData = await fetchDataPlot(normalizeIndices(defaultUri));
 
       response.data.shape = responseVectorData.data.shape;
       response.data.value = responseVectorData.data.value;
@@ -262,8 +243,8 @@ export const handleExistingPlot = async (
     const coordsResponse = response.data.coordinates;
 
     if (coordsResponse.length === 1) {
-      defaultUri = normalizeUri(defaultUri);
-      const responseVectorData = await fetchDataPlot(normalizeUri(defaultUri));
+      defaultUri = normalizeIndices(defaultUri);
+      const responseVectorData = await fetchDataPlot(normalizeIndices(defaultUri));
 
       response.data.shape = responseVectorData.data.shape;
       response.data.value = responseVectorData.data.value;

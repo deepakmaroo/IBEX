@@ -27,6 +27,7 @@ import { VerticalSlider } from '../verticalSlider';
 import {
   fetchFieldValue,
   getLastIndexedField,
+  normalizeIndices,
   updateIndexFieldName,
 } from '../../utils';
 
@@ -95,17 +96,27 @@ export const GridLayoutPlot = ({
           : { ...item, isEditing: false, static: false },
       );
 
-      updatedConfiguration({
+      // console.log('isEditing', !findPlot.isEditing);
+
+      // console.log('node uri plot', findPlot.plot.map((item) => ({
+      //   nodeUri: item.nodeUri,
+      //   labelUri: item.labelUri,
+      // })));
+
+      const updatedActive: Configuration = {
         ...active,
         saved: false,
         dataPlot: updatedDataPlot,
-        checkedNodeURI: findPlot.isEditing
-          ? []
-          : findPlot.plot.map((item) => ({
-              uri: item.nodeUri,
+        checkedNodeURI: !findPlot.isEditing
+          ? findPlot.plot.map((item) => ({
+              uri: normalizeIndices(item.nodeUri),
               name: item.labelUri,
-            })),
-      });
+            }))
+          : [],
+      };
+      // console.log('active', updatedActive);
+
+      updatedConfiguration(updatedActive);
     },
     [active],
   );
