@@ -29,8 +29,6 @@ from ibex.data_source.exception import (
     EmptyNodeException,
 )
 
-from ibex.core.ibex_service import DownsamplingMethods
-
 
 class IMASPythonSource(DataSourceInterface):
     """
@@ -539,7 +537,7 @@ class IMASPythonSource(DataSourceInterface):
         ids: str,
         node_path: str,
         occurrence: int = 0,
-        downsampling_method=DownsamplingMethods.NONE,
+        downsampling_method=None,
         downsampled_size: int = 0,
     ):
         """
