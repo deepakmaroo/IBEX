@@ -5,7 +5,7 @@ from typing import Optional, Sequence, List
 import imas  # type: ignore
 import numpy as np  # type: ignore
 import re  # type: ignore
-from enum import Enum # type: ignore
+
 from idstools.database import DBMaster  # type: ignore
 from imas.ids_metadata import IDSMetadata  # type: ignore
 from imas.ids_primitive import IDSNumericArray  # type: ignore
@@ -28,6 +28,8 @@ from ibex.data_source.exception import (
     EntryNotFoundException,
     EmptyNodeException,
 )
+
+from ibex.core.ibex_service import DownsamplingMethods
 
 
 class IMASPythonSource(DataSourceInterface):
@@ -531,41 +533,15 @@ class IMASPythonSource(DataSourceInterface):
         else:
             return data.value
 
-    class DownsamplingMethods(Enum):
-        STEP = 1,
-        STEP_AVERAGE = 2
-
-    def _downsample_data(self, data: List, target_size: int, method=None):
-        """
-
-        :param data: data to be down-sampled
-        :param target_size: desired size of data (in elements per dimension)
-        :param method:
-        """
-
-        if not isinstance(data, list):
-            return data
-
-        if len(data) > target_size/2:
-            return data
-
-        # if data elements are lists, return merged down-sampled lists
-        if isinstance(data[0], list):
-            return [self._downsample_data(elem, target_size, method) for elem in data]
-
-        else:
-            if method == self.DownsamplingMethods.STEP:
-                step = int(len(data)/target_size)
-                if step == 0:
-                    step = 1
-                return data[::step]
-            elif method == self.DownsamplingMethods.STEP_AVERAGE:
-                #def average(self, arr, n):
-                group_size = len(data) / target_size
-                return np.mean(data.reshape(-1, group_size), 1)
-
-
-    def get_plot_data(self, uri: str, ids: str, node_path: str, occurrence: int = 0):
+    def get_plot_data(
+        self,
+        uri: str,
+        ids: str,
+        node_path: str,
+        occurrence: int = 0,
+        downsampling_method=DownsamplingMethods.NONE,
+        downsampled_size: int = 0,
+    ):
         """
         Returns all data used to plot selected quantity. Result contains data values, metadata and coordinates.
 
