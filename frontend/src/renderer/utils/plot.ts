@@ -12,6 +12,7 @@ import {
 import { fetchDataPlot, fetchFieldValue } from './fetchData';
 import { generateNewGridPlot } from './grid';
 import { getDefaultUri, normalizeIndices } from './uri';
+import { isMatrix } from './matrix';
 
 /**
  * @description Checks if the response data has zero dimensions.
@@ -119,8 +120,10 @@ export const handleNewPlot = async (
   nodes: URITreeNodeData[],
   updatedActive: Configuration,
 ): Promise<Configuration> => {
-  //By default we take index 0 of the first node data
-  let defaultUri = getDefaultUri(nodes[0].uri);
+  //By default we take index [:] 
+  //: corresponds to all indices (matrix)
+
+  let defaultUri = nodes[0].uri; //Get nodes[0], it's the first node to plot
 
   let response: PlotDataResponse = await fetchDataPlot(defaultUri);
 
@@ -135,20 +138,22 @@ export const handleNewPlot = async (
    * Todo - handle dimension 2 and more
    */
   let xCoordinatesData: Coordinates[] = [];
-  let xCoordinatesValue: number[] = [];
+  let xAxisData: number[] | string[] = [];
   let xAxis: Axis = null;
 
   if (response.data.coordinates.length > 0) {
-    // Get the xCoordinatesValue from the first coordinate
-    xCoordinatesValue = response.data.coordinates[0].value as number[];
 
-    if (response.data.coordinates.length === 1) {
-      defaultUri = normalizeIndices(defaultUri);
-      const responseVectorData = await fetchDataPlot(normalizeIndices(defaultUri));
+    //Get index [0] by default xAxis
+    // Get the xAxis data
 
-      response.data.shape = responseVectorData.data.shape;
-      response.data.value = responseVectorData.data.value;
-    }
+    xAxisData = response.data.coordinates[0].value[0] as number[] | string[];
+
+    // Set the xAxis properties 
+    xAxis = {
+      name: response.data.coordinates[0].name,
+      unit: response.data.coordinates[0].unit,
+      path: response.data.coordinates[0].path,
+    };
 
     //Get coordinates data for slider - all coordinates except the first one, is considered as x coordinates
     xCoordinatesData = response.data.coordinates
@@ -156,18 +161,12 @@ export const handleNewPlot = async (
       .map((coordinate: PlotCoordinatesResponse) => ({
         name: coordinate.name,
         shape: coordinate.shape,
-        data: coordinate.value as number[] | string[],
+        data: isMatrix(coordinate.value as number[][] | string[][] | number[] | string[]) ? coordinate.value[0] : coordinate.value,
         index: 0,
         target: coordinate.target,
         nodeUri: defaultUri,
       }));
 
-    // Set the xAxis properties
-    xAxis = {
-      name: response.data.coordinates[0].name,
-      unit: response.data.coordinates[0].unit,
-      path: response.data.coordinates[0].path,
-    };
   }
 
   // Set the yAxis properties

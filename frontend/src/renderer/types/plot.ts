@@ -27,7 +27,7 @@ export interface BaseCoordinates {
 export interface Coordinates extends BaseCoordinates {
   name: string;
   shape: number[];
-  data: number[] | string[];
+  data: number[][] | string[][] | number[] | string[];
 }
 
 export interface BaseDataPlotly {

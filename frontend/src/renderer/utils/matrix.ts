@@ -1,3 +1,3 @@
-export function isMatrix(value: number[] | number[][]): value is number[][] {
+export function isMatrix(value: number[][] | string[][] | number[] | string[]): value is number[][] | string[][] {
   return Array.isArray(value[0]);
 }
