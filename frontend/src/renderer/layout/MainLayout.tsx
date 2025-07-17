@@ -103,14 +103,20 @@ export function MainLayout() {
       dataPlot: dataGridWithoutData,
     };
     if (active?.path) {
-      await window.api.fs.writeFile(active.path, JSON.stringify(newIbexState, null, 2));
+      await window.api.fs.writeFile(
+        active.path,
+        JSON.stringify(newIbexState, null, 2),
+      );
     } else {
       await window.api.fs
         .saveAsDialog(`${active.name}IbexState.json`, 'json')
         .then((path: string) => {
           if (path) {
             active.path = path;
-            window.api.fs.writeFile(path, JSON.stringify(newIbexState, null, 2));
+            window.api.fs.writeFile(
+              path,
+              JSON.stringify(newIbexState, null, 2),
+            );
           }
         });
     }
@@ -154,7 +160,6 @@ export function MainLayout() {
                     data.coordinates && data.coordinates.length > 0
                       ? data.coordinates.map(
                           (coord: BaseCoordinates): Coordinates => {
-         
                             return {
                               ...coord,
                               name: '',
