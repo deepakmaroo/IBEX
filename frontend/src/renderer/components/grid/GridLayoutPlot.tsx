@@ -257,7 +257,7 @@ export const GridLayoutPlot = ({
           >
             {(hovered || data.isEditing) && (
               <Group pos="absolute" right={data.isEditing ? 3 : 1} top={5} grow>
-                <Tooltip label="Inpect metadatas information">
+                <Tooltip label="Inspect metadatas information">
                   <ActionIcon
                     variant="filled"
                     aria-label="Metadatas"
