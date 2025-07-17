@@ -103,14 +103,14 @@ export function MainLayout() {
       dataPlot: dataGridWithoutData,
     };
     if (active?.path) {
-      await window.api.fs.writeFile(active.path, JSON.stringify(newIbexState));
+      await window.api.fs.writeFile(active.path, JSON.stringify(newIbexState, null, 2));
     } else {
       await window.api.fs
         .saveAsDialog(`${active.name}IbexState.json`, 'json')
         .then((path: string) => {
           if (path) {
             active.path = path;
-            window.api.fs.writeFile(path, JSON.stringify(newIbexState));
+            window.api.fs.writeFile(path, JSON.stringify(newIbexState, null, 2));
           }
         });
     }
