@@ -340,7 +340,16 @@ class IMASPythonSource(DataSourceInterface):
 
         return (node_metadata, coordinates)
 
-    def get_data(self, uri: str, ids: str, node_path: str, occurrence: int = 0, range: List[int] | None = None) -> dict:
+    def get_data(
+        self,
+        uri: str,
+        ids: str,
+        node_path: str,
+        occurrence: int = 0,
+        downsampling_method: str | None = None,
+        downsampled_size: int = 1000,
+        range: List[int] | None = None,
+    ) -> dict:
         """
         Returns data extracted from IDS, converted into dictionary
 
@@ -537,8 +546,8 @@ class IMASPythonSource(DataSourceInterface):
         ids: str,
         node_path: str,
         occurrence: int = 0,
-        downsampling_method=None,
-        downsampled_size: int = 0,
+        downsampling_method: str | None = None,
+        downsampled_size: int = 1000,
     ):
         """
         Returns all data used to plot selected quantity. Result contains data values, metadata and coordinates.

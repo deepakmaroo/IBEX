@@ -2,42 +2,11 @@
 
 import time
 import re
-from enum import Enum  # type: ignore
 from functools import wraps  # for measure_execution_time()
 from typing import Any, Callable, Optional, Sequence, List
 
 from ibex.data_source.imas_python_source import IMASPythonSource
 from dataclasses import dataclass
-
-
-class DownsamplingMethods(Enum):
-    NONE = 0, "No downsampling"
-    STEP = 1, "Returns every n-th element. N is calculated basing on desired data size"
-    STEP_AVERAGE = (
-        2,
-        "Divides data into bins and return average value of every bin. Bin size is calculated basing on desired data size",
-    )
-    MIN_MAX = (3,)
-    M4 = (4,)
-    LTTB = (5,)
-    MIN_MAX_LTTB = 6
-
-    def __new__(cls, *args, **kwargs):
-        obj = object.__new__(cls)
-        obj._value_ = args[0]
-        return obj
-
-    # ignore the first param since it's already set by __new__
-    def __init__(self, _: int, description: str = None):
-        self._description_ = description
-
-    def __str__(self):
-        return self.value
-
-    # this makes sure that the description is read-only
-    @property
-    def description(self):
-        return self._description_
 
 
 @dataclass
@@ -131,10 +100,16 @@ def get_node_info(uri: str, recursive: bool = False, show_error_bars: bool = Fal
     )
 
 
-def get_data(uri: str, range: List[int]) -> dict:
+def get_data(uri: str, downsampling_method: str | None, downsampled_size: int, range: List[int]) -> dict:
     uri_obj = IMAS_URI(uri)
     return data_source.get_data(
-        uri_obj.uri_entry_identifiers, uri_obj.ids_name, uri_obj.node_path, uri_obj.occurrence, range
+        uri_obj.uri_entry_identifiers,
+        uri_obj.ids_name,
+        uri_obj.node_path,
+        uri_obj.occurrence,
+        range,
+        downsampling_method,
+        downsampled_size,
     )
 
 
