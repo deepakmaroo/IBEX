@@ -28,6 +28,7 @@ from ibex.data_source.exception import (
     EntryNotFoundException,
     EmptyNodeException,
 )
+from ibex.core.utils import downsample_data
 
 
 class IMASPythonSource(DataSourceInterface):
@@ -369,6 +370,11 @@ class IMASPythonSource(DataSourceInterface):
 
         data_to_be_returned = self._serialize_data(ids_data)
 
+        if ids_data.metadata.nim == 1 and downsampling_method is not None:
+            data_to_be_returned = downsample_data(
+                data=data_to_be_returned, target_size=downsampled_size, method=downsampling_method
+            )
+
         return {"value": data_to_be_returned}
 
     def _add_index_to_aos_in_path(self, ids_metadata: imas.ids_base.IDSBase, path_str: str):
@@ -641,6 +647,7 @@ class IMASPythonSource(DataSourceInterface):
                     "target": f"#{ids}/{target}",
                     "unit": "-",
                     "shape": np.asarray(coord_values).shape,
+                    "downsampled_shape": np.asarray(coord_values).shape,
                     "ndim": 1,  # 1...N coord always have 1 dimension
                     "path": "",
                     "description": "1...N",
@@ -664,6 +671,7 @@ class IMASPythonSource(DataSourceInterface):
                     "target": f"#{ids}/{target}",
                     "unit": first_value.metadata.units,
                     "shape": np.asarray(serialized_data).shape,
+                    "downsampled_shape": np.asarray(serialized_data).shape,
                     "ndim": first_value.metadata.ndim,
                     "path": f"#{ids}/{coord}",
                     "description": first_value.metadata.documentation,
@@ -675,13 +683,31 @@ class IMASPythonSource(DataSourceInterface):
         while isinstance(first_value, list):
             first_value = first_value[0]
 
-        data_to_be_returned = self._downsample_data(data_to_be_returned, 100)
+        original_data_shape = np.asarray(data_to_be_returned).shape
+        if first_value.metadata.ndim == 1:
+            # Downsample only 1D data (for now)
+            if coordinates_to_be_returned[0]["target"] == f"#{ids}/{node_path}":
+                # If coordinate targets node -> downsample coordinate as well
+                (coordinates_to_be_returned[0]["value"], data_to_be_returned) = downsample_data(
+                    data_to_be_returned,
+                    target_size=downsampled_size,
+                    method=downsampling_method,
+                    x=coordinates_to_be_returned[0]["value"],
+                )
+                coordinates_to_be_returned[0]["downsampled_shape"] = np.asarray(
+                    coordinates_to_be_returned[0]["value"]
+                ).shape
+            else:
+                data_to_be_returned = downsample_data(
+                    data_to_be_returned, target_size=downsampled_size, method=downsampling_method
+                )
 
         result = {
             "data": {
                 "name": node_path.split("/")[-1],
                 "unit": first_value.metadata.units,
-                "shape": np.asarray(data_to_be_returned).shape,
+                "shape": original_data_shape,
+                "downsampled_shape": np.asarray(data_to_be_returned).shape,
                 "ndim": first_value.metadata.ndim,
                 "path": f"#{ids}/{node_path}",
                 "description": first_value.metadata.documentation,
