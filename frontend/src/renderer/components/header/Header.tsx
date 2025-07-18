@@ -13,7 +13,9 @@ import {
 } from '@mantine/core';
 import logoPath from '../../assets/imas_extra.png';
 import { Configuration } from 'src/renderer/types';
-import { IconPlus } from '@tabler/icons-react';
+import { IconPlus, IconCircleFilled } from '@tabler/icons-react';
+import { useEffect, useState } from 'react';
+import { fetchInfoVersion } from '../../utils';
 
 interface HeaderProps {
   active: Configuration;
@@ -36,6 +38,8 @@ export const Header = ({
   handleSelectConfiguration,
   handleAddTree,
 }: HeaderProps) => {
+  const [isServerResponding, setIsServerResponding] = useState(true);
+
   const configurationButtons = (
     <Group>
       <Button
@@ -81,6 +85,35 @@ export const Header = ({
     </Group>
   );
 
+  const serverStatus = (
+    <Group>
+      <Tooltip label="Server status">
+        <IconCircleFilled
+          size={20}
+          color={isServerResponding ? 'green' : 'red'}
+        />
+      </Tooltip>
+    </Group>
+  );
+
+  useEffect(() => {
+    const fetchVersion = async () => {
+      try {
+        const timeoutId = window.setTimeout(() => {
+          setIsServerResponding(false); // Timeout of 5 seconds
+        }, 5000);
+        await fetchInfoVersion();
+        clearTimeout(timeoutId);
+        setIsServerResponding(true);
+      } catch (error) {
+        console.error('Error checking server status:', error);
+        setIsServerResponding(false);
+      }
+    };
+    const interval = window.setInterval(fetchVersion, 10000); // Check server status each 10 seconds
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <Container fluid p={5}>
       <Grid>
@@ -119,6 +152,8 @@ export const Header = ({
             {configurationButtons}
             <Divider orientation="vertical" />
             {visualisationButtons}
+            <Divider orientation="vertical" />
+            {serverStatus}
           </Group>
         </Grid.Col>
       </Grid>

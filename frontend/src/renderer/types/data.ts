@@ -34,3 +34,7 @@ export type ArraySummaryResponse = {
   standard_deviation: number;
   message?: string;
 };
+
+export type InfoVersionResponse = {
+  version: string;
+};

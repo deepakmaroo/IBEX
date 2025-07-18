@@ -3,6 +3,7 @@ import {
   DataIdsResponse,
   FieldValueResponse,
   FormDbEntries,
+  InfoVersionResponse,
   NodeInfoResponse,
   PlotDataResponse,
   SearchNodeResponse,
@@ -138,4 +139,11 @@ export const fetchArraySummary = async (uri: string) => {
   return fetchFromApi<ArraySummaryResponse>(
     `/ids_info/array_summary/?uri=${encodeURIComponent(uri)}`,
   );
+};
+
+/**
+ * Return backend version.
+ */
+export const fetchInfoVersion = async () => {
+  return fetchFromApi<InfoVersionResponse>(`/info/version/`);
 };
