@@ -12,7 +12,7 @@ import {
 import { fetchDataPlot, fetchFieldValue } from './fetchData';
 import { generateNewGridPlot } from './grid';
 import { getDefaultUri, normalizeIndices } from './uri';
-import { isMatrix } from './matrix';
+import { getFirstArrayValueFromShape, isMatrix } from './matrix';
 
 /**
  * @description Checks if the response data has zero dimensions.
@@ -138,7 +138,7 @@ export const handleNewPlot = async (
    * Todo - handle dimension 2 and more
    */
   let xCoordinatesData: Coordinates[] = [];
-  let xAxisData: number[] | string[] = [];
+  let xAxisData: number[] = [];
   let xAxis: Axis = null;
 
   if (response.data.coordinates.length > 0) {
@@ -146,7 +146,10 @@ export const handleNewPlot = async (
     //Get index [0] by default xAxis
     // Get the xAxis data
 
-    xAxisData = response.data.coordinates[0].value[0] as number[] | string[];
+    xAxisData = getFirstArrayValueFromShape(
+      response.data.coordinates[0].value,
+      response.data.coordinates[0].shape,
+    );
 
     // Set the xAxis properties 
     xAxis = {
@@ -155,17 +158,27 @@ export const handleNewPlot = async (
       path: response.data.coordinates[0].path,
     };
 
+    
+
     //Get coordinates data for slider - all coordinates except the first one, is considered as x coordinates
     xCoordinatesData = response.data.coordinates
       .slice(1)
-      .map((coordinate: PlotCoordinatesResponse) => ({
-        name: coordinate.name,
-        shape: coordinate.shape,
-        data: isMatrix(coordinate.value as number[][] | string[][] | number[] | string[]) ? coordinate.value[0] : coordinate.value,
-        index: 0,
-        target: coordinate.target,
+      .map((coordinate: PlotCoordinatesResponse) => {
+        const dataValue: number[] = getFirstArrayValueFromShape(
+          coordinate.value,
+          coordinate.shape,
+        );
+
+        console.log(`Coordinate: ${coordinate.name}, Data Value: ${dataValue}`);
+        return {
+          name: coordinate.name,
+          shape: coordinate.shape,
+          data: dataValue,
+          index: 0,
+          target: coordinate.target,
         nodeUri: defaultUri,
-      }));
+      };
+      });
 
   }
 
@@ -184,7 +197,7 @@ export const handleNewPlot = async (
 
   const updatedPlot: DataGridPlot = plotData(
     newPlot,
-    xCoordinatesValue,
+    xAxisData,
     response.data.value as number[],
     defaultUri,
     yAxis,
@@ -283,14 +296,14 @@ export const handleExistingPlot = async (
         );
       });
 
-      if (updateDefaultUri !== defaultUri) {
-        const responseNewFieldValues = await fetchFieldValue(updateDefaultUri);
+      // if (updateDefaultUri !== defaultUri) {
+      //   const responseNewFieldValues = await fetchFieldValue(updateDefaultUri);
 
-        if (!responseNewFieldValues || !responseNewFieldValues.value) {
-          response.data.value = responseNewFieldValues.value;
-        }
-        defaultUri = updateDefaultUri;
-      }
+      //   if (!responseNewFieldValues || !responseNewFieldValues.value) {
+      //     response.data.value = responseNewFieldValues.value;
+      //   }
+      //   defaultUri = updateDefaultUri;
+      // }
     }
 
     const coordinatesExistAndMatch =
