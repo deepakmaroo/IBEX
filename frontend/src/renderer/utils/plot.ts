@@ -61,8 +61,8 @@ export const plotData = (
   description?: string,
   y2Axis?: boolean,
 ): DataGridPlot => {
-  const yValue = getFirstArrayValueFromShape(yAxis.data, shape);
-  const xValue = getFirstArrayValueFromShape(xAxis.data, shape);
+  const yValue = yAxis.value
+  const xValue = xAxis.value.map((v) => v.toString());
 
   const trace: DataPlotly = {
     x: xValue,
@@ -140,7 +140,13 @@ export const handleNewPlot = async (
       unit: response.data.coordinates[0].unit,
       path: response.data.coordinates[0].path,
       data: response.data.coordinates[0].value,
+      value: getFirstArrayValueFromShape(
+        response.data.coordinates[0].value,
+        response.data.coordinates[0].shape,
+      ),
     };
+
+    console.log('xAxis:', xAxis);
 
     
 
@@ -172,6 +178,7 @@ export const handleNewPlot = async (
     name: response.data.name,
     unit: response.data.unit,
     data: response.data.value,
+    value: getFirstArrayValueFromShape(response.data.value, response.data.shape),
   };
 
   const newPlot = generateNewGridPlot(
@@ -351,6 +358,7 @@ export const handleExistingPlot = async (
       name: response.data.name,
       unit: unit,
       data: response.data.value,
+      value: getFirstArrayValueFromShape(response.data.value, response.data.shape),
     };
 
     if (unitExists) {
@@ -376,6 +384,7 @@ export const handleExistingPlot = async (
         name: unit,
         unit: unit,
         data: response.data.value,
+        value: getFirstArrayValueFromShape(response.data.value, response.data.shape),
       };
 
       const updatedPlot = await plotData(
@@ -526,7 +535,7 @@ export async function plotNodeUriLoaded(
                 x: getFirstArrayValueFromShape(
                   response.data.coordinates[0].value,
                   response.data.coordinates[0].shape,
-                ),
+                ).map((v) => v.toString()),
                 y: getFirstArrayValueFromShape(
                   response.data.value,
                   response.data.shape,
