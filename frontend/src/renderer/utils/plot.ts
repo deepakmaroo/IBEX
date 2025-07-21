@@ -535,8 +535,6 @@ export async function plotNodeUriLoaded(
       });
     }
 
-    console.log('Updated DataGridPlot:', updatedDataGridPlot);
-
     return updatedDataGridPlot;
   } catch (error) {
     console.error('Error in plotNodeUriLoaded:', error);

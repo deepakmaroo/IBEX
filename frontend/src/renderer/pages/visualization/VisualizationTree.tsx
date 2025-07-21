@@ -421,7 +421,9 @@ export const VisualizationTree = ({
 
         if (!findEditablePlot) {
           updatedActive = await handleNewPlot(nodes, updatedActive);
-          findEditablePlot = updatedActive.dataPlot.find((plot) => plot.isEditing);
+          findEditablePlot = updatedActive.dataPlot.find(
+            (plot) => plot.isEditing,
+          );
         } else {
           if (nodes.length === 0) {
             updatedActive.dataPlot = active.dataPlot.filter(

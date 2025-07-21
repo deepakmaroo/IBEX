@@ -19,9 +19,7 @@ export interface Axis {
   path?: string;
 }
 
-export type AxisData = {
-  data: number[][][] | number[][] | number[];
-}
+export type AxisData = number[][][] | number[][] | number[];
 
 export interface BaseCoordinates {
   target: string;

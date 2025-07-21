@@ -1,4 +1,4 @@
-import { AxisData } from "./plot";
+import { AxisData } from './plot';
 
 export type PlotCoordinatesResponse = {
   name: string;

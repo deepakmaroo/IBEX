@@ -96,13 +96,6 @@ export const GridLayoutPlot = ({
           : { ...item, isEditing: false, static: false },
       );
 
-      // console.log('isEditing', !findPlot.isEditing);
-
-      // console.log('node uri plot', findPlot.plot.map((item) => ({
-      //   nodeUri: item.nodeUri,
-      //   labelUri: item.labelUri,
-      // })));
-
       const updatedActive: Configuration = {
         ...active,
         saved: false,
@@ -114,7 +107,6 @@ export const GridLayoutPlot = ({
             }))
           : [],
       };
-      // console.log('active', updatedActive);
 
       updatedConfiguration(updatedActive);
     },

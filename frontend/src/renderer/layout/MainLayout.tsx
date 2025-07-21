@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import { useIbexStore } from '../stores';
 import { useDisclosure } from '@mantine/hooks';
 import {
+  AxisData,
   BaseCoordinates,
   BaseDataPlotly,
   ConfigForm,
@@ -62,7 +63,6 @@ export function MainLayout() {
   };
 
   const handleSaveConfiguration = async () => {
-    console.log('Saving configuration', active);
     const dataGridWithoutData: DataGridPlotToSave[] = active.dataPlot.map(
       (dataGrid: DataGridPlot): DataGridPlotToSave => ({
         title: dataGrid.title,
@@ -183,6 +183,7 @@ export function MainLayout() {
                     return {
                       ...plot,
                       nodeUri: fullNodeUri,
+                      yData: [],
                       x: [],
                       y: [],
                     };
