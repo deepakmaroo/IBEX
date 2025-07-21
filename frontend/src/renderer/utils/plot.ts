@@ -1,6 +1,7 @@
 import { showNotification } from '@mantine/notifications';
 import {
   Axis,
+  AxisData,
   Configuration,
   Coordinates,
   DataGridPlot,
@@ -9,26 +10,11 @@ import {
   PlotDataResponse,
   URITreeNodeData,
 } from '../types';
-import { fetchDataPlot, fetchFieldValue } from './fetchData';
+import { fetchDataPlot } from './fetchData';
 import { generateNewGridPlot } from './grid';
 import { getDefaultUri, normalizeIndices } from './uri';
-import { getFirstArrayValueFromShape, isMatrix } from './matrix';
-
-/**
- * @description Checks if the response data has zero dimensions.
- * If it does, it converts the value to an array for plotting.
- * @param response The PlotDataResponse to check.
- * @returns The updated PlotDataResponse with value as an array if ndim is 0.
- */
-export const checkDimension0 = (
-  response: PlotDataResponse,
-): PlotDataResponse => {
-  if (response.data.ndim == 0 && typeof response.data.value === 'number') {
-    // If the data is a single number, we convert it to an array for plotting
-    response.data.value = [response.data.value];
-  }
-  return response;
-};
+import { getFirstArrayValueFromShape } from './matrix';
+import { get } from 'http';
 
 /**
  * @description Checks if the response data has more than one dimension.
@@ -65,10 +51,9 @@ export const checkDimension1 = (
  */
 export const plotData = (
   dataPlot: DataGridPlot,
-  xData: number[],
-  yData: number[],
-  nodeUri: string,
+  xAxis: Axis,
   yAxis: Axis,
+  nodeUri: string,
   dimensions: number,
   path: string,
   shape: number[],
@@ -76,11 +61,14 @@ export const plotData = (
   description?: string,
   y2Axis?: boolean,
 ): DataGridPlot => {
+  const yValue = getFirstArrayValueFromShape(yAxis.data, shape);
+  const xValue = getFirstArrayValueFromShape(xAxis.data, shape);
+
   const trace: DataPlotly = {
-    x: xData,
-    y: yData,
+    x: xValue,
+    y: yValue,
     name: yAxis ? `${yAxis.name}_${labelUri}` : '',
-    mode: yData.length > 1 ? 'lines' : 'lines+markers',
+    mode: yValue.length > 1 ? 'lines' : 'lines+markers',
     nodeUri: nodeUri,
     description: description,
     path: path,
@@ -89,7 +77,7 @@ export const plotData = (
     labelUri: labelUri,
     yaxis: y2Axis ? 'y2' : '',
   };
-  if (yData.length === 0) {
+  if (yValue.length === 0) {
     showNotification({
       title: 'Plot',
       message: `No data to plot for ${trace.name}`,
@@ -125,9 +113,10 @@ export const handleNewPlot = async (
 
   let defaultUri = nodes[0].uri; //Get nodes[0], it's the first node to plot
 
-  let response: PlotDataResponse = await fetchDataPlot(defaultUri);
 
-  response = checkDimension0(response);
+  let response: PlotDataResponse = await fetchDataPlot(defaultUri);
+  console.log('uri:', defaultUri);
+
 
   if (!checkDimension1(response, updatedActive, nodes)) {
     return updatedActive;
@@ -138,7 +127,6 @@ export const handleNewPlot = async (
    * Todo - handle dimension 2 and more
    */
   let xCoordinatesData: Coordinates[] = [];
-  let xAxisData: number[] = [];
   let xAxis: Axis = null;
 
   if (response.data.coordinates.length > 0) {
@@ -146,16 +134,12 @@ export const handleNewPlot = async (
     //Get index [0] by default xAxis
     // Get the xAxis data
 
-    xAxisData = getFirstArrayValueFromShape(
-      response.data.coordinates[0].value,
-      response.data.coordinates[0].shape,
-    );
-
     // Set the xAxis properties 
     xAxis = {
       name: response.data.coordinates[0].name,
       unit: response.data.coordinates[0].unit,
       path: response.data.coordinates[0].path,
+      data: response.data.coordinates[0].value,
     };
 
     
@@ -169,7 +153,6 @@ export const handleNewPlot = async (
           coordinate.shape,
         );
 
-        console.log(`Coordinate: ${coordinate.name}, Data Value: ${dataValue}`);
         return {
           name: coordinate.name,
           shape: coordinate.shape,
@@ -180,12 +163,15 @@ export const handleNewPlot = async (
       };
       });
 
+    console.log('xCoordinatesData:', xCoordinatesData);
+
   }
 
   // Set the yAxis properties
   const yAxis: Axis = {
     name: response.data.name,
     unit: response.data.unit,
+    data: response.data.value,
   };
 
   const newPlot = generateNewGridPlot(
@@ -197,17 +183,16 @@ export const handleNewPlot = async (
 
   const updatedPlot: DataGridPlot = plotData(
     newPlot,
-    xAxisData,
-    response.data.value as number[],
-    defaultUri,
+    xAxis,
     yAxis,
+    defaultUri,
     response.data.ndim,
     response.data.path,
     response.data.shape,
     nodes[0].name,
     response.data.description,
   );
-
+  console.log('updatedPlot:', updatedPlot);
   updatedActive.dataPlot.push(updatedPlot);
   return updatedActive;
 };
@@ -240,7 +225,6 @@ export const handleExistingPlot = async (
     let defaultUri = getDefaultUri(node.uri);
     let response = await fetchDataPlot(defaultUri);
 
-    response = checkDimension0(response);
 
     if (!checkDimension1(response, updatedActive, nodes)) {
       return updatedActive;
@@ -251,7 +235,7 @@ export const handleExistingPlot = async (
       findDataPlot.yAxisData.unit === unit ||
       (findDataPlot.y2AxisData && findDataPlot.y2AxisData.unit === unit);
 
-    const xAxisData = findDataPlot.xAxisData;
+    const xAxis = findDataPlot.xAxisData;
     const coordsResponse = response.data.coordinates;
 
     if (coordsResponse.length === 1) {
@@ -327,11 +311,11 @@ export const handleExistingPlot = async (
     }
 
     // Check if the xAxisData matches the first coordinate
-    if (xAxisData && coordsResponse.length > 0) {
+    if (xAxis && coordsResponse.length > 0) {
       if (
-        xAxisData.name !== coordsResponse[0].name ||
-        xAxisData.unit !== coordsResponse[0].unit ||
-        xAxisData.path !== coordsResponse[0].path
+        xAxis.name !== coordsResponse[0].name ||
+        xAxis.unit !== coordsResponse[0].unit ||
+        xAxis.path !== coordsResponse[0].path
       ) {
         showNotification({
           title: 'Plot',
@@ -344,14 +328,14 @@ export const handleExistingPlot = async (
     }
 
     const xAxisMissingOrMismatch =
-      (!xAxisData && coordsResponse.length > 0) ||
-      (xAxisData && coordsResponse.length === 0) ||
-      (xAxisData &&
+      (!xAxis && coordsResponse.length > 0) ||
+      (xAxis && coordsResponse.length === 0) ||
+      (xAxis &&
         coordsResponse.slice(1).length == findDataPlot.coordinates.length &&
         // Check if the xAxisData matches the first coordinate
-        (xAxisData.name !== coordsResponse[0].name ||
-          xAxisData.unit !== coordsResponse[0].unit ||
-          xAxisData.path !== coordsResponse[0].path));
+        (xAxis.name !== coordsResponse[0].name ||
+          xAxis.unit !== coordsResponse[0].unit ||
+          xAxis.path !== coordsResponse[0].path));
 
     if (xAxisMissingOrMismatch) {
       showNotification({
@@ -363,18 +347,18 @@ export const handleExistingPlot = async (
       continue;
     }
 
-    const yAxis = {
+    const yAxis: Axis = {
       name: response.data.name,
       unit: unit,
+      data: response.data.value,
     };
 
     if (unitExists) {
       const updatedPlot = await plotData(
         findDataPlot,
-        response.data.coordinates[0].value as number[],
-        response.data.value as number[],
-        defaultUri,
+        xAxis,
         yAxis,
+        defaultUri,
         response.data.ndim,
         response.data.path,
         response.data.shape,
@@ -391,14 +375,14 @@ export const handleExistingPlot = async (
       findDataPlot.y2AxisData = {
         name: unit,
         unit: unit,
+        data: response.data.value,
       };
 
       const updatedPlot = await plotData(
         findDataPlot,
-        response.data.coordinates[0].value as number[],
-        response.data.value as number[],
-        defaultUri,
+        xAxis,
         yAxis,
+        defaultUri,
         response.data.ndim,
         response.data.path,
         response.data.shape,
@@ -486,8 +470,6 @@ export async function plotNodeUriLoaded(
             try {
               let response = await fetchDataPlot(plot.nodeUri);
 
-              response = checkDimension0(response);
-
               if (!response || !response.data) {
                 console.warn(`No data returned for nodeUri: ${plot.nodeUri}`);
                 errorHasOccurred = true;
@@ -505,8 +487,8 @@ export async function plotNodeUriLoaded(
 
                   if (findCoordinates) {
                     // If coordinates exist, update the data and shape
-                    findCoordinates.data =
-                      responseCoordinates.value as number[];
+                    findCoordinates.data = getFirstArrayValueFromShape(
+                      responseCoordinates.value, responseCoordinates.shape);
                     findCoordinates.name = responseCoordinates.name;
                     findCoordinates.shape = responseCoordinates.shape;
                   }
@@ -526,7 +508,8 @@ export async function plotNodeUriLoaded(
                   dataGrid.coordinates.push({
                     name: responseCoordinates.name,
                     shape: responseCoordinates.shape,
-                    data: responseCoordinates.value as number[],
+                    data: getFirstArrayValueFromShape(
+                      responseCoordinates.value, responseCoordinates.shape),
                     target: responseCoordinates.target,
                     index: 0,
                   });
@@ -540,8 +523,15 @@ export async function plotNodeUriLoaded(
                 dimensions: response.data.ndim,
                 path: response.data.path,
                 shape: [],
-                x: response.data.coordinates[0].value.map(String) ?? [],
-                y: (response.data.value as number[]) ?? [],
+                x: getFirstArrayValueFromShape(
+                  response.data.coordinates[0].value,
+                  response.data.coordinates[0].shape,
+                ),
+                y: getFirstArrayValueFromShape(
+                  response.data.value,
+                  response.data.shape,
+                ),
+                
               };
             } catch (error) {
               console.error(`Error fetching data for ${plot.nodeUri}:`, error);

@@ -17,6 +17,11 @@ export interface Axis {
   name: string;
   unit: string;
   path?: string;
+  data: AxisData;
+}
+
+export type AxisData = {
+  data: number[][][] | number[][] | number[];
 }
 
 export interface BaseCoordinates {
@@ -27,7 +32,7 @@ export interface BaseCoordinates {
 export interface Coordinates extends BaseCoordinates {
   name: string;
   shape: number[];
-  data: number[][] | string[][] | number[] | string[];
+  data: number[];
 }
 
 export interface BaseDataPlotly {
