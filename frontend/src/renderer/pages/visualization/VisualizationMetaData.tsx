@@ -244,11 +244,10 @@ export const VisualizationMetaData = () => {
 
         {dataGridLayout &&
           dataGridLayout.plot.map((item: DataPlotly, index) => {
-
             // force to have only one axis in metadata plot
-            const itemWithoutY2axis = JSON.parse(JSON.stringify(item))
-            if(item.yaxis != ""){
-              delete itemWithoutY2axis.yaxis
+            const itemWithoutY2axis = JSON.parse(JSON.stringify(item));
+            if (item.yaxis != '') {
+              delete itemWithoutY2axis.yaxis;
             }
 
             return (
@@ -266,21 +265,19 @@ export const VisualizationMetaData = () => {
                             radius="md"
                           >
                             <SimplePlotly
-                                key={`${item.name}-metadata-${index}`}
-                                data={[itemWithoutY2axis]}
-                                width={WIDTH_PLOT}
-                                height={HEIGHT_PLOT}
-                                isStatic={true}
-                                title={item.name}
-                                xAxis={dataGridLayout.xAxisData}
-                                yAxis={
-                                  item.yaxis !== '' ? ( // show y2Axis in yAxis when forced to one yAxis
-                                    dataGridLayout.y2AxisData
-                                  ) : (
-                                    dataGridLayout.yAxisData
-                                  )
-                                }
-                              />
+                              key={`${item.name}-metadata-${index}`}
+                              data={[itemWithoutY2axis]}
+                              width={WIDTH_PLOT}
+                              height={HEIGHT_PLOT}
+                              isStatic={true}
+                              title={item.name}
+                              xAxis={dataGridLayout.xAxisData}
+                              yAxis={
+                                item.yaxis !== '' // show y2Axis in yAxis when forced to one yAxis
+                                  ? dataGridLayout.y2AxisData
+                                  : dataGridLayout.yAxisData
+                              }
+                            />
                           </Paper>
                         </Center>
                       </Grid.Col>

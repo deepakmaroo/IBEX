@@ -109,9 +109,9 @@ export const handleNewPlot = async (
 ): Promise<Configuration> => {
   //By default we take index [:]
   //: corresponds to all indices (matrix)
-  let defaultUri = nodes[0].uri; //Get nodes[0], it's the first node to plot
+  const defaultUri = nodes[0].uri; //Get nodes[0], it's the first node to plot
 
-  let response: PlotDataResponse = await fetchDataPlot(defaultUri);
+  const response: PlotDataResponse = await fetchDataPlot(defaultUri);
 
   if (!checkDimension1(response, updatedActive, nodes)) {
     return updatedActive;
@@ -214,8 +214,8 @@ export const handleExistingPlot = async (
   }
 
   for (const node of dataToPlot) {
-    let defaultUri = node.uri;
-    let response = await fetchDataPlot(defaultUri);
+    const defaultUri = node.uri;
+    const response = await fetchDataPlot(defaultUri);
 
     if (!checkDimension1(response, updatedActive, nodes)) {
       return updatedActive;
@@ -425,7 +425,7 @@ export async function plotNodeUriLoaded(
 
             try {
               const defaultUri = normalizeIndices(plot.nodeUri); // Normalize the URI to ensure it matches the expected format
-              let response = await fetchDataPlot(defaultUri);
+              const response = await fetchDataPlot(defaultUri);
 
               if (!response || !response.data) {
                 console.warn(`No data returned for nodeUri: ${plot.nodeUri}`);
