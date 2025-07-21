@@ -424,7 +424,8 @@ export async function plotNodeUriLoaded(
             if (!plot.nodeUri) return plot;
 
             try {
-              let response = await fetchDataPlot(plot.nodeUri);
+              const defaultUri = normalizeIndices(plot.nodeUri); // Normalize the URI to ensure it matches the expected format
+              let response = await fetchDataPlot(defaultUri);
 
               if (!response || !response.data) {
                 console.warn(`No data returned for nodeUri: ${plot.nodeUri}`);
@@ -438,8 +439,14 @@ export async function plotNodeUriLoaded(
                 )) {
                   // Check if coordinates already exist in this configuration saved
                   const findCoordinates = dataGrid.coordinates.find((coord) => {
-                    return coord.target == responseCoordinates.target;
+                    return (
+                      normalizeIndices(coord.target) ==
+                      responseCoordinates.target
+                    );
                   });
+                  findCoordinates.target = normalizeIndices(
+                    findCoordinates.target,
+                  );
 
                   if (findCoordinates) {
                     // If coordinates exist, update the data and shape
@@ -452,6 +459,7 @@ export async function plotNodeUriLoaded(
                   }
 
                   dataGrid.coordinates = dataGrid.coordinates.map((coord) => {
+                    // Update the target if it matches the response coordinates
                     if (coord.target === findCoordinates.target) {
                       return findCoordinates;
                     }
@@ -491,7 +499,7 @@ export async function plotNodeUriLoaded(
                 description: response.data.description,
                 dimensions: response.data.ndim,
                 path: response.data.path,
-                shape: [],
+                shape: response.data.shape,
                 yData: response.data.value,
                 x: defaultXValue.map((x) => x.toString()),
                 y: defaultYValue,
@@ -504,8 +512,14 @@ export async function plotNodeUriLoaded(
           }),
         );
 
+        const updatedXAxis: Axis = {
+          ...dataGrid.xAxisData,
+          path: normalizeIndices(dataGrid.xAxisData?.path),
+        };
+
         const dataGridUpdated = {
           ...dataGrid,
+          xAxisData: updatedXAxis,
           plot: updatedPlot,
         };
 
@@ -520,6 +534,8 @@ export async function plotNodeUriLoaded(
         color: 'red',
       });
     }
+
+    console.log('Updated DataGridPlot:', updatedDataGridPlot);
 
     return updatedDataGridPlot;
   } catch (error) {
