@@ -17,7 +17,6 @@ export interface Axis {
   name: string;
   unit: string;
   path?: string;
-  value: number[];
 }
 
 export type AxisData = {

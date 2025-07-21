@@ -10,11 +10,11 @@ import {
   PlotDataResponse,
   URITreeNodeData,
 } from '../types';
-import { fetchDataPlot } from './fetchData';
+import { fetchDataPlot, fetchFieldValue } from './fetchData';
 import { generateNewGridPlot } from './grid';
 import { getDefaultUri, normalizeIndices } from './uri';
 import { getFirstArrayValueFromShape } from './matrix';
-import { get } from 'http';
+import { YAxis } from 'recharts';
 
 /**
  * @description Checks if the response data has more than one dimension.
@@ -51,8 +51,9 @@ export const checkDimension1 = (
  */
 export const plotData = (
   dataPlot: DataGridPlot,
-  xAxis: Axis,
-  yAxis: Axis,
+  name: string,
+  xValue: number[],
+  yValue: number[],
   yData: AxisData,
   nodeUri: string,
   dimensions: number,
@@ -62,14 +63,13 @@ export const plotData = (
   description?: string,
   y2Axis?: boolean,
 ): DataGridPlot => {
-  const yValue = yAxis.value;
-  const xValue = xAxis.value;
+
 
   const trace: DataPlotly = {
     x: xValue,
     y: yValue,
     yData: yData,
-    name: yAxis ? `${yAxis.name}_${labelUri}` : '',
+    name: name ? `${name}_${labelUri}` : '',
     mode: yValue.length > 1 ? 'lines' : 'lines+markers',
     nodeUri: nodeUri,
     description: description,
@@ -141,10 +141,6 @@ export const handleNewPlot = async (
       name: response.data.coordinates[0].name,
       unit: response.data.coordinates[0].unit,
       path: response.data.coordinates[0].path,
-      value: getFirstArrayValueFromShape(
-        response.data.coordinates[0].value,
-        response.data.coordinates[0].shape,
-      ),
     };
 
     console.log('xAxis:', xAxis);
@@ -178,7 +174,6 @@ export const handleNewPlot = async (
   const yAxis: Axis = {
     name: response.data.name,
     unit: response.data.unit,
-    value: getFirstArrayValueFromShape(response.data.value, response.data.shape),
   };
 
   const newGrid = generateNewGridPlot(
@@ -188,10 +183,21 @@ export const handleNewPlot = async (
     updatedActive.dataPlot || [],
   );
 
+  const defaultXValue = getFirstArrayValueFromShape(
+    response.data.coordinates[0].value,
+    response.data.coordinates[0].shape
+  );
+
+  const defaultYValue = getFirstArrayValueFromShape(
+    response.data.value,
+    response.data.shape
+  );
+
   const updatedPlot: DataGridPlot = plotData(
     newGrid,
-    xAxis,
-    yAxis,
+    yAxis.name,
+    defaultXValue,
+    defaultYValue,
     response.data.value,
     defaultUri,
     response.data.ndim,
@@ -358,14 +364,23 @@ export const handleExistingPlot = async (
     const yAxis: Axis = {
       name: response.data.name,
       unit: unit,
-      value: getFirstArrayValueFromShape(response.data.value, response.data.shape),
     };
+
+    const defaultXValue = getFirstArrayValueFromShape(
+      response.data.coordinates[0].value,
+      response.data.coordinates[0].shape,
+    );
+    const defaultYValue = getFirstArrayValueFromShape(
+      response.data.value,
+      response.data.shape,
+    );
 
     if (unitExists) {
       const updatedPlot = await plotData(
         findDataPlot,
-        xAxis,
-        yAxis,
+        yAxis.name,
+        defaultXValue,
+        defaultYValue,
         response.data.value,
         defaultUri,
         response.data.ndim,
@@ -384,13 +399,13 @@ export const handleExistingPlot = async (
       findDataPlot.y2AxisData = {
         name: unit,
         unit: unit,
-        value: getFirstArrayValueFromShape(response.data.value, response.data.shape),
       };
 
       const updatedPlot = await plotData(
         findDataPlot,
-        xAxis,
-        yAxis,
+        yAxis.name,
+        defaultXValue,
+        defaultYValue,
         response.data.value,
         defaultUri,
         
