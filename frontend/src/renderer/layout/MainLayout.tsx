@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import { useIbexStore } from '../stores';
 import { useDisclosure } from '@mantine/hooks';
 import {
+  AxisData,
   BaseCoordinates,
   BaseDataPlotly,
   ConfigForm,
