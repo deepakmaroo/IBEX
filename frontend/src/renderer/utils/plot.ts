@@ -53,6 +53,7 @@ export const plotData = (
   dataPlot: DataGridPlot,
   xAxis: Axis,
   yAxis: Axis,
+  yData: AxisData,
   nodeUri: string,
   dimensions: number,
   path: string,
@@ -61,12 +62,13 @@ export const plotData = (
   description?: string,
   y2Axis?: boolean,
 ): DataGridPlot => {
-  const yValue = yAxis.value
-  const xValue = xAxis.value.map((v) => v.toString());
+  const yValue = yAxis.value;
+  const xValue = xAxis.value;
 
   const trace: DataPlotly = {
     x: xValue,
     y: yValue,
+    yData: yData,
     name: yAxis ? `${yAxis.name}_${labelUri}` : '',
     mode: yValue.length > 1 ? 'lines' : 'lines+markers',
     nodeUri: nodeUri,
@@ -139,7 +141,6 @@ export const handleNewPlot = async (
       name: response.data.coordinates[0].name,
       unit: response.data.coordinates[0].unit,
       path: response.data.coordinates[0].path,
-      data: response.data.coordinates[0].value,
       value: getFirstArrayValueFromShape(
         response.data.coordinates[0].value,
         response.data.coordinates[0].shape,
@@ -177,7 +178,6 @@ export const handleNewPlot = async (
   const yAxis: Axis = {
     name: response.data.name,
     unit: response.data.unit,
-    data: response.data.value,
     value: getFirstArrayValueFromShape(response.data.value, response.data.shape),
   };
 
@@ -192,6 +192,7 @@ export const handleNewPlot = async (
     newPlot,
     xAxis,
     yAxis,
+    response.data.value,
     defaultUri,
     response.data.ndim,
     response.data.path,
@@ -357,7 +358,6 @@ export const handleExistingPlot = async (
     const yAxis: Axis = {
       name: response.data.name,
       unit: unit,
-      data: response.data.value,
       value: getFirstArrayValueFromShape(response.data.value, response.data.shape),
     };
 
@@ -366,6 +366,7 @@ export const handleExistingPlot = async (
         findDataPlot,
         xAxis,
         yAxis,
+        response.data.value,
         defaultUri,
         response.data.ndim,
         response.data.path,
@@ -383,7 +384,6 @@ export const handleExistingPlot = async (
       findDataPlot.y2AxisData = {
         name: unit,
         unit: unit,
-        data: response.data.value,
         value: getFirstArrayValueFromShape(response.data.value, response.data.shape),
       };
 
@@ -391,7 +391,9 @@ export const handleExistingPlot = async (
         findDataPlot,
         xAxis,
         yAxis,
+        response.data.value,
         defaultUri,
+        
         response.data.ndim,
         response.data.path,
         response.data.shape,

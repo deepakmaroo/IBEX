@@ -17,7 +17,6 @@ export interface Axis {
   name: string;
   unit: string;
   path?: string;
-  data: AxisData;
   value: number[];
 }
 
@@ -46,6 +45,7 @@ export type DataPlotly = BaseDataPlotly &
   Data & {
     x: (string | number)[];
     y: (string | number)[];
+    yData: AxisData;
     path?: string;
     dimensions?: number;
     shape?: number[];
