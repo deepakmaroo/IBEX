@@ -371,7 +371,7 @@ class IMASPythonSource(DataSourceInterface):
         data_to_be_returned = self._serialize_data(ids_data)
 
         if ids_data.metadata.nim == 1 and downsampling_method is not None:
-            data_to_be_returned = downsample_data(
+            _, data_to_be_returned = downsample_data(
                 data=data_to_be_returned, target_size=downsampled_size, method=downsampling_method
             )
 
@@ -688,7 +688,7 @@ class IMASPythonSource(DataSourceInterface):
             # Downsample only 1D data (for now)
             if coordinates_to_be_returned[0]["target"] == f"#{ids}/{node_path}":
                 # If coordinate targets node -> downsample coordinate as well
-                (coordinates_to_be_returned[0]["value"], data_to_be_returned) = downsample_data(
+                coordinates_to_be_returned[0]["value"], data_to_be_returned = downsample_data(
                     data_to_be_returned,
                     target_size=downsampled_size,
                     method=downsampling_method,
@@ -698,7 +698,7 @@ class IMASPythonSource(DataSourceInterface):
                     coordinates_to_be_returned[0]["value"]
                 ).shape
             else:
-                data_to_be_returned = downsample_data(
+                _, data_to_be_returned = downsample_data(
                     data_to_be_returned, target_size=downsampled_size, method=downsampling_method
                 )
 
