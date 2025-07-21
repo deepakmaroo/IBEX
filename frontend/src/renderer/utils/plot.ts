@@ -10,11 +10,10 @@ import {
   PlotDataResponse,
   URITreeNodeData,
 } from '../types';
-import { fetchDataPlot, fetchFieldValue } from './fetchData';
+import { fetchDataPlot } from './fetchData';
 import { generateNewGridPlot } from './grid';
-import { getDefaultUri, normalizeIndices } from './uri';
+import { normalizeIndices } from './uri';
 import { getFirstArrayValueFromShape } from './matrix';
-import { YAxis } from 'recharts';
 
 /**
  * @description Checks if the response data has more than one dimension.
@@ -477,6 +476,15 @@ export async function plotNodeUriLoaded(
                 }
               }
 
+              const defaultXValue = getFirstArrayValueFromShape(
+                response.data.coordinates[0].value,
+                response.data.coordinates[0].shape,
+              );
+              const defaultYValue = getFirstArrayValueFromShape(
+                response.data.value,
+                response.data.shape,
+              );
+
               return {
                 ...plot,
                 name: `${response.data.name}(${response.data.unit})_${plot.labelUri}`,
@@ -484,14 +492,9 @@ export async function plotNodeUriLoaded(
                 dimensions: response.data.ndim,
                 path: response.data.path,
                 shape: [],
-                x: getFirstArrayValueFromShape(
-                  response.data.coordinates[0].value,
-                  response.data.coordinates[0].shape,
-                ).map((v) => v.toString()),
-                y: getFirstArrayValueFromShape(
-                  response.data.value,
-                  response.data.shape,
-                ),
+                yData: response.data.value,
+                x: defaultXValue.map((x) => x.toString()),
+                y: defaultYValue,
               };
             } catch (error) {
               console.error(`Error fetching data for ${plot.nodeUri}:`, error);

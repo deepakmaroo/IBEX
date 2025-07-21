@@ -1,16 +1,5 @@
 import { AxisData } from "../types";
 
-export function isMatrix(value: number[][][] | number[][] | number[] ): boolean {
-  if (Array.isArray(value)) {
-    if (value.length === 0) return false; // Empty array is not a matrix
-    const firstElement = value[0];
-    if (Array.isArray(firstElement)) {
-      return firstElement.every(row => Array.isArray(row)); // Check if all elements are arrays
-    }
-  }
-  return false; // Not a matrix
-}
-
 export const getFirstArrayValueFromShape = (
   value: AxisData,
   shape: number[]
