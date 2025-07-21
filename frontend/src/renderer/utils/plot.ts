@@ -63,8 +63,6 @@ export const plotData = (
   description?: string,
   y2Axis?: boolean,
 ): DataGridPlot => {
-
-
   const trace: DataPlotly = {
     x: xValue,
     y: yValue,
@@ -110,42 +108,27 @@ export const handleNewPlot = async (
   nodes: URITreeNodeData[],
   updatedActive: Configuration,
 ): Promise<Configuration> => {
-  //By default we take index [:] 
+  //By default we take index [:]
   //: corresponds to all indices (matrix)
-
   let defaultUri = nodes[0].uri; //Get nodes[0], it's the first node to plot
 
-
   let response: PlotDataResponse = await fetchDataPlot(defaultUri);
-  console.log('uri:', defaultUri);
-
 
   if (!checkDimension1(response, updatedActive, nodes)) {
     return updatedActive;
   }
 
-  /**
-   * Build data for dimension 1 and 0
-   * Todo - handle dimension 2 and more
-   */
   let xCoordinatesData: Coordinates[] = [];
   let xAxis: Axis = null;
 
   if (response.data.coordinates.length > 0) {
-
     //Get index [0] by default xAxis
-    // Get the xAxis data
-
-    // Set the xAxis properties 
+    //Set the xAxis properties
     xAxis = {
       name: response.data.coordinates[0].name,
       unit: response.data.coordinates[0].unit,
       path: response.data.coordinates[0].path,
     };
-
-    console.log('xAxis:', xAxis);
-
-    
 
     //Get coordinates data for slider - all coordinates except the first one, is considered as x coordinates
     xCoordinatesData = response.data.coordinates
@@ -162,12 +145,9 @@ export const handleNewPlot = async (
           data: dataValue,
           index: 0,
           target: coordinate.target,
-        nodeUri: defaultUri,
-      };
+          nodeUri: defaultUri,
+        };
       });
-
-    console.log('xCoordinatesData:', xCoordinatesData);
-
   }
 
   // Set the yAxis properties
@@ -185,12 +165,12 @@ export const handleNewPlot = async (
 
   const defaultXValue = getFirstArrayValueFromShape(
     response.data.coordinates[0].value,
-    response.data.coordinates[0].shape
+    response.data.coordinates[0].shape,
   );
 
   const defaultYValue = getFirstArrayValueFromShape(
     response.data.value,
-    response.data.shape
+    response.data.shape,
   );
 
   const updatedPlot: DataGridPlot = plotData(
@@ -206,7 +186,6 @@ export const handleNewPlot = async (
     nodes[0].name,
     response.data.description,
   );
-  console.log('updatedPlot:', updatedPlot);
   updatedActive.dataPlot.push(updatedPlot);
   return updatedActive;
 };
@@ -236,9 +215,8 @@ export const handleExistingPlot = async (
   }
 
   for (const node of dataToPlot) {
-    let defaultUri = getDefaultUri(node.uri);
+    let defaultUri = node.uri;
     let response = await fetchDataPlot(defaultUri);
-
 
     if (!checkDimension1(response, updatedActive, nodes)) {
       return updatedActive;
@@ -252,57 +230,10 @@ export const handleExistingPlot = async (
     const xAxis = findDataPlot.xAxisData;
     const coordsResponse = response.data.coordinates;
 
-    if (coordsResponse.length === 1) {
-      defaultUri = normalizeIndices(defaultUri);
-      const responseVectorData = await fetchDataPlot(normalizeIndices(defaultUri));
-
-      response.data.shape = responseVectorData.data.shape;
-      response.data.value = responseVectorData.data.value;
-    }
-
     const sliderExist =
       findDataPlot.coordinates &&
       findDataPlot.coordinates.length > 0 &&
       coordsResponse.length > 1;
-
-    if (sliderExist) {
-      const coordResponses = coordsResponse.slice(1);
-      let updateDefaultUri = defaultUri;
-
-      coordResponses.forEach((coordRes) => {
-        const matchingCoord = findDataPlot.coordinates.find(
-          (c) => c.name === coordRes.name,
-        );
-
-        if (!matchingCoord) return;
-
-        const lastField = getLastIndexedField(coordRes.target);
-        if (!lastField) return;
-
-        coordResponses.forEach((res) => {
-          res.target = updateIndexFieldName(
-            res.target,
-            lastField,
-            matchingCoord.index,
-          );
-        });
-
-        updateDefaultUri = updateIndexFieldName(
-          updateDefaultUri,
-          lastField,
-          matchingCoord.index,
-        );
-      });
-
-      // if (updateDefaultUri !== defaultUri) {
-      //   const responseNewFieldValues = await fetchFieldValue(updateDefaultUri);
-
-      //   if (!responseNewFieldValues || !responseNewFieldValues.value) {
-      //     response.data.value = responseNewFieldValues.value;
-      //   }
-      //   defaultUri = updateDefaultUri;
-      // }
-    }
 
     const coordinatesExistAndMatch =
       findDataPlot.coordinates.length === coordsResponse.slice(1).length &&
@@ -370,6 +301,7 @@ export const handleExistingPlot = async (
       response.data.coordinates[0].value,
       response.data.coordinates[0].shape,
     );
+    //By default we take the first array if index slider changed, improve this to take vector corresponding to the slider index
     const defaultYValue = getFirstArrayValueFromShape(
       response.data.value,
       response.data.shape,
@@ -408,7 +340,6 @@ export const handleExistingPlot = async (
         defaultYValue,
         response.data.value,
         defaultUri,
-        
         response.data.ndim,
         response.data.path,
         response.data.shape,
@@ -514,7 +445,9 @@ export async function plotNodeUriLoaded(
                   if (findCoordinates) {
                     // If coordinates exist, update the data and shape
                     findCoordinates.data = getFirstArrayValueFromShape(
-                      responseCoordinates.value, responseCoordinates.shape);
+                      responseCoordinates.value,
+                      responseCoordinates.shape,
+                    );
                     findCoordinates.name = responseCoordinates.name;
                     findCoordinates.shape = responseCoordinates.shape;
                   }
@@ -535,7 +468,9 @@ export async function plotNodeUriLoaded(
                     name: responseCoordinates.name,
                     shape: responseCoordinates.shape,
                     data: getFirstArrayValueFromShape(
-                      responseCoordinates.value, responseCoordinates.shape),
+                      responseCoordinates.value,
+                      responseCoordinates.shape,
+                    ),
                     target: responseCoordinates.target,
                     index: 0,
                   });
@@ -557,7 +492,6 @@ export async function plotNodeUriLoaded(
                   response.data.value,
                   response.data.shape,
                 ),
-                
               };
             } catch (error) {
               console.error(`Error fetching data for ${plot.nodeUri}:`, error);
