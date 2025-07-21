@@ -415,13 +415,13 @@ export const VisualizationTree = ({
       };
 
       try {
-        let findDataPlot = updatedActive.dataPlot.find(
+        let findEditablePlot = updatedActive.dataPlot.find(
           (plot) => plot.isEditing,
         );
 
-        if (!findDataPlot) {
+        if (!findEditablePlot) {
           updatedActive = await handleNewPlot(nodes, updatedActive);
-          findDataPlot = updatedActive.dataPlot.find((plot) => plot.isEditing);
+          findEditablePlot = updatedActive.dataPlot.find((plot) => plot.isEditing);
         } else {
           if (nodes.length === 0) {
             updatedActive.dataPlot = active.dataPlot.filter(
@@ -430,7 +430,7 @@ export const VisualizationTree = ({
           } else {
             updatedActive = await handleExistingPlot(
               nodes,
-              findDataPlot,
+              findEditablePlot,
               updatedActive,
             );
           }

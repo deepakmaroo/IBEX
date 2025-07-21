@@ -181,7 +181,7 @@ export const handleNewPlot = async (
     value: getFirstArrayValueFromShape(response.data.value, response.data.shape),
   };
 
-  const newPlot = generateNewGridPlot(
+  const newGrid = generateNewGridPlot(
     xCoordinatesData,
     xAxis,
     yAxis,
@@ -189,7 +189,7 @@ export const handleNewPlot = async (
   );
 
   const updatedPlot: DataGridPlot = plotData(
-    newPlot,
+    newGrid,
     xAxis,
     yAxis,
     response.data.value,
