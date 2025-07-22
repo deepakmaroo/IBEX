@@ -126,7 +126,7 @@ export const handleNewPlot = async (
     xAxis = {
       name: response.data.coordinates[0].name,
       unit: response.data.coordinates[0].unit,
-      path: response.data.coordinates[0].path,
+      path: response.data.coordinates[0].path.replace(/\[:\]/g, '[0]'),
     };
 
     //Get coordinates data for slider - all coordinates except the first one, is considered as x coordinates
@@ -143,8 +143,8 @@ export const handleNewPlot = async (
           shape: coordinate.shape,
           data: dataValue,
           index: 0,
-          target: coordinate.target,
-          nodeUri: defaultUri,
+          target: coordinate.target.replace(/\[:\]/g, '[0]'),
+          nodeUri: defaultUri.replace(/\[:\]/g, '[0]'),
         };
       });
   }
@@ -178,9 +178,9 @@ export const handleNewPlot = async (
     defaultXValue,
     defaultYValue,
     response.data.value,
-    defaultUri,
+    defaultUri.replace(/\[:\]/g, '[0]'),
     response.data.ndim,
-    response.data.path,
+    response.data.path.replace(/\[:\]/g, '[0]'),
     response.data.shape,
     nodes[0].name,
     response.data.description,
