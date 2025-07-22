@@ -643,3 +643,34 @@ export function getLastIndexedField(target: string): string | null {
   if (matches.length === 0) return null;
   return matches[matches.length - 1][1]; // Last indexed field name is captured
 }
+
+/**
+ * Retrieves vector data from URI.
+ */
+export function fetchVectorData(uri: string, coordinates: Coordinates[], plotItem: DataPlotly) {
+  const coordinatesLength: number = coordinates.length
+  const yDataMatrice: DataPlotly = plotItem
+
+  // Extract only matrix indexes
+  const matches = [...uri.matchAll(/\[(\d+)\]/g)];
+  const matrixIndexes = matches.map(match => parseInt(match[1]));
+
+  // Retrieve vector to plot
+  let result: any = yDataMatrice.yData
+  let shapeIndex = 0
+  for (const index of matrixIndexes) {
+    if (shapeIndex < coordinatesLength && index < result.length) {
+      result = result[index];
+      shapeIndex ++;
+    } else {
+      if(!(shapeIndex < coordinatesLength)){
+        break;
+      } else {
+        console.warn("Impossible to plot: invalid index or incorrect length");
+        return undefined;
+      }
+    }
+  }
+  const vectorData:number[]  = result
+  return vectorData;
+};

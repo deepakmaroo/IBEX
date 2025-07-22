@@ -25,7 +25,7 @@ import { SimplePlotly } from '../plot';
 import { useIbexStore } from '../../stores';
 import { VerticalSlider } from '../verticalSlider';
 import {
-  fetchFieldValue,
+  fetchVectorData,
   getLastIndexedField,
   normalizeIndices,
   updateIndexFieldName,
@@ -175,11 +175,11 @@ export const GridLayoutPlot = ({
                   index,
                 );
 
-                const responseYData = await fetchFieldValue(updatedNodeUri);
+                const responseYData = await fetchVectorData(updatedNodeUri, item.coordinates, plotItem);
 
                 return {
                   ...plotItem,
-                  y: responseYData.value as number[],
+                  y: responseYData,
                   nodeUri: updatedNodeUri,
                   path: updatedPath,
                 };
