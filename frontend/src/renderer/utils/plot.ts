@@ -12,7 +12,7 @@ import {
 } from '../types';
 import { fetchDataPlot } from './fetchData';
 import { generateNewGridPlot } from './grid';
-import { normalizeIndices } from './uri';
+import { getDefaultUri, normalizeIndices } from './uri';
 import { getFirstArrayValueFromShape } from './matrix';
 
 /**
@@ -444,9 +444,6 @@ export async function plotNodeUriLoaded(
                       responseCoordinates.target
                     );
                   });
-                  findCoordinates.target = normalizeIndices(
-                    findCoordinates.target,
-                  );
 
                   if (findCoordinates) {
                     // If coordinates exist, update the data and shape
@@ -478,7 +475,7 @@ export async function plotNodeUriLoaded(
                       responseCoordinates.value,
                       responseCoordinates.shape,
                     ),
-                    target: responseCoordinates.target,
+                    target: getDefaultUri(responseCoordinates.target),
                     index: 0,
                   });
                 }
