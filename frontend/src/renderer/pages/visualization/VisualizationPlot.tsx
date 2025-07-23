@@ -130,7 +130,6 @@ export const VisualizationPlot = ({
                 }}
               >
                 <GridLayoutPlot
-                  key={`${plotData.i}-${index}`}
                   data={plotData}
                   colWidth={colWidth}
                   rowHeight={rowHeight}

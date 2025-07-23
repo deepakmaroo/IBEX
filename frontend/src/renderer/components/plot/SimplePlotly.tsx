@@ -4,7 +4,6 @@ import Plot from 'react-plotly.js';
 import { SimplePlotlyProps } from 'src/renderer/types';
 
 export const SimplePlotly = ({
-  key,
   title,
   xAxis,
   yAxis,
@@ -98,7 +97,6 @@ export const SimplePlotly = ({
 
   return (
     <Plot
-      key={key}
       ref={plotRef}
       data={data}
       layout={layoutPlot}
