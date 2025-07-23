@@ -25,7 +25,7 @@ import { SimplePlotly } from '../plot';
 import { useIbexStore } from '../../stores';
 import { VerticalSlider } from '../verticalSlider';
 import {
-  fetchVectorData,
+  getVectorData,
   getLastIndexedField,
   normalizeIndices,
   updateIndexFieldName,
@@ -157,44 +157,44 @@ export const GridLayoutPlot = ({
 
     const updatedActive = {
       ...active,
-      dataPlot: await Promise.all(
-        active.dataPlot.map(async (item) => {
-          if (item.i === data.i) {
-            const updatedPlot = await Promise.all(
-              item.plot.map(async (plotItem) => {
-                const updatedNodeUri = updateIndexFieldName(
-                  plotItem.nodeUri,
-                  lastTargetLastName,
-                  index,
-                );
+      dataPlot: active.dataPlot.map((item) => {
+        if (item.i === data.i) {
+          const updatedPlot = item.plot.map((plotItem) => {
+            const updatedNodeUri = updateIndexFieldName(
+              plotItem.nodeUri,
+              lastTargetLastName,
+              index,
+            );
 
-                const updatedPath = updateIndexFieldName(
-                  plotItem.path || '',
-                  lastTargetLastName,
-                  index,
-                );
+            const updatedPath = updateIndexFieldName(
+              plotItem.path || '',
+              lastTargetLastName,
+              index,
+            );
 
-                const responseYData = await fetchVectorData(updatedNodeUri, item.coordinates, plotItem);
-
-                return {
-                  ...plotItem,
-                  y: responseYData,
-                  nodeUri: updatedNodeUri,
-                  path: updatedPath,
-                };
-              }),
+            const responseYData = getVectorData(
+              updatedNodeUri,
+              item.coordinates,
+              plotItem,
             );
 
             return {
-              ...item,
-              coordinates: updatedCoordinatesValue,
-              plot: updatedPlot,
+              ...plotItem,
+              y: responseYData,
+              nodeUri: updatedNodeUri,
+              path: updatedPath,
             };
-          }
+          });
 
-          return item;
-        }),
-      ),
+          return {
+            ...item,
+            coordinates: updatedCoordinatesValue,
+            plot: updatedPlot,
+          };
+        }
+
+        return item;
+      }),
     };
 
     updatedConfiguration(updatedActive);

@@ -12,7 +12,12 @@ import {
 } from '../types';
 import { fetchDataPlot } from './fetchData';
 import { generateNewGridPlot } from './grid';
-import { getDefaultUri, normalizeIndices } from './uri';
+import {
+  getDefaultUri,
+  getLastIndexedField,
+  normalizeIndices,
+  updateIndexFieldName,
+} from './uri';
 import { getFirstArrayValueFromShape } from './matrix';
 
 /**
@@ -616,61 +621,40 @@ export async function plotNodeUriLoaded(
 }
 
 /**
- * @description Update the index of a field in a target string.
- * @param target The target string to update.
- * @param fieldName The name of the field to update. ex: "ion" or "profiles_1d"
- * @param index The new index to set. Can be a number or ':'.
- * @returns The updated target string.
+ * @description Retrieves vector data from a plot item based on the provided URI and coordinates.
+ * @param uri The URI to retrieve the vector data from.
+ * @param coordinates The coordinates to use for retrieving the vector data.
+ * @param plotItem The plot item containing the yData to extract the vector from.
+ * @returns The vector data as an array of numbers, or undefined if the indices are invalid
  */
-export function updateIndexFieldName(
-  target: string,
-  fieldName: string,
-  index: number | ':', // index can now be ':' or a number
-): string {
-  const regex = new RegExp(`(${fieldName})\\[(\\d+|:)\\]`);
-  const newTarget = target.replace(regex, `${fieldName}[${index}]`);
-
-  return newTarget;
-}
-
-/**
- * @description Get the last indexed field in a target string.
- * @param target The target string to search.
- * @returns The name of the last indexed field(index can now be ':' or a number), or null if none found.
- */
-export function getLastIndexedField(target: string): string | null {
-  const matches = [...target.matchAll(/([a-zA-Z0-9_]+)\[(\d+|:)\]/g)];
-  if (matches.length === 0) return null;
-  return matches[matches.length - 1][1]; // Last indexed field name is captured
-}
-
-/**
- * Retrieves vector data from URI.
- */
-export function fetchVectorData(uri: string, coordinates: Coordinates[], plotItem: DataPlotly) {
-  const coordinatesLength: number = coordinates.length
-  const yDataMatrice: DataPlotly = plotItem
+export function getVectorData(
+  uri: string,
+  coordinates: Coordinates[],
+  plotItem: DataPlotly,
+) {
+  const coordinatesLength: number = coordinates.length;
+  const yDataMatrice: DataPlotly = plotItem;
 
   // Extract only matrix indexes
   const matches = [...uri.matchAll(/\[(\d+)\]/g)];
-  const matrixIndexes = matches.map(match => parseInt(match[1]));
+  const matrixIndexes = matches.map((match) => parseInt(match[1]));
 
   // Retrieve vector to plot
-  let result: any = yDataMatrice.yData
-  let shapeIndex = 0
+  let result: any = yDataMatrice.yData;
+  let shapeIndex = 0;
   for (const index of matrixIndexes) {
     if (shapeIndex < coordinatesLength && index < result.length) {
       result = result[index];
-      shapeIndex ++;
+      shapeIndex++;
     } else {
-      if(!(shapeIndex < coordinatesLength)){
+      if (!(shapeIndex < coordinatesLength)) {
         break;
       } else {
-        console.warn("Impossible to plot: invalid index or incorrect length");
+        console.warn('Impossible to plot: invalid index or incorrect length');
         return undefined;
       }
     }
   }
-  const vectorData:number[]  = result
+  const vectorData: number[] = result;
   return vectorData;
-};
+}
