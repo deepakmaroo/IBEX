@@ -184,7 +184,7 @@ function NodeIcon({
     );
 
     const getFolderIcon = () => (
-      <Group gap={2}>
+      <Group gap={2} style={{ userSelect: 'text' }}>
         {expanded ? (
           <IconFolderOpen {...commonProps} />
         ) : (
@@ -204,7 +204,7 @@ function NodeIcon({
           },
         }}
         label={
-          <Group gap={2}>
+          <Group gap={2} style={{ userSelect: 'text' }}>
             {IconComponent}
             {labels}
           </Group>

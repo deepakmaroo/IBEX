@@ -63,7 +63,7 @@ export const TreeLibrariesAccordion = ({
   const items = customDataTree.map((item) => {
     return (
       <Accordion.Item key={`accodion-${item.uri}`} value={`${item.uri}`}>
-        <Accordion.Control>
+        <Accordion.Control style={{ userSelect: 'text' }}>
           <AccordionLabel
             label={item.name}
             description={item.uri}
