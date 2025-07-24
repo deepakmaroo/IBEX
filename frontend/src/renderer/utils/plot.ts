@@ -425,7 +425,6 @@ export const handleExistingPlot = async (
       updatedActive.checkedNodeURI = nodes.filter((n) => n !== node);
     }
   }
-  console.log('active dataPlot', updatedActive.dataPlot);
   return updatedActive;
 };
 
@@ -576,7 +575,7 @@ export async function plotNodeUriLoaded(
 
               return {
                 ...plot,
-                name: `${response.data.name}(${response.data.unit})_${plot.labelUri}`,
+                name: `${response.data.name}_${plot.labelUri}`,
                 description: response.data.description,
                 dimensions: response.data.ndim,
                 path: yResponsePath,
@@ -611,7 +610,6 @@ export async function plotNodeUriLoaded(
       });
     }
 
-    console.log('Updated DataGridPlot:', updatedDataGridPlot);
     return updatedDataGridPlot;
   } catch (error) {
     console.error('Error in plotNodeUriLoaded:', error);
