@@ -609,7 +609,6 @@ export async function plotNodeUriLoaded(
         color: 'red',
       });
     }
-
     return updatedDataGridPlot;
   } catch (error) {
     console.error('Error in plotNodeUriLoaded:', error);

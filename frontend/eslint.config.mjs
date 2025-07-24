@@ -42,6 +42,7 @@ export default tseslint.config(
       '@typescript-eslint/no-unused-expressions': 'off',
       'chai-friendly/no-unused-expressions': 'error',
       'prettier/prettier': 'error',
+      'no-console': ['warn', { allow: ['warn', 'error', 'info'] }],
     },
   },
 );

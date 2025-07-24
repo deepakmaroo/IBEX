@@ -14,7 +14,7 @@ if (isSquirrelStartup) {
 }
 
 app.whenReady().then(() => {
-  console.log('App is ready, environment:', process.env.NODE_ENV);
+  console.info('App is ready, environment:', process.env.NODE_ENV);
   createWindow();
 
   ipc.initialize();
