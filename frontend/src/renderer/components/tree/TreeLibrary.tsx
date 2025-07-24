@@ -26,6 +26,7 @@ import {
   URIData,
   URITreeNodeData,
 } from '../../types';
+import { hasUserSelectedText } from '../../utils';
 
 interface NodeIconProps {
   node: TreeNodeData;
@@ -157,6 +158,10 @@ function NodeIcon({
           NodeInfoTypeEnum.STRING,
         ].includes(type)
       ) {
+        if (hasUserSelectedText()){
+          return ;
+        }
+
         if (checked) {
           tree.uncheckNode(node.value);
           checkedNodes = checkedNodes.filter(

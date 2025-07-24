@@ -84,29 +84,12 @@ export const VisualizationPlot = ({
    * Scroll to the bottom of the scroll area when new data is added or removed
    */
   useEffect(() => {
-    // Save user selection
-    const selection = window.getSelection();
-    let savedRange: Range | null = null;
-
-    if (selection && !selection.isCollapsed) {
-      savedRange = selection.getRangeAt(0).cloneRange();
-    }
-
     // Scroll to new plot
     if (scrollAreaRef.current) {
       scrollAreaRef.current.scrollTo({
         top: scrollAreaRef.current.scrollHeight,
         behavior: 'smooth',
       });
-    }
-
-    // Reset user selection after scroll
-    if (savedRange) {
-      setTimeout(() => {
-        const sel = window.getSelection();
-        sel?.removeAllRanges();
-        sel?.addRange(savedRange);
-      }, 100);
     }
   }, [active.dataPlot.length]);
 
