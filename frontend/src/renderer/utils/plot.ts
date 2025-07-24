@@ -289,6 +289,11 @@ export const handleExistingPlot = async (
           lastField,
           matchingCoord.index,
         );
+        // xAxis.path = updateIndexFieldName(
+        //   xAxis.path,
+        //   lastField,
+        //   matchingCoord.index,
+        // );
       });
     }
 
@@ -359,10 +364,10 @@ export const handleExistingPlot = async (
       response.data.coordinates[0].shape,
     );
 
-    //TODO: By default we take the first array if index slider changed, improve this to take vector corresponding to the slider index
-    const defaultYValue = getFirstArrayValueFromShape(
+    const defaultYValue = getVectorData(
+      defaultUri,
+      findDataPlot.coordinates,
       response.data.value,
-      response.data.shape,
     );
 
     if (unitExists) {
@@ -630,17 +635,18 @@ export async function plotNodeUriLoaded(
 export function getVectorData(
   uri: string,
   coordinates: Coordinates[],
-  plotItem: DataPlotly,
+  yData: AxisData,
 ) {
   const coordinatesLength: number = coordinates.length;
-  const yDataMatrice: DataPlotly = plotItem;
 
   // Extract only matrix indexes
   const matches = [...uri.matchAll(/\[(\d+)\]/g)];
   const matrixIndexes = matches.map((match) => parseInt(match[1]));
 
   // Retrieve vector to plot
-  let result: any = yDataMatrice.yData;
+
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
+  let result: any = yData;
   let shapeIndex = 0;
   for (const index of matrixIndexes) {
     if (shapeIndex < coordinatesLength && index < result.length) {

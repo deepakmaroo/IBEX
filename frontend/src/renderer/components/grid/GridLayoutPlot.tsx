@@ -6,6 +6,7 @@ import {
   useState,
 } from 'react';
 import {
+  Axis,
   Configuration,
   Coordinates,
   DataGridPlot,
@@ -157,8 +158,17 @@ export const GridLayoutPlot = ({
 
     const updatedActive = {
       ...active,
-      dataPlot: active.dataPlot.map((item) => {
+      dataPlot: active.dataPlot.map((item: DataGridPlot) => {
         if (item.i === data.i) {
+          const updatedXAxisData: Axis = {
+            ...item.xAxisData,
+            path: updateIndexFieldName(
+              item.xAxisData?.path || '',
+              lastTargetLastName,
+              index,
+            ),
+          };
+
           const updatedPlot = item.plot.map((plotItem) => {
             const updatedNodeUri = updateIndexFieldName(
               plotItem.nodeUri,
@@ -172,16 +182,17 @@ export const GridLayoutPlot = ({
               index,
             );
 
-            const responseYData = getVectorData(
+            const newYData = getVectorData(
               updatedNodeUri,
               item.coordinates,
-              plotItem,
+              plotItem.yData,
             );
 
             return {
               ...plotItem,
-              y: responseYData,
+              y: newYData,
               nodeUri: updatedNodeUri,
+
               path: updatedPath,
             };
           });
@@ -190,6 +201,7 @@ export const GridLayoutPlot = ({
             ...item,
             coordinates: updatedCoordinatesValue,
             plot: updatedPlot,
+            xAxisData: updatedXAxisData,
           };
         }
 

@@ -105,7 +105,7 @@ export const VisualizationPlot = ({
           isDraggable={dragEnabled}
           onLayoutChange={(layout) => handleUpdateLayout(layout)}
         >
-          {active.dataPlot.map((plotData: DataGridPlot, index: number) => {
+          {active.dataPlot.map((plotData: DataGridPlot) => {
             return (
               <Paper
                 shadow="sm"
