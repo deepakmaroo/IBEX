@@ -34,6 +34,7 @@ import {
   fetchNodeInfos,
   handleExistingPlot,
   handleNewPlot,
+  hasUserSelectedText,
 } from '../../utils';
 
 interface VisualizationTreeProps {
@@ -333,14 +334,22 @@ export const VisualizationTree = ({
    */
   const handleAccordionChange = useCallback(
     (value: string) => {
+      // * open Accordion only if use don't select text
+      if (hasUserSelectedText()) {
+        return;
+      }
+
       if (value) {
         const selectedURIData = active.dataURI.find(
           (item) => item.uri === value,
         );
+
         if (selectedURIData) {
-          setUriSelected(selectedURIData);
+          setUriSelected(selectedURIData); // defaultValue setté ici => problème c'est une defaultValue donc la gestion ne se fait plus
           fetchIDSData(selectedURIData);
         }
+      } else {
+        setUriSelected(null);
       }
     },
     [active],
@@ -523,7 +532,7 @@ export const VisualizationTree = ({
                 </Fieldset>
               </Container>
               <TreeLibrariesAccordion
-                defaultValue={uriSelected?.uri}
+                value={uriSelected?.uri}
                 customDataTree={active.customDataTree}
                 height={heightFormatted}
                 checkedNodes={active.checkedNodeURI || []}
