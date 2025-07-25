@@ -334,7 +334,7 @@ export const VisualizationTree = ({
    */
   const handleAccordionChange = useCallback(
     (value: string) => {
-      // * open Accordion only if use don't select text
+      // open uri Accordion only if user don't select text
       if (hasUserSelectedText()) {
         return;
       }
@@ -345,7 +345,7 @@ export const VisualizationTree = ({
         );
 
         if (selectedURIData) {
-          setUriSelected(selectedURIData); // defaultValue setté ici => problème c'est une defaultValue donc la gestion ne se fait plus
+          setUriSelected(selectedURIData);
           fetchIDSData(selectedURIData);
         }
       } else {

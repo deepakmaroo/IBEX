@@ -64,7 +64,6 @@ function Element({
   node,
   expanded,
   elementProps,
-  selected,
   type,
   selectedNode,
   checkedNodes,
@@ -87,18 +86,18 @@ function Element({
   };
 
   useEffect(() => {
-    if (selected) {
+    if (expanded) {
       setSelectedNode(node.value);
     } else if (!expanded) {
       setSelectedNode(null);
     }
-  }, [selected, expanded]);
+  }, [expanded]);
 
   useEffect(() => {
     if (selectedNode == node.value && expanded) {
       fetchData();
     }
-  }, [selectedNode, expanded]);
+  }, [selectedNode]);
 
   useEffect(() => {
     if (textRef.current) {
@@ -107,8 +106,21 @@ function Element({
     }
   }, [node.label]);
 
+  const handleExpandTree = () => {
+    // open node tree only if user don't select text
+    if (hasUserSelectedText()) {
+      return;
+    }
+
+    if (!expanded) {
+      tree.expand(node.value);
+    } else {
+      tree.collapse(node.value);
+    }
+  };
+
   return (
-    <Group gap={5} {...elementProps}>
+    <Group gap={5} {...elementProps} onClick={handleExpandTree}>
       <NodeIcon
         type={type}
         uriLabel={uriLabel}
@@ -158,8 +170,8 @@ function NodeIcon({
           NodeInfoTypeEnum.STRING,
         ].includes(type)
       ) {
-        if (hasUserSelectedText()){
-          return ;
+        if (hasUserSelectedText()) {
+          return;
         }
 
         if (checked) {
@@ -294,7 +306,7 @@ export const TreeLibrary = ({
         tree={tree}
         data={treeData}
         className={classes}
-        selectOnClick
+        expandOnClick={false}
         renderNode={(payload) => (
           <Element
             {...payload}
