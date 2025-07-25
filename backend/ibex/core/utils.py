@@ -2,11 +2,12 @@ from typing import List  # type: ignore
 from enum import Enum  # type: ignore
 
 from tsdownsample import MinMaxDownsampler, M4Downsampler, LTTBDownsampler, MinMaxLTTBDownsampler  # type: ignore
+from imas.ids_primitive import IDSNumericArray
 
 import numpy as np  # type: ignore
 
 
-def step_downsampling(data, n_out, *args, **kwargs):
+def step_downsampling(data: IDSNumericArray, n_out, *args, **kwargs):
     """
     Takes data list as input, and returns list of indices to be used for downsampling.
     Utilizes step method returning every n-th index, where step is calculated as follows: step = len(data) / n_out
@@ -21,7 +22,7 @@ def step_downsampling(data, n_out, *args, **kwargs):
     return list(range(0, len(data), step))
 
 
-def step_average_downsampling(data, n_out, *args, **kwargs):
+def step_average_downsampling(data, n_out, x=None, *args, **kwargs):
     """
     Takes data list as input, and returns list of indices to be used for downsampling.
     Utilizes step-average method. Divides data into bind and counts average value of every bin.
@@ -30,10 +31,29 @@ def step_average_downsampling(data, n_out, *args, **kwargs):
     :param *args: unused argument
     :param **kwargs: unused argument
     """
-    return [range(0, len(data))]  # not implemented
+    if len(data) < n_out * 2:
+        # cannot calculate average when there are less than 2 elements per group
+        return data
 
-    group_size = len(data) / n_out
-    return np.mean(data.reshape(-1, int(group_size)), 1)
+    group_size = int(len(data) / n_out)
+    group_count = int(len(data) / group_size)
+
+    # reshape() can work only on data divisible by group_size, so there is almost always
+    # a part of list that has not been included in the process. We will add it later
+    data_array = np.asarray(data[: group_count * group_size])
+    result = np.mean(data_array.reshape(-1, int(group_size)), 1)
+
+    leftover_array = np.asarray(data[group_count * group_size :])
+
+    leftover_result = np.asarray([np.mean(leftover_array)])
+
+    if x:
+        x_indices = step_downsampling(x, n_out=n_out)
+        x = np.asarray(x)[x_indices].tolist()
+        # if len(x) != len(y):
+        #    raise AttributeError(f"X and Y lenght differ!!! X LEN: {len(x)} ||| Y LEN: {len(y)}")
+
+    return x, np.concatenate(result, leftover_result)
 
 
 class DownsamplingMethods(Enum):
@@ -63,7 +83,7 @@ class DownsamplingMethods(Enum):
         if name is None:
             return cls.NONE
         for method in cls:
-            if method.value["name"].lower() == name.lower():
+            if method.value["name"].lower() == name.lower().strip():
                 return method
         raise ValueError(f"Downsampling method: {name} is not recognised by IBEX backend")
 
@@ -79,18 +99,34 @@ def downsample_data(data: List, target_size: int, method: DownsamplingMethods | 
     if method is None or method == DownsamplingMethods.NONE:
         return x, data
 
-    if not isinstance(data, list):
-        return x, data
+    if isinstance(data, List):
+        downsampled_x = []
+        downsampled_data = []
 
-    # if data elements are lists, return merged down-sampled lists
-    if isinstance(data[0], list):
-        return [downsample_data(elem, target_size, method) for elem in data]
+        if x is not None:
+            for _x, _data in zip(x, data):
+                _x1, _data1 = downsample_data(_data, target_size, method, _x)
+                downsampled_x.append(_x1)
+                downsampled_data.append(_x1)
+        else:
+            for _data in data:
+                _, _data1 = downsample_data(_data, target_size, method)
+                downsampled_data.append(_data1)
+
+        return downsampled_x or None, downsampled_data
+
+    if not isinstance(data, IDSNumericArray):
+        raise TypeError("Cannot downsample not-IDSNumericArray data")
+
+    if DownsamplingMethods(method).value["name"] == "Step average":
+        # Step average performs computation on data instead of just choosing indices, so we have to handle it separately
+        return step_average_downsampling(data, n_out=target_size)
 
     downsampling_function = DownsamplingMethods(method).value["function"]
 
-    s_ds = downsampling_function(np.asarray(data), n_out=target_size)
+    s_ds = downsampling_function(data, n_out=target_size)
 
     if x is not None:
-        return (np.asarray(x)[s_ds]).tolist(), (np.asarray(data)[s_ds]).tolist()
+        return x[s_ds], data[s_ds]
 
-    return x, (np.asarray(data)[s_ds]).tolist()
+    return x, data[s_ds]

@@ -521,10 +521,7 @@ class IMASPythonSource(DataSourceInterface):
         if isinstance(data, list):
             return [self._extract_1_N_coord_values(x) for x in data]
         else:
-            coordinates = data.coordinates[0]
-            if isinstance(coordinates, np.ndarray):
-                coordinates = coordinates.tolist()
-            return coordinates
+            return data.coordinates[0]
 
     def _serialize_data(self, data):
         """
@@ -541,7 +538,9 @@ class IMASPythonSource(DataSourceInterface):
             return data.value.tolist()
         elif isinstance(data, list):
             return [self._serialize_data(x) for x in data]
-        elif isinstance(data.value, np.ndarray):
+        elif isinstance(data, np.ndarray):  # data = np.ndarray
+            return data.tolist()
+        elif isinstance(data.value, np.ndarray):  # data = IDSNumericArray
             return data.tolist()
         else:
             return data.value
@@ -571,8 +570,9 @@ class IMASPythonSource(DataSourceInterface):
         path_elements = list(ids_path.items())
         ids_data = self._get_raw_data(ids_obj, path_elements)
 
-        data_to_be_returned = self._serialize_data(ids_data)
-        if isinstance(data_to_be_returned, list) and len(data_to_be_returned) == 0:
+        if (isinstance(ids_data, list) and len(ids_data) == 0) or (
+            isinstance(ids_data, IDSNumericArray) and ids_data.size == 0
+        ):
             raise EmptyNodeException(f"Node {ids_path} is empty")
         coordinates_to_be_returned = []
 
@@ -640,14 +640,14 @@ class IMASPythonSource(DataSourceInterface):
                 except AttributeError:
                     labels = []
 
-                coord_values = self._extract_1_N_coord_values(coord_target_objects)
+                coord_values: np.ndarray = self._extract_1_N_coord_values(coord_target_objects)
 
                 c = {
                     "name": splitted_target[-1],
                     "target": f"#{ids}/{target}",
                     "unit": "-",
-                    "shape": np.asarray(coord_values).shape,
-                    "downsampled_shape": np.asarray(coord_values).shape,
+                    "shape": coord_values.shape,
+                    "downsampled_shape": coord_values.shape,
                     "ndim": 1,  # 1...N coord always have 1 dimension
                     "path": "",
                     "description": "1...N",
@@ -660,8 +660,6 @@ class IMASPythonSource(DataSourceInterface):
                 coord_real_paths = list(coord_path.items())
                 coord_data = self._get_raw_data(ids_obj, coord_real_paths)
 
-                serialized_data = self._serialize_data(coord_data)
-
                 first_value = coord_data
                 while isinstance(first_value, list):
                     first_value = first_value[0]
@@ -670,12 +668,12 @@ class IMASPythonSource(DataSourceInterface):
                     "name": coord.split("/")[-1],
                     "target": f"#{ids}/{target}",
                     "unit": first_value.metadata.units,
-                    "shape": np.asarray(serialized_data).shape,
-                    "downsampled_shape": np.asarray(serialized_data).shape,
+                    "shape": np.asarray(coord_data).shape,  # coord_data could be np.ndarray or list[np.ndarray]
+                    "downsampled_shape": np.asarray(coord_data).shape,
                     "ndim": first_value.metadata.ndim,
                     "path": f"#{ids}/{coord}",
                     "description": first_value.metadata.documentation,
-                    "value": serialized_data,
+                    "value": coord_data,
                 }
                 coordinates_to_be_returned.append(c)
 
@@ -683,13 +681,13 @@ class IMASPythonSource(DataSourceInterface):
         while isinstance(first_value, list):
             first_value = first_value[0]
 
-        original_data_shape = np.asarray(data_to_be_returned).shape
+        original_data_shape = np.asarray(ids_data).shape  # ids_data could be np.ndarray or list[np.ndarray]
         if first_value.metadata.ndim == 1:
             # Downsample only 1D data (for now)
-            if coordinates_to_be_returned[0]["target"] == f"#{ids}/{node_path}":
+            if coordinates_to_be_returned[0]["target"].split("/")[-1] == f"{node_path.split('/')[-1]}":
                 # If coordinate targets node -> downsample coordinate as well
                 coordinates_to_be_returned[0]["value"], data_to_be_returned = downsample_data(
-                    data_to_be_returned,
+                    ids_data,
                     target_size=downsampled_size,
                     method=downsampling_method,
                     x=coordinates_to_be_returned[0]["value"],
@@ -699,8 +697,13 @@ class IMASPythonSource(DataSourceInterface):
                 ).shape
             else:
                 _, data_to_be_returned = downsample_data(
-                    data_to_be_returned, target_size=downsampled_size, method=downsampling_method
+                    ids_data, target_size=downsampled_size, method=downsampling_method
                 )
+
+        # serialize coordinates and update shapes (they could be changed by downsampling)
+        for c in coordinates_to_be_returned:
+            c["shape"] = np.asarray(c["value"]).shape
+            c["value"] = self._serialize_data(c["value"])
 
         result = {
             "data": {
@@ -712,7 +715,7 @@ class IMASPythonSource(DataSourceInterface):
                 "path": f"#{ids}/{node_path}",
                 "description": first_value.metadata.documentation,
                 "coordinates": coordinates_to_be_returned,
-                "value": data_to_be_returned,
+                "value": self._serialize_data(data_to_be_returned),
             }
         }
 
