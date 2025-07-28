@@ -207,9 +207,11 @@ export const GridLayoutPlot = ({
         sliderRef={gridSliderRef}
       /> */}
 
-
-        <Surface2D itemDataGrid={data}/>
-
+      <Surface2D
+        itemDataGrid={data}
+        width={widthGrid - 40}
+        height={heightGrid}
+      />
     </Container>
   );
 };

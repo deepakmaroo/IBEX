@@ -4,43 +4,44 @@ import { Layout } from 'plotly.js';
 import { Axis, DataGridPlot } from 'src/renderer/types';
 import { use } from 'chai';
 
+const generateData3D = (): number[][][] => {
+  const frames = 175;
+  const rows = 8;
+  const cols = 21;
+  const data: number[][][] = [];
 
-// const generateData3D = (): number[][][] => {
-//   const frames = 175;
-//   const rows = 8;
-//   const cols = 21;
-//   const data: number[][][] = [];
+  for (let t = 0; t < frames; t++) {
+    const frame: number[][] = [];
+    for (let i = 0; i < rows; i++) {
+      const row: number[] = [];
+      for (let j = 0; j < cols; j++) {
+        // Exemple : une onde simple dépendant de x (j), y (i) et le temps t
+        const z = Math.sin((i + j + t / 10) * 0.5);
+        row.push(z);
+      }
+      frame.push(row);
+    }
+    data.push(frame);
+  }
 
-//   for (let t = 0; t < frames; t++) {
-//     const frame: number[][] = [];
-//     for (let i = 0; i < rows; i++) {
-//       const row: number[] = [];
-//       for (let j = 0; j < cols; j++) {
-//         // Exemple : une onde simple dépendant de x (j), y (i) et le temps t
-//         const z = Math.sin((i + j + t / 10) * 0.5);
-//         row.push(z);
-//       }
-//       frame.push(row);
-//     }
-//     data.push(frame);
-//   }
-
-//   return data;
-// };
+  return data;
+};
 
 interface Surface2DProps {
   itemDataGrid: DataGridPlot;
+  width?: number;
+  height?: number;
 }
 
-export const Surface2D = ({ itemDataGrid }: Surface2DProps) => {
+export const Surface2D = ({ itemDataGrid, width, height }: Surface2DProps) => {
   const [frameIndex, setFrameIndex] = useState(0); //Time slicing by default
   const [layoutPlot, setLayoutPlot] = useState<Partial<Layout>>({});
   const [zAxis, setZAxis] = useState<Axis>(null);
-  const [data3D, setData3D] = useState<number[][][] | null>(null);
+  const [data3D, setData3D] = useState<number[][][] | null>(generateData3D());
 
-  useEffect(() => {
-    setData3D(itemDataGrid.plot[0].yData as number[][][]);
-  }, [itemDataGrid.plot]);
+  // useEffect(() => {
+  //   setData3D(itemDataGrid.plot[0].yData as number[][][]);
+  // }, [itemDataGrid.plot]);
 
   // Initialize zAxis from itemDataGrid
   useEffect(() => {
@@ -48,22 +49,23 @@ export const Surface2D = ({ itemDataGrid }: Surface2DProps) => {
     setZAxis({
       name: 'time',
       unit: '-',
-    })
+    });
   }, [itemDataGrid]);
 
   useEffect(() => {
     setLayoutPlot((prevLayout) => ({
       ...prevLayout,
       title: { text: itemDataGrid.title },
+      // height: height,
+      // width: width,
       autosize: true,
       scene: {
-        xaxis: { title: { text: itemDataGrid.xAxisData.name } },
-        yaxis: { title: { text: itemDataGrid.yAxisData.name } },
-        zaxis: { title: { text: zAxis.name } },
+        xaxis: { title: { text: 'rho' } },
+        yaxis: { title: { text: 'ion' } },
+        zaxis: { title: { text: 'time' } },
       },
     }));
   }, [frameIndex, zAxis]);
-
 
   const z = data3D[frameIndex]; //time
   const x = Array.from({ length: 21 }, (_, i) => i); //rho
