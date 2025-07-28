@@ -16,10 +16,16 @@ def step_downsampling(data: IDSNumericArray, n_out, *args, **kwargs):
     :param *args: unused argument
     :param **kwargs: unused argument
     """
+    # Calculate step value for data
+    # The same value is used for every dimension in order to maintain chart shape
     step = int(len(data) / n_out)
+    ndim = data.ndim
     if step == 0:
         step = 1
-    return list(range(0, len(data), step))
+    # * ... , operator unpacks generator into tuple
+    slices = (*(slice(None, None, step) for _ in range(ndim)),)
+
+    return slices
 
 
 def step_average_downsampling(data, n_out, x=None, *args, **kwargs):
@@ -68,11 +74,11 @@ class DownsamplingMethods(Enum):
         "description": "Returns every n-th element. N is calculated basing on desired data size",
         "function": step_downsampling,
     }
-    STEP_AVERAGE = {
-        "name": "Step average",
-        "description": "Divides data into bins and return average value of every bin. Bin size is calculated basing on desired data size",
-        "function": step_average_downsampling,
-    }
+    # STEP_AVERAGE = {
+    #    "name": "Step average",
+    #    "description": "Divides data into bins and return average value of every bin. Bin size is calculated basing on desired data size",
+    #    "function": step_average_downsampling,
+    # }
     MIN_MAX = {"name": "Min-Max", "description": "", "function": MinMaxDownsampler().downsample}
     M4 = {"name": "M4", "description": "", "function": M4Downsampler().downsample}
     LTTB = {"name": "LTTB", "description": "", "function": LTTBDownsampler().downsample}
