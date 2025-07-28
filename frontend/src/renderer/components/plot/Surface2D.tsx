@@ -1,5 +1,8 @@
 import Plot from 'react-plotly.js';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { Layout } from 'plotly.js';
+import { Axis } from 'src/renderer/types';
+import { XAxis } from 'recharts';
 
 // interface SurfacePlotProps {
 //   data3D: number[][][]; // [175][8][21]
@@ -28,14 +31,37 @@ const generateData3D = (): number[][][] => {
   return data;
 };
 
-export const SurfacePlot = () => {
-  const [frameIndex, setFrameIndex] = useState(0);
+interface SurfacePlotProps {
+  title: string;
+  yData: number[][][]; // 3D data for the surface plot
+  xAxis: Axis;
+  yAxis: Axis;
+  zAxis: Axis;
+  isStatic: boolean;
+}
+
+export const SurfacePlot = ({title, yData, xAxis, yAxis, zAxis, isStatic}:SurfacePlotProps) => {
+  const [frameIndex, setFrameIndex] = useState(0); //Time slicing by default
+  const [layoutPlot, setLayoutPlot] = useState<Partial<Layout>>({});
+
+  useEffect(() => {
+      setLayoutPlot((prevLayout) => ({
+          ...prevLayout,
+          title: { text: title }, 
+          autosize: true,
+          scene: {
+            xaxis: { title: { text: xAxis.name } }, 
+            yaxis: { title: { text: yAxis.name } }, 
+            zaxis: { title: { text: zAxis.name } }, 
+          },
+        }));
+    }, [frameIndex, title, xAxis, yAxis, zAxis]);
 
   const data3D = generateData3D();
-
-  const z = data3D[frameIndex];
-  const x = Array.from({ length: 21 }, (_, i) => i);
-  const y = Array.from({ length: 8 }, (_, i) => i);
+ 
+  const z = data3D[frameIndex]; //time
+  const x = Array.from({ length: 21 }, (_, i) => i); //rho
+  const y = Array.from({ length: 8 }, (_, i) => i); //ion
 
   return (
     <div>
@@ -56,15 +82,7 @@ export const SurfacePlot = () => {
             y: y,
           },
         ]}
-        layout={{
-          title: { text: `Frame ${frameIndex}` }, // ✅ title object
-          autosize: true,
-          scene: {
-            xaxis: { title: { text: 'X (21)' } }, // ✅ title object
-            yaxis: { title: { text: 'Y (8)' } },  // ✅ title object
-            zaxis: { title: { text: 'Valeur' } }, // ✅ title object
-          },
-        }}
+        layout={layoutPlot}
         style={{ width: '100%', height: '500px' }}
       />
     </div>

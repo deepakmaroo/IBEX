@@ -2,14 +2,10 @@ import { Data } from 'plotly.js';
 import { Layout } from 'react-grid-layout';
 
 export interface SimplePlotlyProps {
-  title: string;
-  xAxis: Axis;
-  yAxis: Axis;
-  y2Axis?: Axis;
-  data: Data[];
+  itemDataGrid: DataGridPlot;
   width: number;
   height: number;
-  isStatic: boolean;
+  sliderRef: React.RefObject<HTMLDivElement>;
 }
 
 export interface Axis {

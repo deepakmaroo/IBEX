@@ -137,9 +137,9 @@ export const VisualizationPlot = ({
                 />
               </Paper>
             );
-          })}
+          })}8
 
-          <SurfacePlot />
+          
         </GridLayout>
       </ScrollArea>
     </>
