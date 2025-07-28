@@ -77,7 +77,7 @@ export function MainLayout() {
           (coord: Coordinates): BaseCoordinates => {
             return {
               target: coord.target,
-              index: coord.index,
+              valueIndex: coord.valueIndex,
             };
           },
         ),
@@ -158,13 +158,13 @@ export function MainLayout() {
                   coordinates:
                     data.coordinates && data.coordinates.length > 0
                       ? data.coordinates.map(
-                          (coord: BaseCoordinates): Coordinates => {
-                            return {
-                              ...coord,
-                              name: '',
-                              shape: [],
-                              data: [],
-                            };
+                        (coord: BaseCoordinates): Coordinates => {
+                          return {
+                            ...coord,
+                            name: '',
+                            shape: [],
+                            data: [],
+                          };
                           },
                         )
                       : [],
