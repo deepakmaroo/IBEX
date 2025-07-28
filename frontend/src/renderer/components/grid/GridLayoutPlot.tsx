@@ -20,7 +20,7 @@ import {
 } from '@tabler/icons-react';
 import { useHover } from '@mantine/hooks';
 import classes from './GridLayoutPlot.module.css';
-import { SimplePlotly } from '../plot';
+import { SimplePlotly, Surface2D } from '../plot';
 import { useIbexStore } from '../../stores';
 import { normalizeIndices } from '../../utils';
 
@@ -196,7 +196,7 @@ export const GridLayoutPlot = ({
         )}
       </div>
 
-      <SimplePlotly
+      {/* <SimplePlotly
         itemDataGrid={data}
         width={
           data.coordinates.length > 0
@@ -205,7 +205,11 @@ export const GridLayoutPlot = ({
         }
         height={heightGrid}
         sliderRef={gridSliderRef}
-      />
+      /> */}
+
+
+        <Surface2D itemDataGrid={data}/>
+
     </Container>
   );
 };

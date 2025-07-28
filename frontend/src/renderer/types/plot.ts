@@ -1,13 +1,6 @@
 import { Data } from 'plotly.js';
 import { Layout } from 'react-grid-layout';
 
-export interface SimplePlotlyProps {
-  itemDataGrid: DataGridPlot;
-  width: number;
-  height: number;
-  sliderRef: React.RefObject<HTMLDivElement>;
-}
-
 export interface Axis {
   name: string;
   unit: string;

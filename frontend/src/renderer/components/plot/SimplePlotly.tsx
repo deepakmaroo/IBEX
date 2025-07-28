@@ -6,7 +6,6 @@ import {
   Axis,
   Coordinates,
   DataGridPlot,
-  SimplePlotlyProps,
 } from 'src/renderer/types';
 import { VerticalSlider } from '../verticalSlider';
 import { useIbexStore } from '../../stores';
@@ -15,6 +14,13 @@ import {
   getVectorData,
   updateIndexFieldName,
 } from '../../utils';
+
+interface SimplePlotlyProps {
+  itemDataGrid: DataGridPlot;
+  width: number;
+  height: number;
+  sliderRef: React.RefObject<HTMLDivElement>;
+}
 
 export const SimplePlotly = ({
   itemDataGrid,

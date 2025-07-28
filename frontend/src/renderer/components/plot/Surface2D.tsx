@@ -1,70 +1,69 @@
 import Plot from 'react-plotly.js';
 import { useEffect, useState } from 'react';
 import { Layout } from 'plotly.js';
-import { Axis } from 'src/renderer/types';
-import { XAxis } from 'recharts';
+import { Axis, DataGridPlot } from 'src/renderer/types';
+import { use } from 'chai';
 
-// interface SurfacePlotProps {
-//   data3D: number[][][]; // [175][8][21]
-// }
 
-const generateData3D = (): number[][][] => {
-  const frames = 175;
-  const rows = 8;
-  const cols = 21;
-  const data: number[][][] = [];
+// const generateData3D = (): number[][][] => {
+//   const frames = 175;
+//   const rows = 8;
+//   const cols = 21;
+//   const data: number[][][] = [];
 
-  for (let t = 0; t < frames; t++) {
-    const frame: number[][] = [];
-    for (let i = 0; i < rows; i++) {
-      const row: number[] = [];
-      for (let j = 0; j < cols; j++) {
-        // Exemple : une onde simple dépendant de x (j), y (i) et le temps t
-        const z = Math.sin((i + j + t / 10) * 0.5);
-        row.push(z);
-      }
-      frame.push(row);
-    }
-    data.push(frame);
-  }
+//   for (let t = 0; t < frames; t++) {
+//     const frame: number[][] = [];
+//     for (let i = 0; i < rows; i++) {
+//       const row: number[] = [];
+//       for (let j = 0; j < cols; j++) {
+//         // Exemple : une onde simple dépendant de x (j), y (i) et le temps t
+//         const z = Math.sin((i + j + t / 10) * 0.5);
+//         row.push(z);
+//       }
+//       frame.push(row);
+//     }
+//     data.push(frame);
+//   }
 
-  return data;
-};
+//   return data;
+// };
 
-interface SurfacePlotProps {
-  title: string;
-  yData: number[][][]; // 3D data for the surface plot
-  xAxis: Axis;
-  yAxis: Axis;
-  zAxis: Axis;
-  isStatic: boolean;
+interface Surface2DProps {
+  itemDataGrid: DataGridPlot;
 }
 
-export const SurfacePlot = ({
-  title,
-  yData,
-  xAxis,
-  yAxis,
-  zAxis,
-  isStatic,
-}: SurfacePlotProps) => {
+export const Surface2D = ({ itemDataGrid }: Surface2DProps) => {
   const [frameIndex, setFrameIndex] = useState(0); //Time slicing by default
   const [layoutPlot, setLayoutPlot] = useState<Partial<Layout>>({});
+  const [zAxis, setZAxis] = useState<Axis>(null);
+  const [data3D, setData3D] = useState<number[][][] | null>(null);
+
+  useEffect(() => {
+    setData3D(itemDataGrid.plot[0].yData as number[][][]);
+  }, [itemDataGrid.plot]);
+
+  // Initialize zAxis from itemDataGrid
+  useEffect(() => {
+    console.log('itemDataGrid', itemDataGrid);
+    setZAxis({
+      name: 'time',
+      unit: '-',
+    })
+  }, [itemDataGrid]);
 
   useEffect(() => {
     setLayoutPlot((prevLayout) => ({
       ...prevLayout,
-      title: { text: title },
+      title: { text: itemDataGrid.title },
       autosize: true,
       scene: {
-        xaxis: { title: { text: xAxis.name } },
-        yaxis: { title: { text: yAxis.name } },
+        xaxis: { title: { text: itemDataGrid.xAxisData.name } },
+        yaxis: { title: { text: itemDataGrid.yAxisData.name } },
         zaxis: { title: { text: zAxis.name } },
       },
     }));
-  }, [frameIndex, title, xAxis, yAxis, zAxis]);
+  }, [frameIndex, zAxis]);
 
-  const data3D = generateData3D();
 
   const z = data3D[frameIndex]; //time
   const x = Array.from({ length: 21 }, (_, i) => i); //rho
