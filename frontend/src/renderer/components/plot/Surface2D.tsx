@@ -40,25 +40,32 @@ interface SurfacePlotProps {
   isStatic: boolean;
 }
 
-export const SurfacePlot = ({title, yData, xAxis, yAxis, zAxis, isStatic}:SurfacePlotProps) => {
+export const SurfacePlot = ({
+  title,
+  yData,
+  xAxis,
+  yAxis,
+  zAxis,
+  isStatic,
+}: SurfacePlotProps) => {
   const [frameIndex, setFrameIndex] = useState(0); //Time slicing by default
   const [layoutPlot, setLayoutPlot] = useState<Partial<Layout>>({});
 
   useEffect(() => {
-      setLayoutPlot((prevLayout) => ({
-          ...prevLayout,
-          title: { text: title }, 
-          autosize: true,
-          scene: {
-            xaxis: { title: { text: xAxis.name } }, 
-            yaxis: { title: { text: yAxis.name } }, 
-            zaxis: { title: { text: zAxis.name } }, 
-          },
-        }));
-    }, [frameIndex, title, xAxis, yAxis, zAxis]);
+    setLayoutPlot((prevLayout) => ({
+      ...prevLayout,
+      title: { text: title },
+      autosize: true,
+      scene: {
+        xaxis: { title: { text: xAxis.name } },
+        yaxis: { title: { text: yAxis.name } },
+        zaxis: { title: { text: zAxis.name } },
+      },
+    }));
+  }, [frameIndex, title, xAxis, yAxis, zAxis]);
 
   const data3D = generateData3D();
- 
+
   const z = data3D[frameIndex]; //time
   const x = Array.from({ length: 21 }, (_, i) => i); //rho
   const y = Array.from({ length: 8 }, (_, i) => i); //ion

@@ -1,6 +1,6 @@
 import { Grid, Group } from '@mantine/core';
 import { Layout } from 'plotly.js';
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Plot from 'react-plotly.js';
 import {
   Axis,
@@ -9,18 +9,18 @@ import {
   SimplePlotlyProps,
 } from 'src/renderer/types';
 import { VerticalSlider } from '../verticalSlider';
-import { useIbexStore } from 'src/renderer/stores';
+import { useIbexStore } from '../../stores';
 import {
   getLastIndexedField,
   getVectorData,
   updateIndexFieldName,
-} from 'src/renderer/utils';
+} from '../../utils';
 
 export const SimplePlotly = ({
   itemDataGrid,
   height,
   width,
-  sliderRef
+  sliderRef,
 }: SimplePlotlyProps) => {
   const { active, updatedConfiguration } = useIbexStore();
   const [layoutPlot, setLayoutPlot] = useState<Partial<Layout>>({});
@@ -105,7 +105,6 @@ export const SimplePlotly = ({
       dragmode: 'zoom',
     }));
   }, [itemDataGrid, height, width]);
-
 
   /**
    * Update the coordinates when the slider is moved
