@@ -5,23 +5,23 @@ import { useState, useEffect, useRef } from 'react';
 
 interface VerticalSliderProps {
   name: string;
-  index: number;
+  valueIndex: number;
   data: string[] | number[];
-  getValue: (index: number) => void;
+  getValue: (valueIndex: number) => void;
   height?: number;
   disabled?: boolean;
 }
 
 export const VerticalSlider = ({
   name,
-  index,
+  valueIndex,
   data,
   getValue,
   height = 200,
   disabled = false,
 }: VerticalSliderProps) => {
   const steps = data.length;
-  const valueRatio = steps > 1 ? index / (steps - 1) : 1;
+  const valueRatio = steps > 1 ? valueIndex / (steps - 1) : 1;
   const [isFocused, setIsFocused] = useState(false);
   const sliderRef = useRef<HTMLDivElement | null>(null);
 
@@ -47,7 +47,7 @@ export const VerticalSlider = ({
     };
   }, []);
 
-  const isNumber = typeof data[index] === 'number';
+  const isNumber = typeof data[valueIndex] === 'number';
 
   return (
     <Flex justify="center" align="center" direction="column">
@@ -65,7 +65,7 @@ export const VerticalSlider = ({
         }}
         tabIndex={0}
         role="slider"
-        aria-valuenow={index}
+        aria-valuenow={valueIndex}
         aria-valuemin={0}
         aria-valuemax={steps - 1}
         onClick={(e) => {
@@ -76,11 +76,11 @@ export const VerticalSlider = ({
           if (disabled || steps <= 1) return;
 
           if (e.key === 'ArrowUp') {
-            const newIndex = Math.min(steps - 1, index + 1);
+            const newIndex = Math.min(steps - 1, valueIndex + 1);
             getValue(newIndex);
             e.preventDefault();
           } else if (e.key === 'ArrowDown') {
-            const newIndex = Math.max(0, index - 1);
+            const newIndex = Math.max(0, valueIndex - 1);
             getValue(newIndex);
             e.preventDefault();
           }
@@ -112,7 +112,7 @@ export const VerticalSlider = ({
           }}
         />
 
-        <Tooltip label={`Value: ${data[index]}`} position="right" withArrow>
+        <Tooltip label={`Value: ${data[valueIndex]}`} position="right" withArrow>
           <IconCircle
             color="var(--mantine-color-blue-7)"
             width={22}
@@ -131,9 +131,9 @@ export const VerticalSlider = ({
       </div>
       <Text ta="center" mt="xs" fw="bold">
         {isNumber ? (
-          <NumberFormatter value={data[index]} decimalScale={2} />
+          <NumberFormatter value={data[valueIndex]} decimalScale={2} />
         ) : (
-          data[index]
+          data[valueIndex]
         )}
       </Text>
     </Flex>

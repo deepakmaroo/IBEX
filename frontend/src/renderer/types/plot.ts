@@ -22,7 +22,7 @@ export type AxisData = number[][][] | number[][] | number[];
 
 export interface BaseCoordinates {
   target: string;
-  index: number;
+  valueIndex: number;
 }
 
 export interface Coordinates extends BaseCoordinates {

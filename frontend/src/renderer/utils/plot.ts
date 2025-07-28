@@ -149,7 +149,7 @@ export const handleNewPlot = async (
           name: coordinate.name,
           shape: coordinate.shape,
           data: dataValue,
-          index: 0,
+          valueIndex: 0,
           target: getDefaultUri(coordinate.target),
           nodeUri: defaultUri,
         };
@@ -269,7 +269,7 @@ export const handleExistingPlot = async (
           res.target = updateIndexFieldName(
             res.target,
             lastField,
-            matchingCoord.index,
+            matchingCoord.valueIndex,
           );
         });
 
@@ -277,17 +277,17 @@ export const handleExistingPlot = async (
         defaultUri = updateIndexFieldName(
           defaultUri,
           lastField,
-          matchingCoord.index,
+          matchingCoord.valueIndex,
         );
         xAxisResponsePath = updateIndexFieldName(
           xAxisResponsePath,
           lastField,
-          matchingCoord.index,
+          matchingCoord.valueIndex,
         );
         yDataResponsePath = updateIndexFieldName(
           yDataResponsePath,
           lastField,
-          matchingCoord.index,
+          matchingCoord.valueIndex,
         );
         // xAxis.path = updateIndexFieldName(
         //   xAxis.path,
@@ -518,7 +518,7 @@ export async function plotNodeUriLoaded(
                       responseCoordinates.shape,
                     ),
                     target: getDefaultUri(responseCoordinates.target),
-                    index: 0,
+                    valueIndex: 0,
                   });
                 }
 
@@ -539,19 +539,19 @@ export async function plotNodeUriLoaded(
                 matchingCoord.target = updateIndexFieldName(
                   matchingCoord.target,
                   lastField,
-                  matchingCoord.index,
+                  matchingCoord.valueIndex,
                 );
 
                 yResponsePath = updateIndexFieldName(
                   yResponsePath,
                   lastField,
-                  matchingCoord.index,
+                  matchingCoord.valueIndex,
                 );
 
                 updatedXAxisData.path = updateIndexFieldName(
                   updatedXAxisData.path,
                   lastField,
-                  matchingCoord.index,
+                  matchingCoord.valueIndex,
                 );
 
                 //Upgrade datagrid coordinates with the response

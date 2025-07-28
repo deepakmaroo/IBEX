@@ -133,7 +133,7 @@ export const GridLayoutPlot = ({
    */
   const handleUpdateCoordinate = async (
     coordinate: Coordinates,
-    index: number,
+    valueIndex: number,
   ) => {
     // Check if the coordinate has a target
     const lastTargetLastName = getLastIndexedField(coordinate.target);
@@ -146,13 +146,13 @@ export const GridLayoutPlot = ({
       const updatedTarget = updateIndexFieldName(
         item.target,
         lastTargetLastName,
-        index,
+        valueIndex,
       );
 
       return {
         ...item,
         target: updatedTarget, // Update the target to the new one
-        index: item.name === coordinate.name ? index : item.index,
+        valueIndex: item.name === coordinate.name ? valueIndex : item.valueIndex,
       };
     });
 
@@ -165,7 +165,7 @@ export const GridLayoutPlot = ({
             path: updateIndexFieldName(
               item.xAxisData?.path || '',
               lastTargetLastName,
-              index,
+              valueIndex,
             ),
           };
 
@@ -173,13 +173,13 @@ export const GridLayoutPlot = ({
             const updatedNodeUri = updateIndexFieldName(
               plotItem.nodeUri,
               lastTargetLastName,
-              index,
+              valueIndex,
             );
 
             const updatedPath = updateIndexFieldName(
               plotItem.path || '',
               lastTargetLastName,
-              index,
+              valueIndex,
             );
 
             const newYData = getVectorData(
@@ -225,14 +225,14 @@ export const GridLayoutPlot = ({
         {data.coordinates.length > 0 && (
           <Grid.Col span={2} ref={gridSliderRef}>
             <Group justify="space-between" gap="0">
-              {data.coordinates.map((item, index) => (
+              {data.coordinates.map((item, valueIndex) => (
                 <VerticalSlider
-                  key={index}
+                  key={valueIndex}
                   name={item.name}
-                  index={item.index || 0}
+                  valueIndex={item.valueIndex || 0}
                   data={item.data}
-                  getValue={(index) => {
-                    handleUpdateCoordinate(item, index);
+                  getValue={(valueIndex) => {
+                    handleUpdateCoordinate(item, valueIndex);
                   }}
                   height={heightGrid - 80}
                   disabled={!data.isEditing}
