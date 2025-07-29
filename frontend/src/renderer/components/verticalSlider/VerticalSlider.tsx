@@ -1,6 +1,6 @@
-import { Flex, NumberFormatter, Text, Tooltip } from '@mantine/core';
+import { ActionIcon, Flex, NumberFormatter, Text, Tooltip } from '@mantine/core';
 import { useMove } from '@mantine/hooks';
-import { IconCircle } from '@tabler/icons-react';
+import { IconAxisX, IconCircle } from '@tabler/icons-react';
 import { useState, useEffect, useRef } from 'react';
 
 interface VerticalSliderProps {
@@ -8,6 +8,7 @@ interface VerticalSliderProps {
   valueIndex: number;
   data: string[] | number[];
   getValue: (valueIndex: number) => void;
+  switchAxis: () => void;
   height?: number;
   disabled?: boolean;
 }
@@ -17,6 +18,7 @@ export const VerticalSlider = ({
   valueIndex,
   data,
   getValue,
+  switchAxis,
   height = 200,
   disabled = false,
 }: VerticalSliderProps) => {
@@ -51,9 +53,14 @@ export const VerticalSlider = ({
 
   return (
     <Flex justify="center" align="center" direction="column">
-      <Text ta="center" my="sm" w={50} fw="bold">
-        {name}
-      </Text>
+      <ActionIcon onClick={switchAxis}>
+        <IconAxisX />
+      </ActionIcon>
+      <Tooltip label={name} position="right" withArrow>
+        <Text ta="center" my="sm" w={50} fw="bold" truncate="end">
+          {name}
+        </Text>
+      </Tooltip>
       <div
         ref={(node) => {
           if (node) {
