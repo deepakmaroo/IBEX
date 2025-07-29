@@ -158,13 +158,14 @@ export function MainLayout() {
                   coordinates:
                     data.coordinates && data.coordinates.length > 0
                       ? data.coordinates.map(
-                        (coord: BaseCoordinates): Coordinates => {
-                          return {
-                            ...coord,
-                            name: '',
-                            shape: [],
-                            data: [],
-                          };
+                          (coord: BaseCoordinates, index): Coordinates => {
+                            return {
+                              ...coord,
+                              name: '',
+                              shape: [],
+                              data: [],
+                              axeIndex: index,
+                            };
                           },
                         )
                       : [],

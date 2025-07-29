@@ -226,17 +226,19 @@ export const GridLayoutPlot = ({
           <Grid.Col span={2} ref={gridSliderRef}>
             <Group justify="space-between" gap="0">
               {data.coordinates.map((item, valueIndex) => (
-                <VerticalSlider
-                  key={valueIndex}
-                  name={item.name}
-                  valueIndex={item.valueIndex || 0}
-                  data={item.data}
-                  getValue={(valueIndex) => {
-                    handleUpdateCoordinate(item, valueIndex);
-                  }}
-                  height={heightGrid - 80}
-                  disabled={!data.isEditing}
-                />
+                item.axeIndex !== 0 && ( // Don't send coordinate having axeIndex 0 in verticalSlider because it's the x axis
+                  <VerticalSlider
+                    key={valueIndex}
+                    name={item.name}
+                    valueIndex={item.valueIndex || 0}
+                    data={item.data}
+                    getValue={(valueIndex) => {
+                      handleUpdateCoordinate(item, valueIndex);
+                    }}
+                    height={heightGrid - 80}
+                    disabled={!data.isEditing}
+                  />
+                )
               ))}
             </Group>
           </Grid.Col>

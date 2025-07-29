@@ -138,8 +138,7 @@ export const handleNewPlot = async (
 
     //Get coordinates data for slider - all coordinates except the first one, is considered as x coordinates
     xCoordinatesData = response.data.coordinates
-      .slice(1)
-      .map((coordinate: PlotCoordinatesResponse) => {
+      .map((coordinate: PlotCoordinatesResponse, index) => {
         const dataValue: number[] = getFirstArrayValueFromShape(
           coordinate.value,
           coordinate.shape,
@@ -152,6 +151,7 @@ export const handleNewPlot = async (
           valueIndex: 0,
           target: getDefaultUri(coordinate.target),
           nodeUri: defaultUri,
+          axeIndex: index,
         };
       });
   }
@@ -501,9 +501,9 @@ export async function plotNodeUriLoaded(
 
               let yResponsePath = response.data.path;
 
-              for (const responseCoordinates of response.data.coordinates.slice(
-                1,
-              )) {
+              let index = 0;
+              for (const responseCoordinates of response.data.coordinates) {
+                index ++
                 const matchingCoord = dataGrid.coordinates.find(
                   (c) =>
                     normalizeIndices(c.target) === responseCoordinates.target,
@@ -519,6 +519,7 @@ export async function plotNodeUriLoaded(
                     ),
                     target: getDefaultUri(responseCoordinates.target),
                     valueIndex: 0,
+                    axeIndex: index,
                   });
                 }
 
