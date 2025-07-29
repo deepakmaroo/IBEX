@@ -7,14 +7,16 @@ from imas.ids_primitive import IDSNumericArray
 import numpy as np  # type: ignore
 
 
-def step_downsampling(data: IDSNumericArray, n_out, *args, **kwargs):
+def step_downsampling(data: IDSNumericArray, n_out: int, *args, **kwargs):
     """
     Takes data list as input, and returns list of indices to be used for downsampling.
-    Utilizes step method returning every n-th index, where step is calculated as follows: step = len(data) / n_out
+    Utilizes step method returning every n-th index, where step is calculated as follows: step = len(data) / n_out.
+
     :param data: data to be down-sampled
     :param n_out: desired size of data after downsampling
-    :param *args: unused argument
-    :param **kwargs: unused argument
+    :param `*args`: unused argument
+    :param `**kwargs`: unused argument
+
     """
     # Calculate step value for data
     # The same value is used for every dimension in order to maintain chart shape
@@ -28,14 +30,16 @@ def step_downsampling(data: IDSNumericArray, n_out, *args, **kwargs):
     return slices
 
 
-def step_average_downsampling(data, n_out, x=None, *args, **kwargs):
+def step_average_downsampling(data: IDSNumericArray, n_out: int, x=None, *args, **kwargs):
     """
     Takes data list as input, and returns list of indices to be used for downsampling.
     Utilizes step-average method. Divides data into bind and counts average value of every bin.
+
     :param data: data to be down-sampled
     :param n_out: desired size of data after downsampling
-    :param *args: unused argument
-    :param **kwargs: unused argument
+    :param `*args`: unused argument
+    :param `**kwargs`: unused argument
+
     """
     if len(data) < n_out * 2:
         # cannot calculate average when there are less than 2 elements per group
