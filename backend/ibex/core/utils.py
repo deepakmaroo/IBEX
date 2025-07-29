@@ -121,7 +121,7 @@ def downsample_data(data: List, target_size: int, method: DownsamplingMethods | 
 
         return downsampled_x or None, downsampled_data
 
-    if not isinstance(data, IDSNumericArray):
+    if not isinstance(data, IDSNumericArray) and not isinstance(data, np.ndarray):
         raise TypeError("Cannot downsample not-IDSNumericArray data")
 
     if DownsamplingMethods(method).value["name"] == "Step average":
