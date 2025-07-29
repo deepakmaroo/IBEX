@@ -72,7 +72,7 @@ class DownsamplingMethods(Enum):
     STEP and STEP_AVERAGE are implemented directly in ibex code, while MIN_MAX, M4, LTTB and MIN_MAX_LLTB methods are implemented in tsdownsample package (https://github.com/predict-idlab/tsdownsample).
     """
 
-    NONE = {"name": "None", "description": "Downsampling disabled", "function": step_downsampling}
+    NONE = {"name": "None", "description": "Downsampling disabled"}
     STEP = {
         "name": "Step",
         "description": "Returns every n-th element. N is calculated basing on desired data size",
@@ -98,7 +98,7 @@ class DownsamplingMethods(Enum):
         raise ValueError(f"Downsampling method: {name} is not recognised by IBEX backend")
 
 
-def downsample_data(data: List, target_size: int, method: DownsamplingMethods | None = None, x=None):
+def downsample_data(data: List, target_size: int, method: str | None = None, x=None):
     """
     Downsamples list of values
     :param data: data to be down-sampled
@@ -106,6 +106,8 @@ def downsample_data(data: List, target_size: int, method: DownsamplingMethods | 
     :param method: Downsampling method. One of DownsamplingMethods (Enum) possible values or None
     :param x: x-axis values to be downsampled
     """
+    method = DownsamplingMethods(method)
+
     if method is None or method == DownsamplingMethods.NONE:
         return x, data
 

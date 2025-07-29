@@ -682,6 +682,8 @@ class IMASPythonSource(DataSourceInterface):
             first_value = first_value[0]
 
         original_data_shape = np.asarray(ids_data).shape  # ids_data could be np.ndarray or list[np.ndarray]
+        data_to_be_returned = ids_data
+
         if first_value.metadata.ndim == 1:
             # Downsample only 1D data (for now)
             if coordinates_to_be_returned[0]["target"].split("/")[-1] == f"{node_path.split('/')[-1]}":
@@ -692,9 +694,9 @@ class IMASPythonSource(DataSourceInterface):
                     method=downsampling_method,
                     x=coordinates_to_be_returned[0]["value"],
                 )
-                coordinates_to_be_returned[0]["downsampled_shape"] = np.asarray(
-                    coordinates_to_be_returned[0]["value"]
-                ).shape
+                # coordinates_to_be_returned[0]["downsampled_shape"] = np.asarray(
+                #    coordinates_to_be_returned[0]["value"]
+                # ).shape
             else:
                 _, data_to_be_returned = downsample_data(
                     ids_data, target_size=downsampled_size, method=downsampling_method
@@ -702,7 +704,7 @@ class IMASPythonSource(DataSourceInterface):
 
         # serialize coordinates and update shapes (they could be changed by downsampling)
         for c in coordinates_to_be_returned:
-            c["shape"] = np.asarray(c["value"]).shape
+            c["downsampled_shape"] = np.asarray(c["value"]).shape
             c["value"] = self._serialize_data(c["value"])
 
         result = {
