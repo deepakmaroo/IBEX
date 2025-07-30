@@ -152,6 +152,7 @@ export const handleNewPlot = async (
           target: getDefaultUri(coordinate.target),
           nodeUri: defaultUri,
           axeIndex: index,
+          unit: coordinate.unit || '',
         };
       });
   }

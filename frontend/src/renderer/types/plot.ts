@@ -30,6 +30,7 @@ export interface Coordinates extends BaseCoordinates {
   shape: number[];
   data: number[];
   axeIndex: number;
+  unit?: string;
 }
 
 export interface BaseDataPlotly {

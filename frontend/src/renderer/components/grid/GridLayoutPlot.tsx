@@ -166,7 +166,7 @@ export const GridLayoutPlot = ({
       actualXAxisTargetLastName,
       0,
     );
-    
+
     for (const coordinate of updatedDataPlot.coordinates) {
       coordinate.target = updateIndexFieldName(
         coordinate.target || '',
@@ -183,7 +183,8 @@ export const GridLayoutPlot = ({
     // Set new xAxis plot
     updatedDataPlot.xAxisData.name = updatedDataPlot.coordinates[itemToSwitchIndex].name
     updatedDataPlot.xAxisData.path = updatedDataPlot.coordinates[itemToSwitchIndex].target
- 
+    updatedDataPlot.xAxisData.unit = updatedDataPlot.coordinates[itemToSwitchIndex].unit
+
     const updatedActive = {
       ...active,
       dataPlot: updatedDataPlotList,
