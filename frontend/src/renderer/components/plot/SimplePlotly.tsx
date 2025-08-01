@@ -2,11 +2,7 @@ import { Grid, Group } from '@mantine/core';
 import { Layout } from 'plotly.js';
 import { useEffect, useRef, useState } from 'react';
 import Plot from 'react-plotly.js';
-import {
-  Axis,
-  Coordinates,
-  DataGridPlot,
-} from 'src/renderer/types';
+import { Axis, Coordinates, DataGridPlot } from 'src/renderer/types';
 import { VerticalSlider } from '../verticalSlider';
 import { useIbexStore } from '../../stores';
 import {
@@ -14,6 +10,7 @@ import {
   getVectorData,
   updateIndexFieldName,
 } from '../../utils';
+import classe from './SimplePlotly.module.css';
 
 interface SimplePlotlyProps {
   itemDataGrid: DataGridPlot;
@@ -207,7 +204,7 @@ export const SimplePlotly = ({
     >
       {/* Coordinates sliders */}
       {itemDataGrid.coordinates.length > 0 && (
-        <Grid.Col span={2} ref={sliderRef}>
+        <Grid.Col span={2} ref={sliderRef} mt={10}>
           <Group justify="space-between" gap="0">
             {itemDataGrid.coordinates.map((item, index) => (
               <VerticalSlider
@@ -236,23 +233,24 @@ export const SimplePlotly = ({
           flexDirection: 'column',
         }}
       >
-        <Plot
+          <Plot
           ref={plotRef}
-          data={itemDataGrid.plot}
-          layout={layoutPlot}
-          onRelayout={handleRelayout}
-          config={{
-            autosizable: false,
-            staticPlot: !itemDataGrid.static,
-            scrollZoom: true,
-            displayModeBar: true,
-            showTips: true,
-            displaylogo: false,
-            modeBarButtonsToRemove: ['lasso2d', 'select2d'],
-          }}
-          useResizeHandler={false}
-          style={{ width: '100%', height: '100%' }}
-        />
+            data={itemDataGrid.plot}
+            layout={layoutPlot}
+            onRelayout={handleRelayout}
+            config={{
+              autosizable: false,
+              staticPlot: !itemDataGrid.static,
+              scrollZoom: true,
+              displayModeBar: true,
+              showTips: true,
+              displaylogo: false,
+              modeBarButtonsToRemove: ['lasso2d', 'select2d'],
+            }}
+            useResizeHandler={false}
+            style={{ width: '100%', height: '100%' }}
+            className={classe.simplePlot}
+          />
       </Grid.Col>
     </Grid>
   );

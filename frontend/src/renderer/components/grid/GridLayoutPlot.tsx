@@ -10,7 +10,7 @@ import {
   DataGridPlot,
   GridLayoutPlotProps,
 } from 'src/renderer/types';
-import { ActionIcon, Container, Group, Tooltip } from '@mantine/core';
+import { ActionIcon, Container, Group, Text, Tooltip } from '@mantine/core';
 
 import {
   IconBrandDatabricks,
@@ -38,6 +38,7 @@ export const GridLayoutPlot = ({
     data.h * rowHeight + (23 * (data.h * rowHeight)) / 100,
   );
   const [widthGrid, setWidthGrid] = useState(Math.floor(data.w * colWidth));
+  const [is2DView, setIs2DView] = useState<boolean>(false);
 
   /**
    * Handle resize the grid
@@ -127,12 +128,29 @@ export const GridLayoutPlot = ({
       <div
         ref={hoverRef}
         className={classes.containerButton}
-        style={{
-          width: data.isEditing ? '95%' : '100%',
-        }}
+        // style={{
+        //   width: data.isEditing ? '95%' : '100%',
+        // }}
       >
         {(hovered || data.isEditing) && (
           <Group pos="absolute" right={data.isEditing ? 3 : 1} top={5} grow>
+            {/* <Text>Metadatas</Text> */}
+
+            <Tooltip label="Toggle 2D/3D view">
+              <ActionIcon
+                variant="filled"
+                aria-label="Toggle 2D/3D view"
+                onClick={() => setIs2DView((prev) => !prev)}
+                className={classes.actionButton}
+              >
+                {is2DView ? (
+                  <Text fw="bold">1D</Text>
+                ) : (
+                  <Text fw="bold">3D</Text>
+                )}
+              </ActionIcon>
+            </Tooltip>
+
             <Tooltip label="Inspect metadatas information">
               <ActionIcon
                 variant="filled"
@@ -196,22 +214,24 @@ export const GridLayoutPlot = ({
         )}
       </div>
 
-      {/* <SimplePlotly
-        itemDataGrid={data}
-        width={
-          data.coordinates.length > 0
-            ? widthGrid - widthSlider - 30
-            : widthGrid - 40
-        }
-        height={heightGrid}
-        sliderRef={gridSliderRef}
-      /> */}
-
-      <Surface2D
-        itemDataGrid={data}
-        width={widthGrid - 40}
-        height={heightGrid}
-      />
+      {is2DView ? (
+        <Surface2D
+          itemDataGrid={data}
+          width={widthGrid - 40}
+          height={heightGrid}
+        />
+      ) : (
+        <SimplePlotly
+          itemDataGrid={data}
+          width={
+            data.coordinates.length > 0
+              ? widthGrid - widthSlider - 30
+              : widthGrid - 40
+          }
+          height={heightGrid}
+          sliderRef={gridSliderRef}
+        />
+      )}
     </Container>
   );
 };

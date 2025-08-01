@@ -4,8 +4,10 @@
 
 .containerButton {
   position: absolute;
-  height: 100px;
+  height: 50px;  /* Use for hover */
   top: 0;
-  left: 0;
+  right: 0;
   z-index: 1;
+  width: 50%;
 }
+

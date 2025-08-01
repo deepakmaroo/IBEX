@@ -25,3 +25,9 @@ export const getFirstArrayValueFromShape = (
     ? (value[0][0] as number[])
     : [];
 };
+
+
+export const is3DMatrix = (shape: number[]): boolean => {
+  // A 3D matrix has a shape with at least 3 dimensions
+  return shape.length >= 3;
+};
