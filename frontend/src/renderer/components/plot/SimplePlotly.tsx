@@ -204,7 +204,7 @@ export const SimplePlotly = ({
     >
       {/* Coordinates sliders */}
       {itemDataGrid.coordinates.length > 0 && (
-        <Grid.Col span={2} ref={sliderRef} mt={10}>
+        <Grid.Col span="content" ref={sliderRef} mt={10}>
           <Group justify="space-between" gap="0">
             {itemDataGrid.coordinates.map((item, index) => (
               <VerticalSlider
@@ -224,10 +224,10 @@ export const SimplePlotly = ({
       )}
 
       <Grid.Col
-        span={itemDataGrid.coordinates.length > 0 ? 10 : 12}
+        span="auto"
         pos="relative"
-        w="100%"
-        h="100%"
+        w={`${width}px`}
+        h={`${height}px`}
         style={{
           display: 'flex',
           flexDirection: 'column',
@@ -248,7 +248,7 @@ export const SimplePlotly = ({
               modeBarButtonsToRemove: ['lasso2d', 'select2d'],
             }}
             useResizeHandler={false}
-            style={{ width: '100%', height: '100%' }}
+            style={{ width: `${width}px` , height: `${height}px` }}
             className={classe.simplePlot}
           />
       </Grid.Col>

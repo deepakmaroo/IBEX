@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react';
 import { Layout } from 'plotly.js';
 import { Axis, DataGridPlot } from 'src/renderer/types';
 import classe from './SimplePlotly.module.css';
+import { Grid } from '@mantine/core';
+import { VerticalSlider } from '../verticalSlider';
 
 interface Surface2DProps {
   itemDataGrid: DataGridPlot;
@@ -15,17 +17,24 @@ export const Surface2D = ({ itemDataGrid, width, height }: Surface2DProps) => {
   const [layoutPlot, setLayoutPlot] = useState<Partial<Layout>>({});
   const [zAxis, setZAxis] = useState<Axis>(null);
   const [data3D, setData3D] = useState<number[][][] | null>(null);
+  const [slice, setSlice] = useState<number[]>([]);
   const [z, setZ] = useState<number[][]>([]);
   const [x, setX] = useState<number[]>([]);
   const [y, setY] = useState<number[]>([]);
 
   /* Initialize data3D with generated data */
   useEffect(() => {
-    // const generatedData = generateData3D();
-    // console.log('Generated data3D', generatedData);
     console.log('Initializing data3D');
     //Get first plot data
     setData3D(itemDataGrid.plot[0].yData as number[][][]);
+    //For moment we get time for slicing
+    const findTimeCoordinate = itemDataGrid.coordinates.find(
+      (coordinate) => coordinate.name === 'time',
+    );
+    if (findTimeCoordinate) {
+      setSlice(findTimeCoordinate.data);
+    }
+
     // setData3D(generatedData);
   }, [itemDataGrid.plot]);
 
@@ -71,42 +80,57 @@ export const Surface2D = ({ itemDataGrid, width, height }: Surface2DProps) => {
     console.log('y - ion', y);
   }, [z, x, y]);
 
-  // const z = data3D[frameIndex]; //time
-  // const x = Array.from({ length: 21 }, (_, i) => i); //rho
-  // const y = Array.from({ length: 8 }, (_, i) => i); //ion
-
   return (
     data3D &&
     z.length > 0 &&
     x.length > 0 &&
     y.length > 0 && (
-      <div>
-        <input
-          type="range"
-          min={0}
-          max={data3D.length - 1}
-          value={frameIndex}
-          onChange={(e) => {
-            console.log('Frame index changed:', e.target.value);
-            setFrameIndex(Number(e.target.value));
+      <Grid
+        styles={{
+          inner: {
+            margin: 0,
+            width: 'inherit',
+          },
+        }}
+      >
+        <Grid.Col span="content" mt={10}>
+          <VerticalSlider
+            name={'time'}
+            index={frameIndex}
+            data={slice}
+            getValue={(index) => {
+              setFrameIndex(index);
+            }}
+            height={height - 80}
+            disabled={!itemDataGrid.isEditing}
+          />
+        </Grid.Col>
+        <Grid.Col
+          span="auto"
+          pos="relative"
+          w={`${width}px`}
+          h={`${height}px`}
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
           }}
-        />
-        <Plot
-          data={[
-            {
-              type: 'surface',
-              z: z,
-              x: x,
-              y: y,
-            },
-          ]}
-          layout={layoutPlot}
-          useResizeHandler={false}
-          style={{ width: '100%', height: '500px' }}
-          className={classe.plot2D}
-          
-        />
-      </div>
+        >
+          <Plot
+            data={[
+              {
+                type: 'surface',
+                z: z,
+                x: x,
+                y: y,
+              },
+            ]}
+            layout={layoutPlot}
+            useResizeHandler={false}
+            style={{ width: `${width}px`, height: `${height}px` }}
+            className={classe.plot2D}
+          />
+        </Grid.Col>
+      </Grid>
     )
   );
 };

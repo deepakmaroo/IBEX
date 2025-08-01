@@ -217,7 +217,11 @@ export const GridLayoutPlot = ({
       {is2DView ? (
         <Surface2D
           itemDataGrid={data}
-          width={widthGrid - 40}
+          width={
+            data.coordinates.length > 0
+              ? widthGrid - widthSlider - 30
+              : widthGrid - 40
+          }
           height={heightGrid}
         />
       ) : (
