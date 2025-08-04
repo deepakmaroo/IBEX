@@ -207,13 +207,17 @@ export const GridLayoutPlot = ({
       // Transpose yData with resetted valueIndex
       await transposeAxis(updatedDataPlot, axeIndexToSwitch);
 
-      // Update y with translated dataY
+      // Update x & y with translated dataY
       for (const plot of updatedDataPlot.plot) {
         const firstArrayValue = getFirstArrayValueFromShape(
           plot.yData,
           plot.shape,
         );
         plot.y = firstArrayValue;
+        const xCoordinate = updatedDataPlot.coordinates.find(
+          (coord) => coord.axeIndex === 0,
+        );
+        plot.x = xCoordinate.data;
       }
       const updatedActive = {
         ...active,
