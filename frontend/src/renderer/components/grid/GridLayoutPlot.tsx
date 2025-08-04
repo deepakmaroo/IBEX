@@ -31,6 +31,7 @@ import {
   getLastIndexedField,
   normalizeIndices,
   updateIndexFieldName,
+  getFirstArrayValueFromShape,
 } from '../../utils';
 
 export const GridLayoutPlot = ({
@@ -190,6 +191,11 @@ export const GridLayoutPlot = ({
     // Transpose yData with resetted valueIndex
     await transposeAxis(updatedDataPlot, axeIndexToSwitch);
 
+    // Update y with translated dataY
+    for (const plot of updatedDataPlot.plot) {
+      const firstArrayValue = getFirstArrayValueFromShape(plot.yData, plot.shape)
+      plot.y = firstArrayValue
+    }
     const updatedActive = {
       ...active,
       dataPlot: updatedDataPlotList,

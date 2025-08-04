@@ -6,7 +6,7 @@ export interface SimplePlotlyProps {
   xAxis: Axis;
   yAxis: Axis;
   y2Axis?: Axis;
-  data: Data[];
+  data: DataPlotly[];
   width: number;
   height: number;
   isStatic: boolean;

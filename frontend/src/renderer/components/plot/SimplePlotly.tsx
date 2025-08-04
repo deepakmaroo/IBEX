@@ -27,6 +27,17 @@ export const SimplePlotly = ({
    * Update the layout of the plot
    */
   useEffect(() => {
+    let maxYValue: number | undefined;
+    for (const plot of data) {
+      if (Array.isArray(plot.y) && typeof plot.y[0] === 'number') {
+        const numericArray = plot.y as number[];
+        maxYValue = Math.max(...numericArray);
+      }
+    }
+    if(maxYValue){
+      maxYValue = (maxYValue * 105.25)/100
+    }
+    
     setLayoutPlot((prevLayout) => ({
       ...prevLayout,
       height: height,
@@ -56,6 +67,7 @@ export const SimplePlotly = ({
             color: '#7f7f7f',
           },
         },
+        range: maxYValue ? [0, maxYValue] : undefined,
         rangemode: 'tozero',
         showline: true,
         zeroline: false,
