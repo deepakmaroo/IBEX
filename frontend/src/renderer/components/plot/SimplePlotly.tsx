@@ -13,7 +13,43 @@ export const SimplePlotly = ({
   height,
   width,
 }: SimplePlotlyProps) => {
-  const [layoutPlot, setLayoutPlot] = useState<Partial<Layout>>({});
+  const [layoutPlot, setLayoutPlot] = useState<Partial<Layout>>({
+    xaxis: {
+      title: {
+        font: {
+          family: 'Courier New, monospace',
+          size: 18,
+          color: '#7f7f7f',
+        },
+      },
+      rangemode: 'tozero',
+      showline: true,
+      zeroline: false,
+    },
+    yaxis: {
+      title: {
+        font: {
+          family: 'Courier New, monospace',
+          size: 18,
+          color: '#7f7f7f',
+        },
+      },
+      rangemode: 'tozero',
+      showline: true,
+      zeroline: false,
+      showgrid: true,
+    },
+    modebar: {
+      orientation: 'v',
+    },
+    legend: {
+      x: 1.1,
+      y: 1,
+      orientation: 'v',
+    },
+    plot_bgcolor: '#c7c7c7',
+    dragmode: 'zoom',
+  });
   const plotRef = useRef<Plot | null>(null);
 
   const handleRelayout = (newLayout: Partial<Layout>) => {
@@ -24,36 +60,73 @@ export const SimplePlotly = ({
   };
 
   /**
-   * Update the layout of the plot
+   * Update the layout title
+   */
+  useEffect(() => {
+    setLayoutPlot((prevLayout) => ({
+      ...prevLayout,
+      title: { text: title },
+    }));
+  }, [title]);
+
+  /**
+   * Update the layout height
    */
   useEffect(() => {
     setLayoutPlot((prevLayout) => ({
       ...prevLayout,
       height: height,
+    }));
+  }, [height]);
+
+  /**
+   * Update the layout width
+   */
+  useEffect(() => {
+    setLayoutPlot((prevLayout) => ({
+      ...prevLayout,
       width: width,
-      title: { text: title },
+    }));
+  }, [width]);
+
+  /**
+   * Update the layout yAxis
+   */
+  useEffect(() => {
+    setLayoutPlot((prevLayout) => ({
+      ...prevLayout,
+      yaxis: {
+        ...prevLayout.yaxis,
+        title: {
+          ...prevLayout.yaxis.title,
+          text: yAxis?.unit || '',
+        },
+      },
+    }));
+  }, [yAxis]);
+
+  /**
+   * Update the layout xAxis
+   */
+  useEffect(() => {
+    setLayoutPlot((prevLayout) => ({
+      ...prevLayout,
       xaxis: {
         ...prevLayout.xaxis,
         title: {
+          ...prevLayout.xaxis.title,
           text: xAxis?.name || '',
-          font: {
-            family: 'Courier New, monospace',
-            size: 18,
-            color: '#7f7f7f',
-          },
         },
-        rangemode: 'tozero',
-        showline: true,
-        zeroline: false,
       },
-      modebar: {
-        orientation: 'v',
-      },
-      legend: {
-        x: 1.1,
-        y: 1,
-        orientation: 'v',
-      },
+    }));
+  }, [xAxis]);
+
+  /**
+   * Update the layout y2Axis
+   */
+  useEffect(() => {
+    setLayoutPlot((prevLayout) => ({
+      ...prevLayout,
       yaxis2:
         y2Axis && y2Axis !== undefined
           ? {
@@ -74,35 +147,8 @@ export const SimplePlotly = ({
               showgrid: false,
             }
           : {},
-      plot_bgcolor: '#c7c7c7',
-      // paper_bgcolor: "#c8b8b8",
-      dragmode: 'zoom',
     }));
-  }, [title, xAxis, height, width, y2Axis]);
-
-  /**
-   * Update yAxis layout
-   */
-  useEffect(() => {
-    setLayoutPlot((prevLayout) => ({
-      ...prevLayout,
-      yaxis: {
-        ...prevLayout.yaxis,
-        title: {
-          text: yAxis?.unit || '',
-          font: {
-            family: 'Courier New, monospace',
-            size: 18,
-            color: '#7f7f7f',
-          },
-        },
-        rangemode: 'tozero',
-        showline: true,
-        zeroline: false,
-        showgrid: true,
-      },
-    }));
-  }, [yAxis]);
+  }, [y2Axis]);
 
   return (
     <Plot
