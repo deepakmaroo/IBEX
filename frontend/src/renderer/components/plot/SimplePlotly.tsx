@@ -27,17 +27,6 @@ export const SimplePlotly = ({
    * Update the layout of the plot
    */
   useEffect(() => {
-    let maxYValue: number | undefined;
-    for (const plot of data) {
-      if (Array.isArray(plot.y) && typeof plot.y[0] === 'number') {
-        const numericArray = plot.y as number[];
-        maxYValue = Math.max(...numericArray);
-      }
-    }
-    if(maxYValue){
-      maxYValue = (maxYValue * 105.25)/100
-    }
-    
     setLayoutPlot((prevLayout) => ({
       ...prevLayout,
       height: height,
@@ -56,22 +45,6 @@ export const SimplePlotly = ({
         rangemode: 'tozero',
         showline: true,
         zeroline: false,
-      },
-      yaxis: {
-        ...prevLayout.yaxis,
-        title: {
-          text: yAxis?.unit || '',
-          font: {
-            family: 'Courier New, monospace',
-            size: 18,
-            color: '#7f7f7f',
-          },
-        },
-        range: maxYValue ? [0, maxYValue] : undefined,
-        rangemode: 'tozero',
-        showline: true,
-        zeroline: false,
-        showgrid: true,
       },
       modebar: {
         orientation: 'v',
@@ -105,7 +78,31 @@ export const SimplePlotly = ({
       // paper_bgcolor: "#c8b8b8",
       dragmode: 'zoom',
     }));
-  }, [title, xAxis, yAxis, height, width, y2Axis]);
+  }, [title, xAxis, height, width, y2Axis]);
+
+  /**
+   * Update yAxis layout
+   */
+  useEffect(() => {
+    setLayoutPlot((prevLayout) => ({
+      ...prevLayout,
+      yaxis: {
+        ...prevLayout.yaxis,
+        title: {
+          text: yAxis?.unit || '',
+          font: {
+            family: 'Courier New, monospace',
+            size: 18,
+            color: '#7f7f7f',
+          },
+        },
+        rangemode: 'tozero',
+        showline: true,
+        zeroline: false,
+        showgrid: true,
+      }
+    }));
+  }, [yAxis]);
 
   return (
     <Plot
