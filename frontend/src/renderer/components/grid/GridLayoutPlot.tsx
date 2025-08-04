@@ -130,78 +130,100 @@ export const GridLayoutPlot = ({
     [active],
   );
 
-  const switchAxis = useCallback(async (axeIndexToSwitch: number) => {
-    const actualXAxisIndex: number = data.coordinates.findIndex((coordinate) => coordinate.axeIndex === 0)
-    const itemToSwitchIndex: number = data.coordinates.findIndex((coordinate) => coordinate.axeIndex === axeIndexToSwitch)
-
-    const updatedDataPlotList: DataGridPlot[] = JSON.parse(JSON.stringify(active.dataPlot))
-    const updatedDataPlot = updatedDataPlotList.find((dataPlotToUpdate) => dataPlotToUpdate.i === data.i)
-
-    // Switch xAxis
-    updatedDataPlot.coordinates[actualXAxisIndex].axeIndex = axeIndexToSwitch
-    updatedDataPlot.coordinates[itemToSwitchIndex].axeIndex = 0
-
-    // Reset indexValue
-    updatedDataPlot.coordinates[actualXAxisIndex].valueIndex = 0
-    updatedDataPlot.coordinates[itemToSwitchIndex].valueIndex = 0
-
-    // Update all coordinates targets impacted with resetted indexValue
-    const actualXAxisTargetLastName = getLastIndexedField(updatedDataPlot.coordinates[actualXAxisIndex].target);
-    const itemToSwitchTargetLastName = getLastIndexedField(updatedDataPlot.coordinates[itemToSwitchIndex].target);
-    let actualXAxisupdatedPath = updateIndexFieldName(
-      updatedDataPlot.coordinates[actualXAxisIndex].target || '',
-      actualXAxisTargetLastName,
-      0,
-    );
-    actualXAxisupdatedPath = updateIndexFieldName(
-      actualXAxisupdatedPath,
-      itemToSwitchTargetLastName,
-      0,
-    );
-    let itemToSwitchupdatedPath = updateIndexFieldName(
-      updatedDataPlot.coordinates[itemToSwitchIndex].target || '',
-      itemToSwitchTargetLastName,
-      0,
-    );
-    itemToSwitchupdatedPath = updateIndexFieldName(
-      itemToSwitchupdatedPath,
-      actualXAxisTargetLastName,
-      0,
-    );
-
-    // Modify targets from each coordinates
-    for (const coordinate of updatedDataPlot.coordinates) {
-      coordinate.target = updateIndexFieldName(
-        coordinate.target || '',
-        itemToSwitchTargetLastName,
-        0,
+  const switchAxis = useCallback(
+    async (axeIndexToSwitch: number) => {
+      const actualXAxisIndex: number = data.coordinates.findIndex(
+        (coordinate) => coordinate.axeIndex === 0,
       );
-      coordinate.target = updateIndexFieldName(
-        coordinate.target,
+      const itemToSwitchIndex: number = data.coordinates.findIndex(
+        (coordinate) => coordinate.axeIndex === axeIndexToSwitch,
+      );
+
+      const updatedDataPlotList: DataGridPlot[] = JSON.parse(
+        JSON.stringify(active.dataPlot),
+      );
+      const updatedDataPlot = updatedDataPlotList.find(
+        (dataPlotToUpdate) => dataPlotToUpdate.i === data.i,
+      );
+
+      // Switch xAxis
+      updatedDataPlot.coordinates[actualXAxisIndex].axeIndex = axeIndexToSwitch;
+      updatedDataPlot.coordinates[itemToSwitchIndex].axeIndex = 0;
+
+      // Reset indexValue
+      updatedDataPlot.coordinates[actualXAxisIndex].valueIndex = 0;
+      updatedDataPlot.coordinates[itemToSwitchIndex].valueIndex = 0;
+
+      // Update all coordinates targets impacted with resetted indexValue
+      const actualXAxisTargetLastName = getLastIndexedField(
+        updatedDataPlot.coordinates[actualXAxisIndex].target,
+      );
+      const itemToSwitchTargetLastName = getLastIndexedField(
+        updatedDataPlot.coordinates[itemToSwitchIndex].target,
+      );
+      const actualXAxisupdatedPath = updateIndexFieldName(
+        updatedDataPlot.coordinates[actualXAxisIndex].target || '',
         actualXAxisTargetLastName,
         0,
       );
-    }
-    
-    // Set new xAxis plot
-    updatedDataPlot.xAxisData.name = updatedDataPlot.coordinates[itemToSwitchIndex].name
-    updatedDataPlot.xAxisData.path = updatedDataPlot.coordinates[itemToSwitchIndex].target
-    updatedDataPlot.xAxisData.unit = updatedDataPlot.coordinates[itemToSwitchIndex].unit
+      updateIndexFieldName(
+        actualXAxisupdatedPath,
+        itemToSwitchTargetLastName,
+        0,
+      );
+      const itemToSwitchupdatedPath = updateIndexFieldName(
+        updatedDataPlot.coordinates[itemToSwitchIndex].target || '',
+        itemToSwitchTargetLastName,
+        0,
+      );
+      updateIndexFieldName(
+        itemToSwitchupdatedPath,
+        actualXAxisTargetLastName,
+        0,
+      );
 
-    // Transpose yData with resetted valueIndex
-    await transposeAxis(updatedDataPlot, axeIndexToSwitch);
+      // Modify targets from each coordinates
+      for (const coordinate of updatedDataPlot.coordinates) {
+        coordinate.target = updateIndexFieldName(
+          coordinate.target || '',
+          itemToSwitchTargetLastName,
+          0,
+        );
+        coordinate.target = updateIndexFieldName(
+          coordinate.target,
+          actualXAxisTargetLastName,
+          0,
+        );
+      }
 
-    // Update y with translated dataY
-    for (const plot of updatedDataPlot.plot) {
-      const firstArrayValue = getFirstArrayValueFromShape(plot.yData, plot.shape)
-      plot.y = firstArrayValue
-    }
-    const updatedActive = {
-      ...active,
-      dataPlot: updatedDataPlotList,
-    }
-    updatedConfiguration(updatedActive);
-  }, [active]);
+      // Set new xAxis plot
+      updatedDataPlot.xAxisData.name =
+        updatedDataPlot.coordinates[itemToSwitchIndex].name;
+      updatedDataPlot.xAxisData.path =
+        updatedDataPlot.coordinates[itemToSwitchIndex].target;
+      updatedDataPlot.xAxisData.unit =
+        updatedDataPlot.coordinates[itemToSwitchIndex].unit;
+
+      // Transpose yData with resetted valueIndex
+      await transposeAxis(updatedDataPlot, axeIndexToSwitch);
+
+      // Update y with translated dataY
+      for (const plot of updatedDataPlot.plot) {
+        const firstArrayValue = getFirstArrayValueFromShape(
+          plot.yData,
+          plot.shape,
+        );
+        plot.y = firstArrayValue;
+      }
+      const updatedActive = {
+        ...active,
+        dataPlot: updatedDataPlotList,
+      };
+
+      updatedConfiguration(updatedActive);
+    },
+    [active],
+  );
 
   /**
    * updateslider coordinate value
@@ -227,7 +249,8 @@ export const GridLayoutPlot = ({
       return {
         ...item,
         target: updatedTarget, // Update the target to the new one
-        valueIndex: item.name === coordinate.name ? valueIndex : item.valueIndex,
+        valueIndex:
+          item.name === coordinate.name ? valueIndex : item.valueIndex,
       };
     });
 
@@ -287,28 +310,35 @@ export const GridLayoutPlot = ({
     updatedConfiguration(updatedActive);
   };
 
-  async function transposeAxis(updatedDataPlot: DataGridPlot, axeIndexToSwitch: number){
+  async function transposeAxis(
+    updatedDataPlot: DataGridPlot,
+    axeIndexToSwitch: number,
+  ) {
     // Modify each plot in graph
     for (const plotToTranspose of updatedDataPlot.plot) {
       const tensor = tf.tensor(plotToTranspose.yData);
       // Determine which axis to transpose
-      const coordinatesLength = updatedDataPlot.coordinates.length - 1
-      let newAxeOrder = updatedDataPlot.coordinates.map((coord, index) => ({
+      const coordinatesLength = updatedDataPlot.coordinates.length - 1;
+      const newAxeOrder = updatedDataPlot.coordinates.map((coord, index) => ({
         newPosition: index,
-        axeIndex: coordinatesLength - index
-      }))
-      const indexOfAxeIndexSelected = newAxeOrder.findIndex((newShapeElement) => newShapeElement.axeIndex === axeIndexToSwitch);
-      newAxeOrder[coordinatesLength].newPosition = newAxeOrder[indexOfAxeIndexSelected].newPosition // last element position is switched with selected axeIndex
-      newAxeOrder[indexOfAxeIndexSelected].newPosition = coordinatesLength // set selected axeIndex to last position
-      const newPositions = newAxeOrder.map((fixed) => fixed.newPosition)
+        axeIndex: coordinatesLength - index,
+      }));
+      const indexOfAxeIndexSelected = newAxeOrder.findIndex(
+        (newShapeElement) => newShapeElement.axeIndex === axeIndexToSwitch,
+      );
+      newAxeOrder[coordinatesLength].newPosition =
+        newAxeOrder[indexOfAxeIndexSelected].newPosition; // last element position is switched with selected axeIndex
+      newAxeOrder[indexOfAxeIndexSelected].newPosition = coordinatesLength; // set selected axeIndex to last position
+      const newPositions = newAxeOrder.map((fixed) => fixed.newPosition);
 
       // Transpose dataY
       const transposed = tf.transpose(tensor, newPositions);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const dataYTransposed: any = await transposed.array();
 
       // Update yData & shape
-      plotToTranspose.yData = dataYTransposed
-      plotToTranspose.shape = transposed.shape
+      plotToTranspose.yData = dataYTransposed;
+      plotToTranspose.shape = transposed.shape;
     }
   }
 
@@ -334,22 +364,25 @@ export const GridLayoutPlot = ({
         {data.coordinates.length > 0 && (
           <Grid.Col span={2} ref={gridSliderRef}>
             <Group justify="space-between" gap="0">
-              {JSON.parse(JSON.stringify(data.coordinates)).sort(compareByAxeIndex).map((item: Coordinates, valueIndex: number) => (
-                item.axeIndex !== 0 && ( // Don't send coordinate having axeIndex 0 in verticalSlider because it's the x axis
-                  <VerticalSlider
-                    key={valueIndex}
-                    name={item.name}
-                    valueIndex={item.valueIndex || 0}
-                    data={item.data}
-                    getValue={(valueIndex) => {
-                      handleUpdateCoordinate(item, valueIndex);
-                    }}
-                    switchAxis={() => switchAxis(item.axeIndex)}
-                    height={heightGrid - 80 - 24}
-                    disabled={!data.isEditing}
-                  />
-                )
-              ))}
+              {JSON.parse(JSON.stringify(data.coordinates))
+                .sort(compareByAxeIndex)
+                .map(
+                  (item: Coordinates, valueIndex: number) =>
+                    item.axeIndex !== 0 && ( // Don't send coordinate having axeIndex 0 in verticalSlider because it's the x axis
+                      <VerticalSlider
+                        key={valueIndex}
+                        name={item.name}
+                        valueIndex={item.valueIndex || 0}
+                        data={item.data}
+                        getValue={(valueIndex) => {
+                          handleUpdateCoordinate(item, valueIndex);
+                        }}
+                        switchAxis={() => switchAxis(item.axeIndex)}
+                        height={heightGrid - 80 - 24}
+                        disabled={!data.isEditing}
+                      />
+                    ),
+                )}
             </Group>
           </Grid.Col>
         )}

@@ -100,7 +100,7 @@ export const SimplePlotly = ({
         showline: true,
         zeroline: false,
         showgrid: true,
-      }
+      },
     }));
   }, [yAxis]);
 

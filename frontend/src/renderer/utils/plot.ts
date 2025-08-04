@@ -137,8 +137,8 @@ export const handleNewPlot = async (
     };
 
     //Get coordinates data for slider - all coordinates except the first one, is considered as x coordinates
-    xCoordinatesData = response.data.coordinates
-      .map((coordinate: PlotCoordinatesResponse, index) => {
+    xCoordinatesData = response.data.coordinates.map(
+      (coordinate: PlotCoordinatesResponse, index) => {
         const dataValue: number[] = getFirstArrayValueFromShape(
           coordinate.value,
           coordinate.shape,
@@ -154,7 +154,8 @@ export const handleNewPlot = async (
           axeIndex: index,
           unit: coordinate.unit || '',
         };
-      });
+      },
+    );
   }
 
   // Set the yAxis properties
@@ -504,7 +505,7 @@ export async function plotNodeUriLoaded(
 
               let index = 0;
               for (const responseCoordinates of response.data.coordinates) {
-                index ++
+                index++;
                 const matchingCoord = dataGrid.coordinates.find(
                   (c) =>
                     normalizeIndices(c.target) === responseCoordinates.target,

@@ -1,4 +1,10 @@
-import { ActionIcon, Flex, NumberFormatter, Text, Tooltip } from '@mantine/core';
+import {
+  ActionIcon,
+  Flex,
+  NumberFormatter,
+  Text,
+  Tooltip,
+} from '@mantine/core';
 import { useMove } from '@mantine/hooks';
 import { IconAxisX, IconCircle } from '@tabler/icons-react';
 import { useState, useEffect, useRef } from 'react';
@@ -119,7 +125,11 @@ export const VerticalSlider = ({
           }}
         />
 
-        <Tooltip label={`Value: ${data[valueIndex]}`} position="right" withArrow>
+        <Tooltip
+          label={`Value: ${data[valueIndex]}`}
+          position="right"
+          withArrow
+        >
           <IconCircle
             color="var(--mantine-color-blue-7)"
             width={22}
