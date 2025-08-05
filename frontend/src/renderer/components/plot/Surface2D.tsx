@@ -15,12 +15,20 @@ interface Surface2DProps {
 export const Surface2D = ({ itemDataGrid, width, height }: Surface2DProps) => {
   const [frameIndex, setFrameIndex] = useState(0); //Time slicing by default
   const [layoutPlot, setLayoutPlot] = useState<Partial<Layout>>({});
+  const [xAxis, setXAxis] = useState<Axis>(null);
+  const [yAxis, setYAxis] = useState<Axis>(null);
   const [zAxis, setZAxis] = useState<Axis>(null);
   const [data3D, setData3D] = useState<number[][][] | null>(null);
   const [slice, setSlice] = useState<number[]>([]);
   const [z, setZ] = useState<number[][]>([]);
   const [x, setX] = useState<number[]>([]);
   const [y, setY] = useState<number[]>([]);
+
+    // Initialize zAxis from itemDataGrid
+  useEffect(() => {
+    console.log('itemDataGrid', itemDataGrid);
+
+  }, [itemDataGrid]);
 
   /* Initialize data3D with generated data */
   useEffect(() => {
@@ -35,17 +43,29 @@ export const Surface2D = ({ itemDataGrid, width, height }: Surface2DProps) => {
       setSlice(findTimeCoordinate.data);
     }
 
-    // setData3D(generatedData);
-  }, [itemDataGrid.plot]);
-
-  // Initialize zAxis from itemDataGrid
-  useEffect(() => {
-    console.log('itemDataGrid', itemDataGrid);
     setZAxis({
-      name: 'time',
-      unit: '-',
+      name: itemDataGrid.yAxisData?.name || 'Z Axis',
+      unit: itemDataGrid.yAxisData?.unit || '',
     });
-  }, [itemDataGrid]);
+
+    //Initialize xAxis and yAxis
+    setXAxis(itemDataGrid.xAxisData);
+    
+    for (const coordinate of itemDataGrid.coordinates) {
+      if (coordinate.name !== itemDataGrid.xAxisData?.name && coordinate.name !== itemDataGrid.yAxisData?.name) {
+        setYAxis({
+          name: coordinate.name,
+          unit: coordinate.unit || '',
+        });
+        break;
+      }
+    }
+
+
+
+    // setData3D(generatedData);
+  }, [itemDataGrid.plot, itemDataGrid.coordinates]);
+
 
   /* Update the layout of the plot */
   useEffect(() => {
@@ -58,7 +78,7 @@ export const Surface2D = ({ itemDataGrid, width, height }: Surface2DProps) => {
       scene: {
         xaxis: { title: { text: 'rho' } },
         yaxis: { title: { text: 'ion' } },
-        zaxis: { title: { text: 'time' } },
+        zaxis: { title: { text: zAxis.name } },
       },
       modebar: {
         orientation: 'v',

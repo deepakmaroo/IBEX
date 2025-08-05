@@ -133,7 +133,7 @@ export const SimplePlotly = ({
       return {
         ...item,
         target: updatedTarget, // Update the target to the new one
-        index: item.name === coordinate.name ? index : item.index,
+        valueIndex: item.name === coordinate.name ? index : item.valueIndex,
       };
     });
 
@@ -210,7 +210,7 @@ export const SimplePlotly = ({
               <VerticalSlider
                 key={index}
                 name={item.name}
-                index={item.index || 0}
+                index={item.valueIndex || 0}
                 data={item.data}
                 getValue={(index) => {
                   handleUpdateCoordinate(item, index);
