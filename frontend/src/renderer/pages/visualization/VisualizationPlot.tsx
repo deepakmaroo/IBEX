@@ -106,7 +106,7 @@ export const VisualizationPlot = ({
           isDraggable={dragEnabled}
           onLayoutChange={(layout) => handleUpdateLayout(layout)}
         >
-          {/* {active.dataPlot.map((plotData: DataGridPlot) => {
+          {active.dataPlot.map((plotData: DataGridPlot) => {
             return (
               <Paper
                 shadow="sm"
@@ -137,37 +137,7 @@ export const VisualizationPlot = ({
                 />
               </Paper>
             );
-          })} */}
-          {active.dataPlot.length > 0 && (
-            <Paper
-              shadow="sm"
-              radius="xs"
-              withBorder
-              key={active.dataPlot[0].i}
-              data-grid={{
-                x: active.dataPlot[0].x,
-                y: active.dataPlot[0].y,
-                w: active.dataPlot[0].w,
-                h: active.dataPlot[0].h,
-                // static: active.dataPlot[0].static,
-                minH: active.dataPlot[0].coordinates.length > 0 ? 12 : 8,
-                minW: active.dataPlot[0].coordinates.length > 0 ? 6 : 4,
-              }}
-              style={{
-                width: '100%',
-                height: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                boxSizing: 'border-box',
-              }}
-            >
-              <Surface2D
-                itemDataGrid={active.dataPlot[0]}
-                width={colWidth}
-                height={rowHeight}
-              />
-            </Paper>
-          )}
+          })}
         </GridLayout>
       </ScrollArea>
     </>
