@@ -54,7 +54,7 @@ export const Surface2D = ({ itemDataGrid, width, height }: Surface2DProps) => {
     for (const coordinate of itemDataGrid.coordinates) {
       if (coordinate.name !== itemDataGrid.xAxisData?.name && coordinate.name !== itemDataGrid.yAxisData?.name) {
         setYAxis({
-          name: coordinate.name,
+          name: coordinate.name || '',
           unit: coordinate.unit || '',
         });
         break;
@@ -76,9 +76,9 @@ export const Surface2D = ({ itemDataGrid, width, height }: Surface2DProps) => {
       width: width,
       autosize: true,
       scene: {
-        xaxis: { title: { text: 'rho' } },
-        yaxis: { title: { text: 'ion' } },
-        zaxis: { title: { text: zAxis.name } },
+        xaxis: { title: { text: xAxis?.name || '' } },
+        yaxis: { title: { text: yAxis?.name || '' } },
+        zaxis: { title: { text: zAxis?.name || '' } },
       },
       modebar: {
         orientation: 'v',
