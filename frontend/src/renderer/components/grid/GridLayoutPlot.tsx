@@ -128,13 +128,14 @@ export const GridLayoutPlot = ({
       <div ref={hoverRef} className={classes.containerButton}>
         {(hovered || data.isEditing) && (
           <Group pos="absolute" right={data.isEditing ? 3 : 1} top={5} grow>
-            {/* 3D button display */}$
+            {/* 3D button display */}
             <Tooltip label="Toggle 2D/3D view">
               <ActionIcon
                 variant="filled"
                 aria-label="Toggle 2D/3D view"
                 onClick={() => setIs3DView((prev) => !prev)}
                 className={classes.actionButton}
+                disabled={data.coordinates.length !== 3} //Only enable if there are 3 coordinates - corresponding to 3D data
               >
                 {is3DView ? (
                   <Text fw="bold">1D</Text>
