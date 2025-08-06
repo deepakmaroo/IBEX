@@ -1,20 +1,6 @@
 import { Data } from 'plotly.js';
 import { Layout } from 'react-grid-layout';
 
-<<<<<<< HEAD
-=======
-export interface SimplePlotlyProps {
-  title: string;
-  xAxis: Axis;
-  yAxis: Axis;
-  y2Axis?: Axis;
-  data: DataPlotly[];
-  width: number;
-  height: number;
-  isStatic: boolean;
-}
-
->>>>>>> feature/switch-x-axis
 export interface Axis {
   name: string;
   unit: string;
