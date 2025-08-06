@@ -6,11 +6,20 @@ import {
   useState,
 } from 'react';
 import {
+  Axis,
   Configuration,
+  Coordinates,
   DataGridPlot,
   GridLayoutPlotProps,
 } from 'src/renderer/types';
-import { ActionIcon, Container, Group, Text, Tooltip } from '@mantine/core';
+import {
+  ActionIcon,
+  Container,
+  Grid,
+  Group,
+  Text,
+  Tooltip,
+} from '@mantine/core';
 
 import {
   IconBrandDatabricks,
@@ -22,7 +31,14 @@ import { useHover } from '@mantine/hooks';
 import classes from './GridLayoutPlot.module.css';
 import { SimplePlotly, Surface2D } from '../plot';
 import { useIbexStore } from '../../stores';
-import { normalizeIndices } from '../../utils';
+import { VerticalSlider } from '../verticalSlider';
+import {
+  getVectorData,
+  getLastIndexedField,
+  normalizeIndices,
+  updateIndexFieldName,
+  getFirstArrayValueFromShape,
+} from '../../utils';
 
 export const GridLayoutPlot = ({
   data,
@@ -38,7 +54,7 @@ export const GridLayoutPlot = ({
     data.h * rowHeight + (23 * (data.h * rowHeight)) / 100,
   );
   const [widthGrid, setWidthGrid] = useState(Math.floor(data.w * colWidth));
-  const [is2DView, setIs2DView] = useState<boolean>(false);
+  const [is3DView, setIs3DView] = useState<boolean>(false);
 
   /**
    * Handle resize the grid
@@ -123,27 +139,37 @@ export const GridLayoutPlot = ({
     [active],
   );
 
+
+
+
   return (
     <Container fluid w={widthGrid} p={0}>
-      <div
-        ref={hoverRef}
-        className={classes.containerButton}
-        // style={{
-        //   width: data.isEditing ? '95%' : '100%',
-        // }}
-      >
+      <div ref={hoverRef} className={classes.containerButton}>
         {(hovered || data.isEditing) && (
           <Group pos="absolute" right={data.isEditing ? 3 : 1} top={5} grow>
-            {/* <Text>Metadatas</Text> */}
+            <Tooltip label="Inspect metadatas information">
+              <ActionIcon
+                variant="filled"
+                aria-label="Metadatas"
+                onClick={() => handleInspectMetadata(data.i)}
+                className={classes.actionButton}
+                // disabled={data.plot.some((item) => item.x.length === 0 && item.y.length === 0)}
+              >
+                <IconBrandDatabricks
+                  style={{ width: '70%', height: '70%' }}
+                  stroke={1.5}
+                />
+              </ActionIcon>
+            </Tooltip>
 
             <Tooltip label="Toggle 2D/3D view">
               <ActionIcon
                 variant="filled"
                 aria-label="Toggle 2D/3D view"
-                onClick={() => setIs2DView((prev) => !prev)}
+                onClick={() => setIs3DView((prev) => !prev)}
                 className={classes.actionButton}
               >
-                {is2DView ? (
+                {is3DView ? (
                   <Text fw="bold">1D</Text>
                 ) : (
                   <Text fw="bold">3D</Text>
@@ -214,7 +240,7 @@ export const GridLayoutPlot = ({
         )}
       </div>
 
-      {is2DView ? (
+      {is3DView ? (
         <Surface2D
           itemDataGrid={data}
           width={
@@ -234,6 +260,7 @@ export const GridLayoutPlot = ({
           }
           height={heightGrid}
           sliderRef={gridSliderRef}
+          is3DView={is3DView}
         />
       )}
     </Container>

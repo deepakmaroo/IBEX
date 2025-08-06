@@ -116,7 +116,7 @@ export const Surface2D = ({ itemDataGrid, width, height }: Surface2DProps) => {
         <Grid.Col span="content" mt={10}>
           <VerticalSlider
             name={'time'}
-            index={frameIndex}
+            valueIndex={frameIndex}
             data={slice}
             getValue={(index) => {
               setFrameIndex(index);
