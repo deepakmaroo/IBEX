@@ -265,7 +265,7 @@ export const VisualizationMetaData = () => {
                             radius="md"
                           >
                             <SimplePlotly
-                              itemDataGrid={itemWithoutY2axis}
+                              itemDataGrid={dataGridLayout}
                               width={WIDTH_PLOT}
                               height={HEIGHT_PLOT}
   

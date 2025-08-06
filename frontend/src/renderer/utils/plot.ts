@@ -240,6 +240,8 @@ export const handleExistingPlot = async (
 
     const xAxis = findDataPlot.xAxisData;
     const coordsResponse = response.data.coordinates;
+    console.log('coordsResponse', coordsResponse);
+    console.log('findDataPlot.coordinates', findDataPlot.coordinates);
 
     const sliderExist =
       findDataPlot.coordinates &&
@@ -267,13 +269,16 @@ export const handleExistingPlot = async (
 
         if (!lastField) return;
 
-        coordResponses.forEach((res) => {
+        coordsResponse.forEach((res) => {
           res.target = updateIndexFieldName(
             res.target,
             lastField,
             matchingCoord.valueIndex,
           );
         });
+
+        console.log("matchingCoord", matchingCoord);
+        console.log("lastField", lastField);
 
         //* Update the defaultUri, xAxisResponsePath, and yDataResponsePath to match the index
         defaultUri = updateIndexFieldName(
@@ -300,15 +305,16 @@ export const handleExistingPlot = async (
     }
 
     const coordinatesExistAndMatch =
-      findDataPlot.coordinates.length === coordsResponse.slice(1).length &&
+      findDataPlot.coordinates.length === coordsResponse.length &&
       findDataPlot.coordinates.every((coord, index) => {
-        const responseCoord = coordsResponse[index + 1]; // Skip the first coordinate
+        const responseCoord = coordsResponse[index]; // Skip the first coordinate
         return (
-          coord.name === responseCoord.name &&
-          coord.target === responseCoord.target
+          coord.name === responseCoord.name
         );
       });
 
+    console.log('coordinatesExistAndMatch', coordinatesExistAndMatch);
+    console.log('sliderExist', sliderExist);
     if (sliderExist && !coordinatesExistAndMatch) {
       showNotification({
         title: 'Plot',
