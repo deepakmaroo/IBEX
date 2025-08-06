@@ -144,21 +144,8 @@ export const GridLayoutPlot = ({
       <div ref={hoverRef} className={classes.containerButton}>
         {(hovered || data.isEditing) && (
           <Group pos="absolute" right={data.isEditing ? 3 : 1} top={5} grow>
-            <Tooltip label="Inspect metadatas information">
-              <ActionIcon
-                variant="filled"
-                aria-label="Metadatas"
-                onClick={() => handleInspectMetadata(data.i)}
-                className={classes.actionButton}
-                // disabled={data.plot.some((item) => item.x.length === 0 && item.y.length === 0)}
-              >
-                <IconBrandDatabricks
-                  style={{ width: '70%', height: '70%' }}
-                  stroke={1.5}
-                />
-              </ActionIcon>
-            </Tooltip>
 
+            {/* 3D button display */}$
             <Tooltip label="Toggle 2D/3D view">
               <ActionIcon
                 variant="filled"
@@ -174,13 +161,13 @@ export const GridLayoutPlot = ({
               </ActionIcon>
             </Tooltip>
 
+            {/* Metadata component button */}
             <Tooltip label="Inspect metadatas information">
               <ActionIcon
                 variant="filled"
                 aria-label="Metadatas"
                 onClick={() => handleInspectMetadata(data.i)}
                 className={classes.actionButton}
-                // disabled={data.plot.some((item) => item.x.length === 0 && item.y.length === 0)}
               >
                 <IconBrandDatabricks
                   style={{ width: '70%', height: '70%' }}
@@ -217,6 +204,7 @@ export const GridLayoutPlot = ({
               </ActionIcon>
             </Tooltip>
 
+            {/* Delete grid button */}
             {handleDeleteGrid && (
               <Tooltip label="Delete the grid">
                 <ActionIcon
@@ -236,7 +224,7 @@ export const GridLayoutPlot = ({
           </Group>
         )}
       </div>
-
+      
       {is3DView ? (
         <Surface2D
           itemDataGrid={data}

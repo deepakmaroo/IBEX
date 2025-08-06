@@ -240,8 +240,6 @@ export const handleExistingPlot = async (
 
     const xAxis = findDataPlot.xAxisData;
     const coordsResponse = response.data.coordinates;
-    console.log('coordsResponse', coordsResponse);
-    console.log('findDataPlot.coordinates', findDataPlot.coordinates);
 
     const sliderExist =
       findDataPlot.coordinates &&
@@ -296,11 +294,7 @@ export const handleExistingPlot = async (
           lastField,
           matchingCoord.valueIndex,
         );
-        // xAxis.path = updateIndexFieldName(
-        //   xAxis.path,
-        //   lastField,
-        //   matchingCoord.index,
-        // );
+
       });
     }
 
@@ -313,8 +307,6 @@ export const handleExistingPlot = async (
         );
       });
 
-    console.log('coordinatesExistAndMatch', coordinatesExistAndMatch);
-    console.log('sliderExist', sliderExist);
     if (sliderExist && !coordinatesExistAndMatch) {
       showNotification({
         title: 'Plot',
