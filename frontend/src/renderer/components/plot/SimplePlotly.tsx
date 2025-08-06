@@ -19,7 +19,7 @@ interface SimplePlotlyProps {
   itemDataGrid: DataGridPlot;
   width: number;
   height: number;
-  sliderRef: React.RefObject<HTMLDivElement>;
+  sliderRef?: React.RefObject<HTMLDivElement>;
   is3DView?: boolean;
 }
 
@@ -396,7 +396,7 @@ export const SimplePlotly = ({
     >
       {/* Coordinates sliders */}
       {itemDataGrid.coordinates.length > 0 && (
-        <Grid.Col span="content" ref={sliderRef} mt={10}>
+        <Grid.Col span="content" ref={sliderRef ? sliderRef : undefined} mt={10}>
           <Group justify="space-between" gap="0">
             {JSON.parse(JSON.stringify(itemDataGrid.coordinates))
               .sort(compareByAxeIndex)

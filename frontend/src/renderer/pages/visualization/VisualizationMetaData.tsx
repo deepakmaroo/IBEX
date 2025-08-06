@@ -265,18 +265,10 @@ export const VisualizationMetaData = () => {
                             radius="md"
                           >
                             <SimplePlotly
-                              key={`${item.name}-metadata-${index}`}
-                              data={[itemWithoutY2axis]}
+                              itemDataGrid={itemWithoutY2axis}
                               width={WIDTH_PLOT}
                               height={HEIGHT_PLOT}
-                              isStatic={true}
-                              title={item.name}
-                              xAxis={dataGridLayout.xAxisData}
-                              yAxis={
-                                item.yaxis !== '' // show y2Axis in yAxis when forced to one yAxis
-                                  ? dataGridLayout.y2AxisData
-                                  : dataGridLayout.yAxisData
-                              }
+  
                             />
                           </Paper>
                         </Center>
