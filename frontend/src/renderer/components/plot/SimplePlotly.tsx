@@ -6,6 +6,7 @@ import { Axis, Coordinates, DataGridPlot } from 'src/renderer/types';
 import { VerticalSlider } from '../verticalSlider';
 import { useIbexStore } from '../../stores';
 import {
+  compareByAxeIndex,
   getFirstArrayValueFromShape,
   getLastIndexedField,
   getVectorData,
@@ -168,92 +169,90 @@ export const SimplePlotly = ({
     }));
   }, [itemDataGrid.y2AxisData]);
 
+  /**
+   * updateslider coordinate value
+   */
+  const handleUpdateCoordinate = async (
+    coordinate: Coordinates,
+    valueIndex: number,
+  ) => {
+    // Check if the coordinate has a target
+    const lastTargetLastName = getLastIndexedField(coordinate.target);
+    if (!lastTargetLastName)
+      return console.warn('No indexed field found in target');
 
-    /**
-     * updateslider coordinate value
-     */
-    const handleUpdateCoordinate = async (
-      coordinate: Coordinates,
-      valueIndex: number,
-    ) => {
-      // Check if the coordinate has a target
+    const updatedCoordinatesValue = itemDataGrid.coordinates.map((item) => {
       const lastTargetLastName = getLastIndexedField(coordinate.target);
-      if (!lastTargetLastName)
-        return console.warn('No indexed field found in target');
-  
-      const updatedCoordinatesValue = itemDataGrid.coordinates.map((item) => {
-        const lastTargetLastName = getLastIndexedField(coordinate.target);
-  
-        const updatedTarget = updateIndexFieldName(
-          item.target,
-          lastTargetLastName,
-          valueIndex,
-        );
-  
-        return {
-          ...item,
-          target: updatedTarget, // Update the target to the new one
-          valueIndex:
-            item.name === coordinate.name ? valueIndex : item.valueIndex,
-        };
-      });
-  
-      const updatedActive = {
-        ...active,
-        dataPlot: active.dataPlot.map((item: DataGridPlot) => {
-          if (item.i === itemDataGrid.i) {
-            const updatedXAxisData: Axis = {
-              ...item.xAxisData,
-              path: updateIndexFieldName(
-                item.xAxisData?.path || '',
-                lastTargetLastName,
-                valueIndex,
-              ),
-            };
-  
-            const updatedPlot = item.plot.map((plotItem) => {
-              const updatedNodeUri = updateIndexFieldName(
-                plotItem.nodeUri,
-                lastTargetLastName,
-                valueIndex,
-              );
-  
-              const updatedPath = updateIndexFieldName(
-                plotItem.path || '',
-                lastTargetLastName,
-                valueIndex,
-              );
-  
-              const newYData = getVectorData(
-                updatedNodeUri,
-                item.coordinates,
-                plotItem.yData,
-              );
-  
-              return {
-                ...plotItem,
-                y: newYData,
-                nodeUri: updatedNodeUri,
-  
-                path: updatedPath,
-              };
-            });
-  
-            return {
-              ...item,
-              coordinates: updatedCoordinatesValue,
-              plot: updatedPlot,
-              xAxisData: updatedXAxisData,
-            };
-          }
-  
-          return item;
-        }),
+
+      const updatedTarget = updateIndexFieldName(
+        item.target,
+        lastTargetLastName,
+        valueIndex,
+      );
+
+      return {
+        ...item,
+        target: updatedTarget, // Update the target to the new one
+        valueIndex:
+          item.name === coordinate.name ? valueIndex : item.valueIndex,
       };
-  
-      updatedConfiguration(updatedActive);
+    });
+
+    const updatedActive = {
+      ...active,
+      dataPlot: active.dataPlot.map((item: DataGridPlot) => {
+        if (item.i === itemDataGrid.i) {
+          const updatedXAxisData: Axis = {
+            ...item.xAxisData,
+            path: updateIndexFieldName(
+              item.xAxisData?.path || '',
+              lastTargetLastName,
+              valueIndex,
+            ),
+          };
+
+          const updatedPlot = item.plot.map((plotItem) => {
+            const updatedNodeUri = updateIndexFieldName(
+              plotItem.nodeUri,
+              lastTargetLastName,
+              valueIndex,
+            );
+
+            const updatedPath = updateIndexFieldName(
+              plotItem.path || '',
+              lastTargetLastName,
+              valueIndex,
+            );
+
+            const newYData = getVectorData(
+              updatedNodeUri,
+              updatedCoordinatesValue,
+              plotItem.yData,
+            );
+
+            return {
+              ...plotItem,
+              y: newYData,
+              nodeUri: updatedNodeUri,
+
+              path: updatedPath,
+            };
+          });
+
+          return {
+            ...item,
+            coordinates: updatedCoordinatesValue,
+            plot: updatedPlot,
+            xAxisData: updatedXAxisData,
+          };
+        }
+
+        return item;
+      }),
     };
-  
+
+    updatedConfiguration(updatedActive);
+  };
 
   async function transposeAxis(
     updatedDataPlot: DataGridPlot,
@@ -386,15 +385,6 @@ export const SimplePlotly = ({
     [active],
   );
 
-  function compareByAxeIndex(a: Coordinates, b: Coordinates) {
-    if (a.axeIndex < b.axeIndex) {
-      return -1;
-    } else if (a.axeIndex > b.axeIndex) {
-      return 1;
-    }
-    return 0;
-  }
-
   return (
     <Grid
       styles={{
@@ -422,7 +412,11 @@ export const SimplePlotly = ({
                         handleUpdateCoordinate(item, valueIndex);
                       }}
                       switchAxis={() => switchAxis(item.axeIndex)}
-                      height={is3DView ? height - 80 : height - 80 - BUTTON_SWITCH_HEIGHT}
+                      height={
+                        is3DView
+                          ? height - 80
+                          : height - 80 - BUTTON_SWITCH_HEIGHT
+                      }
                       disabled={!itemDataGrid.isEditing}
                     />
                   ),

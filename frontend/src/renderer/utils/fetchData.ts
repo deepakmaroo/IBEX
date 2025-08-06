@@ -92,10 +92,10 @@ export const fetchDataPlot = async (uri: string) => {
   const response = fetchFromApi<PlotDataResponse>(
     `/data/plot_data/?uri=${encodeURIComponent(uri)}`,
   );
-  // Force all targets to ends with "[:]"
+  // Force all targets to ends with '[:]'
   for (const coord of (await response).data.coordinates) {
-    if (!coord.target.endsWith("]")) {
-      coord.target = coord.target += "[:]";
+    if (!coord.target.endsWith(']')) {
+      coord.target = coord.target += '[:]';
     }
   }
   return response;

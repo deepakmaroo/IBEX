@@ -640,11 +640,13 @@ export function getVectorData(
   const coordinatesLength: number = coordinates.length;
 
   // Extract only matrix indexes
-  const matches = [...uri.matchAll(/\[(\d+)\]/g)];
-  const matrixIndexes = matches.map((match) => parseInt(match[1]));
+  const matrixIndexes = JSON.parse(JSON.stringify(coordinates))
+    .sort(compareByAxeIndex)
+    .reverse()
+    .filter((coord: Coordinates) => coord.axeIndex !== 0)
+    .map((coord: Coordinates) => coord.valueIndex);
 
   // Retrieve vector to plot
-
   /* eslint-disable  @typescript-eslint/no-explicit-any */
   let result: any = yData;
   let shapeIndex = 0;
@@ -663,4 +665,13 @@ export function getVectorData(
   }
   const vectorData: number[] = result;
   return vectorData;
+}
+
+export function compareByAxeIndex(a: Coordinates, b: Coordinates) {
+  if (a.axeIndex < b.axeIndex) {
+    return -1;
+  } else if (a.axeIndex > b.axeIndex) {
+    return 1;
+  }
+  return 0;
 }

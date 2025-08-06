@@ -24,10 +24,9 @@ export const Surface2D = ({ itemDataGrid, width, height }: Surface2DProps) => {
   const [x, setX] = useState<number[]>([]);
   const [y, setY] = useState<number[]>([]);
 
-    // Initialize zAxis from itemDataGrid
+  // Initialize zAxis from itemDataGrid
   useEffect(() => {
     console.log('itemDataGrid', itemDataGrid);
-
   }, [itemDataGrid]);
 
   /* Initialize data3D with generated data */
@@ -50,9 +49,12 @@ export const Surface2D = ({ itemDataGrid, width, height }: Surface2DProps) => {
 
     //Initialize xAxis and yAxis
     setXAxis(itemDataGrid.xAxisData);
-    
+
     for (const coordinate of itemDataGrid.coordinates) {
-      if (coordinate.name !== itemDataGrid.xAxisData?.name && coordinate.name !== itemDataGrid.yAxisData?.name) {
+      if (
+        coordinate.name !== itemDataGrid.xAxisData?.name &&
+        coordinate.name !== itemDataGrid.yAxisData?.name
+      ) {
         setYAxis({
           name: coordinate.name || '',
           unit: coordinate.unit || '',
@@ -61,11 +63,8 @@ export const Surface2D = ({ itemDataGrid, width, height }: Surface2DProps) => {
       }
     }
 
-
-
     // setData3D(generatedData);
   }, [itemDataGrid.plot, itemDataGrid.coordinates]);
-
 
   /* Update the layout of the plot */
   useEffect(() => {

@@ -139,9 +139,6 @@ export const GridLayoutPlot = ({
     [active],
   );
 
-
-
-
   return (
     <Container fluid w={widthGrid} p={0}>
       <div ref={hoverRef} className={classes.containerButton}>
