@@ -442,8 +442,6 @@ export const SimplePlotly = ({
         <Plot
           ref={plotRef}
           data={itemDataGrid.plot}
-          layout={layoutPlot}
-          onRelayout={handleRelayout}
           config={{
             autosizable: false,
             staticPlot: !itemDataGrid.static,
@@ -453,6 +451,8 @@ export const SimplePlotly = ({
             displaylogo: false,
             modeBarButtonsToRemove: ['lasso2d', 'select2d'],
           }}
+          layout={layoutPlot}
+          onRelayout={handleRelayout}
           useResizeHandler={false}
           style={{ width: `${width}px`, height: `${height}px` }}
           className={classe.simplePlot}

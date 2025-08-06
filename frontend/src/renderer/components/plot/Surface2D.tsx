@@ -1,5 +1,5 @@
 import Plot from 'react-plotly.js';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Layout } from 'plotly.js';
 import { Axis, DataGridPlot } from 'src/renderer/types';
 import classe from './SimplePlotly.module.css';
@@ -14,7 +14,6 @@ interface Surface2DProps {
 
 export const Surface2D = ({ itemDataGrid, width, height }: Surface2DProps) => {
   const [frameIndex, setFrameIndex] = useState(0); //Time slicing by default
-  const [layoutPlot, setLayoutPlot] = useState<Partial<Layout>>({});
   const [xAxis, setXAxis] = useState<Axis>(null);
   const [yAxis, setYAxis] = useState<Axis>(null);
   const [zAxis, setZAxis] = useState<Axis>(null);
@@ -23,6 +22,25 @@ export const Surface2D = ({ itemDataGrid, width, height }: Surface2DProps) => {
   const [z, setZ] = useState<number[][]>([]);
   const [x, setX] = useState<number[]>([]);
   const [y, setY] = useState<number[]>([]);
+  const plotRef = useRef<Plot | null>(null);
+  const [layoutPlot, setLayoutPlot] = useState<Partial<Layout>>({
+    autosize: true,
+    scene: {
+      xaxis: { title: { text: xAxis?.name || '' } },
+      yaxis: { title: { text: yAxis?.name || '' } },
+      zaxis: { title: { text: zAxis?.name || '' } },
+    },
+    modebar: {
+      orientation: 'v',
+    },
+  });
+
+  const handleRelayout = (newLayout: Partial<Layout>) => {
+    setLayoutPlot((prevLayout) => ({
+      ...prevLayout,
+      ...newLayout, // update the layout with new values
+    }));
+  };
 
   /* Initialize data3D with generated data */
   useEffect(() => {
@@ -65,15 +83,6 @@ export const Surface2D = ({ itemDataGrid, width, height }: Surface2DProps) => {
       title: { text: itemDataGrid.title },
       height: height,
       width: width,
-      autosize: true,
-      scene: {
-        xaxis: { title: { text: xAxis?.name || '' } },
-        yaxis: { title: { text: yAxis?.name || '' } },
-        zaxis: { title: { text: zAxis?.name || '' } },
-      },
-      modebar: {
-        orientation: 'v',
-      },
     }));
   }, [frameIndex, zAxis]);
 
@@ -121,6 +130,7 @@ export const Surface2D = ({ itemDataGrid, width, height }: Surface2DProps) => {
           }}
         >
           <Plot
+            ref={plotRef}
             data={[
               {
                 type: 'surface',
@@ -130,6 +140,7 @@ export const Surface2D = ({ itemDataGrid, width, height }: Surface2DProps) => {
               },
             ]}
             layout={layoutPlot}
+            onRelayout={handleRelayout}
             useResizeHandler={false}
             style={{ width: `${width}px`, height: `${height}px` }}
             className={classe.plot2D}

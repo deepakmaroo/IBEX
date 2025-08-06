@@ -659,6 +659,12 @@ export function getVectorData(
   return vectorData;
 }
 
+/**
+ * @description Compares two Coordinates objects by their axeIndex.
+ * @param a The first Coordinates object.
+ * @param b The second Coordinates object.
+ * @returns A negative number if a's axeIndex is less than b's, a positive number if greater, or 0 if equal.
+ */
 export function compareByAxeIndex(a: Coordinates, b: Coordinates) {
   if (a.axeIndex < b.axeIndex) {
     return -1;
@@ -667,3 +673,5 @@ export function compareByAxeIndex(a: Coordinates, b: Coordinates) {
   }
   return 0;
 }
+
+
