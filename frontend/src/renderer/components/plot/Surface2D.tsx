@@ -84,7 +84,7 @@ export const Surface2D = ({ itemDataGrid, width, height }: Surface2DProps) => {
       height: height,
       width: width,
     }));
-  }, [frameIndex, zAxis]);
+  }, [frameIndex, zAxis, itemDataGrid, width, height]);
 
   useEffect(() => {
     if (data3D) {
