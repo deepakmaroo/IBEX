@@ -24,6 +24,7 @@ import {
   PlotDataResponse,
 } from 'src/renderer/types';
 import { fetchArraySummary, fetchDataPlot } from '../../utils';
+import { use } from 'chai';
 
 interface MetaDataInfosProps {
   data: DataPlotly;
@@ -199,7 +200,8 @@ export const VisualizationMetaData = () => {
   const HEIGHT_PLOT = 390;
   const { active, updatedConfiguration } = useIbexStore();
   const [tabsValue, setTabsValue] = useState<string | null>();
-  const [dataGridLayout, setDataGridLayout] = useState<DataGridPlot>(null);
+  const [itemDataGrid, setItemDataGrid] = useState<DataGridPlot | null>(null);
+  const [dataGridLayout, setDataGridLayout] = useState<DataGridPlot | null>(null);
 
   /**
    * Handle find grid layout corresponding to the selected tab
@@ -212,9 +214,20 @@ export const VisualizationMetaData = () => {
       if (data) {
         setDataGridLayout(data);
         setTabsValue(data.plot[0]?.name || null);
+        const findPlot = data.plot.find(
+          (item) => item.name === data.plot[0]?.name,
+        );
+        if (findPlot) {
+          setItemDataGrid({
+            ...data,
+            plot: [findPlot],
+          });
+        }
       }
     }
   }, [active]);
+
+
 
   /**
    * Handle the switch grid event
@@ -227,9 +240,35 @@ export const VisualizationMetaData = () => {
     updatedConfiguration(updatedActive);
   }, [active]);
 
+  /**
+   * Handle selected tab change
+   */
+  const handleSelectedTab = useCallback(
+    (value: string | null) => {
+      setTabsValue(value);
+      if (dataGridLayout) {
+        const selectedPlot = dataGridLayout.plot.find(
+          (item) => item.name === value,
+        );
+        if (selectedPlot) {
+          setItemDataGrid({
+            ...dataGridLayout,
+            plot: [selectedPlot],
+          });
+        }
+      }
+    },
+    [dataGridLayout, setItemDataGrid]
+  );
+
+
+  useEffect(() => {
+    console.log('dataGridLayout', dataGridLayout);
+    console.log('itemDataGrid', itemDataGrid);
+  }, [dataGridLayout, itemDataGrid]);
   return (
     <Container fluid pb={10}>
-      <Tabs value={tabsValue} onChange={setTabsValue}>
+      <Tabs value={tabsValue} onChange={(value) => handleSelectedTab(value)}>
         <TabsListCustom
           data={
             dataGridLayout
@@ -265,7 +304,7 @@ export const VisualizationMetaData = () => {
                             radius="md"
                           >
                             <SimplePlotly
-                              itemDataGrid={dataGridLayout}
+                              itemDataGrid={itemDataGrid}
                               width={WIDTH_PLOT}
                               height={HEIGHT_PLOT}
                             />
