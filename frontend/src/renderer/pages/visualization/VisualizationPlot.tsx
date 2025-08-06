@@ -3,7 +3,7 @@ import { useIbexStore } from '../../stores';
 import { useCallback, useState, useRef, useEffect } from 'react';
 import { Configuration, DataGridPlot } from 'src/renderer/types';
 import GridLayout, { Layout } from 'react-grid-layout';
-import { GridLayoutPlot, Surface2D } from '../../components';
+import { GridLayoutPlot } from '../../components';
 
 interface VisualizationPlotProps {
   extended?: boolean;

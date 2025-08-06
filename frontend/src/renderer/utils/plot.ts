@@ -275,9 +275,6 @@ export const handleExistingPlot = async (
           );
         });
 
-        console.log("matchingCoord", matchingCoord);
-        console.log("lastField", lastField);
-
         //* Update the defaultUri, xAxisResponsePath, and yDataResponsePath to match the index
         defaultUri = updateIndexFieldName(
           defaultUri,
@@ -294,7 +291,6 @@ export const handleExistingPlot = async (
           lastField,
           matchingCoord.valueIndex,
         );
-
       });
     }
 
@@ -302,9 +298,7 @@ export const handleExistingPlot = async (
       findDataPlot.coordinates.length === coordsResponse.length &&
       findDataPlot.coordinates.every((coord, index) => {
         const responseCoord = coordsResponse[index]; // Skip the first coordinate
-        return (
-          coord.name === responseCoord.name
-        );
+        return coord.name === responseCoord.name;
       });
 
     if (sliderExist && !coordinatesExistAndMatch) {

@@ -6,20 +6,11 @@ import {
   useState,
 } from 'react';
 import {
-  Axis,
   Configuration,
-  Coordinates,
   DataGridPlot,
   GridLayoutPlotProps,
 } from 'src/renderer/types';
-import {
-  ActionIcon,
-  Container,
-  Grid,
-  Group,
-  Text,
-  Tooltip,
-} from '@mantine/core';
+import { ActionIcon, Container, Group, Text, Tooltip } from '@mantine/core';
 
 import {
   IconBrandDatabricks,
@@ -31,14 +22,7 @@ import { useHover } from '@mantine/hooks';
 import classes from './GridLayoutPlot.module.css';
 import { SimplePlotly, Surface2D } from '../plot';
 import { useIbexStore } from '../../stores';
-import { VerticalSlider } from '../verticalSlider';
-import {
-  getVectorData,
-  getLastIndexedField,
-  normalizeIndices,
-  updateIndexFieldName,
-  getFirstArrayValueFromShape,
-} from '../../utils';
+import { normalizeIndices } from '../../utils';
 
 export const GridLayoutPlot = ({
   data,
@@ -144,7 +128,6 @@ export const GridLayoutPlot = ({
       <div ref={hoverRef} className={classes.containerButton}>
         {(hovered || data.isEditing) && (
           <Group pos="absolute" right={data.isEditing ? 3 : 1} top={5} grow>
-
             {/* 3D button display */}$
             <Tooltip label="Toggle 2D/3D view">
               <ActionIcon
@@ -160,7 +143,6 @@ export const GridLayoutPlot = ({
                 )}
               </ActionIcon>
             </Tooltip>
-
             {/* Metadata component button */}
             <Tooltip label="Inspect metadatas information">
               <ActionIcon
@@ -175,7 +157,6 @@ export const GridLayoutPlot = ({
                 />
               </ActionIcon>
             </Tooltip>
-
             <Tooltip
               label={
                 data.isEditing
@@ -203,7 +184,6 @@ export const GridLayoutPlot = ({
                 )}
               </ActionIcon>
             </Tooltip>
-
             {/* Delete grid button */}
             {handleDeleteGrid && (
               <Tooltip label="Delete the grid">
@@ -224,7 +204,7 @@ export const GridLayoutPlot = ({
           </Group>
         )}
       </div>
-      
+
       {is3DView ? (
         <Surface2D
           itemDataGrid={data}

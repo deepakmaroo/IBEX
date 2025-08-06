@@ -268,7 +268,6 @@ export const VisualizationMetaData = () => {
                               itemDataGrid={dataGridLayout}
                               width={WIDTH_PLOT}
                               height={HEIGHT_PLOT}
-  
                             />
                           </Paper>
                         </Center>

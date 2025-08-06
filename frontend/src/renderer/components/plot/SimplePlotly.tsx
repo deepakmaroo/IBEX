@@ -395,8 +395,12 @@ export const SimplePlotly = ({
       }}
     >
       {/* Coordinates sliders */}
-      {itemDataGrid.coordinates.length > 0 &&  sliderRef && (
-        <Grid.Col span="content" ref={sliderRef ? sliderRef : undefined} mt={10}>
+      {itemDataGrid.coordinates.length > 0 && sliderRef && (
+        <Grid.Col
+          span="content"
+          ref={sliderRef ? sliderRef : undefined}
+          mt={10}
+        >
           <Group justify="space-between" gap="0">
             {JSON.parse(JSON.stringify(itemDataGrid.coordinates))
               .sort(compareByAxeIndex)

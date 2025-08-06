@@ -24,14 +24,8 @@ export const Surface2D = ({ itemDataGrid, width, height }: Surface2DProps) => {
   const [x, setX] = useState<number[]>([]);
   const [y, setY] = useState<number[]>([]);
 
-  // Initialize zAxis from itemDataGrid
-  useEffect(() => {
-    console.log('itemDataGrid', itemDataGrid);
-  }, [itemDataGrid]);
-
   /* Initialize data3D with generated data */
   useEffect(() => {
-    console.log('Initializing data3D');
     //Get first plot data
     setData3D(itemDataGrid.plot[0].yData as number[][][]);
     //For moment we get time for slicing
@@ -62,8 +56,6 @@ export const Surface2D = ({ itemDataGrid, width, height }: Surface2DProps) => {
         break;
       }
     }
-
-    // setData3D(generatedData);
   }, [itemDataGrid.plot, itemDataGrid.coordinates]);
 
   /* Update the layout of the plot */
@@ -92,12 +84,6 @@ export const Surface2D = ({ itemDataGrid, width, height }: Surface2DProps) => {
       setY(Array.from({ length: data3D[0].length }, (_, i) => i)); // ion
     }
   }, [data3D, frameIndex]);
-
-  useEffect(() => {
-    console.log('z - time', z);
-    console.log('x - rho', x);
-    console.log('y - ion', y);
-  }, [z, x, y]);
 
   return (
     data3D &&
