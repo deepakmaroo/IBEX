@@ -261,10 +261,6 @@ export const VisualizationMetaData = () => {
     [dataGridLayout, setItemDataGrid],
   );
 
-  useEffect(() => {
-    console.log('dataGridLayout', dataGridLayout);
-    console.log('itemDataGrid', itemDataGrid);
-  }, [dataGridLayout, itemDataGrid]);
   return (
     <Container fluid pb={10}>
       <Tabs value={tabsValue} onChange={(value) => handleSelectedTab(value)}>

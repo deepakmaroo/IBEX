@@ -1,7 +1,7 @@
 import Plot from 'react-plotly.js';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Layout } from 'plotly.js';
-import { Axis, DataGridPlot } from 'src/renderer/types';
+import { Axis, Coordinates, DataGridPlot } from 'src/renderer/types';
 import classe from './SimplePlotly.module.css';
 import { Grid } from '@mantine/core';
 import { VerticalSlider } from '../verticalSlider';
@@ -46,10 +46,20 @@ export const Surface2D = ({ itemDataGrid, width, height }: Surface2DProps) => {
   const init3DAxis = useCallback(async () => {
     // Transpose data matrix to orign values
     const tensor = tf.tensor(itemDataGrid.plot[0].yData);
-    const newAxeOrder = itemDataGrid.coordinates.map((i, index) =>
-      itemDataGrid.coordinates.findIndex((j) => j.axeIndex === index),
-    );
-    const transposed = tf.transpose(tensor, newAxeOrder);
+    const coordinatesLength = itemDataGrid.coordinates.length - 1;
+    const newAxeOrder = itemDataGrid.coordinates.map((coord, index) => ({
+      newPosition: index,
+      axeIndex: coordinatesLength - index,
+    }));
+    const positionToOrigin = JSON.parse(JSON.stringify(itemDataGrid.coordinates))
+      .reverse()
+      .map(
+        (reversedCoord: Coordinates) =>
+          newAxeOrder.find(
+            (axeOrder) => axeOrder.axeIndex === reversedCoord.axeIndex,
+          ).newPosition,
+      );
+    const transposed = tf.transpose(tensor, positionToOrigin);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const originalDataMatrix: any = await transposed.array();
 
@@ -83,7 +93,7 @@ export const Surface2D = ({ itemDataGrid, width, height }: Surface2DProps) => {
         break;
       }
     }
-  }, [itemDataGrid]);
+  }, [itemDataGrid.plot, itemDataGrid.coordinates]);
 
   /* Initialize data3D with generated data */
   useEffect(() => {
