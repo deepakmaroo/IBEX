@@ -673,5 +673,3 @@ export function compareByAxeIndex(a: Coordinates, b: Coordinates) {
   }
   return 0;
 }
-
-

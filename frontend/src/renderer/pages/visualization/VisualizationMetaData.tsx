@@ -201,7 +201,9 @@ export const VisualizationMetaData = () => {
   const { active, updatedConfiguration } = useIbexStore();
   const [tabsValue, setTabsValue] = useState<string | null>();
   const [itemDataGrid, setItemDataGrid] = useState<DataGridPlot | null>(null);
-  const [dataGridLayout, setDataGridLayout] = useState<DataGridPlot | null>(null);
+  const [dataGridLayout, setDataGridLayout] = useState<DataGridPlot | null>(
+    null,
+  );
 
   /**
    * Handle find grid layout corresponding to the selected tab
@@ -226,8 +228,6 @@ export const VisualizationMetaData = () => {
       }
     }
   }, [active]);
-
-
 
   /**
    * Handle the switch grid event
@@ -258,9 +258,8 @@ export const VisualizationMetaData = () => {
         }
       }
     },
-    [dataGridLayout, setItemDataGrid]
+    [dataGridLayout, setItemDataGrid],
   );
-
 
   useEffect(() => {
     console.log('dataGridLayout', dataGridLayout);

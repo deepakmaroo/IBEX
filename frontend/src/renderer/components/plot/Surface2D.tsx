@@ -1,10 +1,11 @@
 import Plot from 'react-plotly.js';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Layout } from 'plotly.js';
 import { Axis, DataGridPlot } from 'src/renderer/types';
 import classe from './SimplePlotly.module.css';
 import { Grid } from '@mantine/core';
 import { VerticalSlider } from '../verticalSlider';
+import * as tf from '@tensorflow/tfjs';
 
 interface Surface2DProps {
   itemDataGrid: DataGridPlot;
@@ -42,10 +43,18 @@ export const Surface2D = ({ itemDataGrid, width, height }: Surface2DProps) => {
     }));
   };
 
-  /* Initialize data3D with generated data */
-  useEffect(() => {
-    //Get first plot data
-    setData3D(itemDataGrid.plot[0].yData as number[][][]);
+  const init3DAxis = useCallback(async () => {
+    // Transpose data matrix to orign values
+    const tensor = tf.tensor(itemDataGrid.plot[0].yData);
+    const newAxeOrder = itemDataGrid.coordinates.map((i, index) =>
+      itemDataGrid.coordinates.findIndex((j) => j.axeIndex === index),
+    );
+    const transposed = tf.transpose(tensor, newAxeOrder);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const originalDataMatrix: any = await transposed.array();
+
+    setData3D(originalDataMatrix as number[][][]);
+
     //For moment we get time for slicing
     const findTimeCoordinate = itemDataGrid.coordinates.find(
       (coordinate) => coordinate.name === 'time',
@@ -74,6 +83,12 @@ export const Surface2D = ({ itemDataGrid, width, height }: Surface2DProps) => {
         break;
       }
     }
+  }, [itemDataGrid]);
+
+  /* Initialize data3D with generated data */
+  useEffect(() => {
+    //Get first plot data
+    init3DAxis();
   }, [itemDataGrid.plot, itemDataGrid.coordinates]);
 
   /* Update the layout of the plot */
@@ -88,9 +103,9 @@ export const Surface2D = ({ itemDataGrid, width, height }: Surface2DProps) => {
 
   useEffect(() => {
     if (data3D) {
-      setZ(data3D[frameIndex]); //time
       setX(Array.from({ length: data3D[0][0].length }, (_, i) => i)); // rho
       setY(Array.from({ length: data3D[0].length }, (_, i) => i)); // ion
+      setZ(data3D[frameIndex]); //time
     }
   }, [data3D, frameIndex]);
 
@@ -134,9 +149,9 @@ export const Surface2D = ({ itemDataGrid, width, height }: Surface2DProps) => {
             data={[
               {
                 type: 'surface',
-                z: z,
                 x: x,
                 y: y,
+                z: z,
               },
             ]}
             layout={layoutPlot}
