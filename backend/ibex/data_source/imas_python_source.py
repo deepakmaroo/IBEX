@@ -638,11 +638,16 @@ class IMASPythonSource(DataSourceInterface):
                 while isinstance(first_value, list):
                     first_value = first_value[0]
 
+                try:
+                    coord_data_shape = np.asarray(serialized_data).shape
+                except ValueError:
+                    coord_data_shape = "inhomogeneous"
+
                 c = {
                     "name": coord.split("/")[-1],
                     "target": f"#{ids}/{target}",
                     "unit": first_value.metadata.units,
-                    "shape": np.asarray(serialized_data).shape,
+                    "shape": coord_data_shape,
                     "ndim": first_value.metadata.ndim,
                     "path": f"#{ids}/{coord}",
                     "description": first_value.metadata.documentation,
@@ -654,11 +659,16 @@ class IMASPythonSource(DataSourceInterface):
         while isinstance(first_value, list):
             first_value = first_value[0]
 
+        try:
+            data_shape = np.asarray(data_to_be_returned).shape
+        except ValueError:
+            data_shape = "inhomogeneous"
+
         result = {
             "data": {
                 "name": node_path.split("/")[-1],
                 "unit": first_value.metadata.units,
-                "shape": np.asarray(data_to_be_returned).shape,
+                "shape": data_shape,
                 "ndim": first_value.metadata.ndim,
                 "path": f"#{ids}/{node_path}",
                 "description": first_value.metadata.documentation,
