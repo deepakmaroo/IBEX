@@ -24,7 +24,6 @@ import {
   PlotDataResponse,
 } from 'src/renderer/types';
 import { fetchArraySummary, fetchDataPlot } from '../../utils';
-import { use } from 'chai';
 
 interface MetaDataInfosProps {
   data: DataPlotly;

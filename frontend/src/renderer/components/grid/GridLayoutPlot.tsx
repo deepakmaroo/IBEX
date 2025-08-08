@@ -148,7 +148,9 @@ export const GridLayoutPlot = ({
             >
               <Tabs.List>
                 {data.plot.map((plot, index) => (
-                  <Tabs.Tab key={`3D_tab_${index}`} value={index.toString()}>{plot.name}</Tabs.Tab>
+                  <Tabs.Tab key={`3D_tab_${index}`} value={index.toString()}>
+                    {plot.name}
+                  </Tabs.Tab>
                 ))}
               </Tabs.List>
             </Tabs>
