@@ -11,9 +11,15 @@ interface Surface2DProps {
   itemDataGrid: DataGridPlot;
   width?: number;
   height?: number;
+  plotIndex: string;
 }
 
-export const Surface2D = ({ itemDataGrid, width, height }: Surface2DProps) => {
+export const Surface2D = ({
+  itemDataGrid,
+  width,
+  height,
+  plotIndex,
+}: Surface2DProps) => {
   const [frameIndex, setFrameIndex] = useState(0); //Time slicing by default
   const [xAxis, setXAxis] = useState<Axis>(null);
   const [yAxis, setYAxis] = useState<Axis>(null);
@@ -45,13 +51,19 @@ export const Surface2D = ({ itemDataGrid, width, height }: Surface2DProps) => {
 
   const init3DAxis = useCallback(async () => {
     // Transpose data matrix to orign values
-    const tensor = tf.tensor(itemDataGrid.plot[0].yData);
+    const selectedDataMatrix = itemDataGrid.plot[parseInt(plotIndex)]?.yData;
+    if (!selectedDataMatrix) {
+      return;
+    }
+    const tensor = tf.tensor(selectedDataMatrix);
     const coordinatesLength = itemDataGrid.coordinates.length - 1;
     const newAxeOrder = itemDataGrid.coordinates.map((coord, index) => ({
       newPosition: index,
       axeIndex: coordinatesLength - index,
     }));
-    const positionToOrigin = JSON.parse(JSON.stringify(itemDataGrid.coordinates))
+    const positionToOrigin = JSON.parse(
+      JSON.stringify(itemDataGrid.coordinates),
+    )
       .reverse()
       .map(
         (reversedCoord: Coordinates) =>
@@ -93,13 +105,13 @@ export const Surface2D = ({ itemDataGrid, width, height }: Surface2DProps) => {
         break;
       }
     }
-  }, [itemDataGrid.plot, itemDataGrid.coordinates]);
+  }, [itemDataGrid.plot, itemDataGrid.coordinates, plotIndex]);
 
   /* Initialize data3D with generated data */
   useEffect(() => {
     //Get first plot data
     init3DAxis();
-  }, [itemDataGrid.plot, itemDataGrid.coordinates]);
+  }, [itemDataGrid.plot, itemDataGrid.coordinates, plotIndex]);
 
   /* Update the layout of the plot */
   useEffect(() => {
@@ -131,6 +143,7 @@ export const Surface2D = ({ itemDataGrid, width, height }: Surface2DProps) => {
             width: 'inherit',
           },
         }}
+        mt={10}
       >
         <Grid.Col span="content" mt={10}>
           <VerticalSlider

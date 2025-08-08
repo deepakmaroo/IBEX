@@ -10,7 +10,14 @@ import {
   DataGridPlot,
   GridLayoutPlotProps,
 } from 'src/renderer/types';
-import { ActionIcon, Container, Group, Text, Tooltip } from '@mantine/core';
+import {
+  ActionIcon,
+  Container,
+  Group,
+  Tabs,
+  Text,
+  Tooltip,
+} from '@mantine/core';
 
 import {
   IconBrandDatabricks,
@@ -39,6 +46,7 @@ export const GridLayoutPlot = ({
   );
   const [widthGrid, setWidthGrid] = useState(Math.floor(data.w * colWidth));
   const [is3DView, setIs3DView] = useState<boolean>(false);
+  const [active3DTab, setActive3DTab] = useState<string>('0');
 
   /**
    * Handle resize the grid
@@ -47,6 +55,12 @@ export const GridLayoutPlot = ({
     setHeightGrid(data.h * rowHeight + (23 * (data.h * rowHeight)) / 100);
     setWidthGrid(Math.floor(data.w * colWidth));
   }, [data.h, rowHeight, data.w, colWidth]);
+
+  useEffect(() => {
+    if (parseInt(active3DTab) > data.plot.length - 1) {
+      setActive3DTab('0');
+    }
+  }, [data.plot]);
 
   /**
    * Update the width of the slider when the grid is resized
@@ -126,84 +140,103 @@ export const GridLayoutPlot = ({
   return (
     <Container fluid w={widthGrid} p={0}>
       <div ref={hoverRef} className={classes.containerButton}>
-        {(hovered || data.isEditing) && (
-          <Group pos="absolute" right={data.isEditing ? 3 : 1} top={5} grow>
-            {/* 3D button display */}
-            <Tooltip label="Toggle 2D/3D view">
-              <ActionIcon
-                variant="filled"
-                aria-label="Toggle 2D/3D view"
-                onClick={() => setIs3DView((prev) => !prev)}
-                className={classes.actionButton}
-                disabled={data.coordinates.length !== 3} //Only enable if there are 3 coordinates - corresponding to 3D data
-              >
-                {is3DView ? (
-                  <Text fw="bold">1D</Text>
-                ) : (
-                  <Text fw="bold">3D</Text>
-                )}
-              </ActionIcon>
-            </Tooltip>
-            {/* Metadata component button */}
-            <Tooltip label="Inspect metadatas information">
-              <ActionIcon
-                variant="filled"
-                aria-label="Metadatas"
-                onClick={() => handleInspectMetadata(data.i)}
-                className={classes.actionButton}
-              >
-                <IconBrandDatabricks
-                  style={{ width: '70%', height: '70%' }}
-                  stroke={1.5}
-                />
-              </ActionIcon>
-            </Tooltip>
-            <Tooltip
-              label={
-                data.isEditing
-                  ? 'Validate/Close editing the grid'
-                  : 'Open editing the grid'
-              }
+        <Group justify="space-between" h={'100%'}>
+          {is3DView ? (
+            <Tabs
+              value={active3DTab}
+              onChange={(value) => setActive3DTab(value)}
             >
-              <ActionIcon
-                variant="filled"
-                aria-label="Editing"
-                onClick={() => handleEditGrid(data.i)}
-                className={classes.actionButton}
-                color={data.isEditing ? 'yellow' : 'green'}
-              >
-                {data.isEditing ? (
-                  <IconCheck
-                    style={{ width: '70%', height: '70%' }}
-                    stroke={1.5}
-                  />
-                ) : (
-                  <IconEdit
-                    style={{ width: '70%', height: '70%' }}
-                    stroke={1.5}
-                  />
-                )}
-              </ActionIcon>
-            </Tooltip>
-            {/* Delete grid button */}
-            {handleDeleteGrid && (
-              <Tooltip label="Delete the grid">
+              <Tabs.List>
+                {data.plot.map((plot, index) => (
+                  <Tabs.Tab key={`3D_tab_${index}`} value={index.toString()}>{plot.name}</Tabs.Tab>
+                ))}
+              </Tabs.List>
+            </Tabs>
+          ) : (
+            <div></div>
+          )}
+
+          {hovered || data.isEditing ? (
+            <Group pos="absolute" right={'1rem'} top={5} grow>
+              {/* 3D button display */}
+              <Tooltip label="Toggle 2D/3D view">
                 <ActionIcon
                   variant="filled"
-                  aria-label="Delete"
-                  onClick={() => handleDeleteGrid(data.i)}
+                  aria-label="Toggle 2D/3D view"
+                  onClick={() => setIs3DView((prev) => !prev)}
                   className={classes.actionButton}
-                  color="red"
+                  disabled={data.coordinates.length !== 3} //Only enable if there are 3 coordinates - corresponding to 3D data
                 >
-                  <IconTrash
+                  {is3DView ? (
+                    <Text fw="bold">2D</Text>
+                  ) : (
+                    <Text fw="bold">3D</Text>
+                  )}
+                </ActionIcon>
+              </Tooltip>
+              {/* Metadata component button */}
+              <Tooltip label="Inspect metadatas information">
+                <ActionIcon
+                  variant="filled"
+                  aria-label="Metadatas"
+                  onClick={() => handleInspectMetadata(data.i)}
+                  className={classes.actionButton}
+                >
+                  <IconBrandDatabricks
                     style={{ width: '70%', height: '70%' }}
                     stroke={1.5}
                   />
                 </ActionIcon>
               </Tooltip>
-            )}
-          </Group>
-        )}
+              <Tooltip
+                label={
+                  data.isEditing
+                    ? 'Validate/Close editing the grid'
+                    : 'Open editing the grid'
+                }
+              >
+                <ActionIcon
+                  variant="filled"
+                  aria-label="Editing"
+                  onClick={() => handleEditGrid(data.i)}
+                  className={classes.actionButton}
+                  color={data.isEditing ? 'yellow' : 'green'}
+                >
+                  {data.isEditing ? (
+                    <IconCheck
+                      style={{ width: '70%', height: '70%' }}
+                      stroke={1.5}
+                    />
+                  ) : (
+                    <IconEdit
+                      style={{ width: '70%', height: '70%' }}
+                      stroke={1.5}
+                    />
+                  )}
+                </ActionIcon>
+              </Tooltip>
+              {/* Delete grid button */}
+              {handleDeleteGrid && (
+                <Tooltip label="Delete the grid">
+                  <ActionIcon
+                    variant="filled"
+                    aria-label="Delete"
+                    onClick={() => handleDeleteGrid(data.i)}
+                    className={classes.actionButton}
+                    color="red"
+                  >
+                    <IconTrash
+                      style={{ width: '70%', height: '70%' }}
+                      stroke={1.5}
+                    />
+                  </ActionIcon>
+                </Tooltip>
+              )}
+            </Group>
+          ) : (
+            <div></div>
+          )}
+        </Group>
       </div>
 
       {is3DView ? (
@@ -214,7 +247,8 @@ export const GridLayoutPlot = ({
               ? widthGrid - widthSlider - 30
               : widthGrid - 40
           }
-          height={heightGrid}
+          height={heightGrid - 10}
+          plotIndex={active3DTab}
         />
       ) : (
         <SimplePlotly
