@@ -83,7 +83,12 @@ export const Surface2D = ({
       (coordinate) => coordinate.name === 'time',
     );
     if (findTimeCoordinate) {
-      setSlice(getFirstArrayValueFromShape(findTimeCoordinate.data, findTimeCoordinate.shape));
+      setSlice(
+        getFirstArrayValueFromShape(
+          findTimeCoordinate.data,
+          findTimeCoordinate.shape,
+        ),
+      );
     }
 
     setZAxis({

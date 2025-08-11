@@ -1,5 +1,6 @@
 import { Data } from 'plotly.js';
 import { Layout } from 'react-grid-layout';
+import { ShapeFactorResponse } from './data';
 
 export interface Axis {
   name: string;
@@ -17,6 +18,7 @@ export interface BaseCoordinates {
 export interface Coordinates extends BaseCoordinates {
   name: string;
   shape: number[];
+  shape_factors: ShapeFactorResponse[];
   data: AxisData;
   axeIndex: number;
   unit?: string;

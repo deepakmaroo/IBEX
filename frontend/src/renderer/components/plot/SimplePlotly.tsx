@@ -373,7 +373,10 @@ export const SimplePlotly = ({
         const xCoordinate = updatedDataPlot.coordinates.find(
           (coord) => coord.axeIndex === 0,
         );
-        plot.x = getFirstArrayValueFromShape(xCoordinate.data, xCoordinate.shape)
+        plot.x = getFirstArrayValueFromShape(
+          xCoordinate.data,
+          xCoordinate.shape,
+        );
       }
       const updatedActive = {
         ...active,
