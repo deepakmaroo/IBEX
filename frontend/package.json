@@ -71,6 +71,7 @@
     "@mantine/modals": "^7.17.7",
     "@mantine/notifications": "^7.17.7",
     "@tabler/icons-react": "^3.23.0",
+    "@tensorflow/tfjs": "^4.22.0",
     "dotenv": "^16.4.7",
     "electron-squirrel-startup": "^1.0.1",
     "eslint-plugin-prettier": "^5.5.1",

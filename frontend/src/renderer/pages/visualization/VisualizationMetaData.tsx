@@ -199,7 +199,10 @@ export const VisualizationMetaData = () => {
   const HEIGHT_PLOT = 390;
   const { active, updatedConfiguration } = useIbexStore();
   const [tabsValue, setTabsValue] = useState<string | null>();
-  const [dataGridLayout, setDataGridLayout] = useState<DataGridPlot>(null);
+  const [itemDataGrid, setItemDataGrid] = useState<DataGridPlot | null>(null);
+  const [dataGridLayout, setDataGridLayout] = useState<DataGridPlot | null>(
+    null,
+  );
 
   /**
    * Handle find grid layout corresponding to the selected tab
@@ -212,6 +215,15 @@ export const VisualizationMetaData = () => {
       if (data) {
         setDataGridLayout(data);
         setTabsValue(data.plot[0]?.name || null);
+        const findPlot = data.plot.find(
+          (item) => item.name === data.plot[0]?.name,
+        );
+        if (findPlot) {
+          setItemDataGrid({
+            ...data,
+            plot: [findPlot],
+          });
+        }
       }
     }
   }, [active]);
@@ -227,9 +239,30 @@ export const VisualizationMetaData = () => {
     updatedConfiguration(updatedActive);
   }, [active]);
 
+  /**
+   * Handle selected tab change
+   */
+  const handleSelectedTab = useCallback(
+    (value: string | null) => {
+      setTabsValue(value);
+      if (dataGridLayout) {
+        const selectedPlot = dataGridLayout.plot.find(
+          (item) => item.name === value,
+        );
+        if (selectedPlot) {
+          setItemDataGrid({
+            ...dataGridLayout,
+            plot: [selectedPlot],
+          });
+        }
+      }
+    },
+    [dataGridLayout, setItemDataGrid],
+  );
+
   return (
     <Container fluid pb={10}>
-      <Tabs value={tabsValue} onChange={setTabsValue}>
+      <Tabs value={tabsValue} onChange={(value) => handleSelectedTab(value)}>
         <TabsListCustom
           data={
             dataGridLayout
@@ -265,18 +298,9 @@ export const VisualizationMetaData = () => {
                             radius="md"
                           >
                             <SimplePlotly
-                              key={`${item.name}-metadata-${index}`}
-                              data={[itemWithoutY2axis]}
+                              itemDataGrid={itemDataGrid}
                               width={WIDTH_PLOT}
                               height={HEIGHT_PLOT}
-                              isStatic={true}
-                              title={item.name}
-                              xAxis={dataGridLayout.xAxisData}
-                              yAxis={
-                                item.yaxis !== '' // show y2Axis in yAxis when forced to one yAxis
-                                  ? dataGridLayout.y2AxisData
-                                  : dataGridLayout.yAxisData
-                              }
                             />
                           </Paper>
                         </Center>

@@ -137,9 +137,8 @@ export const handleNewPlot = async (
     };
 
     //Get coordinates data for slider - all coordinates except the first one, is considered as x coordinates
-    xCoordinatesData = response.data.coordinates
-      .slice(1)
-      .map((coordinate: PlotCoordinatesResponse) => {
+    xCoordinatesData = response.data.coordinates.map(
+      (coordinate: PlotCoordinatesResponse, index) => {
         const dataValue: number[] = getFirstArrayValueFromShape(
           coordinate.value,
           coordinate.shape,
@@ -149,11 +148,14 @@ export const handleNewPlot = async (
           name: coordinate.name,
           shape: coordinate.shape,
           data: dataValue,
-          index: 0,
+          valueIndex: 0,
           target: getDefaultUri(coordinate.target),
           nodeUri: defaultUri,
+          axeIndex: index,
+          unit: coordinate.unit || '',
         };
-      });
+      },
+    );
   }
 
   // Set the yAxis properties
@@ -265,11 +267,11 @@ export const handleExistingPlot = async (
 
         if (!lastField) return;
 
-        coordResponses.forEach((res) => {
+        coordsResponse.forEach((res) => {
           res.target = updateIndexFieldName(
             res.target,
             lastField,
-            matchingCoord.index,
+            matchingCoord.valueIndex,
           );
         });
 
@@ -277,34 +279,26 @@ export const handleExistingPlot = async (
         defaultUri = updateIndexFieldName(
           defaultUri,
           lastField,
-          matchingCoord.index,
+          matchingCoord.valueIndex,
         );
         xAxisResponsePath = updateIndexFieldName(
           xAxisResponsePath,
           lastField,
-          matchingCoord.index,
+          matchingCoord.valueIndex,
         );
         yDataResponsePath = updateIndexFieldName(
           yDataResponsePath,
           lastField,
-          matchingCoord.index,
+          matchingCoord.valueIndex,
         );
-        // xAxis.path = updateIndexFieldName(
-        //   xAxis.path,
-        //   lastField,
-        //   matchingCoord.index,
-        // );
       });
     }
 
     const coordinatesExistAndMatch =
-      findDataPlot.coordinates.length === coordsResponse.slice(1).length &&
+      findDataPlot.coordinates.length === coordsResponse.length &&
       findDataPlot.coordinates.every((coord, index) => {
-        const responseCoord = coordsResponse[index + 1]; // Skip the first coordinate
-        return (
-          coord.name === responseCoord.name &&
-          coord.target === responseCoord.target
-        );
+        const responseCoord = coordsResponse[index]; // Skip the first coordinate
+        return coord.name === responseCoord.name;
       });
 
     if (sliderExist && !coordinatesExistAndMatch) {
@@ -501,9 +495,9 @@ export async function plotNodeUriLoaded(
 
               let yResponsePath = response.data.path;
 
-              for (const responseCoordinates of response.data.coordinates.slice(
-                1,
-              )) {
+              let index = 0;
+              for (const responseCoordinates of response.data.coordinates) {
+                index++;
                 const matchingCoord = dataGrid.coordinates.find(
                   (c) =>
                     normalizeIndices(c.target) === responseCoordinates.target,
@@ -518,7 +512,8 @@ export async function plotNodeUriLoaded(
                       responseCoordinates.shape,
                     ),
                     target: getDefaultUri(responseCoordinates.target),
-                    index: 0,
+                    valueIndex: 0,
+                    axeIndex: index,
                   });
                 }
 
@@ -539,19 +534,19 @@ export async function plotNodeUriLoaded(
                 matchingCoord.target = updateIndexFieldName(
                   matchingCoord.target,
                   lastField,
-                  matchingCoord.index,
+                  matchingCoord.valueIndex,
                 );
 
                 yResponsePath = updateIndexFieldName(
                   yResponsePath,
                   lastField,
-                  matchingCoord.index,
+                  matchingCoord.valueIndex,
                 );
 
                 updatedXAxisData.path = updateIndexFieldName(
                   updatedXAxisData.path,
                   lastField,
-                  matchingCoord.index,
+                  matchingCoord.valueIndex,
                 );
 
                 //Upgrade datagrid coordinates with the response
@@ -637,11 +632,13 @@ export function getVectorData(
   const coordinatesLength: number = coordinates.length;
 
   // Extract only matrix indexes
-  const matches = [...uri.matchAll(/\[(\d+)\]/g)];
-  const matrixIndexes = matches.map((match) => parseInt(match[1]));
+  const matrixIndexes = JSON.parse(JSON.stringify(coordinates))
+    .sort(compareByAxeIndex)
+    .reverse()
+    .filter((coord: Coordinates) => coord.axeIndex !== 0)
+    .map((coord: Coordinates) => coord.valueIndex);
 
   // Retrieve vector to plot
-
   /* eslint-disable  @typescript-eslint/no-explicit-any */
   let result: any = yData;
   let shapeIndex = 0;
@@ -660,4 +657,19 @@ export function getVectorData(
   }
   const vectorData: number[] = result;
   return vectorData;
+}
+
+/**
+ * @description Compares two Coordinates objects by their axeIndex.
+ * @param a The first Coordinates object.
+ * @param b The second Coordinates object.
+ * @returns A negative number if a's axeIndex is less than b's, a positive number if greater, or 0 if equal.
+ */
+export function compareByAxeIndex(a: Coordinates, b: Coordinates) {
+  if (a.axeIndex < b.axeIndex) {
+    return -1;
+  } else if (a.axeIndex > b.axeIndex) {
+    return 1;
+  }
+  return 0;
 }
