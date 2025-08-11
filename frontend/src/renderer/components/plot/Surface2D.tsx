@@ -6,6 +6,7 @@ import classe from './SimplePlotly.module.css';
 import { Grid } from '@mantine/core';
 import { VerticalSlider } from '../verticalSlider';
 import * as tf from '@tensorflow/tfjs';
+import { getFirstArrayValueFromShape } from '../../utils';
 
 interface Surface2DProps {
   itemDataGrid: DataGridPlot;
@@ -82,7 +83,7 @@ export const Surface2D = ({
       (coordinate) => coordinate.name === 'time',
     );
     if (findTimeCoordinate) {
-      setSlice(findTimeCoordinate.data);
+      setSlice(getFirstArrayValueFromShape(findTimeCoordinate.data, findTimeCoordinate.shape));
     }
 
     setZAxis({

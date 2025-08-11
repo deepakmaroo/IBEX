@@ -117,7 +117,7 @@ export const handleNewPlot = async (
   let defaultUri = nodes[0].uri; //Use normalized URI to get all matrix
 
   const response: PlotDataResponse = await fetchDataPlot(defaultUri);
-
+  
   defaultUri = getDefaultUri(defaultUri); //Set defaultUri [0] by default
 
   if (!checkDimension1(response, updatedActive, nodes)) {
@@ -139,15 +139,12 @@ export const handleNewPlot = async (
     //Get coordinates data for slider - all coordinates except the first one, is considered as x coordinates
     xCoordinatesData = response.data.coordinates.map(
       (coordinate: PlotCoordinatesResponse, index) => {
-        const dataValue: number[] = getFirstArrayValueFromShape(
-          coordinate.value,
-          coordinate.shape,
-        );
+        const dataValueMatrix: AxisData = coordinate.value;
 
         return {
           name: coordinate.name,
           shape: coordinate.shape,
-          data: dataValue,
+          data: dataValueMatrix,
           valueIndex: 0,
           target: getDefaultUri(coordinate.target),
           nodeUri: defaultUri,
@@ -507,10 +504,7 @@ export async function plotNodeUriLoaded(
                   dataGrid.coordinates.push({
                     name: responseCoordinates.name,
                     shape: responseCoordinates.shape,
-                    data: getFirstArrayValueFromShape(
-                      responseCoordinates.value,
-                      responseCoordinates.shape,
-                    ),
+                    data: responseCoordinates.value,
                     target: getDefaultUri(responseCoordinates.target),
                     valueIndex: 0,
                     axeIndex: index,
@@ -523,10 +517,7 @@ export async function plotNodeUriLoaded(
                 if (!lastField) continue;
 
                 // If coordinates exist, update the data and shape
-                matchingCoord.data = getFirstArrayValueFromShape(
-                  responseCoordinates.value,
-                  responseCoordinates.shape,
-                );
+                matchingCoord.data = responseCoordinates.value
                 matchingCoord.name = responseCoordinates.name;
                 matchingCoord.shape = responseCoordinates.shape;
 

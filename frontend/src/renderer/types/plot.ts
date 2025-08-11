@@ -17,7 +17,7 @@ export interface BaseCoordinates {
 export interface Coordinates extends BaseCoordinates {
   name: string;
   shape: number[];
-  data: number[];
+  data: AxisData;
   axeIndex: number;
   unit?: string;
 }

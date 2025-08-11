@@ -373,7 +373,7 @@ export const SimplePlotly = ({
         const xCoordinate = updatedDataPlot.coordinates.find(
           (coord) => coord.axeIndex === 0,
         );
-        plot.x = xCoordinate.data;
+        plot.x = getFirstArrayValueFromShape(xCoordinate.data, xCoordinate.shape)
       }
       const updatedActive = {
         ...active,
@@ -411,7 +411,7 @@ export const SimplePlotly = ({
                       key={valueIndex}
                       name={item.name}
                       valueIndex={item.valueIndex || 0}
-                      data={item.data}
+                      data={getFirstArrayValueFromShape(item.data, item.shape)}
                       getValue={(valueIndex) => {
                         handleUpdateCoordinate(item, valueIndex);
                       }}
