@@ -359,7 +359,6 @@ export const handleExistingPlot = async (
     );
 
     const defaultYValue = getVectorData(
-      defaultUri,
       findDataPlot.coordinates,
       response.data.value,
     );
@@ -624,11 +623,7 @@ export async function plotNodeUriLoaded(
  * @param plotItem The plot item containing the yData to extract the vector from.
  * @returns The vector data as an array of numbers, or undefined if the indices are invalid
  */
-export function getVectorData(
-  uri: string,
-  coordinates: Coordinates[],
-  yData: AxisData,
-) {
+export function getVectorData(coordinates: Coordinates[], yData: AxisData) {
   const coordinatesLength: number = coordinates.length;
 
   // Extract only matrix indexes

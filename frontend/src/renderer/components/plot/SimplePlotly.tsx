@@ -7,7 +7,6 @@ import { VerticalSlider } from '../verticalSlider';
 import { useIbexStore } from '../../stores';
 import {
   compareByAxeIndex,
-  getFirstArrayValueFromShape,
   getLastIndexedField,
   getVectorData,
   updateIndexFieldName,
@@ -225,7 +224,6 @@ export const SimplePlotly = ({
             );
 
             const newYData = getVectorData(
-              updatedNodeUri,
               updatedCoordinatesValue,
               plotItem.yData,
             );
@@ -365,11 +363,11 @@ export const SimplePlotly = ({
 
       // Update x & y with translated dataY
       for (const plot of updatedDataPlot.plot) {
-        const firstArrayValue = getFirstArrayValueFromShape(
+        const vectorData = getVectorData(
+          updatedDataPlot.coordinates,
           plot.yData,
-          plot.shape,
         );
-        plot.y = firstArrayValue;
+        plot.y = vectorData;
         const xCoordinate = updatedDataPlot.coordinates.find(
           (coord) => coord.axeIndex === 0,
         );
