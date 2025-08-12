@@ -1,4 +1,4 @@
-import { AxisData } from '../types';
+import { AxisData, Coordinates } from '../types';
 
 export const getFirstArrayValueFromShape = (
   value: AxisData,
@@ -24,6 +24,27 @@ export const getFirstArrayValueFromShape = (
     Array.isArray(value[0][0])
     ? (value[0][0] as number[])
     : [];
+};
+
+export const getArrayValueFromDependance = (
+  xCoordinate: Coordinates,
+  coordinates: Coordinates[],
+) => {
+  if (!xCoordinate.shape_factors.length) {
+    return getFirstArrayValueFromShape(xCoordinate.data, xCoordinate.shape);
+  }
+
+  const dependance = xCoordinate.shape_factors.map(
+    (deps) => deps.values_source,
+  )[0]; // We consider that there is only one dependance
+  const indexValueDependance = coordinates.find(
+    (coord_dep) => coord_dep.name === dependance,
+  ).valueIndex;
+  const returnValue = xCoordinate.data[indexValueDependance] as (
+    | string
+    | number
+  )[];
+  return returnValue;
 };
 
 export const is3DMatrix = (shape: number[]): boolean => {

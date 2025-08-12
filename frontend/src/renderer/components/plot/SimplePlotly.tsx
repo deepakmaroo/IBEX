@@ -2,12 +2,18 @@ import { Grid, Group } from '@mantine/core';
 import { Layout } from 'plotly.js';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Plot from 'react-plotly.js';
-import { Axis, Coordinates, DataGridPlot } from 'src/renderer/types';
+import {
+  Axis,
+  Configuration,
+  Coordinates,
+  DataGridPlot,
+} from 'src/renderer/types';
 import { VerticalSlider } from '../verticalSlider';
 import { useIbexStore } from '../../stores';
 import {
   compareByAxeIndex,
   getFirstArrayValueFromShape,
+  getArrayValueFromDependance,
   getLastIndexedField,
   getVectorData,
   updateIndexFieldName,
@@ -198,7 +204,7 @@ export const SimplePlotly = ({
       };
     });
 
-    const updatedActive = {
+    const updatedActive: Configuration = {
       ...active,
       dataPlot: active.dataPlot.map((item: DataGridPlot) => {
         if (item.i === itemDataGrid.i) {
@@ -210,6 +216,15 @@ export const SimplePlotly = ({
               valueIndex,
             ),
           };
+
+          // Get x values switch x dependances
+          const xCoordinate = updatedCoordinatesValue.find(
+            (xCoord) => xCoord.name === updatedXAxisData.name,
+          );
+          const newXData = getArrayValueFromDependance(
+            xCoordinate,
+            updatedCoordinatesValue,
+          );
 
           const updatedPlot = item.plot.map((plotItem) => {
             const updatedNodeUri = updateIndexFieldName(
@@ -232,6 +247,7 @@ export const SimplePlotly = ({
 
             return {
               ...plotItem,
+              x: newXData,
               y: newYData,
               nodeUri: updatedNodeUri,
 
@@ -248,7 +264,7 @@ export const SimplePlotly = ({
         }
 
         return item;
-      }),
+      }) as DataGridPlot[],
     };
 
     updatedConfiguration(updatedActive);
@@ -373,9 +389,10 @@ export const SimplePlotly = ({
         const xCoordinate = updatedDataPlot.coordinates.find(
           (coord) => coord.axeIndex === 0,
         );
-        plot.x = getFirstArrayValueFromShape(
-          xCoordinate.data,
-          xCoordinate.shape,
+        // Get x values switch x dependances
+        plot.x = getArrayValueFromDependance(
+          xCoordinate,
+          itemDataGrid.coordinates,
         );
       }
       const updatedActive = {
