@@ -370,7 +370,11 @@ class IMASPythonSource(DataSourceInterface):
 
         data_to_be_returned = self._serialize_data(ids_data)
 
-        if ids_data.metadata.ndim == 1 and downsampling_method is not None:
+        first_value = ids_data
+        while isinstance(first_value, list):
+            first_value = first_value[0]
+
+        if first_value.metadata.ndim == 1 and downsampling_method is not None:
             _, data_to_be_returned = downsample_data(
                 data=data_to_be_returned, target_size=downsampled_size, method=downsampling_method
             )
@@ -646,8 +650,8 @@ class IMASPythonSource(DataSourceInterface):
                     "name": splitted_target[-1],
                     "target": f"#{ids}/{target}",
                     "unit": "-",
-                    "shape": coord_values.shape,
-                    "downsampled_shape": coord_values.shape,
+                    "shape": np.asarray(coord_values).shape,
+                    "downsampled_shape": np.asarray(coord_values).shape,
                     "ndim": 1,  # 1...N coord always have 1 dimension
                     "path": "",
                     "description": "1...N",
