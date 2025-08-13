@@ -532,7 +532,7 @@ class IMASPythonSource(DataSourceInterface):
         """
         if isinstance(data, IDSStructure):
             raise NotALeafNodeException("Cannot serialize non-leaf node")
-        if isinstance(data, str):
+        if isinstance(data, (str, int, float)):
             return data
         elif isinstance(data, IDSNumericArray):
             return data.value.tolist()

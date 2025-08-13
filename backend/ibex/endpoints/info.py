@@ -19,8 +19,8 @@ async def version() -> dict:
     return res
 
 
-@ibex_service.measure_execution_time
 @router.get("/info/downsampling_methods/")
+@ibex_service.measure_execution_time
 async def downsampling_methods() -> dict:
     """
     IBEX endpoint. Available downsampling methods to be passed to /data/plot_data endpoint as query argument

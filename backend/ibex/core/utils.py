@@ -41,21 +41,19 @@ def step_average_downsampling(data: IDSNumericArray, n_out: int, x=None, *args, 
     :param `**kwargs`: unused argument
 
     """
-    if len(data) < n_out * 2:
-        # cannot calculate average when there are less than 2 elements per group
-        return data
 
-    group_size = int(len(data) / n_out)
-    group_count = int(len(data) / group_size)
+    original_size = data.shape[0]
+    if n_out <= 0 or n_out > original_size:
+        return x, data
 
-    # reshape() can work only on data divisible by group_size, so there is almost always
-    # a part of list that has not been included in the process. We will add it later
-    data_array = np.asarray(data[: group_count * group_size])
-    result = np.mean(data_array.reshape(-1, int(group_size)), 1)
+    step = original_size // n_out
+    trimmed_size = step * n_out
+    trimmed_data = data[:trimmed_size]
 
-    leftover_array = np.asarray(data[group_count * group_size :])
+    new_shape = (n_out, step) + data.shape[1:]
+    reshaped = trimmed_data.reshape(new_shape)
 
-    leftover_result = np.asarray([np.mean(leftover_array)])
+    result = reshaped.mean(axis=1)
 
     if x:
         x_indices = step_downsampling(x, n_out=n_out)
@@ -63,7 +61,7 @@ def step_average_downsampling(data: IDSNumericArray, n_out: int, x=None, *args, 
         # if len(x) != len(y):
         #    raise AttributeError(f"X and Y lenght differ!!! X LEN: {len(x)} ||| Y LEN: {len(y)}")
 
-    return x, np.concatenate(result, leftover_result)
+    return x, result
 
 
 class DownsamplingMethods(Enum):
@@ -78,11 +76,11 @@ class DownsamplingMethods(Enum):
         "description": "Returns every n-th element. N is calculated basing on desired data size",
         "function": step_downsampling,
     }
-    # STEP_AVERAGE = {
-    #    "name": "Step average",
-    #    "description": "Divides data into bins and return average value of every bin. Bin size is calculated basing on desired data size",
-    #    "function": step_average_downsampling,
-    # }
+    STEP_AVERAGE = {
+        "name": "Step average",
+        "description": "Divides data into bins and return average value of every bin. Bin size is calculated basing on desired data size",
+        "function": step_average_downsampling,
+    }
     MIN_MAX = {"name": "Min-Max", "description": "", "function": MinMaxDownsampler().downsample}
     M4 = {"name": "M4", "description": "", "function": M4Downsampler().downsample}
     LTTB = {"name": "LTTB", "description": "", "function": LTTBDownsampler().downsample}
@@ -132,7 +130,7 @@ def downsample_data(data: List, target_size: int, method: str | None = None, x=N
 
     if DownsamplingMethods(method).value["name"] == "Step average":
         # Step average performs computation on data instead of just choosing indices, so we have to handle it separately
-        return step_average_downsampling(data, n_out=target_size)
+        return step_average_downsampling(data, n_out=target_size, x=x)
 
     downsampling_function = DownsamplingMethods(method).value["function"]
 
