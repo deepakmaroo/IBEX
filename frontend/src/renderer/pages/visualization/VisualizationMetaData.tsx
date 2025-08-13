@@ -199,7 +199,10 @@ export const VisualizationMetaData = () => {
   const HEIGHT_PLOT = 390;
   const { active, updatedConfiguration } = useIbexStore();
   const [tabsValue, setTabsValue] = useState<string | null>();
-  const [dataGridLayout, setDataGridLayout] = useState<DataGridPlot>(null);
+  const [itemDataGrid, setItemDataGrid] = useState<DataGridPlot | null>(null);
+  const [dataGridLayout, setDataGridLayout] = useState<DataGridPlot | null>(
+    null,
+  );
 
   /**
    * Handle find grid layout corresponding to the selected tab
@@ -212,6 +215,15 @@ export const VisualizationMetaData = () => {
       if (data) {
         setDataGridLayout(data);
         setTabsValue(data.plot[0]?.name || null);
+        const findPlot = data.plot.find(
+          (item) => item.name === data.plot[0]?.name,
+        );
+        if (findPlot) {
+          setItemDataGrid({
+            ...data,
+            plot: [findPlot],
+          });
+        }
       }
     }
   }, [active]);
@@ -227,9 +239,30 @@ export const VisualizationMetaData = () => {
     updatedConfiguration(updatedActive);
   }, [active]);
 
+  /**
+   * Handle selected tab change
+   */
+  const handleSelectedTab = useCallback(
+    (value: string | null) => {
+      setTabsValue(value);
+      if (dataGridLayout) {
+        const selectedPlot = dataGridLayout.plot.find(
+          (item) => item.name === value,
+        );
+        if (selectedPlot) {
+          setItemDataGrid({
+            ...dataGridLayout,
+            plot: [selectedPlot],
+          });
+        }
+      }
+    },
+    [dataGridLayout, setItemDataGrid],
+  );
+
   return (
     <Container fluid pb={10}>
-      <Tabs value={tabsValue} onChange={setTabsValue}>
+      <Tabs value={tabsValue} onChange={(value) => handleSelectedTab(value)}>
         <TabsListCustom
           data={
             dataGridLayout
@@ -244,52 +277,48 @@ export const VisualizationMetaData = () => {
 
         {dataGridLayout &&
           dataGridLayout.plot.map((item: DataPlotly, index) => {
-            item = {
-              ...item,
-              yaxis: '',
-            };
+            // force to have only one axis in metadata plot
+            const itemWithoutY2axis = JSON.parse(JSON.stringify(item));
+            if (item.yaxis != '') {
+              delete itemWithoutY2axis.yaxis;
+            }
+
             return (
               item?.name && (
-                <Tabs.Panel key={index} value={item?.name}>
-                  <Grid type="container">
-                    <Grid.Col span={5}>
-                      <Center h={HEIGHT}>
-                        <Paper
-                          style={{
-                            height: HEIGHT_PLOT,
-                          }}
-                          shadow="md"
-                          radius="md"
-                        >
-                          <SimplePlotly
-                            data={[item]}
-                            width={WIDTH_PLOT}
-                            height={HEIGHT_PLOT}
-                            isStatic={true}
-                            title={item.name}
-                            xAxis={dataGridLayout.xAxisData}
-                            yAxis={
-                              item.yaxis !== ''
-                                ? dataGridLayout.y2AxisData
-                                : dataGridLayout.yAxisData
-                            }
-                          />
-                        </Paper>
-                      </Center>
-                    </Grid.Col>
-                    <Grid.Col span={7}>
-                      <MetaDataInfos
-                        data={item}
-                        yAxis={
-                          item.yaxis !== ''
-                            ? dataGridLayout.y2AxisData
-                            : dataGridLayout.yAxisData
-                        }
-                        height={HEIGHT}
-                        tabsSelected={tabsValue}
-                      />
-                    </Grid.Col>
-                  </Grid>
+                <Tabs.Panel key={index} value={item.name}>
+                  {tabsValue === item.name && (
+                    <Grid type="container">
+                      <Grid.Col span={5}>
+                        <Center h={HEIGHT}>
+                          <Paper
+                            style={{
+                              height: HEIGHT_PLOT,
+                            }}
+                            shadow="md"
+                            radius="md"
+                          >
+                            <SimplePlotly
+                              itemDataGrid={itemDataGrid}
+                              width={WIDTH_PLOT}
+                              height={HEIGHT_PLOT}
+                            />
+                          </Paper>
+                        </Center>
+                      </Grid.Col>
+                      <Grid.Col span={7}>
+                        <MetaDataInfos
+                          data={item}
+                          yAxis={
+                            item.yaxis !== ''
+                              ? dataGridLayout.y2AxisData
+                              : dataGridLayout.yAxisData
+                          }
+                          height={HEIGHT}
+                          tabsSelected={tabsValue}
+                        />
+                      </Grid.Col>
+                    </Grid>
+                  )}
                 </Tabs.Panel>
               )
             );

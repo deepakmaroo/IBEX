@@ -14,7 +14,7 @@ interface VisualizationTreeProps {
   customDataTree: CustomTreeData[];
   height: string;
   checkedNodes: URIData[];
-  defaultValue?: string;
+  value?: string;
   handleAccordionChange: (value: string) => void;
   handleSelectChildren: (nodeValue: string) => void;
   getNodesChecked: (nodes: URITreeNodeData[]) => void;
@@ -55,7 +55,7 @@ export const TreeLibrariesAccordion = ({
   customDataTree,
   height,
   checkedNodes,
-  defaultValue,
+  value,
   handleAccordionChange,
   handleSelectChildren,
   getNodesChecked,
@@ -63,7 +63,7 @@ export const TreeLibrariesAccordion = ({
   const items = customDataTree.map((item) => {
     return (
       <Accordion.Item key={`accodion-${item.uri}`} value={`${item.uri}`}>
-        <Accordion.Control>
+        <Accordion.Control style={{ userSelect: 'text' }}>
           <AccordionLabel
             label={item.name}
             description={item.uri}
@@ -85,10 +85,7 @@ export const TreeLibrariesAccordion = ({
 
   return (
     <ScrollArea h={height}>
-      <Accordion
-        onChange={handleAccordionChange}
-        defaultValue={defaultValue || null}
-      >
+      <Accordion onChange={handleAccordionChange} value={value || null}>
         {items}
       </Accordion>
     </ScrollArea>

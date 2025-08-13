@@ -3,6 +3,7 @@ import {
   DataIdsResponse,
   FieldValueResponse,
   FormDbEntries,
+  InfoVersionResponse,
   NodeInfoResponse,
   PlotDataResponse,
   SearchNodeResponse,
@@ -88,9 +89,16 @@ export const fetchFindPaths = async (
  * Retrieves plot data for a given URI.
  */
 export const fetchDataPlot = async (uri: string) => {
-  return fetchFromApi<PlotDataResponse>(
+  const response = fetchFromApi<PlotDataResponse>(
     `/data/plot_data/?uri=${encodeURIComponent(uri)}`,
   );
+  // Force all targets to ends with '[:]'
+  for (const coord of (await response).data.coordinates) {
+    if (!coord.target.endsWith(']')) {
+      coord.target = coord.target += '[:]';
+    }
+  }
+  return response;
 };
 
 /**
@@ -138,4 +146,11 @@ export const fetchArraySummary = async (uri: string) => {
   return fetchFromApi<ArraySummaryResponse>(
     `/ids_info/array_summary/?uri=${encodeURIComponent(uri)}`,
   );
+};
+
+/**
+ * Return backend version.
+ */
+export const fetchInfoVersion = async () => {
+  return fetchFromApi<InfoVersionResponse>(`/info/version/`);
 };

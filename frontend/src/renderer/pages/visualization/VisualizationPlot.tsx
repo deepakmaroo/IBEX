@@ -84,6 +84,7 @@ export const VisualizationPlot = ({
    * Scroll to the bottom of the scroll area when new data is added or removed
    */
   useEffect(() => {
+    // Scroll to new plot
     if (scrollAreaRef.current) {
       scrollAreaRef.current.scrollTo({
         top: scrollAreaRef.current.scrollHeight,

@@ -34,6 +34,7 @@ import {
   fetchNodeInfos,
   handleExistingPlot,
   handleNewPlot,
+  hasUserSelectedText,
 } from '../../utils';
 
 interface VisualizationTreeProps {
@@ -333,14 +334,22 @@ export const VisualizationTree = ({
    */
   const handleAccordionChange = useCallback(
     (value: string) => {
+      // open uri Accordion only if user don't select text
+      if (hasUserSelectedText()) {
+        return;
+      }
+
       if (value) {
         const selectedURIData = active.dataURI.find(
           (item) => item.uri === value,
         );
+
         if (selectedURIData) {
           setUriSelected(selectedURIData);
           fetchIDSData(selectedURIData);
         }
+      } else {
+        setUriSelected(null);
       }
     },
     [active],
@@ -415,13 +424,15 @@ export const VisualizationTree = ({
       };
 
       try {
-        let findDataPlot = updatedActive.dataPlot.find(
+        let findEditablePlot = updatedActive.dataPlot.find(
           (plot) => plot.isEditing,
         );
 
-        if (!findDataPlot) {
+        if (!findEditablePlot) {
           updatedActive = await handleNewPlot(nodes, updatedActive);
-          findDataPlot = updatedActive.dataPlot.find((plot) => plot.isEditing);
+          findEditablePlot = updatedActive.dataPlot.find(
+            (plot) => plot.isEditing,
+          );
         } else {
           if (nodes.length === 0) {
             updatedActive.dataPlot = active.dataPlot.filter(
@@ -430,7 +441,7 @@ export const VisualizationTree = ({
           } else {
             updatedActive = await handleExistingPlot(
               nodes,
-              findDataPlot,
+              findEditablePlot,
               updatedActive,
             );
           }
@@ -521,7 +532,7 @@ export const VisualizationTree = ({
                 </Fieldset>
               </Container>
               <TreeLibrariesAccordion
-                defaultValue={uriSelected?.uri}
+                value={uriSelected?.uri}
                 customDataTree={active.customDataTree}
                 height={heightFormatted}
                 checkedNodes={active.checkedNodeURI || []}

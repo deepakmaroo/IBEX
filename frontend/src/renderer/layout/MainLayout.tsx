@@ -75,16 +75,9 @@ export function MainLayout() {
         h: dataGrid.h,
         coordinates: dataGrid.coordinates.map(
           (coord: Coordinates): BaseCoordinates => {
-            const findUri = active.dataURI.find((uri: URIData) =>
-              coord.nodeUri.includes(uri.uri),
-            );
-
-            const suffix = coord.nodeUri.split('#')[1];
-            const newNodeUri = `${findUri?.name}#${suffix}`;
             return {
               target: coord.target,
-              nodeUri: newNodeUri,
-              index: coord.index,
+              valueIndex: coord.valueIndex,
             };
           },
         ),
@@ -109,14 +102,20 @@ export function MainLayout() {
       dataPlot: dataGridWithoutData,
     };
     if (active?.path) {
-      await window.api.fs.writeFile(active.path, JSON.stringify(newIbexState));
+      await window.api.fs.writeFile(
+        active.path,
+        JSON.stringify(newIbexState, null, 2),
+      );
     } else {
       await window.api.fs
         .saveAsDialog(`${active.name}IbexState.json`, 'json')
         .then((path: string) => {
           if (path) {
             active.path = path;
-            window.api.fs.writeFile(path, JSON.stringify(newIbexState));
+            window.api.fs.writeFile(
+              path,
+              JSON.stringify(newIbexState, null, 2),
+            );
           }
         });
     }
@@ -159,24 +158,13 @@ export function MainLayout() {
                   coordinates:
                     data.coordinates && data.coordinates.length > 0
                       ? data.coordinates.map(
-                          (coord: BaseCoordinates): Coordinates => {
-                            const prefix = coord.nodeUri.split('#')[0];
-
-                            const matched = newIbexState.dataURI.find(
-                              (uri: URIData) => uri.name === prefix,
-                            );
-
-                            let fullNodeUri = coord.nodeUri;
-                            if (matched) {
-                              const suffix = coord.nodeUri.split('#')[1];
-                              fullNodeUri = `${matched.uri}#${suffix}`;
-                            }
+                          (coord: BaseCoordinates, index): Coordinates => {
                             return {
                               ...coord,
-                              nodeUri: fullNodeUri,
                               name: '',
                               shape: [],
                               data: [],
+                              axeIndex: index,
                             };
                           },
                         )
@@ -195,6 +183,7 @@ export function MainLayout() {
                     return {
                       ...plot,
                       nodeUri: fullNodeUri,
+                      yData: [],
                       x: [],
                       y: [],
                     };

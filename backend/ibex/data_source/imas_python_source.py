@@ -370,7 +370,7 @@ class IMASPythonSource(DataSourceInterface):
 
         data_to_be_returned = self._serialize_data(ids_data)
 
-        if ids_data.metadata.nim == 1 and downsampling_method is not None:
+        if ids_data.metadata.ndim == 1 and downsampling_method is not None:
             _, data_to_be_returned = downsample_data(
                 data=data_to_be_returned, target_size=downsampled_size, method=downsampling_method
             )
@@ -664,12 +664,17 @@ class IMASPythonSource(DataSourceInterface):
                 while isinstance(first_value, list):
                     first_value = first_value[0]
 
+                try:
+                    coord_data_shape = np.asarray(coord_data).shape
+                except ValueError:
+                    coord_data_shape = "inhomogeneous"
+
                 c = {
                     "name": coord.split("/")[-1],
                     "target": f"#{ids}/{target}",
                     "unit": first_value.metadata.units,
-                    "shape": np.asarray(coord_data).shape,  # coord_data could be np.ndarray or list[np.ndarray]
-                    "downsampled_shape": np.asarray(coord_data).shape,
+                    "shape": coord_data_shape,  # coord_data could be np.ndarray or list[np.ndarray]
+                    "downsampled_shape": coord_data_shape,
                     "ndim": first_value.metadata.ndim,
                     "path": f"#{ids}/{coord}",
                     "description": first_value.metadata.documentation,
@@ -681,11 +686,15 @@ class IMASPythonSource(DataSourceInterface):
         while isinstance(first_value, list):
             first_value = first_value[0]
 
-        original_data_shape = np.asarray(ids_data).shape  # ids_data could be np.ndarray or list[np.ndarray]
+        try:
+            original_data_shape = np.asarray(ids_data).shape
+        except ValueError:
+            original_data_shape = "inhomogeneous"
+
         data_to_be_returned = ids_data
 
-        if first_value.metadata.ndim == 1:
-            # Downsample only 1D data (for now)
+        # Downsample 1+ dim data
+        if first_value.metadata.ndim >= 1:
             if coordinates_to_be_returned[0]["target"].split("/")[-1] == f"{node_path.split('/')[-1]}":
                 # If coordinate targets node -> downsample coordinate as well
                 coordinates_to_be_returned[0]["value"], data_to_be_returned = downsample_data(
@@ -694,9 +703,7 @@ class IMASPythonSource(DataSourceInterface):
                     method=downsampling_method,
                     x=coordinates_to_be_returned[0]["value"],
                 )
-                # coordinates_to_be_returned[0]["downsampled_shape"] = np.asarray(
-                #    coordinates_to_be_returned[0]["value"]
-                # ).shape
+
             else:
                 _, data_to_be_returned = downsample_data(
                     ids_data, target_size=downsampled_size, method=downsampling_method
@@ -707,12 +714,17 @@ class IMASPythonSource(DataSourceInterface):
             c["downsampled_shape"] = np.asarray(c["value"]).shape
             c["value"] = self._serialize_data(c["value"])
 
+        try:
+            downsampled_shape = np.asarray(data_to_be_returned).shape
+        except ValueError:
+            downsampled_shape = "inhomogeneous"
+
         result = {
             "data": {
                 "name": node_path.split("/")[-1],
                 "unit": first_value.metadata.units,
                 "shape": original_data_shape,
-                "downsampled_shape": np.asarray(data_to_be_returned).shape,
+                "downsampled_shape": downsampled_shape,
                 "ndim": first_value.metadata.ndim,
                 "path": f"#{ids}/{node_path}",
                 "description": first_value.metadata.documentation,

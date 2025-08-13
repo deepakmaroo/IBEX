@@ -1,8 +1,10 @@
+import { AxisData } from './plot';
+
 export type PlotCoordinatesResponse = {
   name: string;
   target: string;
   unit: string;
-  value: number[] | number[][];
+  value: AxisData;
   shape: number[];
   ndim: number;
   path: string;
@@ -13,7 +15,7 @@ export type PlotDataResponse = {
   data: {
     name: string;
     unit: string;
-    value: number[] | string[] | number | string;
+    value: AxisData;
     shape: number[];
     ndim: number;
     path: string;
@@ -33,4 +35,8 @@ export type ArraySummaryResponse = {
   mean: number;
   standard_deviation: number;
   message?: string;
+};
+
+export type InfoVersionResponse = {
+  version: string;
 };

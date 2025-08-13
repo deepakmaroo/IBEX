@@ -264,7 +264,7 @@ export const VisualizationURIModal = ({
 
     //Print the file to check if it is being sent
     formData.forEach((value, key) => {
-      console.log(`${key}:`, value);
+      console.info(`${key}:`, value);
     });
 
     try {

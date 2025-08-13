@@ -1,33 +1,25 @@
 import { Data } from 'plotly.js';
 import { Layout } from 'react-grid-layout';
 
-export interface SimplePlotlyProps {
-  title: string;
-  xAxis: Axis;
-  yAxis: Axis;
-  y2Axis?: Axis;
-  data: Data[];
-  width: number;
-  height: number;
-  isStatic: boolean;
-}
-
 export interface Axis {
   name: string;
   unit: string;
   path?: string;
 }
 
+export type AxisData = number[][][] | number[][] | number[];
+
 export interface BaseCoordinates {
   target: string;
-  nodeUri: string;
-  index: number;
+  valueIndex: number;
 }
 
 export interface Coordinates extends BaseCoordinates {
   name: string;
   shape: number[];
-  data: number[] | string[];
+  data: number[];
+  axeIndex: number;
+  unit?: string;
 }
 
 export interface BaseDataPlotly {
@@ -40,6 +32,7 @@ export type DataPlotly = BaseDataPlotly &
   Data & {
     x: (string | number)[];
     y: (string | number)[];
+    yData: AxisData;
     path?: string;
     dimensions?: number;
     shape?: number[];
