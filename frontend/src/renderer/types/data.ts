@@ -28,6 +28,15 @@ export type FieldValueResponse = {
   value: number | number[];
 };
 
+export type DownsamplingMethodsResponse = {
+  downsampling_methods: [
+    {
+      name: string;
+      description: string;
+    },
+  ];
+};
+
 export type ArraySummaryResponse = {
   shape: number[];
   min: number;

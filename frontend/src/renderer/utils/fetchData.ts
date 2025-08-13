@@ -1,6 +1,7 @@
 import {
   ArraySummaryResponse,
   DataIdsResponse,
+  DownsamplingMethodsResponse,
   FieldValueResponse,
   FormDbEntries,
   InfoVersionResponse,
@@ -99,6 +100,15 @@ export const fetchDataPlot = async (uri: string) => {
     }
   }
   return response;
+};
+
+/**
+ * Retrieves downsampling methods.
+ */
+export const fetchDownsamplingMethods = async () => {
+  return fetchFromApi<DownsamplingMethodsResponse>(
+    `/info/downsampling_methods`,
+  );
 };
 
 /**

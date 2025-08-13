@@ -4,4 +4,5 @@ export interface GridLayoutPlotProps {
   data: DataGridPlot;
   colWidth: number;
   rowHeight: number;
+  downsamplingList: string[];
 }

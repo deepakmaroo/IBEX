@@ -14,6 +14,7 @@ import {
   ActionIcon,
   Container,
   Group,
+  Select,
   Tabs,
   Text,
   Tooltip,
@@ -35,6 +36,7 @@ export const GridLayoutPlot = ({
   data,
   colWidth,
   rowHeight,
+  downsamplingList,
 }: GridLayoutPlotProps) => {
   const { active, updatedConfiguration } = useIbexStore();
   const gridSliderRef = useRef<HTMLDivElement>(null);
@@ -47,7 +49,9 @@ export const GridLayoutPlot = ({
   const [widthGrid, setWidthGrid] = useState(Math.floor(data.w * colWidth));
   const [is3DView, setIs3DView] = useState<boolean>(false);
   const [active3DTab, setActive3DTab] = useState<string>('0');
-
+  const [downsamplingMethod, setDownsamplingMethod] = useState<string | null>(
+    null,
+  );
   /**
    * Handle resize the grid
    */
@@ -159,7 +163,18 @@ export const GridLayoutPlot = ({
           )}
 
           {hovered || data.isEditing ? (
-            <Group pos="absolute" right={'1rem'} top={5} grow>
+            <Group pos="absolute" right={'1rem'} top={5}>
+              <Tooltip label="Select your downsampling method">
+                <Select
+                  value={downsamplingMethod || 'None'}
+                  w="7rem"
+                  size="xs"
+                  disabled={!data.isEditing}
+                  data={downsamplingList}
+                  onChange={setDownsamplingMethod}
+                  placeholder="Downsampling"
+                ></Select>
+              </Tooltip>
               {/* 3D button display */}
               <Tooltip label="Toggle 2D/3D view">
                 <ActionIcon
