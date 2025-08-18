@@ -6,9 +6,15 @@ export type PlotCoordinatesResponse = {
   unit: string;
   value: AxisData;
   shape: number[];
+  shape_factors: ShapeFactorResponse[];
   ndim: number;
   path: string;
   description: string;
+};
+
+export type ShapeFactorResponse = {
+  name: string;
+  values_source: string;
 };
 
 export type PlotDataResponse = {
@@ -17,6 +23,7 @@ export type PlotDataResponse = {
     unit: string;
     value: AxisData;
     shape: number[];
+    shape_factors: ShapeFactorResponse[];
     ndim: number;
     path: string;
     description: string;

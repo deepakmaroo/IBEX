@@ -139,15 +139,13 @@ export const handleNewPlot = async (
     //Get coordinates data for slider - all coordinates except the first one, is considered as x coordinates
     xCoordinatesData = response.data.coordinates.map(
       (coordinate: PlotCoordinatesResponse, index) => {
-        const dataValue: number[] = getFirstArrayValueFromShape(
-          coordinate.value,
-          coordinate.shape,
-        );
+        const dataValueMatrix: AxisData = coordinate.value;
 
         return {
           name: coordinate.name,
           shape: coordinate.shape,
-          data: dataValue,
+          shape_factors: coordinate.shape_factors,
+          data: dataValueMatrix,
           valueIndex: 0,
           target: getDefaultUri(coordinate.target),
           nodeUri: defaultUri,
@@ -506,10 +504,8 @@ export async function plotNodeUriLoaded(
                   dataGrid.coordinates.push({
                     name: responseCoordinates.name,
                     shape: responseCoordinates.shape,
-                    data: getFirstArrayValueFromShape(
-                      responseCoordinates.value,
-                      responseCoordinates.shape,
-                    ),
+                    shape_factors: responseCoordinates.shape_factors,
+                    data: responseCoordinates.value,
                     target: getDefaultUri(responseCoordinates.target),
                     valueIndex: 0,
                     axeIndex: index,
@@ -522,12 +518,10 @@ export async function plotNodeUriLoaded(
                 if (!lastField) continue;
 
                 // If coordinates exist, update the data and shape
-                matchingCoord.data = getFirstArrayValueFromShape(
-                  responseCoordinates.value,
-                  responseCoordinates.shape,
-                );
+                matchingCoord.data = responseCoordinates.value;
                 matchingCoord.name = responseCoordinates.name;
                 matchingCoord.shape = responseCoordinates.shape;
+                matchingCoord.shape_factors = responseCoordinates.shape_factors;
 
                 //* Update the target - yPath - axis data with the index
                 matchingCoord.target = updateIndexFieldName(
