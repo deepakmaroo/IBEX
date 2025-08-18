@@ -646,6 +646,16 @@ class IMASPythonSource(DataSourceInterface):
 
                 coord_values: np.ndarray = self._extract_1_N_coord_values(coord_target_objects)
 
+                # ==================================== find and add shape factors
+                _, coordinates_of_coordinate = self._get_metadata_and_coordinates(uri, ids, str(target), occurrence)
+                shape_factors = []
+
+                for k, v in coordinates_of_coordinate.items():
+                    if k == target:
+                        continue
+                    shape_factors.append({"name": f"#{ids}/{k}"})
+                # ====================================
+
                 c = {
                     "name": splitted_target[-1],
                     "target": f"#{ids}/{target}",
@@ -655,6 +665,7 @@ class IMASPythonSource(DataSourceInterface):
                     "ndim": 1,  # 1...N coord always have 1 dimension
                     "path": "",
                     "description": "1...N",
+                    "shape_factors": shape_factors,
                     "value": labels if labels else coord_values,
                 }
                 coordinates_to_be_returned.append(c)
@@ -667,6 +678,16 @@ class IMASPythonSource(DataSourceInterface):
                 first_value = coord_data
                 while isinstance(first_value, list):
                     first_value = first_value[0]
+
+                # ==================================== find and add shape factors
+                _, coordinates_of_coordinate = self._get_metadata_and_coordinates(uri, ids, coord, occurrence)
+                shape_factors = []
+
+                for k, v in coordinates_of_coordinate.items():
+                    if str(k) == coord:
+                        continue
+                    shape_factors.append({"name": f"#{ids}/{k}"})
+                # ====================================
 
                 try:
                     coord_data_shape = np.asarray(coord_data).shape
@@ -683,6 +704,7 @@ class IMASPythonSource(DataSourceInterface):
                     "path": f"#{ids}/{coord}",
                     "description": first_value.metadata.documentation,
                     "value": coord_data,
+                    "shape_factors": shape_factors,
                 }
                 coordinates_to_be_returned.append(c)
 
@@ -736,5 +758,14 @@ class IMASPythonSource(DataSourceInterface):
                 "value": self._serialize_data(data_to_be_returned),
             }
         }
+
+        # =================================
+        # update shape factors
+
+        for coordinate in coordinates_to_be_returned:
+            for shape_factor in coordinate["shape_factors"]:
+                # search for coordinates that have <shape_factor> name in "target" key
+                coord_name = next(x["name"] for x in coordinates_to_be_returned if x["target"] == shape_factor["name"])
+                shape_factor["values_source"] = coord_name
 
         return result
