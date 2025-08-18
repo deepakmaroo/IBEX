@@ -89,10 +89,23 @@ export const fetchFindPaths = async (
 /**
  * Retrieves plot data for a given URI.
  */
-export const fetchDataPlot = async (uri: string) => {
-  const response = fetchFromApi<PlotDataResponse>(
-    `/data/plot_data/?uri=${encodeURIComponent(uri)}`,
-  );
+export const fetchDataPlot = async (
+  uri: string,
+  downsamplingMethod?: string,
+) => {
+  const downsampled_size = 10;
+  let response: Promise<PlotDataResponse>;
+  if (downsamplingMethod && downsamplingMethod != 'None') {
+    // Get downsampled data plot
+    response = fetchFromApi<PlotDataResponse>(
+      `/data/plot_data/?uri=${encodeURIComponent(uri)}&downsampling_method=${encodeURIComponent(downsamplingMethod)}&downsampled_size=${encodeURIComponent(downsampled_size)}`,
+    );
+  } else {
+    response = fetchFromApi<PlotDataResponse>(
+      `/data/plot_data/?uri=${encodeURIComponent(uri)}`,
+    );
+  }
+
   // Force all targets to ends with '[:]'
   for (const coord of (await response).data.coordinates) {
     if (!coord.target.endsWith(']')) {

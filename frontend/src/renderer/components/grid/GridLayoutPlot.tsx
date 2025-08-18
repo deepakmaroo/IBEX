@@ -30,7 +30,11 @@ import { useHover } from '@mantine/hooks';
 import classes from './GridLayoutPlot.module.css';
 import { SimplePlotly, Surface2D } from '../plot';
 import { useIbexStore } from '../../stores';
-import { normalizeIndices } from '../../utils';
+import {
+  fetchDataPlot,
+  getFirstArrayValueFromShape,
+  normalizeIndices,
+} from '../../utils';
 
 export const GridLayoutPlot = ({
   data,
@@ -65,6 +69,62 @@ export const GridLayoutPlot = ({
       setActive3DTab('0');
     }
   }, [data.plot]);
+
+  useEffect(() => {
+    const getDataPlotDownsampled = async () => {
+      const dataPlotDownsampled = await fetchDataPlot(
+        data.plot[0].nodeUri.replace(/\[0\]/g, '[:]'),
+        downsamplingMethod,
+      );
+      const updatedDataPlotList: DataGridPlot[] = JSON.parse(
+        JSON.stringify(active.dataPlot),
+      );
+      const updatedDataPlot = updatedDataPlotList.find(
+        (dataPlotToUpdate) => dataPlotToUpdate.i === data.i,
+      );
+
+      // Update coordinates with downsampled data
+      let coordinateIndex = 0;
+      for (const coordinate of updatedDataPlot.coordinates) {
+        coordinate.downsampled_shape =
+          dataPlotDownsampled.data.coordinates[
+            coordinateIndex
+          ].downsampled_shape;
+        // TODO : get matrix and show switch shape_factors
+        coordinate.data = getFirstArrayValueFromShape(
+          dataPlotDownsampled.data.coordinates[coordinateIndex].value,
+          dataPlotDownsampled.data.coordinates[coordinateIndex]
+            .downsampled_shape,
+        );
+        coordinateIndex++;
+      }
+
+      // Update plot with downsampled data
+      for (const plot of updatedDataPlot.plot) {
+        plot.shape = dataPlotDownsampled.data.downsampled_shape;
+        plot.x = updatedDataPlot.coordinates.find(
+          (coord) => coord.axeIndex === 0,
+        ).data;
+        // TODO : get matrix and show switch shape_factors
+        plot.y = getFirstArrayValueFromShape(
+          dataPlotDownsampled.data.value,
+          dataPlotDownsampled.data.downsampled_shape,
+        );
+        plot.yData = dataPlotDownsampled.data.value;
+      }
+
+      // Save new configuration with sampled data
+      const updatedActive = {
+        ...active,
+        dataPlot: updatedDataPlotList,
+      };
+      updatedConfiguration(updatedActive);
+    };
+
+    if (downsamplingMethod) {
+      getDataPlotDownsampled();
+    }
+  }, [downsamplingMethod]);
 
   /**
    * Update the width of the slider when the grid is resized

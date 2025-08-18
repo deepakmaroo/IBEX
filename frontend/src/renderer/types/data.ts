@@ -6,6 +6,7 @@ export type PlotCoordinatesResponse = {
   unit: string;
   value: AxisData;
   shape: number[];
+  downsampled_shape: number[];
   ndim: number;
   path: string;
   description: string;
@@ -17,6 +18,7 @@ export type PlotDataResponse = {
     unit: string;
     value: AxisData;
     shape: number[];
+    downsampled_shape: number[];
     ndim: number;
     path: string;
     description: string;
