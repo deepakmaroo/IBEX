@@ -32,7 +32,8 @@ import { SimplePlotly, Surface2D } from '../plot';
 import { useIbexStore } from '../../stores';
 import {
   fetchDataPlot,
-  getFirstArrayValueFromShape,
+  getArrayValueFromDependance,
+  getVectorData,
   normalizeIndices,
 } from '../../utils';
 
@@ -73,7 +74,7 @@ export const GridLayoutPlot = ({
   useEffect(() => {
     const getDataPlotDownsampled = async () => {
       const dataPlotDownsampled = await fetchDataPlot(
-        data.plot[0].nodeUri.replace(/\[0\]/g, '[:]'),
+        data.plot[0].nodeUri.replace(/\[\d+\]/g, '[:]'),
         downsamplingMethod,
       );
       const updatedDataPlotList: DataGridPlot[] = JSON.parse(
@@ -90,27 +91,23 @@ export const GridLayoutPlot = ({
           dataPlotDownsampled.data.coordinates[
             coordinateIndex
           ].downsampled_shape;
-        // TODO : get matrix and show switch shape_factors
-        coordinate.data = getFirstArrayValueFromShape(
-          dataPlotDownsampled.data.coordinates[coordinateIndex].value,
-          dataPlotDownsampled.data.coordinates[coordinateIndex]
-            .downsampled_shape,
-        );
+        coordinate.data =
+          dataPlotDownsampled.data.coordinates[coordinateIndex].value;
         coordinateIndex++;
       }
 
       // Update plot with downsampled data
       for (const plot of updatedDataPlot.plot) {
         plot.shape = dataPlotDownsampled.data.downsampled_shape;
-        plot.x = updatedDataPlot.coordinates.find(
-          (coord) => coord.axeIndex === 0,
-        ).data;
-        // TODO : get matrix and show switch shape_factors
-        plot.y = getFirstArrayValueFromShape(
-          dataPlotDownsampled.data.value,
-          dataPlotDownsampled.data.downsampled_shape,
-        );
+        // Get x axis switch coordinates dependances
+        plot.x = getArrayValueFromDependance(updatedDataPlot.coordinates);
         plot.yData = dataPlotDownsampled.data.value;
+        // Get y axis
+        const vectorData = getVectorData(
+          updatedDataPlot.coordinates,
+          plot.yData,
+        );
+        plot.y = vectorData;
       }
 
       // Save new configuration with sampled data

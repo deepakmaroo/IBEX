@@ -218,13 +218,7 @@ export const SimplePlotly = ({
           };
 
           // Get x values switch x dependances
-          const xCoordinate = updatedCoordinatesValue.find(
-            (xCoord) => xCoord.name === updatedXAxisData.name,
-          );
-          const newXData = getArrayValueFromDependance(
-            xCoordinate,
-            updatedCoordinatesValue,
-          );
+          const newXData = getArrayValueFromDependance(updatedCoordinatesValue);
 
           const updatedPlot = item.plot.map((plotItem) => {
             const updatedNodeUri = updateIndexFieldName(
@@ -385,14 +379,8 @@ export const SimplePlotly = ({
           plot.yData,
         );
         plot.y = vectorData;
-        const xCoordinate = updatedDataPlot.coordinates.find(
-          (coord) => coord.axeIndex === 0,
-        );
         // Get x values switch x dependances
-        plot.x = getArrayValueFromDependance(
-          xCoordinate,
-          itemDataGrid.coordinates,
-        );
+        plot.x = getArrayValueFromDependance(itemDataGrid.coordinates);
       }
       const updatedActive = {
         ...active,

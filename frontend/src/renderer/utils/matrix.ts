@@ -26,10 +26,10 @@ export const getFirstArrayValueFromShape = (
     : [];
 };
 
-export const getArrayValueFromDependance = (
-  xCoordinate: Coordinates,
-  coordinates: Coordinates[],
-) => {
+export const getArrayValueFromDependance = (coordinates: Coordinates[]) => {
+  const xCoordinate: Coordinates = coordinates.find(
+    (coord) => coord.axeIndex === 0,
+  );
   if (!xCoordinate.shape_factors.length) {
     return getFirstArrayValueFromShape(xCoordinate.data, xCoordinate.shape);
   }
