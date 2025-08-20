@@ -534,6 +534,8 @@ export async function plotNodeUriLoaded(
                 matchingCoord.name = responseCoordinates.name;
                 matchingCoord.shape = responseCoordinates.shape;
                 matchingCoord.shape_factors = responseCoordinates.shape_factors;
+                matchingCoord.downsampled_shape =
+                  responseCoordinates.downsampled_shape;
 
                 //* Update the target - yPath - axis data with the index
                 matchingCoord.target = updateIndexFieldName(
@@ -562,6 +564,10 @@ export async function plotNodeUriLoaded(
                   }
                   return coord;
                 });
+              }
+
+              if (response.data.downsampled_method) {
+                dataGrid.downsampled_method = response.data.downsampled_method;
               }
 
               const defaultXValue = getFirstArrayValueFromShape(
