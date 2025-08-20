@@ -35,16 +35,53 @@ const handleError = (error: unknown, context: string) => {
   throw error; // Optional: You could return null/undefined instead
 };
 
+async function fetchWithTimeout(
+  url: string,
+  options: RequestInit = {},
+  timeout = 2000,
+) {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout);
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+    return response;
+  } finally {
+    clearTimeout(id);
+  }
+}
+
 /**
  * Generic GET request to the API.
  */
-const fetchFromApi = async <T>(endpoint: string): Promise<T> => {
+const fetchFromApi = async <T>(
+  endpoint: string,
+  timeout?: number,
+): Promise<T> => {
   try {
     const config = await getConfig();
-    const response = await fetch(`${config.API_URL}${endpoint}`, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-    });
+    const url = `${config.API_URL}${endpoint}`;
+
+    const fetchFn = async () => {
+      if (timeout) {
+        return await fetchWithTimeout(
+          url,
+          {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+          },
+          timeout,
+        );
+      } else {
+        return await fetch(url, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+    };
+    const response = await fetchFn();
 
     if (!response.ok) {
       const errorData = await response.json();
@@ -55,7 +92,12 @@ const fetchFromApi = async <T>(endpoint: string): Promise<T> => {
 
     return response.json();
   } catch (error) {
-    handleError(error, `fetchFromApi(${endpoint})`);
+    if (error.name === 'AbortError') {
+      console.error(`Timeout after ${timeout}ms: fetchFromApi(${endpoint}).`);
+      throw error;
+    } else {
+      handleError(error, `fetchFromApi(${endpoint})`);
+    }
   }
 };
 
@@ -93,24 +135,42 @@ export const fetchDataPlot = async (
   uri: string,
   downsamplingMethod?: string,
 ) => {
-  const downsampled_size = 10;
-  let response: Promise<PlotDataResponse>;
-  if (downsamplingMethod && downsamplingMethod != 'None') {
+  const downsampled_size = 1000;
+  let response: PlotDataResponse;
+  let firstMethod: string;
+
+  if (downsamplingMethod) {
     // Get downsampled data plot
-    response = fetchFromApi<PlotDataResponse>(
+    response = await fetchFromApi<PlotDataResponse>(
       `/data/plot_data/?uri=${encodeURIComponent(uri)}&downsampling_method=${encodeURIComponent(downsamplingMethod)}&downsampled_size=${encodeURIComponent(downsampled_size)}`,
     );
   } else {
-    response = fetchFromApi<PlotDataResponse>(
-      `/data/plot_data/?uri=${encodeURIComponent(uri)}`,
-    );
+    try {
+      // Try to fetch data without downsampling in according timeout
+      response = await fetchFromApi<PlotDataResponse>(
+        `/data/plot_data/?uri=${encodeURIComponent(uri)}`,
+        250,
+      );
+    } catch (error) {
+      if (error.name === 'AbortError') {
+        // Use first downsampling method by default to fetch data
+        const methods = await fetchDownsamplingMethods();
+        firstMethod = methods?.downsampling_methods.slice(0)[1].name;
+        response = await fetchFromApi<PlotDataResponse>(
+          `/data/plot_data/?uri=${encodeURIComponent(uri)}&downsampling_method=${encodeURIComponent(firstMethod)}&downsampled_size=${encodeURIComponent(downsampled_size)}`,
+        );
+      }
+    }
   }
 
   // Force all targets to ends with '[:]'
-  for (const coord of (await response).data.coordinates) {
+  for (const coord of response.data.coordinates) {
     if (!coord.target.endsWith(']')) {
       coord.target = coord.target += '[:]';
     }
+  }
+  if (firstMethod || downsamplingMethod) {
+    response.data.downsampled_method = firstMethod || downsamplingMethod;
   }
   return response;
 };

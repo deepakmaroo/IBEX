@@ -163,6 +163,7 @@ export function MainLayout() {
                               ...coord,
                               name: '',
                               shape: [],
+                              downsampled_shape: [],
                               shape_factors: [],
                               data: [],
                               axeIndex: index,

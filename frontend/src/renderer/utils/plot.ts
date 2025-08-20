@@ -64,6 +64,7 @@ export const plotData = (
   path: string,
   shape: number[],
   labelUri: string,
+  downsampled_method: string,
   description?: string,
   y2Axis?: boolean,
 ): DataGridPlot => {
@@ -98,6 +99,7 @@ export const plotData = (
       dataPlot.title === ''
         ? `${trace.name}`
         : `${dataPlot.title} / ${trace.name}`,
+    downsampled_method: downsampled_method,
     plot: [...currentPlot, trace],
   };
 };
@@ -144,6 +146,7 @@ export const handleNewPlot = async (
         return {
           name: coordinate.name,
           shape: coordinate.shape,
+          downsampled_shape: coordinate.downsampled_shape,
           shape_factors: coordinate.shape_factors,
           data: dataValueMatrix,
           valueIndex: 0,
@@ -190,6 +193,7 @@ export const handleNewPlot = async (
     getDefaultUri(response.data.path),
     response.data.shape,
     nodes[0].name,
+    response.data.downsampled_method,
     response.data.description,
   );
   updatedActive.dataPlot.push(updatedPlot);
@@ -224,7 +228,12 @@ export const handleExistingPlot = async (
 
   for (const node of dataToPlot) {
     let defaultUri = node.uri;
-    const response = await fetchDataPlot(defaultUri);
+
+    const response = await fetchDataPlot(
+      defaultUri,
+      findDataPlot.downsampled_method,
+    );
+
     defaultUri = getDefaultUri(defaultUri); //Set defaultUri [0] by default
 
     if (!checkDimension1(response, updatedActive, nodes)) {
@@ -373,6 +382,7 @@ export const handleExistingPlot = async (
         yDataResponsePath,
         response.data.shape,
         node.name,
+        response.data.downsampled_method,
         response.data.description,
       );
       updatedActive.dataPlot = [
@@ -398,6 +408,7 @@ export const handleExistingPlot = async (
         yDataResponsePath,
         response.data.shape,
         node.name,
+        response.data.downsampled_method,
         response.data.description,
         true,
       );
@@ -504,6 +515,7 @@ export async function plotNodeUriLoaded(
                   dataGrid.coordinates.push({
                     name: responseCoordinates.name,
                     shape: responseCoordinates.shape,
+                    downsampled_shape: responseCoordinates.downsampled_shape,
                     shape_factors: responseCoordinates.shape_factors,
                     data: responseCoordinates.value,
                     target: getDefaultUri(responseCoordinates.target),

@@ -36,6 +36,7 @@ import {
   getVectorData,
   normalizeIndices,
 } from '../../utils';
+import { showNotification } from '@mantine/notifications';
 
 export const GridLayoutPlot = ({
   data,
@@ -72,50 +73,76 @@ export const GridLayoutPlot = ({
   }, [data.plot]);
 
   useEffect(() => {
+    // Update downsampled method after a timeout
+    if (data.downsampled_method) {
+      setDownsamplingMethod(data.downsampled_method);
+    }
+  }, [data.downsampled_method]);
+
+  useEffect(() => {
     const getDataPlotDownsampled = async () => {
-      const dataPlotDownsampled = await fetchDataPlot(
-        data.plot[0].nodeUri.replace(/\[\d+\]/g, '[:]'),
-        downsamplingMethod,
-      );
-      const updatedDataPlotList: DataGridPlot[] = JSON.parse(
-        JSON.stringify(active.dataPlot),
-      );
-      const updatedDataPlot = updatedDataPlotList.find(
-        (dataPlotToUpdate) => dataPlotToUpdate.i === data.i,
-      );
-
-      // Update coordinates with downsampled data
-      let coordinateIndex = 0;
-      for (const coordinate of updatedDataPlot.coordinates) {
-        coordinate.downsampled_shape =
-          dataPlotDownsampled.data.coordinates[
-            coordinateIndex
-          ].downsampled_shape;
-        coordinate.data =
-          dataPlotDownsampled.data.coordinates[coordinateIndex].value;
-        coordinateIndex++;
-      }
-
-      // Update plot with downsampled data
-      for (const plot of updatedDataPlot.plot) {
-        plot.shape = dataPlotDownsampled.data.downsampled_shape;
-        // Get x axis switch coordinates dependances
-        plot.x = getArrayValueFromDependance(updatedDataPlot.coordinates);
-        plot.yData = dataPlotDownsampled.data.value;
-        // Get y axis
-        const vectorData = getVectorData(
-          updatedDataPlot.coordinates,
-          plot.yData,
+      try {
+        const updatedDataPlotList: DataGridPlot[] = JSON.parse(
+          JSON.stringify(active.dataPlot),
         );
-        plot.y = vectorData;
-      }
+        const updatedDataPlot = updatedDataPlotList.find(
+          (dataPlotToUpdate) => dataPlotToUpdate.i === data.i,
+        );
 
-      // Save new configuration with sampled data
-      const updatedActive = {
-        ...active,
-        dataPlot: updatedDataPlotList,
-      };
-      updatedConfiguration(updatedActive);
+        let plotIndex = 0;
+        for (const plot of updatedDataPlot.plot) {
+          const dataPlotDownsampled = await fetchDataPlot(
+            plot.nodeUri.replace(/\[\d+\]/g, '[:]'),
+            downsamplingMethod,
+          );
+
+          // Update coordinates with downsampled data only once because each plots have same coordinates
+          if (plotIndex === 0) {
+            let coordinateIndex = 0;
+            for (const coordinate of updatedDataPlot.coordinates) {
+              coordinate.downsampled_shape =
+                dataPlotDownsampled.data.coordinates[
+                  coordinateIndex
+                ].downsampled_shape;
+              coordinate.data =
+                dataPlotDownsampled.data.coordinates[coordinateIndex].value;
+              coordinateIndex++;
+            }
+
+            // Update downsampled method
+            updatedDataPlot.downsampled_method =
+              dataPlotDownsampled.data.downsampled_method;
+          }
+
+          // Update plot with downsampled data
+          plot.shape = dataPlotDownsampled.data.downsampled_shape;
+          // Get x axis switch coordinates dependances
+          plot.x = getArrayValueFromDependance(updatedDataPlot.coordinates);
+          plot.yData = dataPlotDownsampled.data.value;
+          // Get y axis
+          const vectorData = getVectorData(
+            updatedDataPlot.coordinates,
+            plot.yData,
+          );
+          plot.y = vectorData;
+
+          plotIndex++;
+        }
+
+        // Save new configuration with sampled data
+        const updatedActive = {
+          ...active,
+          dataPlot: updatedDataPlotList,
+        };
+        updatedConfiguration(updatedActive);
+      } catch (error) {
+        console.error('Error getting downsampled data: ', error);
+        showNotification({
+          title: 'Error',
+          message: `Unable to get downsampled data.`,
+          color: 'red',
+        });
+      }
     };
 
     if (downsamplingMethod) {

@@ -447,7 +447,12 @@ export const VisualizationTree = ({
           }
         }
       } catch (error) {
-        console.error(error);
+        console.error('Error while plotting a new graph: ', error);
+        showNotification({
+          title: 'Error',
+          message: 'Unable to plot a new graph.',
+          color: 'red',
+        });
       } finally {
         updatedConfiguration(updatedActive);
       }

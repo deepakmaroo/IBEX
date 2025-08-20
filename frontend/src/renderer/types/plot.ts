@@ -58,6 +58,7 @@ export interface DataGridPlot extends Layout, BaseDataGridPlot {
   plot: DataPlotly[];
   isEditing: boolean;
   coordinates?: Coordinates[];
+  downsampled_method?: string;
 }
 
 export interface DataGridPlotToSave extends BaseDataGridPlot {

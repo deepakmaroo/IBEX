@@ -25,6 +25,7 @@ export type PlotDataResponse = {
     value: AxisData;
     shape: number[];
     downsampled_shape: number[];
+    downsampled_method?: string;
     shape_factors: ShapeFactorResponse[];
     ndim: number;
     path: string;
