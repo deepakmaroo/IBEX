@@ -26,6 +26,7 @@ import {
 import { fetchArraySummary, fetchDataPlot } from '../../utils';
 
 interface MetaDataInfosProps {
+  gridLayoutKey: string;
   data: DataPlotly;
   yAxis: Axis;
   tabsSelected: string | null;
@@ -122,11 +123,13 @@ const RenderMetaDataCoordinates = ({
 };
 
 const MetaDataInfos = ({
+  gridLayoutKey,
   data,
   yAxis,
   height,
   tabsSelected,
 }: MetaDataInfosProps) => {
+  const { active } = useIbexStore();
   const [coordinates, setCoordinates] = useState<PlotCoordinatesResponse[]>([]);
   const [summary, setSummary] = useState<ArraySummaryResponse>(null);
 
@@ -134,7 +137,15 @@ const MetaDataInfos = ({
     const fetchCoordinates = async () => {
       try {
         if (tabsSelected === data.name) {
-          const response: PlotDataResponse = await fetchDataPlot(data.nodeUri);
+          // Force with downsampled method if selected by user
+          const downsampled_method = active.dataPlot.find(
+            (gridLayout) => gridLayout.i === gridLayoutKey,
+          )?.downsampled_method;
+
+          const response: PlotDataResponse = await fetchDataPlot(
+            data.nodeUri,
+            downsampled_method,
+          );
 
           setCoordinates(response.data.coordinates);
         }
@@ -307,6 +318,7 @@ export const VisualizationMetaData = () => {
                       </Grid.Col>
                       <Grid.Col span={7}>
                         <MetaDataInfos
+                          gridLayoutKey={dataGridLayout.i}
                           data={item}
                           yAxis={
                             item.yaxis !== ''
