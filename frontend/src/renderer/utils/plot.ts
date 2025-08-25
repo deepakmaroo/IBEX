@@ -28,21 +28,40 @@ import { getFirstArrayValueFromShape } from './matrix';
  * @param nodes The nodes to update.
  * @returns A boolean indicating whether the dimension check passed.
  */
-export const checkDimension1 = (
+export const checkDimension1 = async (
   response: PlotDataResponse,
   updatedActive: Configuration,
   nodes: URITreeNodeData[],
-): boolean => {
+): Promise<PlotDataResponse> | undefined => {
   if (!response || response.data.ndim > 1) {
+    // Get new uri to have homogeneous shape
+    let defaultUri = nodes[0].uri; //Use normalized URI to get all matrix
+    let newUri: string;
+    for (const coordinate of response.data.coordinates) {
+      if(coordinate.shape !== "inhomogeneous"){
+        newUri = defaultUri.replace(`${coordinate.name}[:]`, `${coordinate.name}[0]`);
+        console.log("newUri : ",newUri);
+        break;
+      }
+    }
+    if(newUri){
+      const homogenousResponse: PlotDataResponse = await fetchDataPlot(newUri);
+      console.log("homogenousResponse : ",homogenousResponse);
+      if(homogenousResponse.data.shape !== "inhomogeneous"){
+        return homogenousResponse;
+        // TODO : ajouter une information pour empêcher le switch d'axe sur la coordinate liée à la sélection de la dimension
+      }
+    }
+
     showNotification({
       title: 'Plot',
       message: 'Cannot plot data with more than one dimension',
       color: 'yellow',
     });
     updatedActive.checkedNodeURI = nodes.filter((n) => n !== nodes[0]);
-    return false;
+    return undefined;
   }
-  return true;
+  return response;
 };
 
 /**
@@ -116,12 +135,14 @@ export const handleNewPlot = async (
   //* : corresponds to all indices (matrix)
   let defaultUri = nodes[0].uri; //Use normalized URI to get all matrix
 
-  const response: PlotDataResponse = await fetchDataPlot(defaultUri);
-
+  let response: PlotDataResponse = await fetchDataPlot(defaultUri);
   defaultUri = getDefaultUri(defaultUri); //Set defaultUri [0] by default
 
-  if (!checkDimension1(response, updatedActive, nodes)) {
+  const checkedDimensionResponse = await checkDimension1(response, updatedActive, nodes);
+  if (!checkedDimensionResponse) {
     return updatedActive;
+  } else {
+    response = checkedDimensionResponse
   }
 
   let xCoordinatesData: Coordinates[] = [];
@@ -224,12 +245,15 @@ export const handleExistingPlot = async (
 
   for (const node of dataToPlot) {
     let defaultUri = node.uri;
-    const response = await fetchDataPlot(defaultUri);
+    let response = await fetchDataPlot(defaultUri);
     defaultUri = getDefaultUri(defaultUri); //Set defaultUri [0] by default
 
-    if (!checkDimension1(response, updatedActive, nodes)) {
-      return updatedActive;
-    }
+  const checkedDimensionResponse = await checkDimension1(response, updatedActive, nodes);
+  if (!checkedDimensionResponse) {
+    return updatedActive;
+  } else {
+    response = checkedDimensionResponse
+  }
 
     const unit = response.data.unit;
     const unitExists =

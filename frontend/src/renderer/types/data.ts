@@ -22,7 +22,7 @@ export type PlotDataResponse = {
     name: string;
     unit: string;
     value: AxisData;
-    shape: number[];
+    shape: number[] | string;
     shape_factors: ShapeFactorResponse[];
     ndim: number;
     path: string;
