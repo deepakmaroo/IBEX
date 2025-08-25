@@ -31,7 +31,10 @@ export const getArrayValueFromDependance = (
   coordinates: Coordinates[],
 ) => {
   if (!xCoordinate.shape_factors.length) {
-    return getFirstArrayValueFromShape(xCoordinate.data, xCoordinate.shape);
+    return getFirstArrayValueFromShape(
+      xCoordinate.data,
+      xCoordinate.shape as number[],
+    );
   }
 
   const dependance = xCoordinate.shape_factors.map(

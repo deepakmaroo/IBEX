@@ -35,19 +35,20 @@ export const checkDimension1 = async (
 ): Promise<PlotDataResponse> | undefined => {
   if (!response || response.data.ndim > 1) {
     // Get new uri to have homogeneous shape
-    let defaultUri = nodes[0].uri; //Use normalized URI to get all matrix
+    const defaultUri = nodes[0].uri; //Use normalized URI to get all matrix
     let newUri: string;
     for (const coordinate of response.data.coordinates) {
-      if(coordinate.shape !== "inhomogeneous"){
-        newUri = defaultUri.replace(`${coordinate.name}[:]`, `${coordinate.name}[0]`);
-        console.log("newUri : ",newUri);
+      if (coordinate.shape !== 'inhomogeneous') {
+        newUri = defaultUri.replace(
+          `${coordinate.name}[:]`,
+          `${coordinate.name}[0]`,
+        );
         break;
       }
     }
-    if(newUri){
+    if (newUri) {
       const homogenousResponse: PlotDataResponse = await fetchDataPlot(newUri);
-      console.log("homogenousResponse : ",homogenousResponse);
-      if(homogenousResponse.data.shape !== "inhomogeneous"){
+      if (homogenousResponse.data.shape !== 'inhomogeneous') {
         return homogenousResponse;
         // TODO : ajouter une information pour empêcher le switch d'axe sur la coordinate liée à la sélection de la dimension
       }
@@ -138,11 +139,15 @@ export const handleNewPlot = async (
   let response: PlotDataResponse = await fetchDataPlot(defaultUri);
   defaultUri = getDefaultUri(defaultUri); //Set defaultUri [0] by default
 
-  const checkedDimensionResponse = await checkDimension1(response, updatedActive, nodes);
+  const checkedDimensionResponse = await checkDimension1(
+    response,
+    updatedActive,
+    nodes,
+  );
   if (!checkedDimensionResponse) {
     return updatedActive;
   } else {
-    response = checkedDimensionResponse
+    response = checkedDimensionResponse;
   }
 
   let xCoordinatesData: Coordinates[] = [];
@@ -192,12 +197,12 @@ export const handleNewPlot = async (
 
   const defaultXValue = getFirstArrayValueFromShape(
     response.data.coordinates[0].value,
-    response.data.coordinates[0].shape,
+    response.data.coordinates[0].shape as number[],
   );
 
   const defaultYValue = getFirstArrayValueFromShape(
     response.data.value,
-    response.data.shape,
+    response.data.shape as number[],
   );
 
   const updatedPlot: DataGridPlot = plotData(
@@ -209,7 +214,7 @@ export const handleNewPlot = async (
     defaultUri,
     response.data.ndim,
     getDefaultUri(response.data.path),
-    response.data.shape,
+    response.data.shape as number[],
     nodes[0].name,
     response.data.description,
   );
@@ -248,12 +253,16 @@ export const handleExistingPlot = async (
     let response = await fetchDataPlot(defaultUri);
     defaultUri = getDefaultUri(defaultUri); //Set defaultUri [0] by default
 
-  const checkedDimensionResponse = await checkDimension1(response, updatedActive, nodes);
-  if (!checkedDimensionResponse) {
-    return updatedActive;
-  } else {
-    response = checkedDimensionResponse
-  }
+    const checkedDimensionResponse = await checkDimension1(
+      response,
+      updatedActive,
+      nodes,
+    );
+    if (!checkedDimensionResponse) {
+      return updatedActive;
+    } else {
+      response = checkedDimensionResponse;
+    }
 
     const unit = response.data.unit;
     const unitExists =
@@ -377,7 +386,7 @@ export const handleExistingPlot = async (
 
     const defaultXValue = getFirstArrayValueFromShape(
       response.data.coordinates[0].value,
-      response.data.coordinates[0].shape,
+      response.data.coordinates[0].shape as number[],
     );
 
     const defaultYValue = getVectorData(
@@ -395,7 +404,7 @@ export const handleExistingPlot = async (
         defaultUri,
         response.data.ndim,
         yDataResponsePath,
-        response.data.shape,
+        response.data.shape as number[],
         node.name,
         response.data.description,
       );
@@ -420,7 +429,7 @@ export const handleExistingPlot = async (
         defaultUri,
         response.data.ndim,
         yDataResponsePath,
-        response.data.shape,
+        response.data.shape as number[],
         node.name,
         response.data.description,
         true,
@@ -578,11 +587,11 @@ export async function plotNodeUriLoaded(
 
               const defaultXValue = getFirstArrayValueFromShape(
                 response.data.coordinates[0].value,
-                response.data.coordinates[0].shape,
+                response.data.coordinates[0].shape as number[],
               );
               const defaultYValue = getFirstArrayValueFromShape(
                 response.data.value,
-                response.data.shape,
+                response.data.shape as number[],
               );
 
               return {
@@ -591,7 +600,7 @@ export async function plotNodeUriLoaded(
                 description: response.data.description,
                 dimensions: response.data.ndim,
                 path: yResponsePath,
-                shape: response.data.shape,
+                shape: response.data.shape as number[],
                 yData: response.data.value,
                 x: defaultXValue.map((x) => x.toString()),
                 y: defaultYValue,

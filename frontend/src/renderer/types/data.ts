@@ -5,7 +5,7 @@ export type PlotCoordinatesResponse = {
   target: string;
   unit: string;
   value: AxisData;
-  shape: number[];
+  shape: number[] | 'inhomogeneous';
   shape_factors: ShapeFactorResponse[];
   ndim: number;
   path: string;
@@ -22,7 +22,7 @@ export type PlotDataResponse = {
     name: string;
     unit: string;
     value: AxisData;
-    shape: number[] | string;
+    shape: number[] | 'inhomogeneous';
     shape_factors: ShapeFactorResponse[];
     ndim: number;
     path: string;

@@ -17,7 +17,7 @@ export interface BaseCoordinates {
 
 export interface Coordinates extends BaseCoordinates {
   name: string;
-  shape: number[] | string;
+  shape: number[] | 'inhomogeneous';
   shape_factors: ShapeFactorResponse[];
   data: AxisData;
   axeIndex: number;
