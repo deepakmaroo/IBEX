@@ -37,20 +37,25 @@ export const checkDimension1 = async (
     // Get new uri to have homogeneous shape
     const defaultUri = nodes[0].uri; //Use normalized URI to get all matrix
     let newUri: string;
+    let coordinateNameDimension: string;
     for (const coordinate of response.data.coordinates) {
       if (coordinate.shape !== 'inhomogeneous') {
         newUri = defaultUri.replace(
           `${coordinate.name}[:]`,
           `${coordinate.name}[0]`,
         );
+        coordinateNameDimension = coordinate.name;
         break;
       }
     }
     if (newUri) {
       const homogenousResponse: PlotDataResponse = await fetchDataPlot(newUri);
       if (homogenousResponse.data.shape !== 'inhomogeneous') {
+        // Add information indicating that this coordinate is used to select the dimension
+        homogenousResponse.data.coordinates.find(
+          (coord) => coord.name === coordinateNameDimension,
+        ).isDimensionCoordinate = true;
         return homogenousResponse;
-        // TODO : ajouter une information pour empêcher le switch d'axe sur la coordinate liée à la sélection de la dimension
       }
     }
 
@@ -177,6 +182,7 @@ export const handleNewPlot = async (
           nodeUri: defaultUri,
           axeIndex: index,
           unit: coordinate.unit || '',
+          isDimensionCoordinate: coordinate?.isDimensionCoordinate,
         };
       },
     );

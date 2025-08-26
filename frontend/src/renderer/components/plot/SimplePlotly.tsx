@@ -420,7 +420,7 @@ export const SimplePlotly = ({
           ref={sliderRef ? sliderRef : undefined}
           mt={10}
         >
-          <Group justify="space-between" gap="0">
+          <Group justify="space-between" gap="0" align="flex-end">
             {JSON.parse(JSON.stringify(itemDataGrid.coordinates))
               .sort(compareByAxeIndex)
               .map(
@@ -430,11 +430,18 @@ export const SimplePlotly = ({
                       key={valueIndex}
                       name={item.name}
                       valueIndex={item.valueIndex || 0}
-                      data={getFirstArrayValueFromShape(item.data, item.shape)}
+                      data={getFirstArrayValueFromShape(
+                        item.data,
+                        item.shape as number[],
+                      )}
                       getValue={(valueIndex) => {
                         handleUpdateCoordinate(item, valueIndex);
                       }}
-                      switchAxis={() => switchAxis(item.axeIndex)}
+                      switchAxis={
+                        !item.isDimensionCoordinate
+                          ? () => switchAxis(item.axeIndex)
+                          : undefined
+                      }
                       height={
                         is3DView
                           ? height - 80
