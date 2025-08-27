@@ -17,6 +17,9 @@ import {
   getLastIndexedField,
   getVectorData,
   updateIndexFieldName,
+  fetchDataPlot,
+  normalizeIndices,
+  getDefaultUri,
 } from '../../utils';
 import classe from './SimplePlotly.module.css';
 import * as tf from '@tensorflow/tfjs';
@@ -187,6 +190,64 @@ export const SimplePlotly = ({
     if (!lastTargetLastName)
       return console.warn('No indexed field found in target');
 
+    let updatedDimension: DataGridPlot;
+    // Update plot with new selected dimension
+    if (coordinate?.isDimensionCoordinate) {
+      // Get dataGrid to update
+      updatedDimension = JSON.parse(JSON.stringify(itemDataGrid));
+
+      const normalizedUri = normalizeIndices(itemDataGrid.plot[0].nodeUri); //Use normalized URI to get all matrix
+      const newUri = normalizedUri.replace(
+        `${coordinate.name}[:]`,
+        `${coordinate.name}[${valueIndex}]`,
+      );
+      const newRes = await fetchDataPlot(newUri);
+
+      // Add information indicating that this coordinate is used to select the dimension
+      newRes.data.coordinates.find(
+        (coord) => coord.name === coordinate.name,
+      ).isDimensionCoordinate = true;
+
+      // Update coordinates
+      let resettedAxeIndex = 0;
+      for (const coordinate of updatedDimension.coordinates) {
+        const newCoord = newRes.data.coordinates.find(
+          (newCoord) =>
+            normalizeIndices(newCoord.target) ===
+            normalizeIndices(coordinate.target),
+        );
+        coordinate.axeIndex = resettedAxeIndex;
+        coordinate.shape = newCoord.shape;
+        coordinate.shape_factors = newCoord.shape_factors;
+        coordinate.target = newCoord.target;
+        coordinate.data = newCoord.value;
+        coordinate.valueIndex = 0;
+        resettedAxeIndex++;
+      }
+
+      // Update plots
+      for (const plot of updatedDimension.plot) {
+        plot.path = newRes.data.path;
+        plot.shape = newRes.data.shape as number[];
+        plot.yData = newRes.data.value;
+      }
+
+      // Update xAxisData
+      const xAxis = updatedDimension.coordinates.find(
+        (coord) => coord.axeIndex === 0,
+      );
+      updatedDimension.xAxisData.name = xAxis.name;
+      updatedDimension.xAxisData.path = getDefaultUri(
+        newRes.data.coordinates[0].path,
+      );
+      updatedDimension.xAxisData.unit = xAxis.unit;
+    }
+
+    if (updatedDimension) {
+      itemDataGrid = updatedDimension;
+    }
+
+    // Update coordinates targets with new valueIndex
     const updatedCoordinatesValue = itemDataGrid.coordinates.map((item) => {
       const lastTargetLastName = getLastIndexedField(coordinate.target);
 
@@ -198,7 +259,7 @@ export const SimplePlotly = ({
 
       return {
         ...item,
-        target: updatedTarget, // Update the target to the new one
+        target: updatedTarget,
         valueIndex:
           item.name === coordinate.name ? valueIndex : item.valueIndex,
       };
@@ -209,9 +270,9 @@ export const SimplePlotly = ({
       dataPlot: active.dataPlot.map((item: DataGridPlot) => {
         if (item.i === itemDataGrid.i) {
           const updatedXAxisData: Axis = {
-            ...item.xAxisData,
+            ...itemDataGrid.xAxisData,
             path: updateIndexFieldName(
-              item.xAxisData?.path || '',
+              itemDataGrid.xAxisData?.path || '',
               lastTargetLastName,
               valueIndex,
             ),
@@ -226,7 +287,7 @@ export const SimplePlotly = ({
             updatedCoordinatesValue,
           );
 
-          const updatedPlot = item.plot.map((plotItem) => {
+          const updatedPlot = itemDataGrid.plot.map((plotItem) => {
             const updatedNodeUri = updateIndexFieldName(
               plotItem.nodeUri,
               lastTargetLastName,
@@ -255,7 +316,7 @@ export const SimplePlotly = ({
           });
 
           return {
-            ...item,
+            ...itemDataGrid,
             coordinates: updatedCoordinatesValue,
             plot: updatedPlot,
             xAxisData: updatedXAxisData,
