@@ -30,6 +30,7 @@ export const getArrayValueFromDependance = (
   xCoordinate: Coordinates,
   coordinates: Coordinates[],
 ) => {
+  // X coordinate isn't slidable, so if no dependance we get first array value
   if (!xCoordinate.shape_factors.length) {
     return getFirstArrayValueFromShape(
       xCoordinate.data,
@@ -39,9 +40,11 @@ export const getArrayValueFromDependance = (
 
   const dependance = xCoordinate.shape_factors.map(
     (deps) => deps.values_source,
-  )[0]; // We consider that there is only one dependance
+  );
+  // Get x coordinate data from the dependency not linked to the dimension
   const indexValueDependance = coordinates.find(
-    (coord_dep) => coord_dep.name === dependance,
+    (coord_dep) =>
+      dependance.includes(coord_dep.name) && !coord_dep.isDimensionCoordinate,
   ).valueIndex;
   const returnValue = xCoordinate.data[indexValueDependance] as (
     | string
