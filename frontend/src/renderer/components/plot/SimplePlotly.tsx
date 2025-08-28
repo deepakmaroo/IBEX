@@ -18,7 +18,7 @@ import {
   getVectorData,
   updateIndexFieldName,
 } from '../../utils';
-import classe from './SimplePlotly.module.css';
+import classes from './SimplePlotly.module.css';
 import * as tf from '@tensorflow/tfjs';
 
 interface SimplePlotlyProps {
@@ -75,24 +75,53 @@ export const SimplePlotly = ({
     plot_bgcolor: '#c7c7c7',
     dragmode: 'zoom',
   });
+
+  const [title, setTitle] = useState(itemDataGrid.title);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  
+  const titleRef = useRef<HTMLHeadingElement>(null);
   const plotRef = useRef<Plot | null>(null);
 
-  const handleRelayout = (newLayout: Partial<Layout>) => {
+  const handleBlurTitle = () => {
+    if (titleRef.current) {
+      setTitle(titleRef.current.innerText || "Untitled");
+    }
+    setIsEditingTitle(false);
+  };
+
+  const handleKeyDownTitle = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      if (titleRef.current) {
+        setTitle(titleRef.current.innerText || "Untitled");
+      }
+      setIsEditingTitle(false);
+    }
+  };
+
+  const handleRelayout = (relayout: Partial<Layout>) => {
     setLayoutPlot((prevLayout) => ({
       ...prevLayout,
-      ...newLayout, // update the layout with new values
+      ...relayout, // update the layout with new values
     }));
   };
 
   /**
-   * Update the layout title
-   */
+   * Update the editable title when layout title change
+  */
+  useEffect(() => {
+    setTitle(itemDataGrid.title || '');
+  }, [itemDataGrid.title]);
+
+  /**
+   * Update the layout title when editing title
+  */
   useEffect(() => {
     setLayoutPlot((prevLayout) => ({
       ...prevLayout,
-      title: { text: itemDataGrid.title || '' },
+      title: { text: title },
     }));
-  }, [itemDataGrid.title]);
+  }, [title])
 
   /**
    * Update the layout height
@@ -458,8 +487,24 @@ export const SimplePlotly = ({
           flexDirection: 'column',
         }}
       >
+        <div className={classes.editableTitle}>
+          <span
+            ref={titleRef}
+            className={itemDataGrid.isEditing && classes.isEditing}
+            contentEditable={isEditingTitle && itemDataGrid.isEditing}
+            suppressContentEditableWarning
+            onClick={() => setIsEditingTitle(true)}
+            onBlur={handleBlurTitle}
+            onKeyDown={handleKeyDownTitle}
+          >
+            {title}
+          </span>
+        </div>
+        
         <Plot
           ref={plotRef}
+          className={classes.simplePlot}
+          style={{ width: `${width}px`, height: `${height}px` }}
           data={itemDataGrid.plot}
           config={{
             autosizable: false,
@@ -473,8 +518,6 @@ export const SimplePlotly = ({
           layout={layoutPlot}
           onRelayout={handleRelayout}
           useResizeHandler={false}
-          style={{ width: `${width}px`, height: `${height}px` }}
-          className={classe.simplePlot}
         />
       </Grid.Col>
     </Grid>
