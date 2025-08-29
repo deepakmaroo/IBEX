@@ -78,22 +78,22 @@ export const SimplePlotly = ({
 
   const [title, setTitle] = useState(itemDataGrid.title);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
-  
+
   const titleRef = useRef<HTMLHeadingElement>(null);
   const plotRef = useRef<Plot | null>(null);
 
   const handleBlurTitle = () => {
     if (titleRef.current) {
-      setTitle(titleRef.current.innerText || "Untitled");
+      setTitle(titleRef.current.innerText || 'Untitled');
     }
     setIsEditingTitle(false);
   };
 
   const handleKeyDownTitle = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
+    if (e.key === 'Enter') {
       e.preventDefault();
       if (titleRef.current) {
-        setTitle(titleRef.current.innerText || "Untitled");
+        setTitle(titleRef.current.innerText || 'Untitled');
       }
       setIsEditingTitle(false);
     }
@@ -108,20 +108,40 @@ export const SimplePlotly = ({
 
   /**
    * Update the editable title when layout title change
-  */
+   */
   useEffect(() => {
     setTitle(itemDataGrid.title || '');
   }, [itemDataGrid.title]);
 
   /**
-   * Update the layout title when editing title
-  */
+   * Update the layout title & dataPlot configuration when editing title
+   */
   useEffect(() => {
     setLayoutPlot((prevLayout) => ({
       ...prevLayout,
       title: { text: title },
     }));
-  }, [title])
+
+    const updatedDataPlot: DataGridPlot[] = active.dataPlot.map(
+      (item: DataGridPlot) => {
+        if (item.i === itemDataGrid.i) {
+          return {
+            ...itemDataGrid,
+            title: title,
+          };
+        }
+        return item;
+      },
+    );
+
+    const newActive: Configuration = {
+      ...active,
+      saved: false,
+      dataPlot: updatedDataPlot,
+    };
+
+    updatedConfiguration(newActive);
+  }, [title]);
 
   /**
    * Update the layout height
@@ -490,7 +510,7 @@ export const SimplePlotly = ({
         <div className={classes.editableTitle}>
           <span
             ref={titleRef}
-            className={itemDataGrid.isEditing && classes.isEditing}
+            className={itemDataGrid.isEditing ? classes.isEditing : undefined}
             contentEditable={isEditingTitle && itemDataGrid.isEditing}
             suppressContentEditableWarning
             onClick={() => setIsEditingTitle(true)}
@@ -500,7 +520,7 @@ export const SimplePlotly = ({
             {title}
           </span>
         </div>
-        
+
         <Plot
           ref={plotRef}
           className={classes.simplePlot}

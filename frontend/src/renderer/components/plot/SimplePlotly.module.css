@@ -12,7 +12,7 @@
   right: -20px !important;
 }
 
-.editableTitle{
+.editableTitle {
   z-index: 10;
   position: absolute;
   top: 40px;
@@ -22,11 +22,11 @@
   background-color: white;
   width: 100%;
 }
-.editableTitle span{
+.editableTitle span {
   padding: 0.5rem;
   border-radius: 0.25rem;
   font-size: 1rem;
-  font-family: "Open Sans", verdana, arial, sans-serif;
+  font-family: 'Open Sans', verdana, arial, sans-serif;
   font-size: 17px;
   color: rgb(68, 68, 68);
   font-weight: normal;
@@ -34,6 +34,6 @@
   font-variant: normal;
   pointer-events: all;
 }
-.isEditing{
+.isEditing {
   cursor: pointer;
 }
