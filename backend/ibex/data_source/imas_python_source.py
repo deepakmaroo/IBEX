@@ -604,6 +604,10 @@ class IMASPythonSource(DataSourceInterface):
                             labels.append(str(element.name))
                         elif hasattr(element, "label"):
                             labels.append(str(element.label))
+                        elif hasattr(element, "identifier"):
+                            labels.append(str(element.identifier.name))
+                        elif hasattr(element, "type"):
+                            labels.append(str(element.type.name))
                         else:
                             raise AttributeError("No <name> or <label> attribute in node")
 
