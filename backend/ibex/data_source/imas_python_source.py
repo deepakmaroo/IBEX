@@ -25,6 +25,7 @@ from ibex.data_source.exception import (
     NotALeafNodeException,
     NotAnArrayException,
     EntryNotFoundException,
+    NoDataException,
 )
 
 
@@ -551,7 +552,7 @@ class IMASPythonSource(DataSourceInterface):
             return all(map(is_empty, seq)) if isinstance(seq, list) else False
 
         if is_empty(ids_data):
-            raise NodeNotFoundException("Requested node is empty")
+            raise NoDataException(f"No data for {node_path}")
 
         data_to_be_returned = self._serialize_data(ids_data)
         coordinates_to_be_returned = []
