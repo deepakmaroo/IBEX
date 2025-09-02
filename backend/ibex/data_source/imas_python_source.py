@@ -546,6 +546,13 @@ class IMASPythonSource(DataSourceInterface):
         path_elements = list(ids_path.items())
         ids_data = self._get_raw_data(ids_obj, path_elements)
 
+        # function to check if list is essentially empty (contains only empty lists)
+        def is_empty(seq):
+            return all(map(is_empty, seq)) if isinstance(seq, list) else False
+
+        if is_empty(ids_data):
+            raise NodeNotFoundException("Requested node is empty")
+
         data_to_be_returned = self._serialize_data(ids_data)
         coordinates_to_be_returned = []
 
@@ -604,9 +611,9 @@ class IMASPythonSource(DataSourceInterface):
                             labels.append(str(element.name))
                         elif hasattr(element, "label"):
                             labels.append(str(element.label))
-                        elif hasattr(element, "identifier"):
+                        elif hasattr(element, "identifier") and hasattr(element.identifier, "name"):
                             labels.append(str(element.identifier.name))
-                        elif hasattr(element, "type"):
+                        elif hasattr(element, "type") and hasattr(element.type, "name"):
                             labels.append(str(element.type.name))
                         else:
                             raise AttributeError("No <name> or <label> attribute in node")
