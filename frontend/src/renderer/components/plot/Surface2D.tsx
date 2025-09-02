@@ -86,7 +86,7 @@ export const Surface2D = ({
       setSlice(
         getFirstArrayValueFromShape(
           findTimeCoordinate.data,
-          findTimeCoordinate.shape,
+          findTimeCoordinate.shape as number[],
         ),
       );
     }
@@ -177,7 +177,8 @@ export const Surface2D = ({
             ref={plotRef}
             data={[
               {
-                type: 'surface',
+                type: 'heatmap',
+                colorscale: 'Viridis',
                 x: x,
                 y: y,
                 z: z,

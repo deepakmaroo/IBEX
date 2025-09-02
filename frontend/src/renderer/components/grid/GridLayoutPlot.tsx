@@ -18,7 +18,6 @@ import {
   Text,
   Tooltip,
 } from '@mantine/core';
-
 import {
   IconBrandDatabricks,
   IconCheck,
@@ -137,6 +136,71 @@ export const GridLayoutPlot = ({
     [active],
   );
 
+  const heatmapLogo = 
+    (
+      <svg width="50" height="50" viewBox="0 0 50 50">
+        <rect x="0" y="0" width="15" height="15" fill="#440154" />
+        <rect
+          x="17"
+          y="0"
+          width="15"
+          height="15"
+          fill="#31688e"
+        />
+        <rect
+          x="34"
+          y="0"
+          width="15"
+          height="15"
+          fill="#35b779"
+        />
+
+        <rect
+          x="0"
+          y="17"
+          width="15"
+          height="15"
+          fill="#fde725"
+        />
+        <rect
+          x="17"
+          y="17"
+          width="15"
+          height="15"
+          fill="#440154"
+        />
+        <rect
+          x="34"
+          y="17"
+          width="15"
+          height="15"
+          fill="#31688e"
+        />
+
+        <rect
+          x="0"
+          y="34"
+          width="15"
+          height="15"
+          fill="#35b779"
+        />
+        <rect
+          x="17"
+          y="34"
+          width="15"
+          height="15"
+          fill="#fde725"
+        />
+        <rect
+          x="34"
+          y="34"
+          width="15"
+          height="15"
+          fill="#440154"
+        />
+      </svg>
+    );
+
   return (
     <Container fluid w={widthGrid} p={0}>
       <div ref={hoverRef} className={classes.containerButton}>
@@ -161,18 +225,18 @@ export const GridLayoutPlot = ({
           {hovered || data.isEditing ? (
             <Group pos="absolute" right={'1rem'} top={5} grow>
               {/* 3D button display */}
-              <Tooltip label="Toggle 2D/3D view">
+              <Tooltip label="Toggle 1D/Heatmap view">
                 <ActionIcon
                   variant="filled"
-                  aria-label="Toggle 2D/3D view"
+                  aria-label="Toggle 1D/Heatmap view"
                   onClick={() => setIs3DView((prev) => !prev)}
                   className={classes.actionButton}
                   disabled={data.coordinates.length !== 3} //Only enable if there are 3 coordinates - corresponding to 3D data
                 >
                   {is3DView ? (
-                    <Text fw="bold">2D</Text>
+                    <Text fw="bold">1D</Text>
                   ) : (
-                    <Text fw="bold">3D</Text>
+                    heatmapLogo
                   )}
                 </ActionIcon>
               </Tooltip>
