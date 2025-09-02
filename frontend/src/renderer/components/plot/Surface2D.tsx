@@ -184,6 +184,15 @@ export const Surface2D = ({
                 z: z,
               },
             ]}
+            config={{
+              autosizable: false,
+              staticPlot: !itemDataGrid.static,
+              scrollZoom: true,
+              displayModeBar: true,
+              showTips: true,
+              displaylogo: false,
+              modeBarButtonsToRemove: ['lasso2d', 'select2d'],
+            }}
             layout={layoutPlot}
             onRelayout={handleRelayout}
             useResizeHandler={false}
