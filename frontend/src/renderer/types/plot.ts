@@ -17,11 +17,12 @@ export interface BaseCoordinates {
 
 export interface Coordinates extends BaseCoordinates {
   name: string;
-  shape: number[];
+  shape: number[] | 'inhomogeneous';
   shape_factors: ShapeFactorResponse[];
   data: AxisData;
   axeIndex: number;
   unit?: string;
+  isDimensionCoordinate?: boolean;
 }
 
 export interface BaseDataPlotly {

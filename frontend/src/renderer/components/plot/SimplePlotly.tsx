@@ -17,8 +17,11 @@ import {
   getLastIndexedField,
   getVectorData,
   updateIndexFieldName,
+  fetchDataPlot,
+  normalizeIndices,
+  getDefaultUri,
 } from '../../utils';
-import classe from './SimplePlotly.module.css';
+import classes from './SimplePlotly.module.css';
 import * as tf from '@tensorflow/tfjs';
 
 interface SimplePlotlyProps {
@@ -75,24 +78,73 @@ export const SimplePlotly = ({
     plot_bgcolor: '#c7c7c7',
     dragmode: 'zoom',
   });
+
+  const [title, setTitle] = useState(itemDataGrid.title);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+
+  const titleRef = useRef<HTMLHeadingElement>(null);
   const plotRef = useRef<Plot | null>(null);
 
-  const handleRelayout = (newLayout: Partial<Layout>) => {
+  const handleBlurTitle = () => {
+    if (titleRef.current) {
+      setTitle(titleRef.current.innerText || 'Untitled');
+    }
+    setIsEditingTitle(false);
+  };
+
+  const handleKeyDownTitle = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (titleRef.current) {
+        setTitle(titleRef.current.innerText || 'Untitled');
+      }
+      setIsEditingTitle(false);
+    }
+  };
+
+  const handleRelayout = (relayout: Partial<Layout>) => {
     setLayoutPlot((prevLayout) => ({
       ...prevLayout,
-      ...newLayout, // update the layout with new values
+      ...relayout, // update the layout with new values
     }));
   };
 
   /**
-   * Update the layout title
+   * Update the editable title when layout title change
+   */
+  useEffect(() => {
+    setTitle(itemDataGrid.title || '');
+  }, [itemDataGrid.title]);
+
+  /**
+   * Update the layout title & dataPlot configuration when editing title
    */
   useEffect(() => {
     setLayoutPlot((prevLayout) => ({
       ...prevLayout,
-      title: { text: itemDataGrid.title || '' },
+      title: { text: title },
     }));
-  }, [itemDataGrid.title]);
+
+    const updatedDataPlot: DataGridPlot[] = active.dataPlot.map(
+      (item: DataGridPlot) => {
+        if (item.i === itemDataGrid.i) {
+          return {
+            ...itemDataGrid,
+            title: title,
+          };
+        }
+        return item;
+      },
+    );
+
+    const newActive: Configuration = {
+      ...active,
+      saved: false,
+      dataPlot: updatedDataPlot,
+    };
+
+    updatedConfiguration(newActive);
+  }, [title]);
 
   /**
    * Update the layout height
@@ -187,6 +239,64 @@ export const SimplePlotly = ({
     if (!lastTargetLastName)
       return console.warn('No indexed field found in target');
 
+    let updatedDimension: DataGridPlot;
+    // Update plot with new selected dimension
+    if (coordinate?.isDimensionCoordinate) {
+      // Get dataGrid to update
+      updatedDimension = JSON.parse(JSON.stringify(itemDataGrid));
+
+      const normalizedUri = normalizeIndices(itemDataGrid.plot[0].nodeUri); //Use normalized URI to get all matrix
+      const newUri = normalizedUri.replace(
+        `${coordinate.name}[:]`,
+        `${coordinate.name}[${valueIndex}]`,
+      );
+      const newRes = await fetchDataPlot(newUri);
+
+      // Add information indicating that this coordinate is used to select the dimension
+      newRes.data.coordinates.find(
+        (coord) => coord.name === coordinate.name,
+      ).isDimensionCoordinate = true;
+
+      // Update coordinates
+      let resettedAxeIndex = 0;
+      for (const coordinate of updatedDimension.coordinates) {
+        const newCoord = newRes.data.coordinates.find(
+          (newCoord) =>
+            normalizeIndices(newCoord.target) ===
+            normalizeIndices(coordinate.target),
+        );
+        coordinate.axeIndex = resettedAxeIndex;
+        coordinate.shape = newCoord.shape;
+        coordinate.shape_factors = newCoord.shape_factors;
+        coordinate.target = newCoord.target;
+        coordinate.data = newCoord.value;
+        coordinate.valueIndex = 0;
+        resettedAxeIndex++;
+      }
+
+      // Update plots
+      for (const plot of updatedDimension.plot) {
+        plot.path = newRes.data.path;
+        plot.shape = newRes.data.shape as number[];
+        plot.yData = newRes.data.value;
+      }
+
+      // Update xAxisData
+      const xAxis = updatedDimension.coordinates.find(
+        (coord) => coord.axeIndex === 0,
+      );
+      updatedDimension.xAxisData.name = xAxis.name;
+      updatedDimension.xAxisData.path = getDefaultUri(
+        newRes.data.coordinates[0].path,
+      );
+      updatedDimension.xAxisData.unit = xAxis.unit;
+    }
+
+    if (updatedDimension) {
+      itemDataGrid = updatedDimension;
+    }
+
+    // Update coordinates targets with new valueIndex
     const updatedCoordinatesValue = itemDataGrid.coordinates.map((item) => {
       const lastTargetLastName = getLastIndexedField(coordinate.target);
 
@@ -198,7 +308,7 @@ export const SimplePlotly = ({
 
       return {
         ...item,
-        target: updatedTarget, // Update the target to the new one
+        target: updatedTarget,
         valueIndex:
           item.name === coordinate.name ? valueIndex : item.valueIndex,
       };
@@ -209,9 +319,9 @@ export const SimplePlotly = ({
       dataPlot: active.dataPlot.map((item: DataGridPlot) => {
         if (item.i === itemDataGrid.i) {
           const updatedXAxisData: Axis = {
-            ...item.xAxisData,
+            ...itemDataGrid.xAxisData,
             path: updateIndexFieldName(
-              item.xAxisData?.path || '',
+              itemDataGrid.xAxisData?.path || '',
               lastTargetLastName,
               valueIndex,
             ),
@@ -226,7 +336,7 @@ export const SimplePlotly = ({
             updatedCoordinatesValue,
           );
 
-          const updatedPlot = item.plot.map((plotItem) => {
+          const updatedPlot = itemDataGrid.plot.map((plotItem) => {
             const updatedNodeUri = updateIndexFieldName(
               plotItem.nodeUri,
               lastTargetLastName,
@@ -255,7 +365,7 @@ export const SimplePlotly = ({
           });
 
           return {
-            ...item,
+            ...itemDataGrid,
             coordinates: updatedCoordinatesValue,
             plot: updatedPlot,
             xAxisData: updatedXAxisData,
@@ -420,7 +530,7 @@ export const SimplePlotly = ({
           ref={sliderRef ? sliderRef : undefined}
           mt={10}
         >
-          <Group justify="space-between" gap="0">
+          <Group justify="space-between" gap="0" align="flex-end">
             {JSON.parse(JSON.stringify(itemDataGrid.coordinates))
               .sort(compareByAxeIndex)
               .map(
@@ -430,11 +540,18 @@ export const SimplePlotly = ({
                       key={valueIndex}
                       name={item.name}
                       valueIndex={item.valueIndex || 0}
-                      data={getFirstArrayValueFromShape(item.data, item.shape)}
+                      data={getFirstArrayValueFromShape(
+                        item.data,
+                        item.shape as number[],
+                      )}
                       getValue={(valueIndex) => {
                         handleUpdateCoordinate(item, valueIndex);
                       }}
-                      switchAxis={() => switchAxis(item.axeIndex)}
+                      switchAxis={
+                        !item.isDimensionCoordinate
+                          ? () => switchAxis(item.axeIndex)
+                          : undefined
+                      }
                       height={
                         is3DView
                           ? height - 80
@@ -458,8 +575,24 @@ export const SimplePlotly = ({
           flexDirection: 'column',
         }}
       >
+        <div className={classes.editableTitle}>
+          <span
+            ref={titleRef}
+            className={itemDataGrid.isEditing ? classes.isEditing : undefined}
+            contentEditable={isEditingTitle && itemDataGrid.isEditing}
+            suppressContentEditableWarning
+            onClick={() => setIsEditingTitle(true)}
+            onBlur={handleBlurTitle}
+            onKeyDown={handleKeyDownTitle}
+          >
+            {title}
+          </span>
+        </div>
+
         <Plot
           ref={plotRef}
+          className={classes.simplePlot}
+          style={{ width: `${width}px`, height: `${height}px` }}
           data={itemDataGrid.plot}
           config={{
             autosizable: false,
@@ -473,8 +606,6 @@ export const SimplePlotly = ({
           layout={layoutPlot}
           onRelayout={handleRelayout}
           useResizeHandler={false}
-          style={{ width: `${width}px`, height: `${height}px` }}
-          className={classe.simplePlot}
         />
       </Grid.Col>
     </Grid>
