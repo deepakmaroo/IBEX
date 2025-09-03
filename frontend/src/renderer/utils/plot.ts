@@ -39,7 +39,7 @@ export const checkDimension1 = async (
     let newUri: string;
     let coordinateNameDimension: string;
     for (const coordinate of response.data.coordinates) {
-      if (coordinate.shape !== 'inhomogeneous') {
+      if (coordinate.shape !== 'irregular') {
         newUri = defaultUri.replace(
           `${coordinate.name}[:]`,
           `${coordinate.name}[0]`,
@@ -50,7 +50,7 @@ export const checkDimension1 = async (
     }
     if (newUri) {
       const homogenousResponse: PlotDataResponse = await fetchDataPlot(newUri);
-      if (homogenousResponse.data.shape !== 'inhomogeneous') {
+      if (homogenousResponse.data.shape !== 'irregular') {
         // Add information indicating that this coordinate is used to select the dimension
         homogenousResponse.data.coordinates.find(
           (coord) => coord.name === coordinateNameDimension,
@@ -175,7 +175,7 @@ export const handleNewPlot = async (
         return {
           name: coordinate.name,
           shape: coordinate.shape,
-          shape_factors: coordinate.shape_factors,
+          coordinates: coordinate.coordinates,
           data: dataValueMatrix,
           valueIndex: 0,
           target: getDefaultUri(coordinate.target),
@@ -543,7 +543,7 @@ export async function plotNodeUriLoaded(
                   dataGrid.coordinates.push({
                     name: responseCoordinates.name,
                     shape: responseCoordinates.shape,
-                    shape_factors: responseCoordinates.shape_factors,
+                    coordinates: responseCoordinates.coordinates,
                     data: responseCoordinates.value,
                     target: getDefaultUri(responseCoordinates.target),
                     valueIndex: 0,
@@ -560,7 +560,7 @@ export async function plotNodeUriLoaded(
                 matchingCoord.data = responseCoordinates.value;
                 matchingCoord.name = responseCoordinates.name;
                 matchingCoord.shape = responseCoordinates.shape;
-                matchingCoord.shape_factors = responseCoordinates.shape_factors;
+                matchingCoord.coordinates = responseCoordinates.coordinates;
 
                 //* Update the target - yPath - axis data with the index
                 matchingCoord.target = updateIndexFieldName(

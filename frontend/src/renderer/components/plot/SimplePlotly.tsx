@@ -218,7 +218,7 @@ export const SimplePlotly = ({
         );
         coordinate.axeIndex = resettedAxeIndex;
         coordinate.shape = newCoord.shape;
-        coordinate.shape_factors = newCoord.shape_factors;
+        coordinate.coordinates = newCoord.coordinates;
         coordinate.target = newCoord.target;
         coordinate.data = newCoord.value;
         coordinate.valueIndex = 0;

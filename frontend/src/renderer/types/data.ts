@@ -5,17 +5,12 @@ export type PlotCoordinatesResponse = {
   target: string;
   unit: string;
   value: AxisData;
-  shape: number[] | 'inhomogeneous';
-  shape_factors: ShapeFactorResponse[];
+  shape: number[] | 'irregular';
+  coordinates: string[];
   ndim: number;
   path: string;
   description: string;
   isDimensionCoordinate?: boolean;
-};
-
-export type ShapeFactorResponse = {
-  name: string;
-  values_source: string;
 };
 
 export type PlotDataResponse = {
@@ -23,8 +18,7 @@ export type PlotDataResponse = {
     name: string;
     unit: string;
     value: AxisData;
-    shape: number[] | 'inhomogeneous';
-    shape_factors: ShapeFactorResponse[];
+    shape: number[] | 'irregular';
     ndim: number;
     path: string;
     description: string;

@@ -1,6 +1,5 @@
 import { Data } from 'plotly.js';
 import { Layout } from 'react-grid-layout';
-import { ShapeFactorResponse } from './data';
 
 export interface Axis {
   name: string;
@@ -17,8 +16,8 @@ export interface BaseCoordinates {
 
 export interface Coordinates extends BaseCoordinates {
   name: string;
-  shape: number[] | 'inhomogeneous';
-  shape_factors: ShapeFactorResponse[];
+  shape: number[] | 'irregular';
+  coordinates: string[];
   data: AxisData;
   axeIndex: number;
   unit?: string;
