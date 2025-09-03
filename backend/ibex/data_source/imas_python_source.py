@@ -622,7 +622,7 @@ class IMASPythonSource(DataSourceInterface):
                 for k, v in coordinates_of_coordinate.items():
                     if k == target:
                         continue
-                    shape_factors.append({"name": f"#{ids}/{k}"})
+                    shape_factors.append(f"#{ids}/{k}")
                 # ====================================
 
                 c = {
@@ -633,7 +633,7 @@ class IMASPythonSource(DataSourceInterface):
                     "ndim": 1,  # 1...N coord always have 1 dimension
                     "path": "",
                     "description": "1...N",
-                    "shape_factors": shape_factors,
+                    "coordinates": shape_factors,
                     "value": labels if labels else coord_values,
                 }
                 coordinates_to_be_returned.append(c)
@@ -656,13 +656,13 @@ class IMASPythonSource(DataSourceInterface):
                 for k, v in coordinates_of_coordinate.items():
                     if str(k) == coord:
                         continue
-                    shape_factors.append({"name": f"#{ids}/{k}"})
+                    shape_factors.append(f"#{ids}/{k}")
                 # ====================================
 
                 try:
                     coord_data_shape = np.asarray(serialized_data).shape
                 except ValueError:
-                    coord_data_shape = "inhomogeneous"
+                    coord_data_shape = "irregular"
 
                 c = {
                     "name": coord.split("/")[-1],
@@ -672,7 +672,7 @@ class IMASPythonSource(DataSourceInterface):
                     "ndim": first_value.metadata.ndim,
                     "path": f"#{ids}/{coord}",
                     "description": first_value.metadata.documentation,
-                    "shape_factors": shape_factors,
+                    "coordinates": shape_factors,
                     "value": serialized_data,
                 }
                 coordinates_to_be_returned.append(c)
@@ -684,7 +684,7 @@ class IMASPythonSource(DataSourceInterface):
         try:
             data_shape = np.asarray(data_to_be_returned).shape
         except ValueError:
-            data_shape = "inhomogeneous"
+            data_shape = "irregular"
 
         result = {
             "data": {
@@ -703,9 +703,11 @@ class IMASPythonSource(DataSourceInterface):
         # update shape factors
 
         for coordinate in coordinates_to_be_returned:
-            for shape_factor in coordinate["shape_factors"]:
+            new_shape_factors_list = []
+            for shape_factor in coordinate["coordinates"]:
                 # search for coordinates that have <shape_factor> name in "target" key
-                coord_name = next(x["name"] for x in coordinates_to_be_returned if x["target"] == shape_factor["name"])
-                shape_factor["values_source"] = coord_name
+                coord_name = next(x["name"] for x in coordinates_to_be_returned if x["target"] == shape_factor)
+                new_shape_factors_list.append(coord_name)
+            coordinate["coordinates"] = new_shape_factors_list
 
         return result
