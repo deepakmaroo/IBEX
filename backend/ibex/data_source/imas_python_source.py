@@ -617,7 +617,7 @@ class IMASPythonSource(DataSourceInterface):
                         elif hasattr(element, "type") and hasattr(element.type, "name"):
                             labels.append(str(element.type.name))
                         else:
-                            raise AttributeError("No <name> or <label> attribute in node")
+                            raise AttributeError("No additional data to create label")
 
                     # if any label is empty, use indexes instead
                     if any(s == "" for s in labels):
