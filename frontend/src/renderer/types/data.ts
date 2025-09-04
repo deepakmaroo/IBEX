@@ -5,17 +5,13 @@ export type PlotCoordinatesResponse = {
   target: string;
   unit: string;
   value: AxisData;
-  shape: number[];
   downsampled_shape: number[];
-  shape_factors: ShapeFactorResponse[];
+  shape: number[] | 'irregular';
+  coordinates: string[];
   ndim: number;
   path: string;
   description: string;
-};
-
-export type ShapeFactorResponse = {
-  name: string;
-  values_source: string;
+  isDimensionCoordinate?: boolean;
 };
 
 export type PlotDataResponse = {
@@ -23,10 +19,9 @@ export type PlotDataResponse = {
     name: string;
     unit: string;
     value: AxisData;
-    shape: number[];
     downsampled_shape: number[];
     downsampled_method?: string;
-    shape_factors: ShapeFactorResponse[];
+    shape: number[] | 'irregular';
     ndim: number;
     path: string;
     description: string;

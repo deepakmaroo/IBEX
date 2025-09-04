@@ -28,21 +28,46 @@ import { getFirstArrayValueFromShape } from './matrix';
  * @param nodes The nodes to update.
  * @returns A boolean indicating whether the dimension check passed.
  */
-export const checkDimension1 = (
+export const checkDimension1 = async (
   response: PlotDataResponse,
   updatedActive: Configuration,
   nodes: URITreeNodeData[],
-): boolean => {
+): Promise<PlotDataResponse> | undefined => {
   if (!response || response.data.ndim > 1) {
+    // Get new uri to have homogeneous shape
+    const defaultUri = nodes[0].uri; //Use normalized URI to get all matrix
+    let newUri: string;
+    let coordinateNameDimension: string;
+    for (const coordinate of response.data.coordinates) {
+      if (coordinate.shape !== 'irregular') {
+        newUri = defaultUri.replace(
+          `${coordinate.name}[:]`,
+          `${coordinate.name}[0]`,
+        );
+        coordinateNameDimension = coordinate.name;
+        break;
+      }
+    }
+    if (newUri) {
+      const homogenousResponse: PlotDataResponse = await fetchDataPlot(newUri);
+      if (homogenousResponse.data.shape !== 'irregular') {
+        // Add information indicating that this coordinate is used to select the dimension
+        homogenousResponse.data.coordinates.find(
+          (coord) => coord.name === coordinateNameDimension,
+        ).isDimensionCoordinate = true;
+        return homogenousResponse;
+      }
+    }
+
     showNotification({
       title: 'Plot',
       message: 'Cannot plot data with more than one dimension',
       color: 'yellow',
     });
     updatedActive.checkedNodeURI = nodes.filter((n) => n !== nodes[0]);
-    return false;
+    return undefined;
   }
-  return true;
+  return response;
 };
 
 /**
@@ -118,12 +143,18 @@ export const handleNewPlot = async (
   //* : corresponds to all indices (matrix)
   let defaultUri = nodes[0].uri; //Use normalized URI to get all matrix
 
-  const response: PlotDataResponse = await fetchDataPlot(defaultUri);
-
+  let response: PlotDataResponse = await fetchDataPlot(defaultUri);
   defaultUri = getDefaultUri(defaultUri); //Set defaultUri [0] by default
 
-  if (!checkDimension1(response, updatedActive, nodes)) {
+  const checkedDimensionResponse = await checkDimension1(
+    response,
+    updatedActive,
+    nodes,
+  );
+  if (!checkedDimensionResponse) {
     return updatedActive;
+  } else {
+    response = checkedDimensionResponse;
   }
 
   let xCoordinatesData: Coordinates[] = [];
@@ -147,13 +178,14 @@ export const handleNewPlot = async (
           name: coordinate.name,
           shape: coordinate.shape,
           downsampled_shape: coordinate.downsampled_shape,
-          shape_factors: coordinate.shape_factors,
+          coordinates: coordinate.coordinates,
           data: dataValueMatrix,
           valueIndex: 0,
           target: getDefaultUri(coordinate.target),
           nodeUri: defaultUri,
           axeIndex: index,
           unit: coordinate.unit || '',
+          isDimensionCoordinate: coordinate?.isDimensionCoordinate,
         };
       },
     );
@@ -174,12 +206,12 @@ export const handleNewPlot = async (
 
   const defaultXValue = getFirstArrayValueFromShape(
     response.data.coordinates[0].value,
-    response.data.coordinates[0].shape,
+    response.data.coordinates[0].shape as number[],
   );
 
   const defaultYValue = getFirstArrayValueFromShape(
     response.data.value,
-    response.data.shape,
+    response.data.shape as number[],
   );
 
   const updatedPlot: DataGridPlot = plotData(
@@ -191,7 +223,7 @@ export const handleNewPlot = async (
     defaultUri,
     response.data.ndim,
     getDefaultUri(response.data.path),
-    response.data.shape,
+    response.data.shape as number[],
     nodes[0].name,
     response.data.downsampled_method,
     response.data.description,
@@ -229,15 +261,22 @@ export const handleExistingPlot = async (
   for (const node of dataToPlot) {
     let defaultUri = node.uri;
 
-    const response = await fetchDataPlot(
+    let response = await fetchDataPlot(
       defaultUri,
       findDataPlot.downsampled_method,
     );
 
     defaultUri = getDefaultUri(defaultUri); //Set defaultUri [0] by default
 
-    if (!checkDimension1(response, updatedActive, nodes)) {
+    const checkedDimensionResponse = await checkDimension1(
+      response,
+      updatedActive,
+      nodes,
+    );
+    if (!checkedDimensionResponse) {
       return updatedActive;
+    } else {
+      response = checkedDimensionResponse;
     }
 
     const unit = response.data.unit;
@@ -362,7 +401,7 @@ export const handleExistingPlot = async (
 
     const defaultXValue = getFirstArrayValueFromShape(
       response.data.coordinates[0].value,
-      response.data.coordinates[0].shape,
+      response.data.coordinates[0].shape as number[],
     );
 
     const defaultYValue = getVectorData(
@@ -380,7 +419,7 @@ export const handleExistingPlot = async (
         defaultUri,
         response.data.ndim,
         yDataResponsePath,
-        response.data.shape,
+        response.data.shape as number[],
         node.name,
         response.data.downsampled_method,
         response.data.description,
@@ -406,7 +445,7 @@ export const handleExistingPlot = async (
         defaultUri,
         response.data.ndim,
         yDataResponsePath,
-        response.data.shape,
+        response.data.shape as number[],
         node.name,
         response.data.downsampled_method,
         response.data.description,
@@ -516,7 +555,7 @@ export async function plotNodeUriLoaded(
                     name: responseCoordinates.name,
                     shape: responseCoordinates.shape,
                     downsampled_shape: responseCoordinates.downsampled_shape,
-                    shape_factors: responseCoordinates.shape_factors,
+                    coordinates: responseCoordinates.coordinates,
                     data: responseCoordinates.value,
                     target: getDefaultUri(responseCoordinates.target),
                     valueIndex: 0,
@@ -533,9 +572,9 @@ export async function plotNodeUriLoaded(
                 matchingCoord.data = responseCoordinates.value;
                 matchingCoord.name = responseCoordinates.name;
                 matchingCoord.shape = responseCoordinates.shape;
-                matchingCoord.shape_factors = responseCoordinates.shape_factors;
                 matchingCoord.downsampled_shape =
                   responseCoordinates.downsampled_shape;
+                matchingCoord.coordinates = responseCoordinates.coordinates;
 
                 //* Update the target - yPath - axis data with the index
                 matchingCoord.target = updateIndexFieldName(
@@ -572,11 +611,11 @@ export async function plotNodeUriLoaded(
 
               const defaultXValue = getFirstArrayValueFromShape(
                 response.data.coordinates[0].value,
-                response.data.coordinates[0].shape,
+                response.data.coordinates[0].shape as number[],
               );
               const defaultYValue = getFirstArrayValueFromShape(
                 response.data.value,
-                response.data.shape,
+                response.data.shape as number[],
               );
 
               return {
@@ -585,7 +624,7 @@ export async function plotNodeUriLoaded(
                 description: response.data.description,
                 dimensions: response.data.ndim,
                 path: yResponsePath,
-                shape: response.data.shape,
+                shape: response.data.shape as number[],
                 yData: response.data.value,
                 x: defaultXValue.map((x) => x.toString()),
                 y: defaultYValue,

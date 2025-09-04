@@ -88,7 +88,7 @@ const RenderMetaDataCoordinates = ({
         {renderField('name', coordinate.name)}
         {renderField('path', coordinate.path)}
         {renderField('unit', coordinate.unit)}
-        {renderSpoiler('shape', coordinate.shape)}
+        {renderSpoiler('shape', coordinate.shape as number[])}
         {renderField('ndim', coordinate.ndim.toString())}
 
         {renderSpoiler('value', coordinate.value as number[])}

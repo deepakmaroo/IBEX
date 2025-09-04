@@ -1,13 +1,37 @@
 /* Need to retrieve the modebar-container class but impossible to get it via ".simplePlot .modebar-container" so I give it the path to the div in question */
-.simplePlot > div > div > div {
+.simplePlot > div > div > div,
+.plot2D > div > div > div {
   bottom: 0px !important;
   top: inherit !important;
   height: 180px !important;
 }
 
 .plot2D > div > div > div {
-  bottom: 0px !important;
-  top: inherit !important;
-  height: 210px !important;
-  right: -20px !important;
+  right: -50px !important; /* -50px is the width of removed coordinate in 2D case */
+}
+
+.editableTitle {
+  z-index: 10;
+  position: absolute;
+  top: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  background-color: white;
+  width: 100%;
+}
+.editableTitle span {
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 1rem;
+  font-family: 'Open Sans', verdana, arial, sans-serif;
+  font-size: 17px;
+  color: rgb(68, 68, 68);
+  font-weight: normal;
+  font-style: normal;
+  font-variant: normal;
+  pointer-events: all;
+}
+.isEditing {
+  cursor: pointer;
 }

@@ -164,7 +164,7 @@ export function MainLayout() {
                               name: '',
                               shape: [],
                               downsampled_shape: [],
-                              shape_factors: [],
+                              coordinates: [],
                               data: [],
                               axeIndex: index,
                             };

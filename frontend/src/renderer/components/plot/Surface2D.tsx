@@ -86,7 +86,7 @@ export const Surface2D = ({
       setSlice(
         getFirstArrayValueFromShape(
           findTimeCoordinate.data,
-          findTimeCoordinate.shape,
+          findTimeCoordinate.shape as number[],
         ),
       );
     }
@@ -177,12 +177,22 @@ export const Surface2D = ({
             ref={plotRef}
             data={[
               {
-                type: 'surface',
+                type: 'heatmap',
+                colorscale: 'Viridis',
                 x: x,
                 y: y,
                 z: z,
               },
             ]}
+            config={{
+              autosizable: false,
+              staticPlot: !itemDataGrid.static,
+              scrollZoom: true,
+              displayModeBar: true,
+              showTips: true,
+              displaylogo: false,
+              modeBarButtonsToRemove: ['lasso2d', 'select2d'],
+            }}
             layout={layoutPlot}
             onRelayout={handleRelayout}
             useResizeHandler={false}
