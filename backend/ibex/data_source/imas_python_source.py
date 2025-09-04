@@ -5,7 +5,6 @@ from typing import Optional, Sequence, List
 import imas  # type: ignore
 import numpy as np  # type: ignore
 import re  # type: ignore
-
 from idstools.database import DBMaster  # type: ignore
 from imas.ids_metadata import IDSMetadata  # type: ignore
 from imas.ids_primitive import IDSNumericArray  # type: ignore
@@ -26,7 +25,7 @@ from ibex.data_source.exception import (
     NotALeafNodeException,
     NotAnArrayException,
     EntryNotFoundException,
-    EmptyNodeException,
+    NoDataException,
 )
 from ibex.core.utils import downsample_data
 
@@ -574,10 +573,16 @@ class IMASPythonSource(DataSourceInterface):
         path_elements = list(ids_path.items())
         ids_data = self._get_raw_data(ids_obj, path_elements)
 
-        if (isinstance(ids_data, list) and len(ids_data) == 0) or (
-            isinstance(ids_data, IDSNumericArray) and ids_data.size == 0
-        ):
-            raise EmptyNodeException(f"Node {ids_path} is empty")
+        # function to check if list is essentially empty (contains only empty lists)
+        def is_empty(seq):
+            if isinstance(seq, (IDSNumericArray, np.ndarray)):
+                return seq.size == 0
+            return all(map(is_empty, seq)) if isinstance(seq, list) else False
+
+        if is_empty(ids_data):
+            raise NoDataException(f"No data for {node_path}")
+
+        data_to_be_returned = self._serialize_data(ids_data)
         coordinates_to_be_returned = []
 
         # =================================
@@ -635,8 +640,12 @@ class IMASPythonSource(DataSourceInterface):
                             labels.append(str(element.name))
                         elif hasattr(element, "label"):
                             labels.append(str(element.label))
+                        elif hasattr(element, "identifier") and hasattr(element.identifier, "name"):
+                            labels.append(str(element.identifier.name))
+                        elif hasattr(element, "type") and hasattr(element.type, "name"):
+                            labels.append(str(element.type.name))
                         else:
-                            raise AttributeError("No <name> or <label> attribute in node")
+                            raise AttributeError("No additional data to create label")
 
                     # if any label is empty, use indexes instead
                     if any(s == "" for s in labels):
@@ -653,7 +662,7 @@ class IMASPythonSource(DataSourceInterface):
                 for k, v in coordinates_of_coordinate.items():
                     if k == target:
                         continue
-                    shape_factors.append({"name": f"#{ids}/{k}"})
+                    shape_factors.append(f"#{ids}/{k}")
                 # ====================================
 
                 c = {
@@ -665,7 +674,7 @@ class IMASPythonSource(DataSourceInterface):
                     "ndim": 1,  # 1...N coord always have 1 dimension
                     "path": "",
                     "description": "1...N",
-                    "shape_factors": shape_factors,
+                    "coordinates": shape_factors,
                     "value": labels if labels else coord_values,
                 }
                 coordinates_to_be_returned.append(c)
@@ -686,13 +695,13 @@ class IMASPythonSource(DataSourceInterface):
                 for k, v in coordinates_of_coordinate.items():
                     if str(k) == coord:
                         continue
-                    shape_factors.append({"name": f"#{ids}/{k}"})
+                    shape_factors.append(f"#{ids}/{k}")
                 # ====================================
 
                 try:
                     coord_data_shape = np.asarray(coord_data).shape
                 except ValueError:
-                    coord_data_shape = "inhomogeneous"
+                    coord_data_shape = "irregular"
 
                 c = {
                     "name": coord.split("/")[-1],
@@ -703,8 +712,8 @@ class IMASPythonSource(DataSourceInterface):
                     "ndim": first_value.metadata.ndim,
                     "path": f"#{ids}/{coord}",
                     "description": first_value.metadata.documentation,
+                    "coordinates": shape_factors,
                     "value": coord_data,
-                    "shape_factors": shape_factors,
                 }
                 coordinates_to_be_returned.append(c)
 
@@ -715,7 +724,7 @@ class IMASPythonSource(DataSourceInterface):
         try:
             original_data_shape = np.asarray(ids_data).shape
         except ValueError:
-            original_data_shape = "inhomogeneous"
+            original_data_shape = "irregular"
 
         data_to_be_returned = ids_data
 
@@ -743,7 +752,7 @@ class IMASPythonSource(DataSourceInterface):
         try:
             downsampled_shape = np.asarray(data_to_be_returned).shape
         except ValueError:
-            downsampled_shape = "inhomogeneous"
+            downsampled_shape = "irregular"
 
         result = {
             "data": {
@@ -763,9 +772,11 @@ class IMASPythonSource(DataSourceInterface):
         # update shape factors
 
         for coordinate in coordinates_to_be_returned:
-            for shape_factor in coordinate["shape_factors"]:
+            new_shape_factors_list = []
+            for shape_factor in coordinate["coordinates"]:
                 # search for coordinates that have <shape_factor> name in "target" key
-                coord_name = next(x["name"] for x in coordinates_to_be_returned if x["target"] == shape_factor["name"])
-                shape_factor["values_source"] = coord_name
+                coord_name = next(x["name"] for x in coordinates_to_be_returned if x["target"] == shape_factor)
+                new_shape_factors_list.append(coord_name)
+            coordinate["coordinates"] = new_shape_factors_list
 
         return result

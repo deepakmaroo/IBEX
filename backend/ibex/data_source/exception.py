@@ -9,13 +9,6 @@ class IbexException(Exception):
         super().__init__(message)
 
 
-class EmptyNodeException(IbexException):
-    "Raised when requested data-node is empty"
-
-    def __init__(self, message: str, code: int = 404):
-        self.code = code
-        super().__init__(message, code)
-
 class NodeNotFoundException(IbexException):
     "Raised when requested data-node cannot be found"
 
@@ -68,5 +61,13 @@ class DifferentTypesException(IbexException):
     "Raised when requested multiple values are not the same type"
 
     def __init__(self, message: str, code: int = 463):
+        self.code = code
+        super().__init__(message, code)
+
+
+class NoDataException(IbexException):
+    "Raised when returned data is empty (contains lists of empty lists)"
+
+    def __init__(self, message: str, code: int = 464):
         self.code = code
         super().__init__(message, code)
