@@ -549,6 +549,8 @@ class IMASPythonSource(DataSourceInterface):
 
         # function to check if list is essentially empty (contains only empty lists)
         def is_empty(seq):
+            if isinstance(seq, (IDSNumericArray, np.ndarray)):
+                return seq.size == 0
             return all(map(is_empty, seq)) if isinstance(seq, list) else False
 
         if is_empty(ids_data):
