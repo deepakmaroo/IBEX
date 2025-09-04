@@ -1,3 +1,4 @@
+import { showNotification } from '@mantine/notifications';
 import {
   ArraySummaryResponse,
   DataIdsResponse,
@@ -29,7 +30,16 @@ const getConfig = async () => {
  * Handles API errors.
  * You can also report the error to a monitoring service here (e.g., Sentry).
  */
-const handleError = (error: unknown, context: string) => {
+const handleError = (error: unknown, context: string, code?: number) => {
+  if (error instanceof Error) {
+    // Notify the user in case of an error including an error message if it is not a 500 error.
+    showNotification({
+      title: !code ? 'Unable to contact the server' : `Error ${code}`,
+      message:
+        !code || (code >= 400 && code < 500) ? error.message : 'Internal error',
+      color: 'red',
+    });
+  }
   console.error(`Error in ${context}:`, error);
   throw error; // Optional: You could return null/undefined instead
 };
@@ -38,6 +48,7 @@ const handleError = (error: unknown, context: string) => {
  * Generic GET request to the API.
  */
 const fetchFromApi = async <T>(endpoint: string): Promise<T> => {
+  let responseStatus: number;
   try {
     const config = await getConfig();
     const response = await fetch(`${config.API_URL}${endpoint}`, {
@@ -46,6 +57,9 @@ const fetchFromApi = async <T>(endpoint: string): Promise<T> => {
     });
 
     if (!response.ok) {
+      if (response?.status) {
+        responseStatus = response.status;
+      }
       const errorData = await response.json();
       throw new Error(
         errorData.message || errorData.detail || 'Failed to fetch data',
@@ -54,7 +68,7 @@ const fetchFromApi = async <T>(endpoint: string): Promise<T> => {
 
     return response.json();
   } catch (error) {
-    handleError(error, `fetchFromApi(${endpoint})`);
+    handleError(error, `fetchFromApi(${endpoint})`, responseStatus);
   }
 };
 

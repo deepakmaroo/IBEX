@@ -63,3 +63,11 @@ class DifferentTypesException(IbexException):
     def __init__(self, message: str, code: int = 463):
         self.code = code
         super().__init__(message, code)
+
+
+class NoDataException(IbexException):
+    "Raised when returned data is empty (contains lists of empty lists)"
+
+    def __init__(self, message: str, code: int = 464):
+        self.code = code
+        super().__init__(message, code)
