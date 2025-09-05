@@ -334,10 +334,12 @@ export const handleExistingPlot = async (
 
     const coordinatesExistAndMatch =
       findDataPlot.coordinates.length === coordsResponse.length &&
-      findDataPlot.coordinates.every((coord, index) => {
-        const responseCoord = coordsResponse[index]; // Skip the first coordinate
-        return coord.name === responseCoord.name;
-      });
+      JSON.parse(JSON.stringify(findDataPlot.coordinates))
+        .sort(compareByAxeIndex)
+        .every((coord: Coordinates, index: number) => {
+          const responseCoord = coordsResponse[index]; // Skip the first coordinate
+          return coord.name === responseCoord.name;
+        });
 
     if (sliderExist && !coordinatesExistAndMatch) {
       showNotification({
