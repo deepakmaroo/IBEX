@@ -81,10 +81,26 @@ class DownsamplingMethods(Enum):
         "description": "Divides data into bins and return average value of every bin. Bin size is calculated basing on desired data size",
         "function": step_average_downsampling,
     }
-    MIN_MAX = {"name": "Min-Max", "description": "", "function": MinMaxDownsampler().downsample}
-    M4 = {"name": "M4", "description": "", "function": M4Downsampler().downsample}
-    LTTB = {"name": "LTTB", "description": "", "function": LTTBDownsampler().downsample}
-    MIN_MAX_LTTB = {"name": "Min-Max LTTB", "description": "", "function": MinMaxLTTBDownsampler().downsample}
+    MIN_MAX = {
+        "name": "Min-Max",
+        "description": "Selects the minimum and maximum value in each bin",
+        "function": MinMaxDownsampler().downsample,
+    }
+    M4 = {
+        "name": "M4",
+        "description": "Selects the minimum, maximum, first, and last value in each bin",
+        "function": M4Downsampler().downsample,
+    }
+    LTTB = {
+        "name": "LTTB",
+        "description": "Implements the Largest Triangle Three Buckets (LTTB) algorithm",
+        "function": LTTBDownsampler().downsample,
+    }
+    MIN_MAX_LTTB = {
+        "name": "Min-Max LTTB",
+        "description": "A two-step algorithm: first selects min and max values, then further reduces these using the LTTB algorithm",
+        "function": MinMaxLTTBDownsampler().downsample,
+    }
 
     @classmethod
     def _missing_(cls, name):
