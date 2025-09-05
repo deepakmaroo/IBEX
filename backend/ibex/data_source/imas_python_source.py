@@ -746,7 +746,10 @@ class IMASPythonSource(DataSourceInterface):
 
         # serialize coordinates and update shapes (they could be changed by downsampling)
         for c in coordinates_to_be_returned:
-            c["downsampled_shape"] = np.asarray(c["value"]).shape
+            try:
+                c["downsampled_shape"] = np.asarray(c["value"]).shape
+            except ValueError:
+                c["downsampled_shape"] = "irregular"
             c["value"] = self._serialize_data(c["value"])
 
         try:
