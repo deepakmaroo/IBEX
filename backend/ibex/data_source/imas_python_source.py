@@ -665,8 +665,14 @@ class IMASPythonSource(DataSourceInterface):
                     shape_factors.append(f"#{ids}/{k}")
                 # ====================================
 
+                # If direct coordinate of node is 1...N, replace name with '1...N'
+                # (otherwise coordinate name would be the same as target node name)
+                coordinate_name = splitted_target[-1]
+                if f"{target}" == f"{node_path}":
+                    coordinate_name = "1...N"
+
                 c = {
-                    "name": splitted_target[-1],
+                    "name": coordinate_name,
                     "target": f"#{ids}/{target}",
                     "unit": "-",
                     "shape": np.asarray(coord_values).shape,
