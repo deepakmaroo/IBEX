@@ -178,6 +178,7 @@ export const handleNewPlot = async (
           coordinates: coordinate.coordinates,
           data: dataValueMatrix,
           valueIndex: 0,
+          path: getDefaultUri(coordinate.path),
           target: getDefaultUri(coordinate.target),
           nodeUri: defaultUri,
           axeIndex: index,
@@ -333,10 +334,12 @@ export const handleExistingPlot = async (
 
     const coordinatesExistAndMatch =
       findDataPlot.coordinates.length === coordsResponse.length &&
-      findDataPlot.coordinates.every((coord, index) => {
-        const responseCoord = coordsResponse[index]; // Skip the first coordinate
-        return coord.name === responseCoord.name;
-      });
+      JSON.parse(JSON.stringify(findDataPlot.coordinates))
+        .sort(compareByAxeIndex)
+        .every((coord: Coordinates, index: number) => {
+          const responseCoord = coordsResponse[index]; // Skip the first coordinate
+          return coord.name === responseCoord.name;
+        });
 
     if (sliderExist && !coordinatesExistAndMatch) {
       showNotification({
@@ -545,7 +548,9 @@ export async function plotNodeUriLoaded(
                     shape: responseCoordinates.shape,
                     coordinates: responseCoordinates.coordinates,
                     data: responseCoordinates.value,
+                    path: getDefaultUri(responseCoordinates.path),
                     target: getDefaultUri(responseCoordinates.target),
+                    unit: responseCoordinates.unit || '',
                     valueIndex: 0,
                     axeIndex: index,
                   });
@@ -559,6 +564,8 @@ export async function plotNodeUriLoaded(
                 // If coordinates exist, update the data and shape
                 matchingCoord.data = responseCoordinates.value;
                 matchingCoord.name = responseCoordinates.name;
+                matchingCoord.path = getDefaultUri(responseCoordinates.path);
+                matchingCoord.unit = responseCoordinates.unit || '';
                 matchingCoord.shape = responseCoordinates.shape;
                 matchingCoord.coordinates = responseCoordinates.coordinates;
 

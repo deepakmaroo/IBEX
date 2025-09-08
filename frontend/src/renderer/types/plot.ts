@@ -10,6 +10,7 @@ export interface Axis {
 export type AxisData = number[][][] | number[][] | number[];
 
 export interface BaseCoordinates {
+  path: string;
   target: string;
   valueIndex: number;
 }

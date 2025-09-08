@@ -302,10 +302,15 @@ export const SimplePlotly = ({
       itemDataGrid = updatedDimension;
     }
 
-    // Update coordinates targets with new valueIndex
+    // Update coordinates targets & paths with new valueIndex
     const updatedCoordinatesValue = itemDataGrid.coordinates.map((item) => {
       const lastTargetLastName = getLastIndexedField(coordinate.target);
 
+      const updatedPath = updateIndexFieldName(
+        item.path,
+        lastTargetLastName,
+        valueIndex,
+      );
       const updatedTarget = updateIndexFieldName(
         item.target,
         lastTargetLastName,
@@ -314,6 +319,7 @@ export const SimplePlotly = ({
 
       return {
         ...item,
+        path: updatedPath,
         target: updatedTarget,
         valueIndex:
           item.name === coordinate.name ? valueIndex : item.valueIndex,
@@ -441,7 +447,7 @@ export const SimplePlotly = ({
       updatedDataPlot.coordinates[actualXAxisIndex].valueIndex = 0;
       updatedDataPlot.coordinates[itemToSwitchIndex].valueIndex = 0;
 
-      // Update all coordinates targets impacted with resetted indexValue
+      // Update all coordinates targets & paths impacted with resetted indexValue
       const actualXAxisTargetLastName = getLastIndexedField(
         updatedDataPlot.coordinates[actualXAxisIndex].target,
       );
@@ -481,13 +487,24 @@ export const SimplePlotly = ({
           actualXAxisTargetLastName,
           0,
         );
+
+        coordinate.path = updateIndexFieldName(
+          coordinate.path || '',
+          itemToSwitchTargetLastName,
+          0,
+        );
+        coordinate.path = updateIndexFieldName(
+          coordinate.path,
+          actualXAxisTargetLastName,
+          0,
+        );
       }
 
       // Set new xAxis plot
       updatedDataPlot.xAxisData.name =
         updatedDataPlot.coordinates[itemToSwitchIndex].name;
       updatedDataPlot.xAxisData.path =
-        updatedDataPlot.coordinates[itemToSwitchIndex].target;
+        updatedDataPlot.coordinates[itemToSwitchIndex].path;
       updatedDataPlot.xAxisData.unit =
         updatedDataPlot.coordinates[itemToSwitchIndex].unit;
 
