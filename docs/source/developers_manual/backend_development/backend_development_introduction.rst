@@ -11,12 +11,12 @@ The IBEX backend is structured into three distinct layers, each represented by a
 
 * endpoints – Defines all HTTP API endpoints. This layer is strictly limited to request handling and routing, and does not contain any business logic.
 * core – Serves as an abstraction layer between the endpoints and data_sources layers. Its primary role is to decouple application logic from specific data source implementations, enabling interchangeability. May include minimal logic when necessary.
-* data_sources – Implements the core application logic. This layer is responsible for all communication with IDSes and constructs the JSON responses returned to clients.
+* data_sources – Implements the core application logic. This layer is responsible for all communication with data sources (IMAS-Python) and constructs the JSON responses returned to frontend.
 
 Endpoints discovering and testing
 -----------------------------------
 
-One explore the available endpoints of the IBEX server by visiting the `/docs` page of the application. This is an auto-generated Swagger UI that allows to:
+One can explore the available endpoints of the IBEX server by visiting the `/docs` page of the application. This is an auto-generated Swagger UI that allows to:
 
 * Browse available API endpoints
 * Test requests and responses
@@ -44,9 +44,10 @@ In such cases, it's recommended to use Python's `requests` package to test the A
 
     server_address = "http://127.0.0.1:12345"
     uri = "imas:mdsplus?path=<path_to_entry>"
+    node_path = "#summary/time"
 
     route = f"{server_address}/data/plot_data"
-    params = {"uri": uri}
+    params = {"uri": f"{uri}{node_path}"}
 
     response = requests.get(route, params=params)
 
@@ -97,8 +98,8 @@ The IBEX server can be started using the `run_ibex_service` script located in th
 
     cd backend
 
-    # Start the IBEX server on port 123
-    ./run_ibex_service - p 12345
+    # Start the IBEX server on port 12345
+    ./run_ibex_service -p 12345
 
 
 

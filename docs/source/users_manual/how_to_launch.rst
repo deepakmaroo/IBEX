@@ -4,10 +4,20 @@
 How to launch ibex?
 ===================
 
-The IBEX backend is structured into three distinct layers, each represented by a corresponding directory within the ibex Python package:
+IBEX is structured into two components: a frontend and a backend.
+To fully utilize all IBEX features, both components must be properly configured and running.
+To streamline this process, launch scripts have been introduced.
 
 Development mode
 -----------------------------------
+
+The development run mode is used when modifying the IBEX source code to see changes immediately.
+In this mode, the backend runs as a standard Python application, while the frontend is launched in a fast-run mode,
+avoiding the lengthy process of building the Electron application executable.
+
+However, there are a couple of downsides to development mode. First, it takes more time to launch compared to running a pre-built application executable.
+Second, due to permission issues, only one user can run IBEX from a given source directory.
+For regular, non-development use cases, the production mode is recommended.
 
 * Open a terminal.
 * Clone the repository (ssh://git@git.iter.org/imex/ibex.git) 
@@ -17,23 +27,28 @@ Development mode
 
    cd ibex
    git checkout develop
-   ./launch.sh
+   ./launch-dev.sh
 
 Production mode
 -----------------------------------
 
-* Extract the zip file.
-* Open the folder.
-* In the “./resources” directory, create a configuration file named config.json with the following variables. By default, this file will be created with these values:
+The production run mode is divided into two stages: installation and execution.
+The installation stage is performed once and generates an executable that can be shared by multiple users—assuming proper permission settings are in place.
+The execution stage configures and launches both the backend and frontend using built executables.
+
+Since the installation process can take several minutes to complete, development mode is recommended when actively modifying the source code and pushing frequent changes.
+
+* Open a terminal.
+* Clone the repository (ssh://git@git.iter.org/imex/ibex.git)
+* Run the following commands :
 
 .. code-block:: bash
 
-  {
-    "API_URL": "http://localhost:8000"
-  }
-
-* Launch the ibex executable (Make sure your backend is running):
+   cd ibex
+   git checkout main
+   ./install.sh
 
 .. code-block:: bash
 
-  ./ibex
+   cd ibex
+   ./launch.sh
