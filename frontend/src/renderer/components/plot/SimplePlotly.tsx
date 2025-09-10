@@ -513,7 +513,7 @@ export const SimplePlotly = ({
         );
         plot.y = vectorData;
         // Get x values switch x dependances
-        plot.x = getArrayValueFromDependance(itemDataGrid.coordinates);
+        plot.x = getArrayValueFromDependance(updatedDataPlot.coordinates);
       }
       const updatedActive = {
         ...active,
