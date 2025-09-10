@@ -39,7 +39,16 @@ interface RenderMetaDataCoordinatesProps {
 
 const renderField = (label: string, value?: string | number) => (
   <Table.Tr>
-    <Table.Td fw="bold">{label}</Table.Td>
+    <Table.Td
+      fw="bold"
+      styles={{
+        td: {
+          wordBreak: 'break-all',
+        },
+      }}
+    >
+      {label}
+    </Table.Td>
     <Table.Td>{value ? value : 'N/A'}</Table.Td>
   </Table.Tr>
 );
@@ -122,7 +131,7 @@ const RenderMetaDataCoordinates = ({
   );
 };
 
-const MetaDataInfos = ({
+export const MetaDataInfos = ({
   gridLayoutKey,
   data,
   yAxis,
@@ -176,14 +185,7 @@ const MetaDataInfos = ({
 
   return (
     <ScrollArea h={height || '79vh'}>
-      <Table
-        py="md"
-        styles={{
-          td: {
-            wordBreak: 'keep-all',
-          },
-        }}
-      >
+      <Table py="md">
         <Table.Tbody>
           {renderField('uri', data?.nodeUri)}
           {renderField('name', data?.name)}
