@@ -674,7 +674,7 @@ class IMASPythonSource(DataSourceInterface):
                 c = {
                     "name": coordinate_name,
                     "target": f"#{ids}/{target}",
-                    "unit": "-",
+                    "unit": "",
                     "shape": np.asarray(coord_values).shape,
                     "downsampled_shape": np.asarray(coord_values).shape,
                     "ndim": 1,  # 1...N coord always have 1 dimension
