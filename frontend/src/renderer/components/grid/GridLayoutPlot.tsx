@@ -15,6 +15,7 @@ import {
   ActionIcon,
   Container,
   Group,
+  ScrollArea,
   Select,
   Tabs,
   Text,
@@ -378,25 +379,42 @@ export const GridLayoutPlot = ({
             value={metadataTabsValue}
             onChange={(value) => setMetadataTabsValue(value)}
           >
-            <Tabs.List>
-              {data.plot.length > 0 &&
-                data.plot.map((item: DataPlotly, index) => (
-                  <Tabs.Tab
-                    key={`metadata_${index}`}
-                    value={item.name}
-                    disabled={
-                      !data.isEditing && metadataTabsValue !== item.name
-                    }
-                  >
-                    {item.name}
-                  </Tabs.Tab>
-                ))}
-            </Tabs.List>
+            <ScrollArea
+              key={`tabScrollBar_${active.checkedNodeURI.length}`}
+              type="hover"
+              scrollHideDelay={0} // keep visible scrollbar only during hover
+              scrollbarSize={6}
+              offsetScrollbars
+              style={{ maxWidth: '100%' }}
+            >
+              <Tabs.List
+                style={{
+                  flexWrap: 'nowrap',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {data.plot.length > 0 &&
+                  data.plot.map((item: DataPlotly, index) => (
+                    <Tabs.Tab
+                      key={`metadata_${index}`}
+                      value={item.name}
+                      disabled={
+                        !data.isEditing && metadataTabsValue !== item.name
+                      }
+                    >
+                      {item.name}
+                    </Tabs.Tab>
+                  ))}
+              </Tabs.List>
+            </ScrollArea>
 
             {data &&
               data.plot.map((plot: DataPlotly, index) => {
                 return (
-                  <Tabs.Panel key={`metadata_${index}`} value={plot.name}>
+                  <Tabs.Panel
+                    key={`metadata_${index}`}
+                    value={plot.name}
+                  >
                     <MetaDataInfos
                       gridLayoutKey={data.i}
                       data={plot}
