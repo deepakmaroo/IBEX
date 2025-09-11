@@ -53,29 +53,40 @@ const renderField = (label: string, value?: string | number) => (
   </Table.Tr>
 );
 
-const renderSpoiler = (label: string, value?: (string | number)[]) => (
+const renderSpoiler = (
+  label: string,
+  value?: string | number | (string | number)[],
+) => (
   <Table.Tr>
     <Table.Td fw="bold">{label}</Table.Td>
     <Table.Td>
-      {value === undefined || value.length === 0 ? (
+      {value === undefined || value === null ? (
+        'N/A'
+      ) : Array.isArray(value) ? (
+        value.length === 0 ? (
+          'N/A'
+        ) : (
+          <ScrollArea h={value.length > 5 ? 150 : 'auto'}>
+            <Spoiler
+              maxHeight={value.length > 5 ? 150 : 50}
+              showLabel="Show more"
+              hideLabel="Hide"
+            >
+              <Stack align="flex-start" gap={1}>
+                {value.map((v, i) => (
+                  <div key={i}>
+                    {v}
+                    {value.length - 1 !== i ? ',' : ''}
+                  </div>
+                ))}
+              </Stack>
+            </Spoiler>
+          </ScrollArea>
+        )
+      ) : String(value).trim() === '' ? (
         'N/A'
       ) : (
-        <ScrollArea h={value.length > 5 ? 150 : 'auto'}>
-          <Spoiler
-            maxHeight={value.length > 5 ? 150 : 50}
-            showLabel="Show more"
-            hideLabel="Hide"
-          >
-            <Stack align="flex-start" gap={1}>
-              {value.map((v, i) => (
-                <div key={i}>
-                  {v}
-                  {value.length - 1 !== i ? ',' : ''}
-                </div>
-              ))}
-            </Stack>
-          </Spoiler>
-        </ScrollArea>
+        value
       )}
     </Table.Td>
   </Table.Tr>
@@ -193,7 +204,12 @@ export const MetaDataInfos = ({
           {renderField('unit', yAxis.unit)}
           {renderSpoiler('shape', data.shape as (string | number)[])}
           {renderField('dimension', data?.dimensions.toString())}
-          {renderSpoiler('value', data.y as (string | number)[])}
+          {renderSpoiler(
+            'value',
+            data.y.length
+              ? data.y
+              : (data.yData as string | number | (string | number)[]),
+          )}
           {renderField('min', summary?.min)}
           {renderField('max', summary?.max)}
           {renderField('mean', summary?.mean)}
