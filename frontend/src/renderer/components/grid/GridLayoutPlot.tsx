@@ -411,10 +411,7 @@ export const GridLayoutPlot = ({
             {data &&
               data.plot.map((plot: DataPlotly, index) => {
                 return (
-                  <Tabs.Panel
-                    key={`metadata_${index}`}
-                    value={plot.name}
-                  >
+                  <Tabs.Panel key={`metadata_${index}`} value={plot.name}>
                     <MetaDataInfos
                       gridLayoutKey={data.i}
                       data={plot}
