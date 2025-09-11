@@ -19,21 +19,22 @@ Endpoint benchmarks
 Running benchmarks (quick)
 --------------------------
 
-When you have an existing IBEX development installation, you can run the benchmarks like this:
+The benchmarks can be executed in an existing IBEX development installation by running the following command:
 
 .. code-block:: console
 
     $ asv run --python=same --quick
 
-.. note:: You need to have ``asv`` installed for this to work, see https://asv.readthedocs.io/en/stable/installing.html
+.. note:: ``asv`` has to be installed for this to work, see https://asv.readthedocs.io/en/stable/installing.html
 
-This will execute all benchmarks once in your active python environment. The upside of
-executing all benchmarks once is that this won't take very long. The downside is that
-``asv`` won't be able to gather statistics (variance) of the run times, so you'll note
-that in the output all timings are reported ``±0ms``.
 
-When you remove the ``--quick`` argument, ``asv`` will execute each benchmark multiple
-times. This will take longer to execute, but it also gives better statistics.
+All benchmarks will be executed once in the active Python environment.
+The advantage of executing all benchmarks once is that the process will be completed relatively quickly.
+However, the disadvantage is that ``asv`` will be unable to gather statistics (variance) of the run times,
+resulting in all timings being reported as ±0ms in the output.
+
+Upon removing the ``--quick`` argument, each benchmark will be executed multiple times by ``asv``.
+While this will increase the execution time, it will provide more accurate statistics.
 
 Running benchmarks (advanced)
 -----------------------------
@@ -41,7 +42,7 @@ Running benchmarks (advanced)
 Running benchmarks quickly, as explained in the previous section, is great during
 development and for comparing the performance of IBEX. However,
 ``asv`` can also track the performance of benchmarks over various commits of IBEX.
-Unfortunately this is a bit more tricky to set up.
+Unfortunately, setting this up is somewhat more complex.
 
 Setup advanced benchmarking
 '''''''''''''''''''''''''''
@@ -53,14 +54,12 @@ will be benchmarked.
 Deciding which commits to benchmark
 '''''''''''''''''''''''''''''''''''
 
-``asv run`` by default runs the benchmarks on two commits: the last commit on the
-``main`` branch and the last commit on the ``develop`` branch. If this is what you want,
-then you may skip this section and continue to the next.
+By default, ``asv run`` executes the benchmarks on two commits: the most recent commit on the ``main`` branch and the most recent commit on the ``develop`` branch.
+If this behavior is desired, this section may be skipped, and the next one can be followed instead.
 
-If you want to customize which commits are benchmarked, then ``asv run`` allows you to
-specify which commits you want to benchmark: ``asv run <range>``. The ``<range>``
-argument is passed to ``git rev-list``, and all commits returned by ``git`` will be
-benchmarked. See the `asv documentation for some examples
+If customization of the benchmarked commits is required, ``asv run`` supports the specification of a commit range using the syntax: ``asv run <range>``.
+The ``<range>`` argument is forwarded to ``git rev-list``, and all commits returned by ``git`` within that range will be benchmarked.
+See the `asv documentation for some examples
 <https://asv.readthedocs.io/en/stable/using.html#benchmarking>`_.
 
 .. caution::
