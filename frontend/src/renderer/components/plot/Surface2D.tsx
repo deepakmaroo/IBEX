@@ -179,6 +179,13 @@ export const Surface2D = ({
               {
                 type: 'heatmap',
                 colorscale: 'Viridis',
+                colorbar: {
+                  title: {
+                    text: itemDataGrid.yAxisData?.name
+                      ? `${itemDataGrid.yAxisData?.name} ${(itemDataGrid.yAxisData?.unit && '[' + itemDataGrid.yAxisData.unit + ']') || ''}`
+                      : '',
+                  },
+                },
                 x: x,
                 y: y,
                 z: z,

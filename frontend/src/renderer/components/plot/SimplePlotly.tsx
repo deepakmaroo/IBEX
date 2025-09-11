@@ -171,7 +171,7 @@ export const SimplePlotly = ({
    */
   useEffect(() => {
     const YTitle = itemDataGrid.yAxisData?.name
-      ? `${itemDataGrid.yAxisData?.name} ${(itemDataGrid.yAxisData?.unit && '(' + itemDataGrid.yAxisData.unit + ')') || ''}`
+      ? `${itemDataGrid.yAxisData?.name} ${(itemDataGrid.yAxisData?.unit && '[' + itemDataGrid.yAxisData.unit + ']') || ''}`
       : '';
     setLayoutPlot((prevLayout) => ({
       ...prevLayout,
@@ -190,7 +190,7 @@ export const SimplePlotly = ({
    */
   useEffect(() => {
     const XTitle = itemDataGrid.xAxisData?.name
-      ? `${itemDataGrid.xAxisData?.name} ${(itemDataGrid.xAxisData?.unit && '(' + itemDataGrid.xAxisData.unit + ')') || ''}`
+      ? `${itemDataGrid.xAxisData?.name} ${(itemDataGrid.xAxisData?.unit && '[' + itemDataGrid.xAxisData.unit + ']') || ''}`
       : '';
     setLayoutPlot((prevLayout) => ({
       ...prevLayout,
