@@ -8,12 +8,14 @@ import {
 import {
   Configuration,
   DataGridPlot,
+  DataPlotly,
   GridLayoutPlotProps,
 } from 'src/renderer/types';
 import {
   ActionIcon,
   Container,
   Group,
+  ScrollArea,
   Select,
   Tabs,
   Text,
@@ -36,6 +38,7 @@ import {
   normalizeIndices,
 } from '../../utils';
 import { showNotification } from '@mantine/notifications';
+import { MetaDataInfos } from '../../pages/visualization/VisualizationMetaData';
 
 export const GridLayoutPlot = ({
   data,
@@ -57,6 +60,9 @@ export const GridLayoutPlot = ({
   const [downsamplingMethod, setDownsamplingMethod] = useState<string | null>(
     null,
   );
+  const [metadataTabsValue, setMetadataTabsValue] = useState<string>(
+    data.plot[0]?.name || '',
+  );
   /**
    * Handle resize the grid
    */
@@ -68,6 +74,13 @@ export const GridLayoutPlot = ({
   useEffect(() => {
     if (parseInt(active3DTab) > data.plot.length - 1) {
       setActive3DTab('0');
+    }
+
+    // Update metadataTabsValue for metadata when removing selected tab
+    if (
+      !data.plot.find((plot: DataPlotly) => plot.name === metadataTabsValue)
+    ) {
+      setMetadataTabsValue(data.plot[0]?.name);
     }
   }, [data.plot]);
 
@@ -267,17 +280,19 @@ export const GridLayoutPlot = ({
 
           {hovered || data.isEditing ? (
             <Group pos="absolute" right={'1rem'} top={5}>
-              <Tooltip label="Select your downsampling method">
-                <Select
-                  value={downsamplingMethod || 'None'}
-                  w="7rem"
-                  size="xs"
-                  disabled={!data.isEditing}
-                  data={downsamplingList}
-                  onChange={setDownsamplingMethod}
-                  placeholder="Downsampling"
-                ></Select>
-              </Tooltip>
+              {data.coordinates.length && ( // Don't show downsampled methods when showing by default metadata
+                <Tooltip label="Select your downsampling method">
+                  <Select
+                    value={downsamplingMethod || 'None'}
+                    w="7rem"
+                    size="xs"
+                    disabled={!data.isEditing}
+                    data={downsamplingList}
+                    onChange={setDownsamplingMethod}
+                    placeholder="Downsampling"
+                  ></Select>
+                </Tooltip>
+              )}
               {/* 3D button display */}
               {data.coordinates.length === 3 && ( //Only show if there are 3 coordinates - corresponding to 3D data
                 <Tooltip label="Toggle 1D/Heatmap view">
@@ -292,19 +307,21 @@ export const GridLayoutPlot = ({
                 </Tooltip>
               )}
               {/* Metadata component button */}
-              <Tooltip label="Inspect metadatas information">
-                <ActionIcon
-                  variant="filled"
-                  aria-label="Metadatas"
-                  onClick={() => handleInspectMetadata(data.i)}
-                  className={classes.actionButton}
-                >
-                  <IconBrandDatabricks
-                    style={{ width: '70%', height: '70%' }}
-                    stroke={1.5}
-                  />
-                </ActionIcon>
-              </Tooltip>
+              {data.coordinates.length && ( // Don't show metadata button when showing by default metadata
+                <Tooltip label="Inspect metadatas information">
+                  <ActionIcon
+                    variant="filled"
+                    aria-label="Metadatas"
+                    onClick={() => handleInspectMetadata(data.i)}
+                    className={classes.actionButton}
+                  >
+                    <IconBrandDatabricks
+                      style={{ width: '70%', height: '70%' }}
+                      stroke={1.5}
+                    />
+                  </ActionIcon>
+                </Tooltip>
+              )}
               <Tooltip
                 label={
                   data.isEditing
@@ -356,7 +373,60 @@ export const GridLayoutPlot = ({
         </Group>
       </div>
 
-      {is3DView ? (
+      {!data.coordinates.length ? (
+        <Container pt="40px" p="1rem">
+          <Tabs
+            value={metadataTabsValue}
+            onChange={(value) => setMetadataTabsValue(value)}
+          >
+            <ScrollArea
+              key={`tabScrollBar_${active.checkedNodeURI.length}`}
+              type="hover"
+              scrollHideDelay={0} // keep visible scrollbar only during hover
+              scrollbarSize={6}
+              offsetScrollbars
+              style={{ maxWidth: '100%' }}
+            >
+              <Tabs.List
+                style={{
+                  flexWrap: 'nowrap',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {data.plot.length > 0 &&
+                  data.plot.map((item: DataPlotly, index) => (
+                    <Tabs.Tab
+                      key={`metadata_${index}`}
+                      value={item.name}
+                      disabled={
+                        !data.isEditing && metadataTabsValue !== item.name
+                      }
+                    >
+                      {item.name}
+                    </Tabs.Tab>
+                  ))}
+              </Tabs.List>
+            </ScrollArea>
+
+            {data &&
+              data.plot.map((plot: DataPlotly, index) => {
+                return (
+                  <Tabs.Panel key={`metadata_${index}`} value={plot.name}>
+                    <MetaDataInfos
+                      gridLayoutKey={data.i}
+                      data={plot}
+                      yAxis={
+                        plot.yaxis !== '' ? data.y2AxisData : data.yAxisData
+                      }
+                      height={(heightGrid - 56).toString()} // 56px is equivalent to paddings (40px from top + 1rem from bottom)
+                      tabsSelected={plot.name}
+                    />
+                  </Tabs.Panel>
+                );
+              })}
+          </Tabs>
+        </Container>
+      ) : is3DView ? (
         <Surface2D
           itemDataGrid={data}
           width={

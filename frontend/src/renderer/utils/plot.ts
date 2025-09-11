@@ -205,10 +205,13 @@ export const handleNewPlot = async (
     updatedActive.dataPlot || [],
   );
 
-  const defaultXValue = getFirstArrayValueFromShape(
-    response.data.coordinates[0].value,
-    response.data.coordinates[0].shape as number[],
-  );
+  let defaultXValue: number[] = [];
+  if (response.data.coordinates.length > 0) {
+    defaultXValue = getFirstArrayValueFromShape(
+      response.data.coordinates[0].value,
+      response.data.coordinates[0].shape as number[],
+    );
+  }
 
   const defaultYValue = getFirstArrayValueFromShape(
     response.data.value,
@@ -293,7 +296,10 @@ export const handleExistingPlot = async (
       findDataPlot.coordinates.length > 0 &&
       coordsResponse.length > 1;
 
-    let xAxisResponsePath = getDefaultUri(coordsResponse[0].path);
+    let xAxisResponsePath = '';
+    if (response.data.coordinates.length > 0) {
+      xAxisResponsePath = getDefaultUri(coordsResponse[0].path);
+    }
     let yDataResponsePath = getDefaultUri(response.data.path);
 
     if (sliderExist) {
@@ -402,10 +408,13 @@ export const handleExistingPlot = async (
       unit: unit,
     };
 
-    const defaultXValue = getFirstArrayValueFromShape(
-      response.data.coordinates[0].value,
-      response.data.coordinates[0].shape as number[],
-    );
+    let defaultXValue: number[] = [];
+    if (response.data.coordinates.length > 0) {
+      defaultXValue = getFirstArrayValueFromShape(
+        response.data.coordinates[0].value,
+        response.data.coordinates[0].shape as number[],
+      );
+    }
 
     const defaultYValue = getVectorData(
       findDataPlot.coordinates,
@@ -616,10 +625,13 @@ export async function plotNodeUriLoaded(
                 dataGrid.downsampled_method = response.data.downsampled_method;
               }
 
-              const defaultXValue = getFirstArrayValueFromShape(
-                response.data.coordinates[0].value,
-                response.data.coordinates[0].shape as number[],
-              );
+              let defaultXValue: number[] = [];
+              if (response.data.coordinates.length > 0) {
+                defaultXValue = getFirstArrayValueFromShape(
+                  response.data.coordinates[0].value,
+                  response.data.coordinates[0].shape as number[],
+                );
+              }
               const defaultYValue = getFirstArrayValueFromShape(
                 response.data.value,
                 response.data.shape as number[],
