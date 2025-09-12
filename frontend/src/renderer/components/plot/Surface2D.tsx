@@ -96,20 +96,17 @@ export const Surface2D = ({
     });
 
     //Initialize xAxis and yAxis
-    setXAxis(itemDataGrid.xAxisData);
+    const xAxisAtHeatmap = {
+      name: itemDataGrid.coordinates[0].name,
+      unit: itemDataGrid.coordinates[0].unit,
+    };
+    setXAxis(xAxisAtHeatmap);
 
-    for (const coordinate of itemDataGrid.coordinates) {
-      if (
-        coordinate.name !== itemDataGrid.xAxisData?.name &&
-        coordinate.name !== itemDataGrid.yAxisData?.name
-      ) {
-        setYAxis({
-          name: coordinate.name || '',
-          unit: coordinate.unit || '',
-        });
-        break;
-      }
-    }
+    const yAxisAtHeatmap = {
+      name: itemDataGrid.coordinates[1].name,
+      unit: itemDataGrid.coordinates[1].unit,
+    };
+    setYAxis(yAxisAtHeatmap);
   }, [itemDataGrid.plot, itemDataGrid.coordinates, plotIndex]);
 
   /* Initialize data3D with generated data */
