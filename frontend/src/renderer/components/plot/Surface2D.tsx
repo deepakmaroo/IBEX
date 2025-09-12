@@ -6,7 +6,10 @@ import classe from './SimplePlotly.module.css';
 import { Grid } from '@mantine/core';
 import { VerticalSlider } from '../verticalSlider';
 import * as tf from '@tensorflow/tfjs';
-import { getFirstArrayValueFromShape } from '../../utils';
+import {
+  getArrayValueFromDependance,
+  getFirstArrayValueFromShape,
+} from '../../utils';
 
 interface Surface2DProps {
   itemDataGrid: DataGridPlot;
@@ -165,17 +168,23 @@ export const Surface2D = ({
 
   useEffect(() => {
     if (data3D) {
+      // Update x, y & z
+      const originalCoordinatePosition: Coordinates[] = JSON.parse(
+        JSON.stringify(itemDataGrid.coordinates),
+      );
+      let index = 0;
+      for (const coord of originalCoordinatePosition) {
+        coord.axeIndex = index;
+        if (coord.name === 'time') {
+          coord.valueIndex = frameIndex;
+        }
+        index++;
+      }
       setX(
-        getFirstArrayValueFromShape(
-          itemDataGrid.coordinates[0].data,
-          itemDataGrid.coordinates[0].shape as number[],
-        ),
+        getArrayValueFromDependance(originalCoordinatePosition, 0) as number[],
       );
       setY(
-        getFirstArrayValueFromShape(
-          itemDataGrid.coordinates[1].data,
-          itemDataGrid.coordinates[1].shape as number[],
-        ),
+        getArrayValueFromDependance(originalCoordinatePosition, 1) as number[],
       );
       setZ(data3D[frameIndex]);
     }

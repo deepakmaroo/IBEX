@@ -129,7 +129,7 @@ export const GridLayoutPlot = ({
           // Update plot with downsampled data
           plot.shape = dataPlotDownsampled.data.downsampled_shape;
           // Get x axis switch coordinates dependances
-          plot.x = getArrayValueFromDependance(updatedDataPlot.coordinates);
+          plot.x = getArrayValueFromDependance(updatedDataPlot.coordinates, 0);
           plot.yData = dataPlotDownsampled.data.value;
           // Get y axis
           const vectorData = getVectorData(

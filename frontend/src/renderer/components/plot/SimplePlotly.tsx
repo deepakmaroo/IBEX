@@ -340,7 +340,10 @@ export const SimplePlotly = ({
           };
 
           // Get x values switch x dependances
-          const newXData = getArrayValueFromDependance(updatedCoordinatesValue);
+          const newXData = getArrayValueFromDependance(
+            updatedCoordinatesValue,
+            0,
+          );
 
           const updatedPlot = itemDataGrid.plot.map((plotItem) => {
             const updatedNodeUri = updateIndexFieldName(
@@ -513,7 +516,7 @@ export const SimplePlotly = ({
         );
         plot.y = vectorData;
         // Get x values switch x dependances
-        plot.x = getArrayValueFromDependance(updatedDataPlot.coordinates);
+        plot.x = getArrayValueFromDependance(updatedDataPlot.coordinates, 0);
       }
       const updatedActive = {
         ...active,
