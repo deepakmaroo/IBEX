@@ -27,9 +27,9 @@ export const Surface2D = ({
   const [zAxis, setZAxis] = useState<Axis>(null);
   const [data3D, setData3D] = useState<number[][][] | null>(null);
   const [slice, setSlice] = useState<number[]>([]);
-  const [z, setZ] = useState<number[][]>([]);
   const [x, setX] = useState<number[]>([]);
   const [y, setY] = useState<number[]>([]);
+  const [z, setZ] = useState<number[][]>([]);
   const plotRef = useRef<Plot | null>(null);
   const [layoutPlot, setLayoutPlot] = useState<Partial<Layout>>({
     autosize: true,
@@ -73,8 +73,7 @@ export const Surface2D = ({
           ).newPosition,
       );
     const transposed = tf.transpose(tensor, positionToOrigin);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const originalDataMatrix: any = await transposed.array();
+    const originalDataMatrix = await transposed.array();
 
     setData3D(originalDataMatrix as number[][][]);
 
@@ -129,6 +128,44 @@ export const Surface2D = ({
     }));
   }, [frameIndex, zAxis, itemDataGrid, width, height]);
 
+  /**
+   * Update the layout xAxis
+   */
+  useEffect(() => {
+    const XTitle = xAxis?.name
+      ? `${xAxis?.name} ${(xAxis?.unit && '[' + xAxis.unit + ']') || ''}`
+      : '';
+    setLayoutPlot((prevLayout) => ({
+      ...prevLayout,
+      xaxis: {
+        ...prevLayout.xaxis,
+        title: {
+          ...prevLayout.xaxis?.title,
+          text: XTitle,
+        },
+      },
+    }));
+  }, [xAxis]);
+
+  /**
+   * Update the layout yAxis
+   */
+  useEffect(() => {
+    const YTitle = yAxis?.name
+      ? `${yAxis?.name} ${(yAxis?.unit && '[' + yAxis.unit + ']') || ''}`
+      : '';
+    setLayoutPlot((prevLayout) => ({
+      ...prevLayout,
+      yaxis: {
+        ...prevLayout.yaxis,
+        title: {
+          ...prevLayout.yaxis?.title,
+          text: YTitle,
+        },
+      },
+    }));
+  }, [yAxis]);
+
   useEffect(() => {
     if (data3D) {
       setX(Array.from({ length: data3D[0][0].length }, (_, i) => i)); // rho
@@ -181,8 +218,8 @@ export const Surface2D = ({
                 colorscale: 'Viridis',
                 colorbar: {
                   title: {
-                    text: itemDataGrid.yAxisData?.name
-                      ? `${itemDataGrid.yAxisData?.name} ${(itemDataGrid.yAxisData?.unit && '[' + itemDataGrid.yAxisData.unit + ']') || ''}`
+                    text: zAxis?.name
+                      ? `${zAxis?.name} ${(zAxis?.unit && '[' + zAxis.unit + ']') || ''}`
                       : '',
                   },
                 },
