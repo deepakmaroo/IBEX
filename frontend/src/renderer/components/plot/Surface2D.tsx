@@ -168,9 +168,19 @@ export const Surface2D = ({
 
   useEffect(() => {
     if (data3D) {
-      setX(Array.from({ length: data3D[0][0].length }, (_, i) => i)); // rho
-      setY(Array.from({ length: data3D[0].length }, (_, i) => i)); // ion
-      setZ(data3D[frameIndex]); //time
+      setX(
+        getFirstArrayValueFromShape(
+          itemDataGrid.coordinates[0].data,
+          itemDataGrid.coordinates[0].shape as number[],
+        ),
+      );
+      setY(
+        getFirstArrayValueFromShape(
+          itemDataGrid.coordinates[1].data,
+          itemDataGrid.coordinates[1].shape as number[],
+        ),
+      );
+      setZ(data3D[frameIndex]);
     }
   }, [data3D, frameIndex]);
 
