@@ -444,7 +444,7 @@ export const handleExistingPlot = async (
       ];
     } else if (!findDataPlot.y2AxisData) {
       findDataPlot.y2AxisData = {
-        name: unit,
+        name: response.data.name,
         unit: unit,
       };
 

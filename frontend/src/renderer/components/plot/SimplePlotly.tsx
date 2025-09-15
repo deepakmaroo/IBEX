@@ -46,7 +46,7 @@ export const SimplePlotly = ({
       title: {
         font: {
           family: 'Courier New, monospace',
-          size: 18,
+          size: 16,
           color: '#7f7f7f',
         },
       },
@@ -58,7 +58,7 @@ export const SimplePlotly = ({
       title: {
         font: {
           family: 'Courier New, monospace',
-          size: 18,
+          size: 16,
           color: '#7f7f7f',
         },
       },
@@ -208,16 +208,19 @@ export const SimplePlotly = ({
    * Update the layout y2Axis
    */
   useEffect(() => {
+    const Y2Title = itemDataGrid.y2AxisData?.name
+      ? `${itemDataGrid.y2AxisData?.name} ${(itemDataGrid.y2AxisData?.unit && '[' + itemDataGrid.y2AxisData.unit + ']') || ''}`
+      : '';
     setLayoutPlot((prevLayout) => ({
       ...prevLayout,
       yaxis2:
         itemDataGrid.y2AxisData && itemDataGrid.y2AxisData !== undefined
           ? {
               title: {
-                text: itemDataGrid.y2AxisData?.unit || '',
+                text: Y2Title,
                 font: {
                   family: 'Courier New, monospace',
-                  size: 18,
+                  size: 16,
                   color: 'rgb(148, 103, 189)',
                 },
               },
