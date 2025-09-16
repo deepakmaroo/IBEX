@@ -3,16 +3,23 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Layout } from 'plotly.js';
 import { Axis, Coordinates, DataGridPlot } from 'src/renderer/types';
 import classe from './SimplePlotly.module.css';
-import { Grid } from '@mantine/core';
+import { Grid, Group } from '@mantine/core';
 import { VerticalSlider } from '../verticalSlider';
-import * as tf from '@tensorflow/tfjs';
-import { getFirstArrayValueFromShape } from '../../utils';
+import {
+  compareByAxeIndex,
+  getArrayValueFromDependance,
+  getFirstArrayValueFromShape,
+} from '../../utils';
 
 interface Surface2DProps {
   itemDataGrid: DataGridPlot;
   width?: number;
   height?: number;
   plotIndex: string;
+  handleUpdateCoordinate: (
+    coordinate: Coordinates,
+    valueIndex: number,
+  ) => Promise<void>;
 }
 
 export const Surface2D = ({
@@ -20,16 +27,15 @@ export const Surface2D = ({
   width,
   height,
   plotIndex,
+  handleUpdateCoordinate,
 }: Surface2DProps) => {
-  const [frameIndex, setFrameIndex] = useState(0); //Time slicing by default
   const [xAxis, setXAxis] = useState<Axis>(null);
   const [yAxis, setYAxis] = useState<Axis>(null);
   const [zAxis, setZAxis] = useState<Axis>(null);
   const [data3D, setData3D] = useState<number[][][] | null>(null);
-  const [slice, setSlice] = useState<number[]>([]);
-  const [z, setZ] = useState<number[][]>([]);
   const [x, setX] = useState<number[]>([]);
   const [y, setY] = useState<number[]>([]);
+  const [z, setZ] = useState<number[][]>([]);
   const plotRef = useRef<Plot | null>(null);
   const [layoutPlot, setLayoutPlot] = useState<Partial<Layout>>({
     autosize: true,
@@ -56,61 +62,29 @@ export const Surface2D = ({
     if (!selectedDataMatrix) {
       return;
     }
-    const tensor = tf.tensor(selectedDataMatrix);
-    const coordinatesLength = itemDataGrid.coordinates.length - 1;
-    const newAxeOrder = itemDataGrid.coordinates.map((coord, index) => ({
-      newPosition: index,
-      axeIndex: coordinatesLength - index,
-    }));
-    const positionToOrigin = JSON.parse(
-      JSON.stringify(itemDataGrid.coordinates),
-    )
-      .reverse()
-      .map(
-        (reversedCoord: Coordinates) =>
-          newAxeOrder.find(
-            (axeOrder) => axeOrder.axeIndex === reversedCoord.axeIndex,
-          ).newPosition,
-      );
-    const transposed = tf.transpose(tensor, positionToOrigin);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const originalDataMatrix: any = await transposed.array();
+    setData3D(selectedDataMatrix as number[][][]);
 
-    setData3D(originalDataMatrix as number[][][]);
-
-    //For moment we get time for slicing
-    const findTimeCoordinate = itemDataGrid.coordinates.find(
-      (coordinate) => coordinate.name === 'time',
-    );
-    if (findTimeCoordinate) {
-      setSlice(
-        getFirstArrayValueFromShape(
-          findTimeCoordinate.data,
-          findTimeCoordinate.shape as number[],
-        ),
-      );
-    }
-
+    //Initialize xAxis, yAxis, zAxis
     setZAxis({
       name: itemDataGrid.yAxisData?.name || 'Z Axis',
       unit: itemDataGrid.yAxisData?.unit || '',
     });
 
-    //Initialize xAxis and yAxis
-    setXAxis(itemDataGrid.xAxisData);
+    const xAxisAtHeatmap = {
+      name: itemDataGrid.coordinates.find((xCoord) => xCoord.axeIndex === 0)
+        .name,
+      unit: itemDataGrid.coordinates.find((xCoord) => xCoord.axeIndex === 0)
+        .unit,
+    };
+    setXAxis(xAxisAtHeatmap);
 
-    for (const coordinate of itemDataGrid.coordinates) {
-      if (
-        coordinate.name !== itemDataGrid.xAxisData?.name &&
-        coordinate.name !== itemDataGrid.yAxisData?.name
-      ) {
-        setYAxis({
-          name: coordinate.name || '',
-          unit: coordinate.unit || '',
-        });
-        break;
-      }
-    }
+    const yAxisAtHeatmap = {
+      name: itemDataGrid.coordinates.find((yCoord) => yCoord.axeIndex === 1)
+        .name,
+      unit: itemDataGrid.coordinates.find((yCoord) => yCoord.axeIndex === 1)
+        .unit,
+    };
+    setYAxis(yAxisAtHeatmap);
   }, [itemDataGrid.plot, itemDataGrid.coordinates, plotIndex]);
 
   /* Initialize data3D with generated data */
@@ -127,15 +101,63 @@ export const Surface2D = ({
       height: height,
       width: width,
     }));
-  }, [frameIndex, zAxis, itemDataGrid, width, height]);
+  }, [itemDataGrid, width, height]);
+
+  /**
+   * Update the layout xAxis
+   */
+  useEffect(() => {
+    const XTitle = xAxis?.name
+      ? `${xAxis?.name} ${(xAxis?.unit && '[' + xAxis.unit + ']') || ''}`
+      : '';
+    setLayoutPlot((prevLayout) => ({
+      ...prevLayout,
+      xaxis: {
+        ...prevLayout.xaxis,
+        title: {
+          ...prevLayout.xaxis?.title,
+          text: XTitle,
+        },
+      },
+    }));
+  }, [xAxis]);
+
+  /**
+   * Update the layout yAxis
+   */
+  useEffect(() => {
+    const YTitle = yAxis?.name
+      ? `${yAxis?.name} ${(yAxis?.unit && '[' + yAxis.unit + ']') || ''}`
+      : '';
+    setLayoutPlot((prevLayout) => ({
+      ...prevLayout,
+      yaxis: {
+        ...prevLayout.yaxis,
+        title: {
+          ...prevLayout.yaxis?.title,
+          text: YTitle,
+        },
+      },
+    }));
+  }, [yAxis]);
 
   useEffect(() => {
     if (data3D) {
-      setX(Array.from({ length: data3D[0][0].length }, (_, i) => i)); // rho
-      setY(Array.from({ length: data3D[0].length }, (_, i) => i)); // ion
-      setZ(data3D[frameIndex]); //time
+      // Update x, y & z useStates to plot heatmap
+      setX(
+        getArrayValueFromDependance(itemDataGrid.coordinates, 0) as number[],
+      );
+      setY(
+        getArrayValueFromDependance(itemDataGrid.coordinates, 1) as number[],
+      );
+      setZ(
+        data3D[
+          itemDataGrid.coordinates.find((coord) => coord.axeIndex === 2)
+            .valueIndex
+        ],
+      ); // Get matrix with correct index
     }
-  }, [data3D, frameIndex]);
+  }, [data3D, itemDataGrid.coordinates]);
 
   return (
     data3D &&
@@ -152,16 +174,30 @@ export const Surface2D = ({
         mt={10}
       >
         <Grid.Col span="content" mt={10}>
-          <VerticalSlider
-            name={'time'}
-            valueIndex={frameIndex}
-            data={slice}
-            getValue={(index) => {
-              setFrameIndex(index);
-            }}
-            height={height - 80}
-            disabled={!itemDataGrid.isEditing}
-          />
+          <Group justify="space-between" gap="0" align="flex-end">
+            {JSON.parse(JSON.stringify(itemDataGrid.coordinates))
+              .sort(compareByAxeIndex)
+              .map(
+                (item: Coordinates, valueIndex: number) =>
+                  item.axeIndex !== 0 &&
+                  item.axeIndex !== 1 && ( // Don't return slider linked to x & y
+                    <VerticalSlider
+                      key={`heatmap_slider_${valueIndex}`}
+                      name={item.name}
+                      valueIndex={item.valueIndex || 0}
+                      data={getFirstArrayValueFromShape(
+                        item.data,
+                        item.shape as number[],
+                      )}
+                      getValue={(valueIndex) => {
+                        handleUpdateCoordinate(item, valueIndex);
+                      }}
+                      height={height - 80}
+                      disabled={!itemDataGrid.isEditing}
+                    />
+                  ),
+              )}
+          </Group>
         </Grid.Col>
         <Grid.Col
           span="auto"
@@ -179,6 +215,13 @@ export const Surface2D = ({
               {
                 type: 'heatmap',
                 colorscale: 'Viridis',
+                colorbar: {
+                  title: {
+                    text: zAxis?.name
+                      ? `${zAxis?.name} ${(zAxis?.unit && '[' + zAxis.unit + ']') || ''}`
+                      : '',
+                  },
+                },
                 x: x,
                 y: y,
                 z: z,

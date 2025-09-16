@@ -6,14 +6,18 @@ import {
   useState,
 } from 'react';
 import {
+  Axis,
   Configuration,
+  Coordinates,
   DataGridPlot,
+  DataPlotly,
   GridLayoutPlotProps,
 } from 'src/renderer/types';
 import {
   ActionIcon,
   Container,
   Group,
+  ScrollArea,
   Select,
   Tabs,
   Text,
@@ -32,10 +36,14 @@ import { useIbexStore } from '../../stores';
 import {
   fetchDataPlot,
   getArrayValueFromDependance,
+  getDefaultUri,
+  getLastIndexedField,
   getVectorData,
   normalizeIndices,
+  updateIndexFieldName,
 } from '../../utils';
 import { showNotification } from '@mantine/notifications';
+import { MetaDataInfos } from '../../pages/visualization/VisualizationMetaData';
 
 export const GridLayoutPlot = ({
   data,
@@ -57,6 +65,165 @@ export const GridLayoutPlot = ({
   const [downsamplingMethod, setDownsamplingMethod] = useState<string | null>(
     null,
   );
+  const [metadataTabsValue, setMetadataTabsValue] = useState<string>(
+    data.plot[0]?.name || '',
+  );
+
+  /**
+   * updateslider coordinate value
+   */
+  const handleUpdateCoordinate = async (
+    coordinate: Coordinates,
+    valueIndex: number,
+  ) => {
+    // Check if the coordinate has a target
+    const lastTargetLastName = getLastIndexedField(coordinate.target);
+    if (!lastTargetLastName)
+      return console.warn('No indexed field found in target');
+
+    let updatedDimension: DataGridPlot;
+    // Update plot with new selected dimension
+    if (coordinate?.isDimensionCoordinate) {
+      // Get dataGrid to update
+      updatedDimension = JSON.parse(JSON.stringify(data));
+
+      const normalizedUri = normalizeIndices(data.plot[0].nodeUri); //Use normalized URI to get all matrix
+      const newUri = normalizedUri.replace(
+        `${coordinate.name}[:]`,
+        `${coordinate.name}[${valueIndex}]`,
+      );
+      const newRes = await fetchDataPlot(newUri);
+
+      // Add information indicating that this coordinate is used to select the dimension
+      newRes.data.coordinates.find(
+        (coord) => coord.name === coordinate.name,
+      ).isDimensionCoordinate = true;
+
+      // Update coordinates
+      let resettedAxeIndex = 0;
+      for (const coordinate of updatedDimension.coordinates) {
+        const newCoord = newRes.data.coordinates.find(
+          (newCoord) =>
+            normalizeIndices(newCoord.target) ===
+            normalizeIndices(coordinate.target),
+        );
+        coordinate.axeIndex = resettedAxeIndex;
+        coordinate.shape = newCoord.shape;
+        coordinate.coordinates = newCoord.coordinates;
+        coordinate.target = newCoord.target;
+        coordinate.data = newCoord.value;
+        coordinate.valueIndex = 0;
+        resettedAxeIndex++;
+      }
+
+      // Update plots
+      for (const plot of updatedDimension.plot) {
+        plot.path = newRes.data.path;
+        plot.shape = newRes.data.shape as number[];
+        plot.yData = newRes.data.value;
+      }
+
+      // Update xAxisData
+      const xAxis = updatedDimension.coordinates.find(
+        (coord) => coord.axeIndex === 0,
+      );
+      updatedDimension.xAxisData.name = xAxis.name;
+      updatedDimension.xAxisData.path = getDefaultUri(
+        newRes.data.coordinates[0].path,
+      );
+      updatedDimension.xAxisData.unit = xAxis.unit;
+    }
+
+    if (updatedDimension) {
+      data = updatedDimension;
+    }
+
+    // Update coordinates targets & paths with new valueIndex
+    const updatedCoordinatesValue = data.coordinates.map((item) => {
+      const lastTargetLastName = getLastIndexedField(coordinate.target);
+
+      const updatedPath = updateIndexFieldName(
+        item.path,
+        lastTargetLastName,
+        valueIndex,
+      );
+      const updatedTarget = updateIndexFieldName(
+        item.target,
+        lastTargetLastName,
+        valueIndex,
+      );
+
+      return {
+        ...item,
+        path: updatedPath,
+        target: updatedTarget,
+        valueIndex:
+          item.name === coordinate.name ? valueIndex : item.valueIndex,
+      };
+    });
+
+    const updatedActive: Configuration = {
+      ...active,
+      dataPlot: active.dataPlot.map((item: DataGridPlot) => {
+        if (item.i === data.i) {
+          const updatedXAxisData: Axis = {
+            ...data.xAxisData,
+            path: updateIndexFieldName(
+              data.xAxisData?.path || '',
+              lastTargetLastName,
+              valueIndex,
+            ),
+          };
+
+          // Get x values switch x dependances
+          const newXData = getArrayValueFromDependance(
+            updatedCoordinatesValue,
+            0,
+          );
+
+          const updatedPlot = data.plot.map((plotItem) => {
+            const updatedNodeUri = updateIndexFieldName(
+              plotItem.nodeUri,
+              lastTargetLastName,
+              valueIndex,
+            );
+
+            const updatedPath = updateIndexFieldName(
+              plotItem.path || '',
+              lastTargetLastName,
+              valueIndex,
+            );
+
+            const newYData = getVectorData(
+              updatedCoordinatesValue,
+              plotItem.yData,
+            );
+
+            return {
+              ...plotItem,
+              x: newXData,
+              y: newYData,
+              nodeUri: updatedNodeUri,
+
+              path: updatedPath,
+            };
+          });
+
+          return {
+            ...data,
+            coordinates: updatedCoordinatesValue,
+            plot: updatedPlot,
+            xAxisData: updatedXAxisData,
+          };
+        }
+
+        return item;
+      }) as DataGridPlot[],
+    };
+
+    updatedConfiguration(updatedActive);
+  };
+
   /**
    * Handle resize the grid
    */
@@ -68,6 +235,13 @@ export const GridLayoutPlot = ({
   useEffect(() => {
     if (parseInt(active3DTab) > data.plot.length - 1) {
       setActive3DTab('0');
+    }
+
+    // Update metadataTabsValue for metadata when removing selected tab
+    if (
+      !data.plot.find((plot: DataPlotly) => plot.name === metadataTabsValue)
+    ) {
+      setMetadataTabsValue(data.plot[0]?.name);
     }
   }, [data.plot]);
 
@@ -116,7 +290,7 @@ export const GridLayoutPlot = ({
           // Update plot with downsampled data
           plot.shape = dataPlotDownsampled.data.downsampled_shape;
           // Get x axis switch coordinates dependances
-          plot.x = getArrayValueFromDependance(updatedDataPlot.coordinates);
+          plot.x = getArrayValueFromDependance(updatedDataPlot.coordinates, 0);
           plot.yData = dataPlotDownsampled.data.value;
           // Get y axis
           const vectorData = getVectorData(
@@ -267,17 +441,19 @@ export const GridLayoutPlot = ({
 
           {hovered || data.isEditing ? (
             <Group pos="absolute" right={'1rem'} top={5}>
-              <Tooltip label="Select your downsampling method">
-                <Select
-                  value={downsamplingMethod || 'None'}
-                  w="7rem"
-                  size="xs"
-                  disabled={!data.isEditing}
-                  data={downsamplingList}
-                  onChange={setDownsamplingMethod}
-                  placeholder="Downsampling"
-                ></Select>
-              </Tooltip>
+              {data.coordinates.length && ( // Don't show downsampled methods when showing by default metadata
+                <Tooltip label="Select your downsampling method">
+                  <Select
+                    value={downsamplingMethod || 'None'}
+                    w="7rem"
+                    size="xs"
+                    disabled={!data.isEditing}
+                    data={downsamplingList}
+                    onChange={setDownsamplingMethod}
+                    placeholder="Downsampling"
+                  ></Select>
+                </Tooltip>
+              )}
               {/* 3D button display */}
               {data.coordinates.length === 3 && ( //Only show if there are 3 coordinates - corresponding to 3D data
                 <Tooltip label="Toggle 1D/Heatmap view">
@@ -292,19 +468,21 @@ export const GridLayoutPlot = ({
                 </Tooltip>
               )}
               {/* Metadata component button */}
-              <Tooltip label="Inspect metadatas information">
-                <ActionIcon
-                  variant="filled"
-                  aria-label="Metadatas"
-                  onClick={() => handleInspectMetadata(data.i)}
-                  className={classes.actionButton}
-                >
-                  <IconBrandDatabricks
-                    style={{ width: '70%', height: '70%' }}
-                    stroke={1.5}
-                  />
-                </ActionIcon>
-              </Tooltip>
+              {data.coordinates.length && ( // Don't show metadata button when showing by default metadata
+                <Tooltip label="Inspect metadatas information">
+                  <ActionIcon
+                    variant="filled"
+                    aria-label="Metadatas"
+                    onClick={() => handleInspectMetadata(data.i)}
+                    className={classes.actionButton}
+                  >
+                    <IconBrandDatabricks
+                      style={{ width: '70%', height: '70%' }}
+                      stroke={1.5}
+                    />
+                  </ActionIcon>
+                </Tooltip>
+              )}
               <Tooltip
                 label={
                   data.isEditing
@@ -356,7 +534,60 @@ export const GridLayoutPlot = ({
         </Group>
       </div>
 
-      {is3DView ? (
+      {!data.coordinates.length ? (
+        <Container pt="40px" p="1rem">
+          <Tabs
+            value={metadataTabsValue}
+            onChange={(value) => setMetadataTabsValue(value)}
+          >
+            <ScrollArea
+              key={`tabScrollBar_${active.checkedNodeURI.length}`}
+              type="hover"
+              scrollHideDelay={0} // keep visible scrollbar only during hover
+              scrollbarSize={6}
+              offsetScrollbars
+              style={{ maxWidth: '100%' }}
+            >
+              <Tabs.List
+                style={{
+                  flexWrap: 'nowrap',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {data.plot.length > 0 &&
+                  data.plot.map((item: DataPlotly, index) => (
+                    <Tabs.Tab
+                      key={`metadata_${index}`}
+                      value={item.name}
+                      disabled={
+                        !data.isEditing && metadataTabsValue !== item.name
+                      }
+                    >
+                      {item.name}
+                    </Tabs.Tab>
+                  ))}
+              </Tabs.List>
+            </ScrollArea>
+
+            {data &&
+              data.plot.map((plot: DataPlotly, index) => {
+                return (
+                  <Tabs.Panel key={`metadata_${index}`} value={plot.name}>
+                    <MetaDataInfos
+                      gridLayoutKey={data.i}
+                      data={plot}
+                      yAxis={
+                        plot.yaxis !== '' ? data.y2AxisData : data.yAxisData
+                      }
+                      height={(heightGrid - 56).toString()} // 56px is equivalent to paddings (40px from top + 1rem from bottom)
+                      tabsSelected={plot.name}
+                    />
+                  </Tabs.Panel>
+                );
+              })}
+          </Tabs>
+        </Container>
+      ) : is3DView ? (
         <Surface2D
           itemDataGrid={data}
           width={
@@ -366,6 +597,7 @@ export const GridLayoutPlot = ({
           }
           height={heightGrid - 10}
           plotIndex={active3DTab}
+          handleUpdateCoordinate={handleUpdateCoordinate}
         />
       ) : (
         <SimplePlotly
@@ -378,6 +610,7 @@ export const GridLayoutPlot = ({
           height={heightGrid}
           sliderRef={gridSliderRef}
           is3DView={is3DView}
+          handleUpdateCoordinate={handleUpdateCoordinate}
         />
       )}
     </Container>

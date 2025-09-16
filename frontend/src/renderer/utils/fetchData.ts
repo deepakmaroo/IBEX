@@ -163,7 +163,7 @@ export const fetchDataPlot = async (
       // Try to fetch data without downsampling in according timeout
       response = await fetchFromApi<PlotDataResponse>(
         `/data/plot_data/?uri=${encodeURIComponent(uri)}`,
-        5000,
+        30000,
       );
     } catch (error) {
       if (error.name === 'AbortError') {

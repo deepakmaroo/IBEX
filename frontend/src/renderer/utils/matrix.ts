@@ -26,25 +26,28 @@ export const getFirstArrayValueFromShape = (
     : [];
 };
 
-export const getArrayValueFromDependance = (coordinates: Coordinates[]) => {
-  const xCoordinate: Coordinates = coordinates.find(
-    (coord) => coord.axeIndex === 0,
+export const getArrayValueFromDependance = (
+  coordinates: Coordinates[],
+  axeIndexWanted: number,
+) => {
+  const wantedCoordinate: Coordinates = coordinates.find(
+    (coord) => coord.axeIndex === axeIndexWanted,
   );
   // X coordinate isn't slidable, so if no dependance we get first array value
-  if (!xCoordinate.coordinates.length) {
+  if (!wantedCoordinate.coordinates.length) {
     return getFirstArrayValueFromShape(
-      xCoordinate.data,
-      xCoordinate.shape as number[],
+      wantedCoordinate.data,
+      wantedCoordinate.shape as number[],
     );
   }
 
-  const dependance = xCoordinate.coordinates;
-  // Get x coordinate data from the dependency not linked to the dimension
+  const dependance = wantedCoordinate.coordinates;
+  // Get wanted coordinate data from the dependency not linked to the dimension
   const indexValueDependance = coordinates.find(
     (coord_dep) =>
       dependance.includes(coord_dep.name) && !coord_dep.isDimensionCoordinate,
   ).valueIndex;
-  const returnValue = xCoordinate.data[indexValueDependance] as (
+  const returnValue = wantedCoordinate.data[indexValueDependance] as (
     | string
     | number
   )[];
