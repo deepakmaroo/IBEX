@@ -6,7 +6,9 @@ import {
   useState,
 } from 'react';
 import {
+  Axis,
   Configuration,
+  Coordinates,
   DataGridPlot,
   DataPlotly,
   GridLayoutPlotProps,
@@ -34,8 +36,11 @@ import { useIbexStore } from '../../stores';
 import {
   fetchDataPlot,
   getArrayValueFromDependance,
+  getDefaultUri,
+  getLastIndexedField,
   getVectorData,
   normalizeIndices,
+  updateIndexFieldName,
 } from '../../utils';
 import { showNotification } from '@mantine/notifications';
 import { MetaDataInfos } from '../../pages/visualization/VisualizationMetaData';
@@ -63,6 +68,162 @@ export const GridLayoutPlot = ({
   const [metadataTabsValue, setMetadataTabsValue] = useState<string>(
     data.plot[0]?.name || '',
   );
+
+  /**
+   * updateslider coordinate value
+   */
+  const handleUpdateCoordinate = async (
+    coordinate: Coordinates,
+    valueIndex: number,
+  ) => {
+    // Check if the coordinate has a target
+    const lastTargetLastName = getLastIndexedField(coordinate.target);
+    if (!lastTargetLastName)
+      return console.warn('No indexed field found in target');
+
+    let updatedDimension: DataGridPlot;
+    // Update plot with new selected dimension
+    if (coordinate?.isDimensionCoordinate) {
+      // Get dataGrid to update
+      updatedDimension = JSON.parse(JSON.stringify(data));
+
+      const normalizedUri = normalizeIndices(data.plot[0].nodeUri); //Use normalized URI to get all matrix
+      const newUri = normalizedUri.replace(
+        `${coordinate.name}[:]`,
+        `${coordinate.name}[${valueIndex}]`,
+      );
+      const newRes = await fetchDataPlot(newUri);
+
+      // Add information indicating that this coordinate is used to select the dimension
+      newRes.data.coordinates.find(
+        (coord) => coord.name === coordinate.name,
+      ).isDimensionCoordinate = true;
+
+      // Update coordinates
+      let resettedAxeIndex = 0;
+      for (const coordinate of updatedDimension.coordinates) {
+        const newCoord = newRes.data.coordinates.find(
+          (newCoord) =>
+            normalizeIndices(newCoord.target) ===
+            normalizeIndices(coordinate.target),
+        );
+        coordinate.axeIndex = resettedAxeIndex;
+        coordinate.shape = newCoord.shape;
+        coordinate.coordinates = newCoord.coordinates;
+        coordinate.target = newCoord.target;
+        coordinate.data = newCoord.value;
+        coordinate.valueIndex = 0;
+        resettedAxeIndex++;
+      }
+
+      // Update plots
+      for (const plot of updatedDimension.plot) {
+        plot.path = newRes.data.path;
+        plot.shape = newRes.data.shape as number[];
+        plot.yData = newRes.data.value;
+      }
+
+      // Update xAxisData
+      const xAxis = updatedDimension.coordinates.find(
+        (coord) => coord.axeIndex === 0,
+      );
+      updatedDimension.xAxisData.name = xAxis.name;
+      updatedDimension.xAxisData.path = getDefaultUri(
+        newRes.data.coordinates[0].path,
+      );
+      updatedDimension.xAxisData.unit = xAxis.unit;
+    }
+
+    if (updatedDimension) {
+      data = updatedDimension;
+    }
+
+    // Update coordinates targets & paths with new valueIndex
+    const updatedCoordinatesValue = data.coordinates.map((item) => {
+      const lastTargetLastName = getLastIndexedField(coordinate.target);
+
+      const updatedPath = updateIndexFieldName(
+        item.path,
+        lastTargetLastName,
+        valueIndex,
+      );
+      const updatedTarget = updateIndexFieldName(
+        item.target,
+        lastTargetLastName,
+        valueIndex,
+      );
+
+      return {
+        ...item,
+        path: updatedPath,
+        target: updatedTarget,
+        valueIndex:
+          item.name === coordinate.name ? valueIndex : item.valueIndex,
+      };
+    });
+
+    const updatedActive: Configuration = {
+      ...active,
+      dataPlot: active.dataPlot.map((item: DataGridPlot) => {
+        if (item.i === data.i) {
+          const updatedXAxisData: Axis = {
+            ...data.xAxisData,
+            path: updateIndexFieldName(
+              data.xAxisData?.path || '',
+              lastTargetLastName,
+              valueIndex,
+            ),
+          };
+
+          // Get x values switch x dependances
+          const newXData = getArrayValueFromDependance(
+            updatedCoordinatesValue,
+            0,
+          );
+
+          const updatedPlot = data.plot.map((plotItem) => {
+            const updatedNodeUri = updateIndexFieldName(
+              plotItem.nodeUri,
+              lastTargetLastName,
+              valueIndex,
+            );
+
+            const updatedPath = updateIndexFieldName(
+              plotItem.path || '',
+              lastTargetLastName,
+              valueIndex,
+            );
+
+            const newYData = getVectorData(
+              updatedCoordinatesValue,
+              plotItem.yData,
+            );
+
+            return {
+              ...plotItem,
+              x: newXData,
+              y: newYData,
+              nodeUri: updatedNodeUri,
+
+              path: updatedPath,
+            };
+          });
+
+          return {
+            ...data,
+            coordinates: updatedCoordinatesValue,
+            plot: updatedPlot,
+            xAxisData: updatedXAxisData,
+          };
+        }
+
+        return item;
+      }) as DataGridPlot[],
+    };
+
+    updatedConfiguration(updatedActive);
+  };
+
   /**
    * Handle resize the grid
    */
@@ -436,6 +597,7 @@ export const GridLayoutPlot = ({
           }
           height={heightGrid - 10}
           plotIndex={active3DTab}
+          handleUpdateCoordinate={handleUpdateCoordinate}
         />
       ) : (
         <SimplePlotly
@@ -448,6 +610,7 @@ export const GridLayoutPlot = ({
           height={heightGrid}
           sliderRef={gridSliderRef}
           is3DView={is3DView}
+          handleUpdateCoordinate={handleUpdateCoordinate}
         />
       )}
     </Container>

@@ -3,7 +3,6 @@ import { Layout } from 'plotly.js';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Plot from 'react-plotly.js';
 import {
-  Axis,
   Configuration,
   Coordinates,
   DataGridPlot,
@@ -17,9 +16,6 @@ import {
   getLastIndexedField,
   getVectorData,
   updateIndexFieldName,
-  fetchDataPlot,
-  normalizeIndices,
-  getDefaultUri,
 } from '../../utils';
 import classes from './SimplePlotly.module.css';
 import * as tf from '@tensorflow/tfjs';
@@ -30,6 +26,10 @@ interface SimplePlotlyProps {
   height: number;
   sliderRef?: React.RefObject<HTMLDivElement>;
   is3DView?: boolean;
+  handleUpdateCoordinate: (
+    coordinate: Coordinates,
+    valueIndex: number,
+  ) => Promise<void>;
 }
 
 export const SimplePlotly = ({
@@ -38,6 +38,7 @@ export const SimplePlotly = ({
   width,
   sliderRef,
   is3DView,
+  handleUpdateCoordinate,
 }: SimplePlotlyProps) => {
   const { active, updatedConfiguration } = useIbexStore();
   const BUTTON_SWITCH_HEIGHT = 24; // Height of the switch button
@@ -236,161 +237,6 @@ export const SimplePlotly = ({
     }));
   }, [itemDataGrid.y2AxisData]);
 
-  /**
-   * updateslider coordinate value
-   */
-  const handleUpdateCoordinate = async (
-    coordinate: Coordinates,
-    valueIndex: number,
-  ) => {
-    // Check if the coordinate has a target
-    const lastTargetLastName = getLastIndexedField(coordinate.target);
-    if (!lastTargetLastName)
-      return console.warn('No indexed field found in target');
-
-    let updatedDimension: DataGridPlot;
-    // Update plot with new selected dimension
-    if (coordinate?.isDimensionCoordinate) {
-      // Get dataGrid to update
-      updatedDimension = JSON.parse(JSON.stringify(itemDataGrid));
-
-      const normalizedUri = normalizeIndices(itemDataGrid.plot[0].nodeUri); //Use normalized URI to get all matrix
-      const newUri = normalizedUri.replace(
-        `${coordinate.name}[:]`,
-        `${coordinate.name}[${valueIndex}]`,
-      );
-      const newRes = await fetchDataPlot(newUri);
-
-      // Add information indicating that this coordinate is used to select the dimension
-      newRes.data.coordinates.find(
-        (coord) => coord.name === coordinate.name,
-      ).isDimensionCoordinate = true;
-
-      // Update coordinates
-      let resettedAxeIndex = 0;
-      for (const coordinate of updatedDimension.coordinates) {
-        const newCoord = newRes.data.coordinates.find(
-          (newCoord) =>
-            normalizeIndices(newCoord.target) ===
-            normalizeIndices(coordinate.target),
-        );
-        coordinate.axeIndex = resettedAxeIndex;
-        coordinate.shape = newCoord.shape;
-        coordinate.coordinates = newCoord.coordinates;
-        coordinate.target = newCoord.target;
-        coordinate.data = newCoord.value;
-        coordinate.valueIndex = 0;
-        resettedAxeIndex++;
-      }
-
-      // Update plots
-      for (const plot of updatedDimension.plot) {
-        plot.path = newRes.data.path;
-        plot.shape = newRes.data.shape as number[];
-        plot.yData = newRes.data.value;
-      }
-
-      // Update xAxisData
-      const xAxis = updatedDimension.coordinates.find(
-        (coord) => coord.axeIndex === 0,
-      );
-      updatedDimension.xAxisData.name = xAxis.name;
-      updatedDimension.xAxisData.path = getDefaultUri(
-        newRes.data.coordinates[0].path,
-      );
-      updatedDimension.xAxisData.unit = xAxis.unit;
-    }
-
-    if (updatedDimension) {
-      itemDataGrid = updatedDimension;
-    }
-
-    // Update coordinates targets & paths with new valueIndex
-    const updatedCoordinatesValue = itemDataGrid.coordinates.map((item) => {
-      const lastTargetLastName = getLastIndexedField(coordinate.target);
-
-      const updatedPath = updateIndexFieldName(
-        item.path,
-        lastTargetLastName,
-        valueIndex,
-      );
-      const updatedTarget = updateIndexFieldName(
-        item.target,
-        lastTargetLastName,
-        valueIndex,
-      );
-
-      return {
-        ...item,
-        path: updatedPath,
-        target: updatedTarget,
-        valueIndex:
-          item.name === coordinate.name ? valueIndex : item.valueIndex,
-      };
-    });
-
-    const updatedActive: Configuration = {
-      ...active,
-      dataPlot: active.dataPlot.map((item: DataGridPlot) => {
-        if (item.i === itemDataGrid.i) {
-          const updatedXAxisData: Axis = {
-            ...itemDataGrid.xAxisData,
-            path: updateIndexFieldName(
-              itemDataGrid.xAxisData?.path || '',
-              lastTargetLastName,
-              valueIndex,
-            ),
-          };
-
-          // Get x values switch x dependances
-          const newXData = getArrayValueFromDependance(
-            updatedCoordinatesValue,
-            0,
-          );
-
-          const updatedPlot = itemDataGrid.plot.map((plotItem) => {
-            const updatedNodeUri = updateIndexFieldName(
-              plotItem.nodeUri,
-              lastTargetLastName,
-              valueIndex,
-            );
-
-            const updatedPath = updateIndexFieldName(
-              plotItem.path || '',
-              lastTargetLastName,
-              valueIndex,
-            );
-
-            const newYData = getVectorData(
-              updatedCoordinatesValue,
-              plotItem.yData,
-            );
-
-            return {
-              ...plotItem,
-              x: newXData,
-              y: newYData,
-              nodeUri: updatedNodeUri,
-
-              path: updatedPath,
-            };
-          });
-
-          return {
-            ...itemDataGrid,
-            coordinates: updatedCoordinatesValue,
-            plot: updatedPlot,
-            xAxisData: updatedXAxisData,
-          };
-        }
-
-        return item;
-      }) as DataGridPlot[],
-    };
-
-    updatedConfiguration(updatedActive);
-  };
-
   async function transposeAxis(
     updatedDataPlot: DataGridPlot,
     axeIndexToSwitch: number,
@@ -554,7 +400,7 @@ export const SimplePlotly = ({
                 (item: Coordinates, valueIndex: number) =>
                   item.axeIndex !== 0 && ( // Don't send coordinate having axeIndex 0 in verticalSlider because it's the x axis
                     <VerticalSlider
-                      key={valueIndex}
+                      key={`line_slider_${valueIndex}`}
                       name={item.name}
                       valueIndex={item.valueIndex || 0}
                       data={getFirstArrayValueFromShape(

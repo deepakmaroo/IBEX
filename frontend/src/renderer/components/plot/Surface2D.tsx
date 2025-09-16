@@ -3,10 +3,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Layout } from 'plotly.js';
 import { Axis, Coordinates, DataGridPlot } from 'src/renderer/types';
 import classe from './SimplePlotly.module.css';
-import { Grid } from '@mantine/core';
+import { Grid, Group } from '@mantine/core';
 import { VerticalSlider } from '../verticalSlider';
-import * as tf from '@tensorflow/tfjs';
 import {
+  compareByAxeIndex,
   getArrayValueFromDependance,
   getFirstArrayValueFromShape,
 } from '../../utils';
@@ -16,6 +16,10 @@ interface Surface2DProps {
   width?: number;
   height?: number;
   plotIndex: string;
+  handleUpdateCoordinate: (
+    coordinate: Coordinates,
+    valueIndex: number,
+  ) => Promise<void>;
 }
 
 export const Surface2D = ({
@@ -23,13 +27,12 @@ export const Surface2D = ({
   width,
   height,
   plotIndex,
+  handleUpdateCoordinate,
 }: Surface2DProps) => {
-  const [frameIndex, setFrameIndex] = useState(0); //Time slicing by default
   const [xAxis, setXAxis] = useState<Axis>(null);
   const [yAxis, setYAxis] = useState<Axis>(null);
   const [zAxis, setZAxis] = useState<Axis>(null);
   const [data3D, setData3D] = useState<number[][][] | null>(null);
-  const [slice, setSlice] = useState<number[]>([]);
   const [x, setX] = useState<number[]>([]);
   const [y, setY] = useState<number[]>([]);
   const [z, setZ] = useState<number[][]>([]);
@@ -59,55 +62,27 @@ export const Surface2D = ({
     if (!selectedDataMatrix) {
       return;
     }
-    const tensor = tf.tensor(selectedDataMatrix);
-    const coordinatesLength = itemDataGrid.coordinates.length - 1;
-    const newAxeOrder = itemDataGrid.coordinates.map((coord, index) => ({
-      newPosition: index,
-      axeIndex: coordinatesLength - index,
-    }));
-    const positionToOrigin = JSON.parse(
-      JSON.stringify(itemDataGrid.coordinates),
-    )
-      .reverse()
-      .map(
-        (reversedCoord: Coordinates) =>
-          newAxeOrder.find(
-            (axeOrder) => axeOrder.axeIndex === reversedCoord.axeIndex,
-          ).newPosition,
-      );
-    const transposed = tf.transpose(tensor, positionToOrigin);
-    const originalDataMatrix = await transposed.array();
+    setData3D(selectedDataMatrix as number[][][]);
 
-    setData3D(originalDataMatrix as number[][][]);
-
-    //For moment we get time for slicing
-    const findTimeCoordinate = itemDataGrid.coordinates.find(
-      (coordinate) => coordinate.name === 'time',
-    );
-    if (findTimeCoordinate) {
-      setSlice(
-        getFirstArrayValueFromShape(
-          findTimeCoordinate.data,
-          findTimeCoordinate.shape as number[],
-        ),
-      );
-    }
-
+    //Initialize xAxis, yAxis, zAxis
     setZAxis({
       name: itemDataGrid.yAxisData?.name || 'Z Axis',
       unit: itemDataGrid.yAxisData?.unit || '',
     });
 
-    //Initialize xAxis and yAxis
     const xAxisAtHeatmap = {
-      name: itemDataGrid.coordinates[0].name,
-      unit: itemDataGrid.coordinates[0].unit,
+      name: itemDataGrid.coordinates.find((xCoord) => xCoord.axeIndex === 0)
+        .name,
+      unit: itemDataGrid.coordinates.find((xCoord) => xCoord.axeIndex === 0)
+        .unit,
     };
     setXAxis(xAxisAtHeatmap);
 
     const yAxisAtHeatmap = {
-      name: itemDataGrid.coordinates[1].name,
-      unit: itemDataGrid.coordinates[1].unit,
+      name: itemDataGrid.coordinates.find((yCoord) => yCoord.axeIndex === 1)
+        .name,
+      unit: itemDataGrid.coordinates.find((yCoord) => yCoord.axeIndex === 1)
+        .unit,
     };
     setYAxis(yAxisAtHeatmap);
   }, [itemDataGrid.plot, itemDataGrid.coordinates, plotIndex]);
@@ -126,7 +101,7 @@ export const Surface2D = ({
       height: height,
       width: width,
     }));
-  }, [frameIndex, zAxis, itemDataGrid, width, height]);
+  }, [itemDataGrid, width, height]);
 
   /**
    * Update the layout xAxis
@@ -168,27 +143,21 @@ export const Surface2D = ({
 
   useEffect(() => {
     if (data3D) {
-      // Update x, y & z
-      const originalCoordinatePosition: Coordinates[] = JSON.parse(
-        JSON.stringify(itemDataGrid.coordinates),
-      );
-      let index = 0;
-      for (const coord of originalCoordinatePosition) {
-        coord.axeIndex = index;
-        if (coord.name === 'time') {
-          coord.valueIndex = frameIndex;
-        }
-        index++;
-      }
+      // Update x, y & z useStates to plot heatmap
       setX(
-        getArrayValueFromDependance(originalCoordinatePosition, 0) as number[],
+        getArrayValueFromDependance(itemDataGrid.coordinates, 0) as number[],
       );
       setY(
-        getArrayValueFromDependance(originalCoordinatePosition, 1) as number[],
+        getArrayValueFromDependance(itemDataGrid.coordinates, 1) as number[],
       );
-      setZ(data3D[frameIndex]);
+      setZ(
+        data3D[
+          itemDataGrid.coordinates.find((coord) => coord.axeIndex === 2)
+            .valueIndex
+        ],
+      ); // Get matrix with correct index
     }
-  }, [data3D, frameIndex]);
+  }, [data3D, itemDataGrid.coordinates]);
 
   return (
     data3D &&
@@ -205,16 +174,30 @@ export const Surface2D = ({
         mt={10}
       >
         <Grid.Col span="content" mt={10}>
-          <VerticalSlider
-            name={'time'}
-            valueIndex={frameIndex}
-            data={slice}
-            getValue={(index) => {
-              setFrameIndex(index);
-            }}
-            height={height - 80}
-            disabled={!itemDataGrid.isEditing}
-          />
+          <Group justify="space-between" gap="0" align="flex-end">
+            {JSON.parse(JSON.stringify(itemDataGrid.coordinates))
+              .sort(compareByAxeIndex)
+              .map(
+                (item: Coordinates, valueIndex: number) =>
+                  item.axeIndex !== 0 &&
+                  item.axeIndex !== 1 && ( // Don't return slider linked to x & y
+                    <VerticalSlider
+                      key={`heatmap_slider_${valueIndex}`}
+                      name={item.name}
+                      valueIndex={item.valueIndex || 0}
+                      data={getFirstArrayValueFromShape(
+                        item.data,
+                        item.shape as number[],
+                      )}
+                      getValue={(valueIndex) => {
+                        handleUpdateCoordinate(item, valueIndex);
+                      }}
+                      height={height - 80}
+                      disabled={!itemDataGrid.isEditing}
+                    />
+                  ),
+              )}
+          </Group>
         </Grid.Col>
         <Grid.Col
           span="auto"
