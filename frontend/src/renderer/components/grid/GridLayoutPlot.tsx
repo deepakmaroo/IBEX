@@ -324,7 +324,7 @@ export const GridLayoutPlot = ({
   }, [downsamplingMethod]);
 
   useLayoutEffect(() => {
-    setIs3DView(data.coordinates.length === 3);
+    setIs3DView(data.coordinates.length >= 3);
   }, []);
 
   /**
@@ -455,7 +455,7 @@ export const GridLayoutPlot = ({
                 </Tooltip>
               )}
               {/* 3D button display */}
-              {data.coordinates.length === 3 && ( //Only show if there are 3 coordinates - corresponding to 3D data
+              {data.coordinates.length >= 3 && ( //Only show if there are 3 or more coordinates - corresponding to 3D data
                 <Tooltip label="Toggle 1D/Heatmap view">
                   <ActionIcon
                     variant="filled"
