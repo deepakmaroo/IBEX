@@ -152,8 +152,9 @@ export const Surface2D = ({
       );
       setZ(
         data3D[
-          itemDataGrid.coordinates.find((coord) => coord.axeIndex === 2)
-            .valueIndex
+          itemDataGrid.coordinates.find(
+            (coord) => coord.axeIndex === itemDataGrid.coordinates.length - 1,
+          ).valueIndex
         ],
       ); // Get matrix with correct index
     }
