@@ -81,7 +81,7 @@ def test_plot_data_1_N_coord(entry_path):
     numeric_coordinate = response_body["data"]["coordinates"][0]
     assert numeric_coordinate["name"] == "ion"
     assert numeric_coordinate["target"] == "#core_profiles/profiles_1d[:]/ion[:]"
-    assert numeric_coordinate["unit"] == "-"
+    assert numeric_coordinate["unit"] == ""
     assert numeric_coordinate["shape"] == [5, 3]
     assert numeric_coordinate["ndim"] == 1
     assert numeric_coordinate["path"] == ""
