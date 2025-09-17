@@ -3,6 +3,7 @@ import { Layout } from 'plotly.js';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Plot from 'react-plotly.js';
 import {
+  AxisData,
   Configuration,
   Coordinates,
   DataGridPlot,
@@ -244,24 +245,55 @@ export const SimplePlotly = ({
     // Modify each plot in graph
     for (const plotToTranspose of updatedDataPlot.plot) {
       const tensor = tf.tensor(plotToTranspose.yData);
-      // Determine which axis to transpose
-      const coordinatesLength = updatedDataPlot.coordinates.length - 1;
-      const newAxeOrder = updatedDataPlot.coordinates.map((coord, index) => ({
-        newPosition: index,
-        axeIndex: coordinatesLength - index,
-      }));
+      // Determine which axis to transpose without taking care of dimension coordinate
+      const dimensionCoordndex = updatedDataPlot.coordinates.findIndex(
+        (coord) => coord.isDimensionCoordinate,
+      );
+      const switchableCoordinates = JSON.parse(
+        JSON.stringify(
+          updatedDataPlot.coordinates.filter(
+            (coord) => !coord.isDimensionCoordinate,
+          ),
+        ),
+      );
+      for (const swicthaleCoord of switchableCoordinates) {
+        if (
+          swicthaleCoord.axeIndex >
+          updatedDataPlot.coordinates[dimensionCoordndex]?.axeIndex
+        ) {
+          swicthaleCoord.axeIndex--;
+        }
+      }
+      const coordinatesLength = switchableCoordinates.length - 1;
+      type Position = {
+        newPosition: number;
+        axeIndex: number;
+      };
+      const newAxeOrder: Position[] = switchableCoordinates.map(
+        (coord: Coordinates, index: number) => ({
+          newPosition: index,
+          axeIndex: coordinatesLength - index,
+        }),
+      );
+      if (
+        // set axe indexes without taking care of dimensional coordinate
+        dimensionCoordndex !== -1 &&
+        axeIndexToSwitch >
+          updatedDataPlot.coordinates[dimensionCoordndex]?.axeIndex
+      ) {
+        axeIndexToSwitch--;
+      }
       const indexOfAxeIndexSelected = newAxeOrder.findIndex(
         (newShapeElement) => newShapeElement.axeIndex === axeIndexToSwitch,
       );
       newAxeOrder[coordinatesLength].newPosition =
         newAxeOrder[indexOfAxeIndexSelected].newPosition; // last element position is switched with selected axeIndex
       newAxeOrder[indexOfAxeIndexSelected].newPosition = coordinatesLength; // set selected axeIndex to last position
-      const newPositions = newAxeOrder.map((fixed) => fixed.newPosition);
+      const newPositions = newAxeOrder.map((position) => position.newPosition);
 
       // Transpose dataY
       const transposed = tf.transpose(tensor, newPositions);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const dataYTransposed: any = await transposed.array();
+      const dataYTransposed = (await transposed.array()) as AxisData;
 
       // Update yData & shape
       plotToTranspose.yData = dataYTransposed;
