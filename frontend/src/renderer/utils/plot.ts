@@ -696,11 +696,14 @@ export async function plotNodeUriLoaded(
 export function getVectorData(coordinates: Coordinates[], yData: AxisData) {
   const coordinatesLength: number = coordinates.length;
 
-  // Extract only matrix indexes
+  // Extract only matrix indexes without taking care of dimension coordinate
   const matrixIndexes = JSON.parse(JSON.stringify(coordinates))
     .sort(compareByAxeIndex)
     .reverse()
-    .filter((coord: Coordinates) => coord.axeIndex !== 0)
+    .filter(
+      (coord: Coordinates) =>
+        coord.axeIndex !== 0 && !coord.isDimensionCoordinate,
+    )
     .map((coord: Coordinates) => coord.valueIndex);
 
   // Retrieve vector to plot
