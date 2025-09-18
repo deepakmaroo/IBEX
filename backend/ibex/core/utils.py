@@ -3,8 +3,22 @@ from enum import Enum  # type: ignore
 
 from tsdownsample import MinMaxDownsampler, M4Downsampler, LTTBDownsampler, MinMaxLTTBDownsampler  # type: ignore
 from imas.ids_primitive import IDSNumericArray
+from ibex.data_source.exception import NotAnArrayException
 
 import numpy as np  # type: ignore
+
+
+def transform_2D_data(data: list | np.ndarray):
+    """
+    Takes multidimensional list as input and transforms all np.arrays it founds (https://numpy.org/doc/2.1/reference/generated/numpy.ndarray.T.html)
+    :param data: multidimensional list of np.arrays
+    """
+    if isinstance(data, list):
+        return [transform_2D_data(x) for x in data]
+    if isinstance(data, (np.ndarray, IDSNumericArray)):
+        return data.T
+    else:
+        raise NotAnArrayException(f"Cannot transpose non-array value. Argument type was {type(data)}")
 
 
 def step_downsampling(data: IDSNumericArray, n_out: int, *args, **kwargs):

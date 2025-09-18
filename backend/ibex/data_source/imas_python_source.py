@@ -27,7 +27,7 @@ from ibex.data_source.exception import (
     EntryNotFoundException,
     NoDataException,
 )
-from ibex.core.utils import downsample_data
+from ibex.core.utils import downsample_data, transform_2D_data
 
 
 class IMASPythonSource(DataSourceInterface):
@@ -773,6 +773,12 @@ class IMASPythonSource(DataSourceInterface):
             downsampled_shape = np.asarray(data_to_be_returned).shape
         except ValueError:
             downsampled_shape = "irregular"
+
+        if first_value.metadata.ndim == 2:
+            # Transform 2D arrays.
+            # By default first dimension of 2D has coordinate that is second on the list
+            # FE excpects data's first dimension to be connected with second dimension, thus this transformation
+            data_to_be_returned = transform_2D_data(data_to_be_returned)
 
         result = {
             "data": {
