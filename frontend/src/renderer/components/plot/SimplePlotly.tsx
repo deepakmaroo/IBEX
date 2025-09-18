@@ -2,11 +2,7 @@ import { Grid, Group } from '@mantine/core';
 import { Layout } from 'plotly.js';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Plot from 'react-plotly.js';
-import {
-  Configuration,
-  Coordinates,
-  DataGridPlot,
-} from 'src/renderer/types';
+import { Configuration, Coordinates, DataGridPlot } from 'src/renderer/types';
 import { VerticalSlider } from '../verticalSlider';
 import { useIbexStore } from '../../stores';
 import {
