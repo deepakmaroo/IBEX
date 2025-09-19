@@ -588,7 +588,6 @@ class IMASPythonSource(DataSourceInterface):
         if is_empty(ids_data):
             raise NoDataException(f"No data for {node_path}")
 
-        data_to_be_returned = self._serialize_data(ids_data)
         coordinates_to_be_returned = []
 
         # =================================
@@ -738,19 +737,25 @@ class IMASPythonSource(DataSourceInterface):
         while isinstance(first_value, list):
             first_value = first_value[0]
 
+        data_to_be_returned = ids_data
+
+        if first_value.metadata.ndim == 2:
+            # Transform 2D arrays.
+            # By default first dimension of 2D has coordinate that is second on the list
+            # FE expects data's first dimension to be connected with second dimension, thus this transformation
+            data_to_be_returned = transform_2D_data(data_to_be_returned)
+
         try:
-            original_data_shape = np.asarray(ids_data).shape
+            original_data_shape = np.asarray(data_to_be_returned).shape
         except ValueError:
             original_data_shape = "irregular"
-
-        data_to_be_returned = ids_data
 
         # Downsample only 1D data
         if first_value.metadata.ndim == 1:
             if coordinates_to_be_returned[0]["target"].split("/")[-1] == f"{node_path.split('/')[-1]}":
                 # If coordinate targets node -> downsample coordinate as well
                 coordinates_to_be_returned[0]["value"], data_to_be_returned = downsample_data(
-                    ids_data,
+                    data_to_be_returned,
                     target_size=downsampled_size,
                     method=downsampling_method,
                     x=coordinates_to_be_returned[0]["value"],
@@ -758,7 +763,7 @@ class IMASPythonSource(DataSourceInterface):
 
             else:
                 _, data_to_be_returned = downsample_data(
-                    ids_data, target_size=downsampled_size, method=downsampling_method
+                    data_to_be_returned, target_size=downsampled_size, method=downsampling_method
                 )
 
         # serialize coordinates and update shapes (they could be changed by downsampling)
@@ -773,12 +778,6 @@ class IMASPythonSource(DataSourceInterface):
             downsampled_shape = np.asarray(data_to_be_returned).shape
         except ValueError:
             downsampled_shape = "irregular"
-
-        if first_value.metadata.ndim == 2:
-            # Transform 2D arrays.
-            # By default first dimension of 2D has coordinate that is second on the list
-            # FE excpects data's first dimension to be connected with second dimension, thus this transformation
-            data_to_be_returned = transform_2D_data(data_to_be_returned)
 
         result = {
             "data": {
