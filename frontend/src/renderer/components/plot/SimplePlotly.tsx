@@ -2,16 +2,11 @@ import { Grid, Group } from '@mantine/core';
 import { Layout } from 'plotly.js';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Plot from 'react-plotly.js';
-import {
-  Configuration,
-  Coordinates,
-  DataGridPlot,
-} from 'src/renderer/types';
+import { Configuration, Coordinates, DataGridPlot } from 'src/renderer/types';
 import { VerticalSlider } from '../verticalSlider';
 import { useIbexStore } from '../../stores';
 import {
   compareByAxeIndex,
-  getFirstArrayValueFromShape,
   getArrayValueFromDependance,
   getLastIndexedField,
   getVectorData,
@@ -403,9 +398,9 @@ export const SimplePlotly = ({
                       key={`line_slider_${valueIndex}`}
                       name={item.name}
                       valueIndex={item.valueIndex || 0}
-                      data={getFirstArrayValueFromShape(
-                        item.data,
-                        item.shape as number[],
+                      data={getArrayValueFromDependance(
+                        itemDataGrid.coordinates,
+                        item.axeIndex,
                       )}
                       getValue={(valueIndex) => {
                         handleUpdateCoordinate(item, valueIndex);

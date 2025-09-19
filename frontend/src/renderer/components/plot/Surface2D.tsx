@@ -5,11 +5,7 @@ import { Axis, Coordinates, DataGridPlot } from 'src/renderer/types';
 import classe from './SimplePlotly.module.css';
 import { Grid, Group } from '@mantine/core';
 import { VerticalSlider } from '../verticalSlider';
-import {
-  compareByAxeIndex,
-  getArrayValueFromDependance,
-  getFirstArrayValueFromShape,
-} from '../../utils';
+import { compareByAxeIndex, getArrayValueFromDependance } from '../../utils';
 
 interface Surface2DProps {
   itemDataGrid: DataGridPlot;
@@ -185,9 +181,9 @@ export const Surface2D = ({
                       key={`heatmap_slider_${valueIndex}`}
                       name={item.name}
                       valueIndex={item.valueIndex || 0}
-                      data={getFirstArrayValueFromShape(
-                        item.data,
-                        item.shape as number[],
+                      data={getArrayValueFromDependance(
+                        itemDataGrid.coordinates,
+                        item.axeIndex,
                       )}
                       getValue={(valueIndex) => {
                         handleUpdateCoordinate(item, valueIndex);
