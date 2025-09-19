@@ -715,6 +715,11 @@ export function getVectorData(coordinates: Coordinates[], yData: AxisData) {
       if (!(shapeIndex < coordinatesLength)) {
         break;
       } else {
+        showNotification({
+          title: 'Warning',
+          message: 'Impossible to plot: invalid index or incorrect length',
+          color: 'yellow',
+        });
         console.warn('Impossible to plot: invalid index or incorrect length');
         return undefined;
       }
