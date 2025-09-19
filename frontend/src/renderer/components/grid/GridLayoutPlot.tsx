@@ -105,7 +105,9 @@ export const GridLayoutPlot = ({
         const newCoord = newRes.data.coordinates.find(
           (newCoord) =>
             normalizeIndices(newCoord.target) ===
-            normalizeIndices(coordinate.target),
+              normalizeIndices(coordinate.target) &&
+            normalizeIndices(newCoord.path) ===
+              normalizeIndices(coordinate.path),
         );
         coordinate.axeIndex = resettedAxeIndex;
         coordinate.shape = newCoord.shape;
