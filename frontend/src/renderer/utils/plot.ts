@@ -35,7 +35,7 @@ export const checkDimension1 = async (
 ): Promise<PlotDataResponse> | undefined => {
   if (!response || response.data.ndim > 1) {
     // Get new uri to have homogeneous shape
-    const defaultUri = nodes[0].uri; //Use normalized URI to get all matrix
+    const defaultUri = nodes[nodes.length - 1].uri; //Use normalized URI to get all matrix
     let newUri: string;
     let coordinateNameDimension: string;
     for (const coordinate of response.data.coordinates) {
@@ -64,7 +64,9 @@ export const checkDimension1 = async (
       message: 'Cannot plot data with more than one dimension',
       color: 'yellow',
     });
-    updatedActive.checkedNodeURI = nodes.filter((n) => n !== nodes[0]);
+    updatedActive.checkedNodeURI = nodes.filter(
+      (n) => n !== nodes[nodes.length - 1],
+    );
     return undefined;
   }
   return response;
