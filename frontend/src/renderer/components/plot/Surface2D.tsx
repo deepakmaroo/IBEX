@@ -190,9 +190,9 @@ export const Surface2D = ({
                         item.data,
                         item.shape as number[],
                       )}
-                      getValue={(valueIndex) => {
-                        handleUpdateCoordinate(item, valueIndex);
-                      }}
+                      getValue={(valueIndex) =>
+                        handleUpdateCoordinate(item, valueIndex)
+                      }
                       height={height - 80}
                       disabled={!itemDataGrid.isEditing}
                     />

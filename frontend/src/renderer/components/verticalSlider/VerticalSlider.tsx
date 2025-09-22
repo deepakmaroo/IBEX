@@ -14,7 +14,7 @@ interface VerticalSliderProps {
   name: string;
   valueIndex: number;
   data: string[] | number[];
-  getValue: (valueIndex: number) => void;
+  getValue: (index: number) => Promise<void>;
   switchAxis?: () => void;
   height?: number;
   disabled?: boolean;
@@ -32,13 +32,23 @@ export const VerticalSlider = ({
   const steps = data.length;
   const valueRatio = steps > 1 ? valueIndex / (steps - 1) : 1;
   const [isFocused, setIsFocused] = useState(false);
+  const isLoadingRef = useRef(false);
   const sliderRef = useRef<HTMLDivElement | null>(null);
 
-  const move = useMove(({ y }) => {
+  const move = useMove(async ({ y }) => {
     if (disabled || steps <= 1) return;
     const newIndex = Math.round((1 - y) * (steps - 1));
     const clampedIndex = Math.max(0, Math.min(newIndex, steps - 1));
-    getValue(clampedIndex);
+    if (clampedIndex !== valueIndex) {
+      // get value when not requesting dimensional data
+      if (!isLoadingRef.current) {
+        isLoadingRef.current = true;
+
+        getValue(clampedIndex).finally(() => {
+          isLoadingRef.current = false;
+        });
+      }
+    }
   });
 
   useEffect(() => {

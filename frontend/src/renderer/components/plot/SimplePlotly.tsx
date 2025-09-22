@@ -439,9 +439,9 @@ export const SimplePlotly = ({
                         item.data,
                         item.shape as number[],
                       )}
-                      getValue={(valueIndex) => {
-                        handleUpdateCoordinate(item, valueIndex);
-                      }}
+                      getValue={(valueIndex) =>
+                        handleUpdateCoordinate(item, valueIndex)
+                      }
                       switchAxis={
                         !item.isDimensionCoordinate
                           ? () => switchAxis(item.axeIndex)
