@@ -12,7 +12,6 @@ import { VerticalSlider } from '../verticalSlider';
 import { useIbexStore } from '../../stores';
 import {
   compareByAxeIndex,
-  getFirstArrayValueFromShape,
   getArrayValueFromDependance,
   getLastIndexedField,
   getVectorData,
@@ -435,9 +434,9 @@ export const SimplePlotly = ({
                       key={`line_slider_${valueIndex}`}
                       name={item.name}
                       valueIndex={item.valueIndex || 0}
-                      data={getFirstArrayValueFromShape(
-                        item.data,
-                        item.shape as number[],
+                      data={getArrayValueFromDependance(
+                        itemDataGrid.coordinates,
+                        item.axeIndex,
                       )}
                       getValue={(valueIndex) =>
                         handleUpdateCoordinate(item, valueIndex)

@@ -47,10 +47,9 @@ export const getArrayValueFromDependance = (
     (coord_dep) =>
       dependance.includes(coord_dep.name) && !coord_dep.isDimensionCoordinate,
   ).valueIndex;
-  const returnValue = wantedCoordinate.data[indexValueDependance] as (
-    | string
-    | number
-  )[];
+  const returnValue = wantedCoordinate.data[indexValueDependance] as
+    | string[]
+    | number[];
   return returnValue;
 };
 
