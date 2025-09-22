@@ -158,9 +158,9 @@ export const Surface2D = ({
 
   return (
     data3D &&
-    z.length > 0 &&
-    x.length > 0 &&
-    y.length > 0 && (
+    z?.length > 0 &&
+    x?.length > 0 &&
+    y?.length > 0 && (
       <Grid
         styles={{
           inner: {
