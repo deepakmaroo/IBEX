@@ -26,7 +26,7 @@ interface SimplePlotlyProps {
   height: number;
   sliderRef?: React.RefObject<HTMLDivElement>;
   is3DView?: boolean;
-  handleUpdateCoordinate: (
+  handleUpdateCoordinate?: (
     coordinate: Coordinates,
     valueIndex: number,
   ) => Promise<void>;
