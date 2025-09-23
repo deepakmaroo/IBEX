@@ -8,6 +8,23 @@ from ibex.data_source.exception import NotAnArrayException
 import numpy as np  # type: ignore
 
 
+def find_first_value_in_list(data: list):
+    """
+    Traverses multidimensional list and returns first non-list value found
+    """
+    if not isinstance(data, list):
+        return data
+
+    for element in data:
+        if not isinstance(element, list):
+            return element
+        else:
+            result = find_first_value_in_list(element)
+            if result is not None:
+                return result
+    return None
+
+
 def transform_2D_data(data: list | np.ndarray):
     """
     Takes multidimensional list as input and transforms all np.arrays it founds (https://numpy.org/doc/2.1/reference/generated/numpy.ndarray.T.html)

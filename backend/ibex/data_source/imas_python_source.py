@@ -27,7 +27,7 @@ from ibex.data_source.exception import (
     EntryNotFoundException,
     NoDataException,
 )
-from ibex.core.utils import downsample_data, transform_2D_data
+from ibex.core.utils import downsample_data, transform_2D_data, find_first_value_in_list
 
 
 class IMASPythonSource(DataSourceInterface):
@@ -681,12 +681,17 @@ class IMASPythonSource(DataSourceInterface):
                     if f"{target}" == f"{node_path}":
                         coordinate_name = "1...N"
 
+                    try:
+                        coord_data_shape = np.asarray(coord_values).shape
+                    except ValueError:
+                        coord_data_shape = "irregular"
+
                     c = {
                         "name": coordinate_name,
                         "target": f"#{ids}/{target}",
                         "unit": "",
-                        "shape": np.asarray(coord_values).shape,
-                        "downsampled_shape": np.asarray(coord_values).shape,
+                        "shape": coord_data_shape,
+                        "downsampled_shape": coord_data_shape,
                         "ndim": 1,  # 1...N coord always have 1 dimension
                         "path": "",
                         "description": "1...N",
@@ -700,9 +705,7 @@ class IMASPythonSource(DataSourceInterface):
                     coord_real_paths = list(coord_path.items())
                     coord_data = self._get_raw_data(ids_obj, coord_real_paths)
 
-                    first_value = coord_data
-                    while isinstance(first_value, list):
-                        first_value = first_value[0]
+                    first_value = find_first_value_in_list(coord_data)
 
                     # ==================================== find and add shape factors
                     _, coordinates_of_coordinate = self._get_metadata_and_coordinates(uri, ids, coord, occurrence)
@@ -733,9 +736,7 @@ class IMASPythonSource(DataSourceInterface):
                     }
                     coordinates_to_be_returned.append(c)
 
-        first_value = ids_data
-        while isinstance(first_value, list):
-            first_value = first_value[0]
+        first_value = find_first_value_in_list(ids_data)
 
         data_to_be_returned = ids_data
 
