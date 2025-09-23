@@ -7,7 +7,7 @@ import numpy as np  # type: ignore
 import re  # type: ignore
 from idstools.database import DBMaster  # type: ignore
 from imas.ids_metadata import IDSMetadata  # type: ignore
-from imas.ids_primitive import IDSNumericArray  # type: ignore
+from imas.ids_primitive import IDSNumericArray, IDSString0D, IDSString1D  # type: ignore
 from imas.ids_struct_array import IDSStructArray  # type: ignore
 from imas.ids_structure import IDSStructure  # type: ignore
 from imas.ids_data_type import IDSDataType  # type: ignore
@@ -579,11 +579,16 @@ class IMASPythonSource(DataSourceInterface):
         path_elements = list(ids_path.items())
         ids_data = self._get_raw_data(ids_obj, path_elements)
 
-        # function to check if list is essentially empty (contains only empty lists)
+        # function to check if list is essentially empty (contains only empty lists or empty strings)
         def is_empty(seq):
-            if isinstance(seq, (IDSNumericArray, np.ndarray)):
+            if isinstance(seq, (IDSNumericArray, IDSString0D, IDSString1D)):
+                return not seq.has_value
+            if isinstance(seq, np.ndarray):
                 return seq.size == 0
-            return all(map(is_empty, seq)) if isinstance(seq, list) else False
+            elif isinstance(seq, list):
+                return all(map(is_empty, seq))
+            else:
+                return False
 
         if is_empty(ids_data):
             raise NoDataException(f"No data for {node_path}")
