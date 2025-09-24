@@ -41,14 +41,15 @@ cp -rf "$BENCHMARKS_DIR/results" .asv/
 # Run benchmarks
 echo -e "Running benchmarks..."
 cd ..
+asv machine --yes
 asv run --skip-existing-successful HEAD^!
 asv run --skip-existing-successful develop^!
-#asv run --skip-existing-successful master^!
+asv run --skip-existing-successful main^!
 
 # Compare results
 if [ `git rev-parse --abbrev-ref HEAD` == develop ]
 then
-    asv compare master develop --machine $(hostname) || echo "asv compare failed"
+    asv compare main develop --machine $(hostname) || echo "asv compare failed"
 else
     asv compare develop HEAD --machine $(hostname) || echo "asv compare failed"
 fi

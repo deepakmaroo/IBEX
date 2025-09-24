@@ -68,8 +68,7 @@ docs =[
 ]
 
 benchmark = [
-    "asv>=0.6.2",
-    "idna"
+    "asv==0.6.4",
 ]
 
 [project.urls]
