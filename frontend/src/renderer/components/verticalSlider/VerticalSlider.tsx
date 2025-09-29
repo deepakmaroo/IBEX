@@ -16,6 +16,7 @@ interface VerticalSliderProps {
   data: string[] | number[];
   getValue: (index: number) => Promise<void>;
   switchAxis?: () => void;
+  maxWidth: number;
   height?: number;
   disabled?: boolean;
 }
@@ -26,6 +27,7 @@ export const VerticalSlider = ({
   data,
   getValue,
   switchAxis,
+  maxWidth,
   height = 200,
   disabled = false,
 }: VerticalSliderProps) => {
@@ -74,6 +76,8 @@ export const VerticalSlider = ({
       justify="center"
       align="center"
       direction="column"
+      w={`${maxWidth}%`}
+      miw={50}
     >
       {switchAxis && (
         <Tooltip label={`Set ${name} to X axis`}>
@@ -84,7 +88,7 @@ export const VerticalSlider = ({
       )}
 
       <Tooltip label={name} position="right" withArrow>
-        <Text ta="center" my="sm" w={50} fw="bold" truncate="end">
+        <Text ta="center" my="sm" maw={'100%'} fw="bold" truncate="end">
           {name}
         </Text>
       </Tooltip>
@@ -167,13 +171,15 @@ export const VerticalSlider = ({
           />
         </Tooltip>
       </div>
-      <Text ta="center" mt="xs" fw="bold">
-        {isNumber ? (
-          <NumberFormatter value={data[valueIndex]} decimalScale={2} />
-        ) : (
-          data[valueIndex]
-        )}
-      </Text>
+      <Tooltip label={data[valueIndex]} position="right" withArrow>
+        <Text ta="center" mt="xs" fw="bold" maw={'100%'} truncate="end">
+          {isNumber ? (
+            <NumberFormatter value={data[valueIndex]} decimalScale={2} />
+          ) : (
+            data[valueIndex]
+          )}
+        </Text>
+      </Tooltip>
     </Flex>
   );
 };

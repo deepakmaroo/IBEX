@@ -25,6 +25,7 @@ export const Surface2D = ({
   plotIndex,
   handleUpdateCoordinate,
 }: Surface2DProps) => {
+  const coordsUsedInAxes: 1 | 2 = 2;
   const [xAxis, setXAxis] = useState<Axis>(null);
   const [yAxis, setYAxis] = useState<Axis>(null);
   const [zAxis, setZAxis] = useState<Axis>(null);
@@ -170,8 +171,8 @@ export const Surface2D = ({
         }}
         mt={10}
       >
-        <Grid.Col span="content" mt={10}>
-          <Group justify="space-between" gap="0" align="flex-end">
+        <Grid.Col span="content" mt={10} w={`${width * 0.2}px`}>
+          <Group justify="space-between" gap="0" w="100%" align="flex-end">
             {JSON.parse(JSON.stringify(itemDataGrid.coordinates))
               .sort(compareByAxeIndex)
               .map(
@@ -189,6 +190,13 @@ export const Surface2D = ({
                       getValue={(valueIndex) =>
                         handleUpdateCoordinate(item, valueIndex)
                       }
+                      maxWidth={
+                        itemDataGrid.coordinates.length &&
+                        itemDataGrid.coordinates.length > coordsUsedInAxes
+                          ? 100 /
+                            (itemDataGrid.coordinates.length - coordsUsedInAxes)
+                          : 100
+                      }
                       height={height - 80}
                       disabled={!itemDataGrid.isEditing}
                     />
@@ -199,7 +207,7 @@ export const Surface2D = ({
         <Grid.Col
           span="auto"
           pos="relative"
-          w={`${width}px`}
+          w={`${width * 0.8}px`}
           h={`${height}px`}
           style={{
             display: 'flex',
@@ -236,7 +244,7 @@ export const Surface2D = ({
             layout={layoutPlot}
             onRelayout={handleRelayout}
             useResizeHandler={false}
-            style={{ width: `${width}px`, height: `${height}px` }}
+            style={{ width: `${width * 0.8}px`, height: `${height}px` }}
             className={classe.plot2D}
           />
         </Grid.Col>

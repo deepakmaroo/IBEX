@@ -40,6 +40,7 @@ export const SimplePlotly = ({
   is3DView,
   handleUpdateCoordinate,
 }: SimplePlotlyProps) => {
+  const coordsUsedInAxes: 1 | 2 = 1;
   const { active, updatedConfiguration } = useIbexStore();
   const BUTTON_SWITCH_HEIGHT = 24; // Height of the switch button
   const [layoutPlot, setLayoutPlot] = useState<Partial<Layout>>({
@@ -423,8 +424,9 @@ export const SimplePlotly = ({
           span="content"
           ref={sliderRef ? sliderRef : undefined}
           mt={10}
+          w={`${width * 0.2}px`}
         >
-          <Group justify="space-between" gap="0" align="flex-end">
+          <Group justify="space-between" gap="0" w="100%" align="flex-end">
             {JSON.parse(JSON.stringify(itemDataGrid.coordinates))
               .sort(compareByAxeIndex)
               .map(
@@ -446,6 +448,13 @@ export const SimplePlotly = ({
                           ? () => switchAxis(item.axeIndex)
                           : undefined
                       }
+                      maxWidth={
+                        itemDataGrid.coordinates.length &&
+                        itemDataGrid.coordinates.length > coordsUsedInAxes
+                          ? 100 /
+                            (itemDataGrid.coordinates.length - coordsUsedInAxes)
+                          : 100
+                      }
                       height={
                         is3DView
                           ? height - 80
@@ -462,7 +471,7 @@ export const SimplePlotly = ({
       <Grid.Col
         span="auto"
         pos="relative"
-        w={`${width}px`}
+        w={`${width * 0.8}px`}
         h={`${height}px`}
         style={{
           display: 'flex',
@@ -486,7 +495,7 @@ export const SimplePlotly = ({
         <Plot
           ref={plotRef}
           className={classes.simplePlot}
-          style={{ width: `${width}px`, height: `${height}px` }}
+          style={{ width: `${width * 0.8}px`, height: `${height}px` }}
           data={itemDataGrid.plot}
           config={{
             autosizable: false,
