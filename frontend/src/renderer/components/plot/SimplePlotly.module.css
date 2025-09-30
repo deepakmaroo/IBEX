@@ -6,10 +6,6 @@
   height: 180px !important;
 }
 
-.plot2D > div > div > div {
-  right: -50px !important; /* -50px is the width of removed coordinate in 2D case */
-}
-
 .editableTitle {
   z-index: 10;
   position: absolute;

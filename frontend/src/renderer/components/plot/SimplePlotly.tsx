@@ -424,9 +424,14 @@ export const SimplePlotly = ({
           span="content"
           ref={sliderRef ? sliderRef : undefined}
           mt={10}
-          w={`${width * 0.2}px`}
         >
-          <Group justify="space-between" gap="0" w="100%" align="flex-end">
+          <Group
+            justify="space-between"
+            gap="0"
+            w={`${width * 0.2}px`}
+            miw={`${(itemDataGrid.coordinates.length - coordsUsedInAxes) * 50}px`}
+            align="flex-end"
+          >
             {JSON.parse(JSON.stringify(itemDataGrid.coordinates))
               .sort(compareByAxeIndex)
               .map(
@@ -471,7 +476,8 @@ export const SimplePlotly = ({
       <Grid.Col
         span="auto"
         pos="relative"
-        w={`${width * 0.8}px`}
+        w={`${width * 0.8 - 32}px`}
+        maw={`${width * 0.8 - 32}px`}
         h={`${height}px`}
         style={{
           display: 'flex',
@@ -495,7 +501,10 @@ export const SimplePlotly = ({
         <Plot
           ref={plotRef}
           className={classes.simplePlot}
-          style={{ width: `${width * 0.8}px`, height: `${height}px` }}
+          style={{
+            maxWidth: `${width * 0.8 - 32}px !important`,
+            height: `${height}px`,
+          }}
           data={itemDataGrid.plot}
           config={{
             autosizable: false,
