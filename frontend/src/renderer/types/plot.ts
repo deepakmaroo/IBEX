@@ -7,7 +7,10 @@ export interface Axis {
   path?: string;
 }
 
-export type AxisData = number[][][] | number[][] | number[];
+export type AxisData =
+  | (number | string)[][][]
+  | (number | string)[][]
+  | (number | string)[];
 
 export interface BaseCoordinates {
   path: string;

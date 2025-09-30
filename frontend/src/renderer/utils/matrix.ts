@@ -33,24 +33,38 @@ export const getArrayValueFromDependance = (
   const wantedCoordinate: Coordinates = coordinates.find(
     (coord) => coord.axeIndex === axeIndexWanted,
   );
-  // X coordinate isn't slidable, so if no dependance we get first array value
   if (!wantedCoordinate.coordinates.length) {
+    // get first array value when having no dependance
     return getFirstArrayValueFromShape(
       wantedCoordinate.data,
       wantedCoordinate.shape as number[],
     );
   }
 
-  const dependance = wantedCoordinate.coordinates;
-  // Get wanted coordinate data from the dependency not linked to the dimension
-  const indexValueDependance = coordinates.find(
-    (coord_dep) =>
-      dependance.includes(coord_dep.name) && !coord_dep.isDimensionCoordinate,
-  ).valueIndex;
-  const returnValue = wantedCoordinate.data[indexValueDependance] as
-    | string[]
-    | number[];
-  return returnValue;
+  // get sorted valueIndex list (sorted by shape length) to access to data matrix
+  const dependances = wantedCoordinate.coordinates;
+  const sortedIndexValueDependances: number[] = [];
+  for (const shapeElement of wantedCoordinate.shape) {
+    const coordDep = coordinates.find(
+      (coord_dep) =>
+        dependances.includes(coord_dep.name) &&
+        coord_dep.shape[coord_dep.shape.length - 1] === shapeElement &&
+        !coord_dep.isDimensionCoordinate,
+    );
+    if (coordDep) {
+      sortedIndexValueDependances.push(coordDep.valueIndex);
+    }
+  }
+
+  // Get wanted coordinate data from dependencies not linked to the dimension
+  let coordinateData: (number | string) | AxisData = wantedCoordinate.data;
+  for (const vectorIndex of sortedIndexValueDependances) {
+    if (Array.isArray(coordinateData)) {
+      coordinateData = coordinateData[vectorIndex];
+    }
+  }
+
+  return coordinateData as string[] | number[];
 };
 
 export const is3DMatrix = (shape: number[]): boolean => {
