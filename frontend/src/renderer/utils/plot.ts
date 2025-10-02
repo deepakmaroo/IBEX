@@ -33,7 +33,10 @@ export const checkDimension1 = async (
   updatedActive: Configuration,
   nodes: URITreeNodeData[],
 ): Promise<PlotDataResponse> | undefined => {
-  if (!response || response.data.ndim > 1) {
+  if (
+    !response ||
+    (response.data.ndim > 1 && response.data.shape === 'irregular')
+  ) {
     // Get new uri to have homogeneous shape
     const defaultUri = nodes[nodes.length - 1].uri; //Use normalized URI to get all matrix
     let newUri: string;
@@ -48,6 +51,7 @@ export const checkDimension1 = async (
         break;
       }
     }
+
     if (newUri) {
       const homogenousResponse: PlotDataResponse = await fetchDataPlot(newUri);
       if (homogenousResponse.data.shape !== 'irregular') {
@@ -61,7 +65,7 @@ export const checkDimension1 = async (
 
     showNotification({
       title: 'Plot',
-      message: 'Cannot plot data with more than one dimension',
+      message: 'Cannot plot irregular data with more than one dimension',
       color: 'yellow',
     });
     updatedActive.checkedNodeURI = nodes.filter(
