@@ -31,14 +31,14 @@ export const VerticalSlider = ({
   height = 200,
   disabled = false,
 }: VerticalSliderProps) => {
-  const steps = data.length;
+  const steps = data?.length;
   const valueRatio = steps > 1 ? valueIndex / (steps - 1) : 1;
   const [isFocused, setIsFocused] = useState(false);
   const isLoadingRef = useRef(false);
   const sliderRef = useRef<HTMLDivElement | null>(null);
 
   const move = useMove(async ({ y }) => {
-    if (disabled || steps <= 1) return;
+    if (disabled || steps <= 1 || !data) return;
     const newIndex = Math.round((1 - y) * (steps - 1));
     const clampedIndex = Math.max(0, Math.min(newIndex, steps - 1));
     if (clampedIndex !== valueIndex) {
@@ -68,7 +68,7 @@ export const VerticalSlider = ({
     };
   }, []);
 
-  const isNumber = typeof data[valueIndex] === 'number';
+  const isNumber = data ? typeof data[valueIndex] === 'number' : false;
 
   return (
     <Flex
@@ -111,7 +111,7 @@ export const VerticalSlider = ({
           setIsFocused(true);
         }}
         onKeyDown={(e) => {
-          if (disabled || steps <= 1) return;
+          if (disabled || steps <= 1 || !data) return;
 
           if (e.key === 'ArrowUp') {
             const newIndex = Math.min(steps - 1, valueIndex + 1);
@@ -128,14 +128,15 @@ export const VerticalSlider = ({
           margin: 'auto',
           width: 15,
           height,
-          backgroundColor: disabled
-            ? 'var(--mantine-color-gray-4)'
-            : 'var(--mantine-color-gray-2)',
+          backgroundColor:
+            disabled || !data
+              ? 'var(--mantine-color-gray-4)'
+              : 'var(--mantine-color-gray-2)',
           position: 'relative',
           borderRadius: '8px',
-          cursor: disabled ? 'not-allowed' : 'pointer',
-          opacity: disabled ? 0.6 : 1,
-          pointerEvents: disabled ? 'none' : 'auto',
+          cursor: disabled || !data ? 'not-allowed' : 'pointer',
+          opacity: disabled || !data ? 0.6 : 1,
+          pointerEvents: disabled || !data ? 'none' : 'auto',
         }}
       >
         <div
@@ -151,7 +152,7 @@ export const VerticalSlider = ({
         />
 
         <Tooltip
-          label={`Value: ${data[valueIndex]}`}
+          label={`Value: ${data ? data[valueIndex] : 'Undefined'}`}
           position="right"
           withArrow
         >
@@ -171,12 +172,21 @@ export const VerticalSlider = ({
           />
         </Tooltip>
       </div>
-      <Tooltip label={data[valueIndex]} position="right" withArrow>
+      <Tooltip
+        label={data ? data[valueIndex] : 'Undefined'}
+        position="right"
+        withArrow
+      >
         <Text ta="center" mt="xs" fw="bold" maw={'100%'} truncate="end">
           {isNumber ? (
-            <NumberFormatter value={data[valueIndex]} decimalScale={2} />
-          ) : (
+            <NumberFormatter
+              value={data ? data[valueIndex] : 'Undefined'}
+              decimalScale={2}
+            />
+          ) : data ? (
             data[valueIndex]
+          ) : (
+            'Undefined'
           )}
         </Text>
       </Tooltip>

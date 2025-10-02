@@ -1,4 +1,5 @@
 import { AxisData, Coordinates } from '../types';
+import * as tf from '@tensorflow/tfjs';
 
 export const getFirstArrayValueFromShape = (
   value: AxisData,
@@ -44,7 +45,16 @@ export const getArrayValueFromDependance = (
   // get sorted valueIndex list (sorted by shape length) to access to data matrix
   const dependances = wantedCoordinate.coordinates;
   const sortedIndexValueDependances: number[] = [];
-  for (const shapeElement of wantedCoordinate.shape) {
+
+  let tensor;
+  if (wantedCoordinate.shape === 'irregular') {
+    // get shape when irregular data
+    tensor = tf.tensor(wantedCoordinate.data);
+  }
+
+  for (const shapeElement of wantedCoordinate.shape === 'irregular'
+    ? tensor.shape
+    : wantedCoordinate.shape) {
     const coordDep = coordinates.find(
       (coord_dep) =>
         dependances.includes(coord_dep.name) &&

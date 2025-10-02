@@ -256,12 +256,14 @@ export const SimplePlotly = ({
           ),
         ),
       );
-      for (const swicthaleCoord of switchableCoordinates) {
-        if (
-          swicthaleCoord.axeIndex >
-          updatedDataPlot.coordinates[dimensionCoordndex]?.axeIndex
-        ) {
-          swicthaleCoord.axeIndex--;
+      if (dimensionCoordndex !== -1) {
+        for (const swicthaleCoord of switchableCoordinates) {
+          if (
+            swicthaleCoord.axeIndex >
+            updatedDataPlot.coordinates[dimensionCoordndex]?.axeIndex
+          ) {
+            swicthaleCoord.axeIndex--;
+          }
         }
       }
       const coordinatesLength = switchableCoordinates.length - 1;

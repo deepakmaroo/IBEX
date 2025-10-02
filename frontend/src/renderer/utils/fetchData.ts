@@ -186,6 +186,16 @@ export const fetchDataPlot = async (
   if (firstMethod || downsamplingMethod) {
     response.data.downsampled_method = firstMethod || downsamplingMethod;
   }
+
+  if (response.data.shape === 'irregular' && response.data.ndim === 1) {
+    // Alert when getting irregular shape in 1D cases
+    showNotification({
+      title: 'Warning',
+      message:
+        'The data is irregular in shape, so some data may be impossible to represent graphically.',
+      color: 'yellow',
+    });
+  }
   return response;
 };
 

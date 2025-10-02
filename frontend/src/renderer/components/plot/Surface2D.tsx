@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Layout } from 'plotly.js';
 import { Axis, Coordinates, DataGridPlot } from 'src/renderer/types';
 import classe from './SimplePlotly.module.css';
-import { Grid, Group } from '@mantine/core';
+import { Center, Grid, Group, Text } from '@mantine/core';
 import { VerticalSlider } from '../verticalSlider';
 import { compareByAxeIndex, getArrayValueFromDependance } from '../../utils';
 
@@ -158,58 +158,55 @@ export const Surface2D = ({
   }, [data3D, itemDataGrid.coordinates]);
 
   return (
-    data3D &&
-    z?.length > 0 &&
-    x?.length > 0 &&
-    y?.length > 0 && (
-      <Grid
-        styles={{
-          inner: {
-            margin: 0,
-            width: 'inherit',
-          },
-        }}
-        mt={10}
-      >
-        <Grid.Col span="content" mt={10}>
-          <Group
-            justify="space-between"
-            gap="0"
-            w={`${width * 0.2}px`}
-            miw={`${(itemDataGrid.coordinates.length - coordsUsedInAxes) * 50}px`}
-            align="flex-end"
-          >
-            {JSON.parse(JSON.stringify(itemDataGrid.coordinates))
-              .sort(compareByAxeIndex)
-              .map(
-                (item: Coordinates, valueIndex: number) =>
-                  item.axeIndex !== 0 &&
-                  item.axeIndex !== 1 && ( // Don't return slider linked to x & y
-                    <VerticalSlider
-                      key={`heatmap_slider_${valueIndex}`}
-                      name={item.name}
-                      valueIndex={item.valueIndex || 0}
-                      data={getArrayValueFromDependance(
-                        itemDataGrid.coordinates,
-                        item.axeIndex,
-                      )}
-                      getValue={(valueIndex) =>
-                        handleUpdateCoordinate(item, valueIndex)
-                      }
-                      maxWidth={
-                        itemDataGrid.coordinates.length &&
-                        itemDataGrid.coordinates.length > coordsUsedInAxes
-                          ? 100 /
-                            (itemDataGrid.coordinates.length - coordsUsedInAxes)
-                          : 100
-                      }
-                      height={height - 80}
-                      disabled={!itemDataGrid.isEditing}
-                    />
-                  ),
-              )}
-          </Group>
-        </Grid.Col>
+    <Grid
+      styles={{
+        inner: {
+          margin: 0,
+          width: 'inherit',
+        },
+      }}
+      mt={10}
+    >
+      <Grid.Col span="content" mt={10}>
+        <Group
+          justify="space-between"
+          gap="0"
+          w={`${width * 0.2}px`}
+          miw={`${(itemDataGrid.coordinates.length - coordsUsedInAxes) * 50}px`}
+          align="flex-end"
+        >
+          {JSON.parse(JSON.stringify(itemDataGrid.coordinates))
+            .sort(compareByAxeIndex)
+            .map(
+              (item: Coordinates, valueIndex: number) =>
+                item.axeIndex !== 0 &&
+                item.axeIndex !== 1 && ( // Don't return slider linked to x & y
+                  <VerticalSlider
+                    key={`heatmap_slider_${valueIndex}`}
+                    name={item.name}
+                    valueIndex={item.valueIndex || 0}
+                    data={getArrayValueFromDependance(
+                      itemDataGrid.coordinates,
+                      item.axeIndex,
+                    )}
+                    getValue={(valueIndex) =>
+                      handleUpdateCoordinate(item, valueIndex)
+                    }
+                    maxWidth={
+                      itemDataGrid.coordinates.length &&
+                      itemDataGrid.coordinates.length > coordsUsedInAxes
+                        ? 100 /
+                          (itemDataGrid.coordinates.length - coordsUsedInAxes)
+                        : 100
+                    }
+                    height={height - 80}
+                    disabled={!itemDataGrid.isEditing}
+                  />
+                ),
+            )}
+        </Group>
+      </Grid.Col>
+      {data3D && z?.length > 0 && x?.length > 0 && y?.length > 0 ? (
         <Grid.Col
           span="auto"
           pos="relative"
@@ -258,7 +255,27 @@ export const Surface2D = ({
             }}
           />
         </Grid.Col>
-      </Grid>
-    )
+      ) : (
+        <Grid.Col
+          span="auto"
+          pos="relative"
+          w={`${width}px`}
+          maw={`${width}px`}
+          h={`${height}px`}
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
+          <Center h={height}>
+            <Text>
+              {data3D && (x === undefined || y === undefined || z === undefined)
+                ? 'Irregular data: adjust the slider to explore.'
+                : ''}
+            </Text>
+          </Center>
+        </Grid.Col>
+      )}
+    </Grid>
   );
 };
