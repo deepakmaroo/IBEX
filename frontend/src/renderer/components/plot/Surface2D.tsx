@@ -61,10 +61,21 @@ export const Surface2D = ({
     }
     setData3D(selectedDataMatrix as number[][][]);
 
+    // get colorscale name and unit linked to selected plot
+    let colorscaleName, colorscaleUnit: string;
+    colorscaleName =
+      itemDataGrid.plot[parseInt(plotIndex)].yaxis === 'y2'
+        ? itemDataGrid.y2AxisData?.name || 'Z Axis'
+        : itemDataGrid.yAxisData?.name || 'Z Axis';
+    colorscaleUnit =
+      itemDataGrid.plot[parseInt(plotIndex)].yaxis === 'y2'
+        ? itemDataGrid.y2AxisData?.unit || ''
+        : itemDataGrid.yAxisData?.unit || '';
+
     //Initialize xAxis, yAxis, zAxis
     setZAxis({
-      name: itemDataGrid.yAxisData?.name || 'Z Axis',
-      unit: itemDataGrid.yAxisData?.unit || '',
+      name: colorscaleName,
+      unit: colorscaleUnit,
     });
 
     const xAxisAtHeatmap = {
