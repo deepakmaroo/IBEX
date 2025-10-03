@@ -62,12 +62,11 @@ export const Surface2D = ({
     setData3D(selectedDataMatrix as number[][][]);
 
     // get colorscale name and unit linked to selected plot
-    let colorscaleName, colorscaleUnit: string;
-    colorscaleName =
+    const colorscaleName =
       itemDataGrid.plot[parseInt(plotIndex)].yaxis === 'y2'
         ? itemDataGrid.y2AxisData?.name || 'Z Axis'
         : itemDataGrid.yAxisData?.name || 'Z Axis';
-    colorscaleUnit =
+    const colorscaleUnit =
       itemDataGrid.plot[parseInt(plotIndex)].yaxis === 'y2'
         ? itemDataGrid.y2AxisData?.unit || ''
         : itemDataGrid.yAxisData?.unit || '';
