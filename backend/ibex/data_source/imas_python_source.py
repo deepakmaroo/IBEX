@@ -633,6 +633,10 @@ class IMASPythonSource(DataSourceInterface):
         # =================================
 
         for target, coord_list in coordinates_dict.items():
+            # certain coordinate has influence on final data shape only if it is a slice (e.g. profiles_1d[:]), or a leaf node
+            # search for [<number>] in coordinate target
+            shapes_dimension = not bool(re.search(r"\[\d+\]$", str(target)))
+
             for coord in coord_list:
                 if coord == "1...N":
                     # 1...N coords are targeting AoS
@@ -701,6 +705,7 @@ class IMASPythonSource(DataSourceInterface):
                         "path": "",
                         "description": "1...N",
                         "coordinates": shape_factors,
+                        "shapes_dimension": shapes_dimension,
                         "value": labels if labels else coord_values,
                     }
                     coordinates_to_be_returned.append(c)
@@ -737,6 +742,7 @@ class IMASPythonSource(DataSourceInterface):
                         "path": f"#{ids}/{coord}",
                         "description": first_value.metadata.documentation,
                         "coordinates": shape_factors,
+                        "shapes_dimension": shapes_dimension,
                         "value": coord_data,
                     }
                     coordinates_to_be_returned.append(c)
