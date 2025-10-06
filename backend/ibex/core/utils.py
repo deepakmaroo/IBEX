@@ -164,7 +164,7 @@ def downsample_data(data: List, target_size: int, method: str | None = None, x=N
             for _x, _data in zip(x, data):
                 _x1, _data1 = downsample_data(_data, target_size, method, _x)
                 downsampled_x.append(_x1)
-                downsampled_data.append(_x1)
+                downsampled_data.append(_data1)
         else:
             for _data in data:
                 _, _data1 = downsample_data(_data, target_size, method)
