@@ -1,4 +1,4 @@
-import { Grid, Group } from '@mantine/core';
+import { Center, Grid, Group, Text } from '@mantine/core';
 import { Layout } from 'plotly.js';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Plot from 'react-plotly.js';
@@ -15,6 +15,8 @@ import {
   getArrayValueFromDependance,
   getLastIndexedField,
   getVectorData,
+  isMatrixPlottable,
+  replaceNullsWithNaN,
   updateIndexFieldName,
 } from '../../utils';
 import classes from './SimplePlotly.module.css';
@@ -244,7 +246,6 @@ export const SimplePlotly = ({
   ) {
     // Modify each plot in graph
     for (const plotToTranspose of updatedDataPlot.plot) {
-      const tensor = tf.tensor(plotToTranspose.yData);
       // Determine which axis to transpose without taking care of dimension coordinate
       const dimensionCoordndex = updatedDataPlot.coordinates.findIndex(
         (coord) => coord.isDimensionCoordinate,
@@ -293,13 +294,18 @@ export const SimplePlotly = ({
       newAxeOrder[indexOfAxeIndexSelected].newPosition = coordinatesLength; // set selected axeIndex to last position
       const newPositions = newAxeOrder.map((position) => position.newPosition);
 
+      // Replace nulls by NaN to keep NaN instead of zeros after transposition
+      const matrixWithNaN = replaceNullsWithNaN(plotToTranspose.yData);
+      const data = tf.tensor(matrixWithNaN);
+
       // Transpose dataY
-      const transposed = tf.transpose(tensor, newPositions);
-      const dataYTransposed = (await transposed.array()) as AxisData;
+      const dataT = data.transpose(newPositions);
+
+      const dataYTransposed = (await dataT.array()) as AxisData;
 
       // Update yData & shape
       plotToTranspose.yData = dataYTransposed;
-      plotToTranspose.shape = transposed.shape;
+      plotToTranspose.shape = dataT.shape;
     }
   }
 
@@ -475,53 +481,73 @@ export const SimplePlotly = ({
         </Grid.Col>
       )}
 
-      <Grid.Col
-        span="auto"
-        pos="relative"
-        w={`${width * 0.8 - 32}px`}
-        maw={`${width * 0.8 - 32}px`}
-        h={`${height}px`}
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-        }}
-      >
-        <div className={classes.editableTitle}>
-          <span
-            ref={titleRef}
-            className={itemDataGrid.isEditing ? classes.isEditing : undefined}
-            contentEditable={isEditingTitle && itemDataGrid.isEditing}
-            suppressContentEditableWarning
-            onClick={() => setIsEditingTitle(true)}
-            onBlur={handleBlurTitle}
-            onKeyDown={handleKeyDownTitle}
-          >
-            {title}
-          </span>
-        </div>
-
-        <Plot
-          ref={plotRef}
-          className={classes.simplePlot}
+      {itemDataGrid.plot.every((plot) =>
+        [plot.x, plot.y].every(isMatrixPlottable),
+      ) ? (
+        <Grid.Col
+          span="auto"
+          pos="relative"
+          w={`${width * 0.8 - 32}px`}
+          maw={`${width * 0.8 - 32}px`}
+          h={`${height}px`}
           style={{
-            maxWidth: `${width * 0.8 - 32}px !important`,
-            height: `${height}px`,
+            display: 'flex',
+            flexDirection: 'column',
           }}
-          data={itemDataGrid.plot}
-          config={{
-            autosizable: false,
-            staticPlot: !itemDataGrid.static,
-            scrollZoom: true,
-            displayModeBar: true,
-            showTips: true,
-            displaylogo: false,
-            modeBarButtonsToRemove: ['lasso2d', 'select2d'],
+        >
+          <div className={classes.editableTitle}>
+            <span
+              ref={titleRef}
+              className={itemDataGrid.isEditing ? classes.isEditing : undefined}
+              contentEditable={isEditingTitle && itemDataGrid.isEditing}
+              suppressContentEditableWarning
+              onClick={() => setIsEditingTitle(true)}
+              onBlur={handleBlurTitle}
+              onKeyDown={handleKeyDownTitle}
+            >
+              {title}
+            </span>
+          </div>
+
+          <Plot
+            ref={plotRef}
+            className={classes.simplePlot}
+            style={{
+              maxWidth: `${width * 0.8 - 32}px !important`,
+              height: `${height}px`,
+            }}
+            data={itemDataGrid.plot}
+            config={{
+              autosizable: false,
+              staticPlot: !itemDataGrid.static,
+              scrollZoom: true,
+              displayModeBar: true,
+              showTips: true,
+              displaylogo: false,
+              modeBarButtonsToRemove: ['lasso2d', 'select2d'],
+            }}
+            layout={layoutPlot}
+            onRelayout={handleRelayout}
+            useResizeHandler={false}
+          />
+        </Grid.Col>
+      ) : (
+        <Grid.Col
+          span="auto"
+          pos="relative"
+          w={`${width}px`}
+          maw={`${width}px`}
+          h={`${height}px`}
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
           }}
-          layout={layoutPlot}
-          onRelayout={handleRelayout}
-          useResizeHandler={false}
-        />
-      </Grid.Col>
+        >
+          <Center h={height}>
+            <Text>Current index has no data</Text>
+          </Center>
+        </Grid.Col>
+      )}
     </Grid>
   );
 };

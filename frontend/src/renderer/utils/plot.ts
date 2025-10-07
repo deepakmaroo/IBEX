@@ -19,6 +19,7 @@ import {
   updateIndexFieldName,
 } from './uri';
 import { getFirstArrayValueFromShape } from './matrix';
+import * as tf from '@tensorflow/tfjs';
 
 /**
  * @description Checks if the response data has more than one dimension.
@@ -724,11 +725,6 @@ export function getVectorData(coordinates: Coordinates[], yData: AxisData) {
       if (!(shapeIndex < coordinatesLength)) {
         break;
       } else {
-        showNotification({
-          title: 'Warning',
-          message: 'Impossible to plot: invalid index or incorrect length',
-          color: 'yellow',
-        });
         console.warn('Impossible to plot: invalid index or incorrect length');
         return undefined;
       }
@@ -751,4 +747,84 @@ export function compareByAxeIndex(a: Coordinates, b: Coordinates) {
     return 1;
   }
   return 0;
+}
+
+/**
+ * @description
+ * Checks whether a one-dimensional or two-dimensional array containing strings or numbers
+ * has at least one valid (non-empty, non-null, non-NaN) value.
+ * @param arr The input array to check. Can be either a 1D or 2D array of strings or numbers.
+ * @returns `true` if at least one value is valid (not NaN, null, undefined, or an empty string), otherwise `false`.
+ * @example
+ * hasAtLeastOneValidValue([NaN, NaN, NaN]); // false
+ * hasAtLeastOneValidValue(['', ' ', NaN]);  // false
+ * hasAtLeastOneValidValue(['ok', NaN]);     // true
+ * hasAtLeastOneValidValue([[NaN, ''], ['hello', NaN]]); // true
+ */
+export function hasAtLeastOneValidValue(
+  arr: (string | number)[] | (string | number)[][],
+): boolean {
+  if (Array.isArray(arr[0])) {
+    // 2D table
+    return (arr as (string | number)[][]).some(
+      (subArr) => hasAtLeastOneValidValue(subArr), // appel récursif
+    );
+  }
+
+  // Else, 1D table
+  return (arr as (string | number)[]).some((v) => {
+    if (v === null || v === undefined) return false;
+    if (typeof v === 'number') return !Number.isNaN(v);
+    if (typeof v === 'string') return v.trim() !== '';
+    return false;
+  });
+}
+
+/**
+ * @description
+ * Checks whether a matrix-like input (1D or 2D array of strings/numbers) is plottable
+ * This function is designed to work well with array methods such as `.every()`
+ * to validate multiple inputs (e.g., `[x, y, z].every(isMatrixPlottable)`).
+ * @param value The matrix-like input to check.
+ * @returns `true` if the matrix is plottable, otherwise `false`.
+ * @example
+ * isMatrixPlottable([[1, 2], [3, 4]]); // true
+ * isMatrixPlottable([NaN, NaN]);       // false
+ * isMatrixPlottable(undefined);        // false
+ */
+export function isMatrixPlottable(
+  value: (string | number)[] | (string | number)[][],
+): boolean {
+  if (value === undefined) return false;
+
+  try {
+    const tensor = tf.tensor(value);
+    const shape = tensor.shape;
+    const lastDim = shape[shape.length - 1];
+
+    // Check if matrix is not empty & get at least one valide value
+    return lastDim !== 0 && hasAtLeastOneValidValue(value);
+  } catch {
+    // If tensor fails (irregular shape, etc.)
+    return false;
+  }
+}
+
+/**
+ * Replace recursively all `null` or `undefined` by `NaN`.
+ * Works for AxisData of dimension 1D, 2D or 3D.
+ *
+ * @param arr - Array which could contain nulls or undefined
+ * @returns New array with NaN instead of null/undefined
+ */
+export function replaceNullsWithNaN(arr: AxisData): AxisData {
+  if (Array.isArray(arr)) {
+    /* eslint-disable  @typescript-eslint/no-explicit-any */
+    return arr.map((v: any) => {
+      return Array.isArray(v) ? replaceNullsWithNaN(v as AxisData) : (v ?? NaN);
+    }) as AxisData;
+  }
+
+  // 1D Case
+  return arr ?? NaN;
 }

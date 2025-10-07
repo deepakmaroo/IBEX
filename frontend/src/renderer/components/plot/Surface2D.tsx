@@ -5,7 +5,11 @@ import { Axis, Coordinates, DataGridPlot } from 'src/renderer/types';
 import classe from './SimplePlotly.module.css';
 import { Center, Grid, Group, Text } from '@mantine/core';
 import { VerticalSlider } from '../verticalSlider';
-import { compareByAxeIndex, getArrayValueFromDependance } from '../../utils';
+import {
+  compareByAxeIndex,
+  getArrayValueFromDependance,
+  isMatrixPlottable,
+} from '../../utils';
 
 interface Surface2DProps {
   itemDataGrid: DataGridPlot;
@@ -30,6 +34,7 @@ export const Surface2D = ({
   const [yAxis, setYAxis] = useState<Axis>(null);
   const [zAxis, setZAxis] = useState<Axis>(null);
   const [data3D, setData3D] = useState<number[][][] | null>(null);
+  const [are3DAxisInit, setAre3DAxisInit] = useState(false);
   const [x, setX] = useState<number[]>([]);
   const [y, setY] = useState<number[]>([]);
   const [z, setZ] = useState<number[][]>([]);
@@ -167,6 +172,12 @@ export const Surface2D = ({
     }
   }, [data3D, itemDataGrid.coordinates]);
 
+  useEffect(() => {
+    if (data3D && x && y && z) {
+      setAre3DAxisInit(true);
+    }
+  }, [data3D, x, y, z]);
+
   return (
     <Grid
       styles={{
@@ -216,7 +227,7 @@ export const Surface2D = ({
             )}
         </Group>
       </Grid.Col>
-      {data3D && z?.length > 0 && x?.length > 0 && y?.length > 0 ? (
+      {are3DAxisInit && [x, y, z].every(isMatrixPlottable) ? (
         <Grid.Col
           span="auto"
           pos="relative"
@@ -278,11 +289,7 @@ export const Surface2D = ({
           }}
         >
           <Center h={height}>
-            <Text>
-              {data3D && (x === undefined || y === undefined || z === undefined)
-                ? 'Irregular data: adjust the slider to explore.'
-                : ''}
-            </Text>
+            <Text>{are3DAxisInit ? 'Current index has no data' : ''}</Text>
           </Center>
         </Grid.Col>
       )}
