@@ -1,4 +1,4 @@
-import { Center, Grid, Group, Text } from '@mantine/core';
+import { Center, Grid, Group, Select, Text } from '@mantine/core';
 import { Layout } from 'plotly.js';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Plot from 'react-plotly.js';
@@ -44,7 +44,7 @@ export const SimplePlotly = ({
 }: SimplePlotlyProps) => {
   const coordsUsedInAxes: 1 | 2 = 1;
   const { active, updatedConfiguration } = useIbexStore();
-  const BUTTON_SWITCH_HEIGHT = 24; // Height of the switch button
+  const SELECT_AXIS_HEIGHT = 55; // Height of the select axis component
   const [layoutPlot, setLayoutPlot] = useState<Partial<Layout>>({
     xaxis: {
       title: {
@@ -427,59 +427,79 @@ export const SimplePlotly = ({
       }}
     >
       {/* Coordinates sliders */}
-      {itemDataGrid.coordinates.length > 0 && sliderRef && (
-        <Grid.Col
-          span="content"
-          ref={sliderRef ? sliderRef : undefined}
-          mt={10}
-        >
-          <Group
-            justify="space-between"
-            gap="0"
-            w={`${width * 0.2}px`}
-            miw={`${(itemDataGrid.coordinates.length - coordsUsedInAxes) * 50}px`}
-            align="flex-end"
+      {itemDataGrid.coordinates.length > 0 &&
+        sliderRef &&
+        itemDataGrid.coordinates?.length > 1 && (
+          <Grid.Col
+            span="content"
+            ref={sliderRef ? sliderRef : undefined}
+            mt={10}
           >
-            {JSON.parse(JSON.stringify(itemDataGrid.coordinates))
-              .sort(compareByAxeIndex)
-              .map(
-                (item: Coordinates, valueIndex: number) =>
-                  item.axeIndex !== 0 && ( // Don't send coordinate having axeIndex 0 in verticalSlider because it's the x axis
-                    <VerticalSlider
-                      key={`line_slider_${valueIndex}`}
-                      name={item.name}
-                      valueIndex={item.valueIndex || 0}
-                      data={getArrayValueFromDependance(
-                        itemDataGrid.coordinates,
-                        item.axeIndex,
-                      )}
-                      getValue={(valueIndex) =>
-                        handleUpdateCoordinate(item, valueIndex)
-                      }
-                      switchAxis={
-                        !item.isDimensionCoordinate
-                          ? () => switchAxis(item.axeIndex)
-                          : undefined
-                      }
-                      maxWidth={
-                        itemDataGrid.coordinates.length &&
-                        itemDataGrid.coordinates.length > coordsUsedInAxes
-                          ? 100 /
-                            (itemDataGrid.coordinates.length - coordsUsedInAxes)
-                          : 100
-                      }
-                      height={
-                        is3DView
-                          ? height - 80
-                          : height - 80 - BUTTON_SWITCH_HEIGHT
-                      }
-                      disabled={!itemDataGrid.isEditing}
-                    />
-                  ),
+            <Select
+              label="x axis"
+              value={
+                JSON.parse(JSON.stringify(itemDataGrid.coordinates)).find(
+                  (coord: Coordinates) => coord.axeIndex === 0,
+                ).name
+              }
+              data={JSON.parse(JSON.stringify(itemDataGrid.coordinates)).map(
+                (coord: Coordinates) => coord.name,
               )}
-          </Group>
-        </Grid.Col>
-      )}
+              w={`${width * 0.2}px`}
+              onChange={(value) =>
+                value &&
+                switchAxis(
+                  JSON.parse(JSON.stringify(itemDataGrid.coordinates)).find(
+                    (coord: Coordinates) => coord.name === value,
+                  ).axeIndex,
+                )
+              }
+              size="xs"
+            />
+
+            <Group
+              justify="space-between"
+              gap="0"
+              w={`${width * 0.2}px`}
+              miw={`${(itemDataGrid.coordinates.length - coordsUsedInAxes) * 50}px`}
+              align="flex-end"
+            >
+              {JSON.parse(JSON.stringify(itemDataGrid.coordinates))
+                .sort(compareByAxeIndex)
+                .map(
+                  (item: Coordinates, valueIndex: number) =>
+                    item.axeIndex !== 0 && ( // Don't send coordinate having axeIndex 0 in verticalSlider because it's the x axis
+                      <VerticalSlider
+                        key={`line_slider_${valueIndex}`}
+                        name={item.name}
+                        valueIndex={item.valueIndex || 0}
+                        data={getArrayValueFromDependance(
+                          itemDataGrid.coordinates,
+                          item.axeIndex,
+                        )}
+                        getValue={(valueIndex) =>
+                          handleUpdateCoordinate(item, valueIndex)
+                        }
+                        maxWidth={
+                          itemDataGrid.coordinates.length &&
+                          itemDataGrid.coordinates.length > coordsUsedInAxes
+                            ? 100 /
+                              (itemDataGrid.coordinates.length -
+                                coordsUsedInAxes)
+                            : 100
+                        }
+                        height={
+                          is3DView
+                            ? height - 80
+                            : height - 80 - SELECT_AXIS_HEIGHT
+                        }
+                        disabled={!itemDataGrid.isEditing}
+                      />
+                    ),
+                )}
+            </Group>
+          </Grid.Col>
+        )}
 
       {itemDataGrid.plot.every((plot) =>
         [plot.x, plot.y].every(isMatrixPlottable),
@@ -487,8 +507,8 @@ export const SimplePlotly = ({
         <Grid.Col
           span="auto"
           pos="relative"
-          w={`${width * 0.8 - 32}px`}
-          maw={`${width * 0.8 - 32}px`}
+          w={`${width * (itemDataGrid.coordinates?.length > 1 ? 0.8 : 1) - 32}px`}
+          maw={`${width * (itemDataGrid.coordinates?.length > 1 ? 0.8 : 1) - 32}px`}
           h={`${height}px`}
           style={{
             display: 'flex',
@@ -513,7 +533,7 @@ export const SimplePlotly = ({
             ref={plotRef}
             className={classes.simplePlot}
             style={{
-              maxWidth: `${width * 0.8 - 32}px !important`,
+              maxWidth: `${width * (itemDataGrid.coordinates?.length > 1 ? 0.8 : 1) - 32}px !important`,
               height: `${height}px`,
             }}
             data={itemDataGrid.plot}
