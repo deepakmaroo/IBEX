@@ -22,7 +22,7 @@ fi
 
 # Run build
 echo "Running build..."
-npm run build
+npm run package
 
 if [ $? -ne 0 ]; then
     echo "Build failed. Please fix the issues."
