@@ -1,27 +1,17 @@
 import { Center, Grid, Group, Select, Text } from '@mantine/core';
 import { Layout } from 'plotly.js';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Plot from 'react-plotly.js';
-import {
-  AxisData,
-  Configuration,
-  Coordinates,
-  DataGridPlot,
-} from 'src/renderer/types';
+import { Configuration, Coordinates, DataGridPlot } from 'src/renderer/types';
 import { VerticalSlider } from '../verticalSlider';
 import { useIbexStore } from '../../stores';
 import {
   compareByAxeIndex,
   getArrayValueFromDependance,
-  getLastIndexedField,
-  getVectorData,
   isMatrixPlottable,
-  replaceNullsWithNaN,
-  updateIndexFieldName,
+  swapAxis,
 } from '../../utils';
 import classes from './SimplePlotly.module.css';
-import * as tf from '@tensorflow/tfjs';
-
 interface SimplePlotlyProps {
   itemDataGrid: DataGridPlot;
   width: number;
@@ -44,7 +34,7 @@ export const SimplePlotly = ({
 }: SimplePlotlyProps) => {
   const coordsUsedInAxes: 1 | 2 = 1;
   const { active, updatedConfiguration } = useIbexStore();
-  const SELECT_AXIS_HEIGHT = 55; // Height of the select axis component
+  const SELECT_AXIS_HEIGHT = 40; // Height of the select axis component
   const [layoutPlot, setLayoutPlot] = useState<Partial<Layout>>({
     xaxis: {
       title: {
@@ -240,183 +230,6 @@ export const SimplePlotly = ({
     }));
   }, [itemDataGrid.y2AxisData]);
 
-  async function transposeAxis(
-    updatedDataPlot: DataGridPlot,
-    axeIndexToSwitch: number,
-  ) {
-    // Modify each plot in graph
-    for (const plotToTranspose of updatedDataPlot.plot) {
-      // Determine which axis to transpose without taking care of dimension coordinate
-      const dimensionCoordndex = updatedDataPlot.coordinates.findIndex(
-        (coord) => coord.isDimensionCoordinate,
-      );
-      const switchableCoordinates = JSON.parse(
-        JSON.stringify(
-          updatedDataPlot.coordinates.filter(
-            (coord) => !coord.isDimensionCoordinate,
-          ),
-        ),
-      );
-      if (dimensionCoordndex !== -1) {
-        for (const swicthaleCoord of switchableCoordinates) {
-          if (
-            swicthaleCoord.axeIndex >
-            updatedDataPlot.coordinates[dimensionCoordndex]?.axeIndex
-          ) {
-            swicthaleCoord.axeIndex--;
-          }
-        }
-      }
-      const coordinatesLength = switchableCoordinates.length - 1;
-      type Position = {
-        newPosition: number;
-        axeIndex: number;
-      };
-      const newAxeOrder: Position[] = switchableCoordinates.map(
-        (coord: Coordinates, index: number) => ({
-          newPosition: index,
-          axeIndex: coordinatesLength - index,
-        }),
-      );
-      if (
-        // set axe indexes without taking care of dimensional coordinate
-        dimensionCoordndex !== -1 &&
-        axeIndexToSwitch >
-          updatedDataPlot.coordinates[dimensionCoordndex]?.axeIndex
-      ) {
-        axeIndexToSwitch--;
-      }
-      const indexOfAxeIndexSelected = newAxeOrder.findIndex(
-        (newShapeElement) => newShapeElement.axeIndex === axeIndexToSwitch,
-      );
-      newAxeOrder[coordinatesLength].newPosition =
-        newAxeOrder[indexOfAxeIndexSelected].newPosition; // last element position is switched with selected axeIndex
-      newAxeOrder[indexOfAxeIndexSelected].newPosition = coordinatesLength; // set selected axeIndex to last position
-      const newPositions = newAxeOrder.map((position) => position.newPosition);
-
-      // Replace nulls by NaN to keep NaN instead of zeros after transposition
-      const matrixWithNaN = replaceNullsWithNaN(plotToTranspose.yData);
-      const data = tf.tensor(matrixWithNaN);
-
-      // Transpose dataY
-      const dataT = data.transpose(newPositions);
-
-      const dataYTransposed = (await dataT.array()) as AxisData;
-
-      // Update yData & shape
-      plotToTranspose.yData = dataYTransposed;
-      plotToTranspose.shape = dataT.shape;
-    }
-  }
-
-  const switchAxis = useCallback(
-    async (axeIndexToSwitch: number) => {
-      const actualXAxisIndex: number = itemDataGrid.coordinates.findIndex(
-        (coordinate) => coordinate.axeIndex === 0,
-      );
-      const itemToSwitchIndex: number = itemDataGrid.coordinates.findIndex(
-        (coordinate) => coordinate.axeIndex === axeIndexToSwitch,
-      );
-
-      const updatedDataPlotList: DataGridPlot[] = JSON.parse(
-        JSON.stringify(active.dataPlot),
-      );
-      const updatedDataPlot = updatedDataPlotList.find(
-        (dataPlotToUpdate) => dataPlotToUpdate.i === itemDataGrid.i,
-      );
-
-      // Switch xAxis
-      updatedDataPlot.coordinates[actualXAxisIndex].axeIndex = axeIndexToSwitch;
-      updatedDataPlot.coordinates[itemToSwitchIndex].axeIndex = 0;
-
-      // Reset indexValue
-      updatedDataPlot.coordinates[actualXAxisIndex].valueIndex = 0;
-      updatedDataPlot.coordinates[itemToSwitchIndex].valueIndex = 0;
-
-      // Update all coordinates targets & paths impacted with resetted indexValue
-      const actualXAxisTargetLastName = getLastIndexedField(
-        updatedDataPlot.coordinates[actualXAxisIndex].target,
-      );
-      const itemToSwitchTargetLastName = getLastIndexedField(
-        updatedDataPlot.coordinates[itemToSwitchIndex].target,
-      );
-      const actualXAxisupdatedPath = updateIndexFieldName(
-        updatedDataPlot.coordinates[actualXAxisIndex].target || '',
-        actualXAxisTargetLastName,
-        0,
-      );
-      updateIndexFieldName(
-        actualXAxisupdatedPath,
-        itemToSwitchTargetLastName,
-        0,
-      );
-      const itemToSwitchupdatedPath = updateIndexFieldName(
-        updatedDataPlot.coordinates[itemToSwitchIndex].target || '',
-        itemToSwitchTargetLastName,
-        0,
-      );
-      updateIndexFieldName(
-        itemToSwitchupdatedPath,
-        actualXAxisTargetLastName,
-        0,
-      );
-
-      // Modify targets from each coordinates
-      for (const coordinate of updatedDataPlot.coordinates) {
-        coordinate.target = updateIndexFieldName(
-          coordinate.target || '',
-          itemToSwitchTargetLastName,
-          0,
-        );
-        coordinate.target = updateIndexFieldName(
-          coordinate.target,
-          actualXAxisTargetLastName,
-          0,
-        );
-
-        coordinate.path = updateIndexFieldName(
-          coordinate.path || '',
-          itemToSwitchTargetLastName,
-          0,
-        );
-        coordinate.path = updateIndexFieldName(
-          coordinate.path,
-          actualXAxisTargetLastName,
-          0,
-        );
-      }
-
-      // Set new xAxis plot
-      updatedDataPlot.xAxisData.name =
-        updatedDataPlot.coordinates[itemToSwitchIndex].name;
-      updatedDataPlot.xAxisData.path =
-        updatedDataPlot.coordinates[itemToSwitchIndex].path;
-      updatedDataPlot.xAxisData.unit =
-        updatedDataPlot.coordinates[itemToSwitchIndex].unit;
-
-      // Transpose yData with resetted valueIndex
-      await transposeAxis(updatedDataPlot, axeIndexToSwitch);
-
-      // Update x & y with translated dataY
-      for (const plot of updatedDataPlot.plot) {
-        const vectorData = getVectorData(
-          updatedDataPlot.coordinates,
-          plot.yData,
-        );
-        plot.y = vectorData;
-        // Get x values switch x dependances
-        plot.x = getArrayValueFromDependance(updatedDataPlot.coordinates, 0);
-      }
-      const updatedActive = {
-        ...active,
-        dataPlot: updatedDataPlotList,
-      };
-
-      updatedConfiguration(updatedActive);
-    },
-    [active],
-  );
-
   return (
     <Grid
       styles={{
@@ -431,31 +244,39 @@ export const SimplePlotly = ({
         sliderRef &&
         itemDataGrid.coordinates?.length > 1 && (
           <Grid.Col
+            className={classes.handlePlotExplorationContainer}
             span="content"
             ref={sliderRef ? sliderRef : undefined}
             mt={10}
           >
-            <Select
-              label="x axis"
-              value={
-                JSON.parse(JSON.stringify(itemDataGrid.coordinates)).find(
-                  (coord: Coordinates) => coord.axeIndex === 0,
-                ).name
-              }
-              data={JSON.parse(JSON.stringify(itemDataGrid.coordinates)).map(
-                (coord: Coordinates) => coord.name,
-              )}
-              w={`${width * 0.2}px`}
-              onChange={(value) =>
-                value &&
-                switchAxis(
+            <Group gap={5}>
+              <Text>x</Text>
+              <Select
+                label=""
+                value={
                   JSON.parse(JSON.stringify(itemDataGrid.coordinates)).find(
-                    (coord: Coordinates) => coord.name === value,
-                  ).axeIndex,
-                )
-              }
-              size="xs"
-            />
+                    (coord: Coordinates) => coord.axeIndex === 0,
+                  ).name
+                }
+                data={JSON.parse(JSON.stringify(itemDataGrid.coordinates)).map(
+                  (coord: Coordinates) => coord.name,
+                )}
+                w={`${width * 0.2}px`}
+                onChange={(value) =>
+                  value &&
+                  swapAxis(
+                    itemDataGrid,
+                    active,
+                    updatedConfiguration,
+                    JSON.parse(JSON.stringify(itemDataGrid.coordinates)).find(
+                      (coord: Coordinates) => coord.name === value,
+                    ).axeIndex,
+                    'x',
+                  )
+                }
+                size="xs"
+              />
+            </Group>
 
             <Group
               justify="space-between"

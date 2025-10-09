@@ -3,13 +3,16 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Layout } from 'plotly.js';
 import { Axis, Coordinates, DataGridPlot } from 'src/renderer/types';
 import classe from './SimplePlotly.module.css';
-import { Center, Grid, Group, Text } from '@mantine/core';
+import { Center, Grid, Group, Select, Stack, Text } from '@mantine/core';
 import { VerticalSlider } from '../verticalSlider';
 import {
   compareByAxeIndex,
   getArrayValueFromDependance,
   isMatrixPlottable,
+  swapAxis,
 } from '../../utils';
+import classes from './Surface2D.module.css';
+import { useIbexStore } from '../../stores';
 
 interface Surface2DProps {
   itemDataGrid: DataGridPlot;
@@ -29,7 +32,9 @@ export const Surface2D = ({
   plotIndex,
   handleUpdateCoordinate,
 }: Surface2DProps) => {
+  const { active, updatedConfiguration } = useIbexStore();
   const coordsUsedInAxes: 1 | 2 = 2;
+  const SELECT_AXIS_HEIGHT = 90; // Height of the select axis container
   const [xAxis, setXAxis] = useState<Axis>(null);
   const [yAxis, setYAxis] = useState<Axis>(null);
   const [zAxis, setZAxis] = useState<Axis>(null);
@@ -188,7 +193,46 @@ export const Surface2D = ({
       }}
       mt={10}
     >
-      <Grid.Col span="content" mt={10}>
+      <Grid.Col
+        className={classes.handlePlotExplorationContainer}
+        span="content"
+        mt={25}
+      >
+        <Stack gap={5}>
+          {['x', 'y'].map((targetAxis: 'x' | 'y', axisIndex) => (
+            <Group key={`handle_axis_${axisIndex}`} gap={5}>
+              <Text>{targetAxis}</Text>
+              <Select
+                disabled={targetAxis === 'y'}
+                label=""
+                value={
+                  JSON.parse(JSON.stringify(itemDataGrid.coordinates)).find(
+                    (coord: Coordinates) =>
+                      coord.axeIndex === (targetAxis === 'y' ? 1 : 0),
+                  ).name
+                }
+                data={JSON.parse(JSON.stringify(itemDataGrid.coordinates)).map(
+                  (coord: Coordinates) => coord.name,
+                )}
+                w={`${width * 0.2}px`}
+                onChange={(value) =>
+                  value &&
+                  swapAxis(
+                    itemDataGrid,
+                    active,
+                    updatedConfiguration,
+                    JSON.parse(JSON.stringify(itemDataGrid.coordinates)).find(
+                      (coord: Coordinates) => coord.name === value,
+                    ).axeIndex,
+                    targetAxis,
+                  )
+                }
+                size="xs"
+              />
+            </Group>
+          ))}
+        </Stack>
+
         <Group
           justify="space-between"
           gap="0"
@@ -220,7 +264,7 @@ export const Surface2D = ({
                           (itemDataGrid.coordinates.length - coordsUsedInAxes)
                         : 100
                     }
-                    height={height - 80}
+                    height={height - 80 - SELECT_AXIS_HEIGHT}
                     disabled={!itemDataGrid.isEditing}
                   />
                 ),
