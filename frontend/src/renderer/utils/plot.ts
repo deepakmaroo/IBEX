@@ -18,7 +18,10 @@ import {
   normalizeIndices,
   updateIndexFieldName,
 } from './uri';
-import { getFirstArrayValueFromShape } from './matrix';
+import {
+  getArrayValueFromDependance,
+  getFirstArrayValueFromShape,
+} from './matrix';
 import * as tf from '@tensorflow/tfjs';
 
 /**
@@ -817,7 +820,7 @@ export function isMatrixPlottable(
  * @param arr - Array which could contain nulls or undefined
  * @returns New array with NaN instead of null/undefined
  */
-export function replaceNullsWithNaN(arr: AxisData): AxisData {
+function replaceNullsWithNaN(arr: AxisData): AxisData {
   if (Array.isArray(arr)) {
     /* eslint-disable  @typescript-eslint/no-explicit-any */
     return arr.map((v: any) => {
@@ -827,4 +830,197 @@ export function replaceNullsWithNaN(arr: AxisData): AxisData {
 
   // 1D Case
   return arr ?? NaN;
+}
+
+export const swapAxis = async (
+  itemDataGrid: DataGridPlot,
+  active: Configuration,
+  updatedConfiguration: (configuration: Configuration) => void,
+  axeIndexToSwap: number,
+  targetAxis: 'x' | 'y',
+) => {
+  const axeIndexOfTargetAxis = targetAxis === 'y' ? 1 : 0;
+  // Get indexes to swap
+  const actualTargetAxisIndex: number = itemDataGrid.coordinates.findIndex(
+    (coordinate) => coordinate.axeIndex === axeIndexOfTargetAxis,
+  );
+  const itemToSwitchIndex: number = itemDataGrid.coordinates.findIndex(
+    (coordinate) => coordinate.axeIndex === axeIndexToSwap,
+  );
+
+  const updatedDataPlotList: DataGridPlot[] = JSON.parse(
+    JSON.stringify(active.dataPlot),
+  );
+  const updatedDataPlot = updatedDataPlotList.find(
+    (dataPlotToUpdate) => dataPlotToUpdate.i === itemDataGrid.i,
+  );
+
+  // Swap axis
+  updatedDataPlot.coordinates[actualTargetAxisIndex].axeIndex = axeIndexToSwap;
+  updatedDataPlot.coordinates[itemToSwitchIndex].axeIndex =
+    axeIndexOfTargetAxis;
+
+  // Reset indexValue
+  updatedDataPlot.coordinates[actualTargetAxisIndex].valueIndex = 0;
+  updatedDataPlot.coordinates[itemToSwitchIndex].valueIndex = 0;
+
+  // Update all coordinates targets & paths impacted with resetted indexValue
+  const actualXAxisTargetLastName = getLastIndexedField(
+    updatedDataPlot.coordinates[actualTargetAxisIndex].target,
+  );
+  const itemToSwitchTargetLastName = getLastIndexedField(
+    updatedDataPlot.coordinates[itemToSwitchIndex].target,
+  );
+  const actualXAxisupdatedPath = updateIndexFieldName(
+    updatedDataPlot.coordinates[actualTargetAxisIndex].target || '',
+    actualXAxisTargetLastName,
+    0,
+  );
+  updateIndexFieldName(actualXAxisupdatedPath, itemToSwitchTargetLastName, 0);
+  const itemToSwitchupdatedPath = updateIndexFieldName(
+    updatedDataPlot.coordinates[itemToSwitchIndex].target || '',
+    itemToSwitchTargetLastName,
+    0,
+  );
+  updateIndexFieldName(itemToSwitchupdatedPath, actualXAxisTargetLastName, 0);
+
+  // Modify targets from each coordinates
+  for (const coordinate of updatedDataPlot.coordinates) {
+    coordinate.target = updateIndexFieldName(
+      coordinate.target || '',
+      itemToSwitchTargetLastName,
+      0,
+    );
+    coordinate.target = updateIndexFieldName(
+      coordinate.target,
+      actualXAxisTargetLastName,
+      0,
+    );
+
+    coordinate.path = updateIndexFieldName(
+      coordinate.path || '',
+      itemToSwitchTargetLastName,
+      0,
+    );
+    coordinate.path = updateIndexFieldName(
+      coordinate.path,
+      actualXAxisTargetLastName,
+      0,
+    );
+  }
+
+  // Set new xAxis plot
+  const xIndex: number = updatedDataPlot.coordinates.findIndex(
+    (coordinate) => coordinate.axeIndex === 0,
+  );
+  updatedDataPlot.xAxisData.name = updatedDataPlot.coordinates[xIndex].name;
+  updatedDataPlot.xAxisData.path = updatedDataPlot.coordinates[xIndex].path;
+  updatedDataPlot.xAxisData.unit = updatedDataPlot.coordinates[xIndex].unit;
+
+  // Transpose yData with resetted valueIndex
+  await transposeAxis(updatedDataPlot, axeIndexToSwap, targetAxis);
+
+  // Update x & y with translated dataY
+  for (const plot of updatedDataPlot.plot) {
+    const vectorData = getVectorData(updatedDataPlot.coordinates, plot.yData);
+    plot.y = vectorData;
+    // Get x values switch x dependances
+    plot.x = getArrayValueFromDependance(updatedDataPlot.coordinates, 0);
+  }
+
+  const updatedActive = {
+    ...active,
+    dataPlot: updatedDataPlotList,
+  };
+  updatedConfiguration(updatedActive);
+};
+
+async function transposeAxis(
+  updatedDataPlot: DataGridPlot,
+  axeIndexToSwap: number,
+  targetAxis: 'x' | 'y',
+) {
+  const axeIndexOfTargetAxis = targetAxis === 'y' ? 1 : 0;
+  // Modify each plot in graph
+  for (const plotToTranspose of updatedDataPlot.plot) {
+    // Determine which axis to transpose without taking care of dimension coordinate
+    const dimensionCoordndex = updatedDataPlot.coordinates.findIndex(
+      (coord) => coord.isDimensionCoordinate,
+    );
+    const switchableCoordinates = JSON.parse(
+      JSON.stringify(
+        updatedDataPlot.coordinates.filter(
+          (coord) => !coord.isDimensionCoordinate,
+        ),
+      ),
+    );
+    if (dimensionCoordndex !== -1) {
+      for (const swicthaleCoord of switchableCoordinates) {
+        if (
+          swicthaleCoord.axeIndex >
+          updatedDataPlot.coordinates[dimensionCoordndex]?.axeIndex
+        ) {
+          swicthaleCoord.axeIndex--;
+        }
+      }
+    }
+    const coordinatesLength = switchableCoordinates.length - 1;
+    type Position = {
+      newPosition: number;
+      axeIndex: number;
+    };
+    const newAxeOrder: Position[] = switchableCoordinates.map(
+      (coord: Coordinates, index: number) => ({
+        newPosition: index,
+        axeIndex: coordinatesLength - index,
+      }),
+    );
+    if (
+      // set axe indexes without taking care of dimensional coordinate
+      dimensionCoordndex !== -1 &&
+      axeIndexToSwap > updatedDataPlot.coordinates[dimensionCoordndex]?.axeIndex
+    ) {
+      axeIndexToSwap--;
+    }
+    const indexOfAxeIndexSelected = newAxeOrder.findIndex(
+      (newShapeElement) => newShapeElement.axeIndex === axeIndexToSwap,
+    );
+    if (targetAxis === 'x') {
+      // x coordinate is switched with selected axeIndex
+      const indexOfTargetAxis = newAxeOrder.findIndex(
+        (axeOrder) => axeOrder.axeIndex === axeIndexOfTargetAxis,
+      );
+      newAxeOrder[indexOfTargetAxis].newPosition =
+        newAxeOrder[indexOfAxeIndexSelected].newPosition;
+      newAxeOrder[indexOfAxeIndexSelected].newPosition = coordinatesLength;
+    } else {
+      // y cordinate is switched with selected axeIndex
+      const indexOfTargetAxis = newAxeOrder.findIndex(
+        (axeOrder) => axeOrder.axeIndex === axeIndexOfTargetAxis,
+      );
+      newAxeOrder[indexOfTargetAxis].newPosition =
+        newAxeOrder[indexOfAxeIndexSelected].newPosition;
+      newAxeOrder[indexOfAxeIndexSelected].newPosition = axeIndexOfTargetAxis;
+    }
+    const newPositions = newAxeOrder.map((position) => position.newPosition);
+    /* newPositions:
+     * x (1) => [0, 2, 1] (x & y swap)
+     * y (0) => [0, 2, 1] (x & y swap)
+     * x (2) => [2, 1, 0] (x replaced by slider coordinate)
+     * ? y (2) => [1, 0, 2] (y replaced by slider coordinate)
+     */
+
+    // Replace nulls by NaN to keep NaN instead of zeros after transposition
+    const matrixWithNaN = replaceNullsWithNaN(plotToTranspose.yData);
+    const data = tf.tensor(matrixWithNaN);
+
+    // Transpose dataY
+    const dataT = data.transpose(newPositions);
+
+    const dataYTransposed = (await dataT.array()) as AxisData;
+
+    // Update yData & shape
+    plotToTranspose.yData = dataYTransposed;
+    plotToTranspose.shape = dataT.shape;
+  }
 }
