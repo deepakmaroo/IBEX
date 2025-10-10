@@ -203,7 +203,6 @@ export const Surface2D = ({
             <Group key={`handle_axis_${axisIndex}`} gap={5}>
               <Text>{targetAxis}</Text>
               <Select
-                disabled={targetAxis === 'y'}
                 label=""
                 value={
                   JSON.parse(JSON.stringify(itemDataGrid.coordinates)).find(
@@ -211,9 +210,9 @@ export const Surface2D = ({
                       coord.axeIndex === (targetAxis === 'y' ? 1 : 0),
                   ).name
                 }
-                data={JSON.parse(JSON.stringify(itemDataGrid.coordinates)).map(
-                  (coord: Coordinates) => coord.name,
-                )}
+                data={JSON.parse(JSON.stringify(itemDataGrid.coordinates))
+                  .filter((coord: Coordinates) => !coord.isDimensionCoordinate)
+                  .map((coord: Coordinates) => coord.name)}
                 w={`${width * 0.2}px`}
                 onChange={(value) =>
                   value &&

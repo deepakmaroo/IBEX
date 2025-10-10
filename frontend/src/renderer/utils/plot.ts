@@ -841,8 +841,8 @@ export const swapAxis = async (
 ) => {
   const axeIndexOfTargetAxis = targetAxis === 'y' ? 1 : 0;
   // Get indexes to swap
-  const actualXAxisIndex: number = itemDataGrid.coordinates.findIndex(
-    (coordinate) => coordinate.axeIndex === 0,
+  const actualTargetAxisIndex: number = itemDataGrid.coordinates.findIndex(
+    (coordinate) => coordinate.axeIndex === axeIndexOfTargetAxis,
   );
   const itemToSwitchIndex: number = itemDataGrid.coordinates.findIndex(
     (coordinate) => coordinate.axeIndex === axeIndexToSwap,
@@ -855,24 +855,24 @@ export const swapAxis = async (
     (dataPlotToUpdate) => dataPlotToUpdate.i === itemDataGrid.i,
   );
 
-  // Swap xAxis
-  updatedDataPlot.coordinates[actualXAxisIndex].axeIndex = axeIndexToSwap;
+  // Swap axis
+  updatedDataPlot.coordinates[actualTargetAxisIndex].axeIndex = axeIndexToSwap;
   updatedDataPlot.coordinates[itemToSwitchIndex].axeIndex =
     axeIndexOfTargetAxis;
 
   // Reset indexValue
-  updatedDataPlot.coordinates[actualXAxisIndex].valueIndex = 0;
+  updatedDataPlot.coordinates[actualTargetAxisIndex].valueIndex = 0;
   updatedDataPlot.coordinates[itemToSwitchIndex].valueIndex = 0;
 
   // Update all coordinates targets & paths impacted with resetted indexValue
   const actualXAxisTargetLastName = getLastIndexedField(
-    updatedDataPlot.coordinates[actualXAxisIndex].target,
+    updatedDataPlot.coordinates[actualTargetAxisIndex].target,
   );
   const itemToSwitchTargetLastName = getLastIndexedField(
     updatedDataPlot.coordinates[itemToSwitchIndex].target,
   );
   const actualXAxisupdatedPath = updateIndexFieldName(
-    updatedDataPlot.coordinates[actualXAxisIndex].target || '',
+    updatedDataPlot.coordinates[actualTargetAxisIndex].target || '',
     actualXAxisTargetLastName,
     0,
   );
@@ -910,26 +910,22 @@ export const swapAxis = async (
   }
 
   // Set new xAxis plot
-  if (targetAxis === 'x') {
-    updatedDataPlot.xAxisData.name =
-      updatedDataPlot.coordinates[itemToSwitchIndex].name;
-    updatedDataPlot.xAxisData.path =
-      updatedDataPlot.coordinates[itemToSwitchIndex].path;
-    updatedDataPlot.xAxisData.unit =
-      updatedDataPlot.coordinates[itemToSwitchIndex].unit;
-  }
+  const xIndex: number = updatedDataPlot.coordinates.findIndex(
+    (coordinate) => coordinate.axeIndex === 0,
+  );
+  updatedDataPlot.xAxisData.name = updatedDataPlot.coordinates[xIndex].name;
+  updatedDataPlot.xAxisData.path = updatedDataPlot.coordinates[xIndex].path;
+  updatedDataPlot.xAxisData.unit = updatedDataPlot.coordinates[xIndex].unit;
 
   // Transpose yData with resetted valueIndex
-  await transposeAxis(updatedDataPlot, axeIndexToSwap);
+  await transposeAxis(updatedDataPlot, axeIndexToSwap, targetAxis);
 
   // Update x & y with translated dataY
-  if (targetAxis === 'x') {
-    for (const plot of updatedDataPlot.plot) {
-      const vectorData = getVectorData(updatedDataPlot.coordinates, plot.yData);
-      plot.y = vectorData;
-      // Get x values switch x dependances
-      plot.x = getArrayValueFromDependance(updatedDataPlot.coordinates, 0);
-    }
+  for (const plot of updatedDataPlot.plot) {
+    const vectorData = getVectorData(updatedDataPlot.coordinates, plot.yData);
+    plot.y = vectorData;
+    // Get x values switch x dependances
+    plot.x = getArrayValueFromDependance(updatedDataPlot.coordinates, 0);
   }
 
   const updatedActive = {
@@ -942,7 +938,9 @@ export const swapAxis = async (
 async function transposeAxis(
   updatedDataPlot: DataGridPlot,
   axeIndexToSwap: number,
+  targetAxis: 'x' | 'y',
 ) {
+  const axeIndexOfTargetAxis = targetAxis === 'y' ? 1 : 0;
   // Modify each plot in graph
   for (const plotToTranspose of updatedDataPlot.plot) {
     // Determine which axis to transpose without taking care of dimension coordinate
@@ -987,10 +985,30 @@ async function transposeAxis(
     const indexOfAxeIndexSelected = newAxeOrder.findIndex(
       (newShapeElement) => newShapeElement.axeIndex === axeIndexToSwap,
     );
-    newAxeOrder[coordinatesLength].newPosition =
-      newAxeOrder[indexOfAxeIndexSelected].newPosition; // last element position is switched with selected axeIndex
-    newAxeOrder[indexOfAxeIndexSelected].newPosition = coordinatesLength; // set selected axeIndex to last position
+    if (targetAxis === 'x') {
+      // x coordinate is switched with selected axeIndex
+      const indexOfTargetAxis = newAxeOrder.findIndex(
+        (axeOrder) => axeOrder.axeIndex === axeIndexOfTargetAxis,
+      );
+      newAxeOrder[indexOfTargetAxis].newPosition =
+        newAxeOrder[indexOfAxeIndexSelected].newPosition;
+      newAxeOrder[indexOfAxeIndexSelected].newPosition = coordinatesLength;
+    } else {
+      // y cordinate is switched with selected axeIndex
+      const indexOfTargetAxis = newAxeOrder.findIndex(
+        (axeOrder) => axeOrder.axeIndex === axeIndexOfTargetAxis,
+      );
+      newAxeOrder[indexOfTargetAxis].newPosition =
+        newAxeOrder[indexOfAxeIndexSelected].newPosition;
+      newAxeOrder[indexOfAxeIndexSelected].newPosition = axeIndexOfTargetAxis;
+    }
     const newPositions = newAxeOrder.map((position) => position.newPosition);
+    /* newPositions:
+     * x (1) => [0, 2, 1] (x & y swap)
+     * y (0) => [0, 2, 1] (x & y swap)
+     * x (2) => [2, 1, 0] (x replaced by slider coordinate)
+     * ? y (2) => [1, 0, 2] (y replaced by slider coordinate)
+     */
 
     // Replace nulls by NaN to keep NaN instead of zeros after transposition
     const matrixWithNaN = replaceNullsWithNaN(plotToTranspose.yData);

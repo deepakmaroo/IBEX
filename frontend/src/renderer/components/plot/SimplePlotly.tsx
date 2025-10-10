@@ -258,9 +258,9 @@ export const SimplePlotly = ({
                     (coord: Coordinates) => coord.axeIndex === 0,
                   ).name
                 }
-                data={JSON.parse(JSON.stringify(itemDataGrid.coordinates)).map(
-                  (coord: Coordinates) => coord.name,
-                )}
+                data={JSON.parse(JSON.stringify(itemDataGrid.coordinates))
+                  .filter((coord: Coordinates) => !coord.isDimensionCoordinate)
+                  .map((coord: Coordinates) => coord.name)}
                 w={`${width * 0.2}px`}
                 onChange={(value) =>
                   value &&
