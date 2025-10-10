@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Bamboo CI script for linting
+# Bamboo CI script for checking syntax by building
 
 # Debuggging:
 set -e -o pipefail
