@@ -1,10 +1,8 @@
 import {
   Accordion,
   AccordionControl,
-  Center,
   Container,
   Grid,
-  Paper,
   ScrollArea,
   Spoiler,
   Stack,
@@ -12,7 +10,7 @@ import {
   Tabs,
 } from '@mantine/core';
 import { useIbexStore } from '../../stores';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { SimplePlotly, TabsListCustom } from '../../components';
 import {
   ArraySummaryResponse,
@@ -224,7 +222,9 @@ export const MetaDataInfos = ({
 
 export const VisualizationMetaData = () => {
   const HEIGHT = '79vh';
-  const WIDTH_PLOT = 610;
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState(0);
+  const WIDTH_PLOT = Math.floor(containerWidth * (5 / 12));
   const HEIGHT_PLOT = 390;
   const { active, updatedConfiguration } = useIbexStore();
   const [tabsValue, setTabsValue] = useState<string | null>();
@@ -256,6 +256,22 @@ export const VisualizationMetaData = () => {
       }
     }
   }, [active]);
+
+  /**
+   * Handle the resizing of the width
+   */
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setContainerWidth(entry.contentRect.width);
+      }
+    });
+
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, [containerRef.current]);
 
   /**
    * Handle the switch grid event
@@ -316,23 +332,13 @@ export const VisualizationMetaData = () => {
               item?.name && (
                 <Tabs.Panel key={index} value={item.name}>
                   {tabsValue === item.name && (
-                    <Grid type="container">
+                    <Grid type="container" ref={containerRef}>
                       <Grid.Col span={5}>
-                        <Center h={HEIGHT}>
-                          <Paper
-                            style={{
-                              height: HEIGHT_PLOT,
-                            }}
-                            shadow="md"
-                            radius="md"
-                          >
-                            <SimplePlotly
-                              itemDataGrid={itemDataGrid}
-                              width={WIDTH_PLOT}
-                              height={HEIGHT_PLOT}
-                            />
-                          </Paper>
-                        </Center>
+                        <SimplePlotly
+                          itemDataGrid={itemDataGrid}
+                          width={WIDTH_PLOT}
+                          height={HEIGHT_PLOT}
+                        />
                       </Grid.Col>
                       <Grid.Col span={7}>
                         <MetaDataInfos
