@@ -191,8 +191,7 @@ export const fetchDataPlot = async (
     // Alert when getting irregular shape in 1D cases
     showNotification({
       title: 'Warning',
-      message:
-        'The data is irregular in shape, so some data may be impossible to represent graphically.',
+      message: 'Data are incomplete.',
       color: 'yellow',
     });
   }
