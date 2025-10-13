@@ -4,7 +4,6 @@ import {
   ComboboxData,
   Container,
   Divider,
-  Grid,
   Group,
   Image,
   Select,
@@ -45,21 +44,23 @@ export const Header = ({
       <Button
         onClick={handleAddConfiguration}
         data-testid="header-add-configuration"
+        variant="outline"
       >
-        Add configuration
+        Add
       </Button>
       <Button
         onClick={handleLoadConfiguration}
         data-testid="header-load-configuration"
+        variant="outline"
       >
-        Load configuration
+        Load
       </Button>
       <Button
         onClick={handleSaveConfiguration}
         disabled={configurations.length === 0 || active?.saved}
         data-testid="header-save-configuration"
       >
-        {active?.path ? 'Save configuration' : 'Save as configuration'}
+        {active?.path ? 'Save' : 'Save as'}
       </Button>
       <Button
         onClick={handleRemoveConfiguration}
@@ -68,7 +69,7 @@ export const Header = ({
         color="red"
         data-testid="header-delete-configuration"
       >
-        Delete Configuration
+        Delete
       </Button>
     </Group>
   );
@@ -116,17 +117,17 @@ export const Header = ({
 
   return (
     <Container fluid p={5}>
-      <Grid>
-        <Grid.Col span={2}>
-          <Center p={10}>
+      <Group justify="space-between">
+        <Group>
+          <Center px={10}>
             <Image src={logoPath} alt="logo" width={35} height={35} />
             <Title order={2} fw="bold" ml={2}>
               Ibex Tool
             </Title>
           </Center>
-        </Grid.Col>
-        <Grid.Col span={2}>
           <Select
+            w="15vw"
+            maw="195px"
             data-testid="header-select-configuration"
             size="xs"
             key={active?.name || 'default'}
@@ -134,7 +135,6 @@ export const Header = ({
             data={configurations}
             value={active?.name}
             label="Configurations"
-            h={50}
             onChange={handleSelectConfiguration}
             inputContainer={(children) => (
               <Tooltip
@@ -146,17 +146,15 @@ export const Header = ({
               </Tooltip>
             )}
           />
-        </Grid.Col>
-        <Grid.Col span={8}>
-          <Group justify="flex-end" p={12}>
-            {configurationButtons}
-            <Divider orientation="vertical" />
-            {visualisationButtons}
-            <Divider orientation="vertical" />
-            {serverStatus}
-          </Group>
-        </Grid.Col>
-      </Grid>
+        </Group>
+        <Group p={12}>
+          {configurationButtons}
+          <Divider orientation="vertical" />
+          {visualisationButtons}
+          <Divider orientation="vertical" />
+          {serverStatus}
+        </Group>
+      </Group>
     </Container>
   );
 };
