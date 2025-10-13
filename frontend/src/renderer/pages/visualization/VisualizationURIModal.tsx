@@ -450,14 +450,14 @@ export const VisualizationURIModal = ({
             />
             <TextInput
               label="Database"
-              placeholder="Enter plot name"
+              placeholder="Enter database name"
               w="calc(20% - 15px)"
               {...formDbEntries.getInputProps('database')}
               withAsterisk
             />
             <TextInput
               label="Version"
-              placeholder="Enter plot name"
+              placeholder="Enter version"
               w="calc(20% - 15px)"
               {...formDbEntries.getInputProps('version')}
               withAsterisk
