@@ -66,7 +66,7 @@ export const GridLayoutPlot = ({
     null,
   );
   const [metadataTabsValue, setMetadataTabsValue] = useState<string>(
-    data.plot[0]?.name || '',
+    data.plot[0]?.path || '',
   );
 
   /**
@@ -244,9 +244,9 @@ export const GridLayoutPlot = ({
 
     // Update metadataTabsValue for metadata when removing selected tab
     if (
-      !data.plot.find((plot: DataPlotly) => plot.name === metadataTabsValue)
+      !data.plot.find((plot: DataPlotly) => plot.path === metadataTabsValue)
     ) {
-      setMetadataTabsValue(data.plot[0]?.name);
+      setMetadataTabsValue(data.plot[0]?.path);
     }
   }, [data.plot]);
 
@@ -563,9 +563,9 @@ export const GridLayoutPlot = ({
                   data.plot.map((item: DataPlotly, index) => (
                     <Tabs.Tab
                       key={`metadata_${index}`}
-                      value={item.name}
+                      value={item.path}
                       disabled={
-                        !data.isEditing && metadataTabsValue !== item.name
+                        !data.isEditing && metadataTabsValue !== item.path
                       }
                     >
                       {item.name}
@@ -577,7 +577,7 @@ export const GridLayoutPlot = ({
             {data &&
               data.plot.map((plot: DataPlotly, index) => {
                 return (
-                  <Tabs.Panel key={`metadata_${index}`} value={plot.name}>
+                  <Tabs.Panel key={`metadata_${index}`} value={plot.path}>
                     <MetaDataInfos
                       gridLayoutKey={data.i}
                       data={plot}
@@ -585,7 +585,7 @@ export const GridLayoutPlot = ({
                         plot.yaxis !== '' ? data.y2AxisData : data.yAxisData
                       }
                       height={(heightGrid - 56).toString()} // 56px is equivalent to paddings (40px from top + 1rem from bottom)
-                      tabsSelected={plot.name}
+                      tabsSelected={plot.path}
                     />
                   </Tabs.Panel>
                 );
