@@ -29,6 +29,7 @@ export const VerticalSlider = ({
   const isLoadingRef = useRef(false);
   const sliderRef = useRef<HTMLDivElement | null>(null);
 
+  disabled = disabled || data.length <= 1;
   const move = useMove(async ({ y }) => {
     if (disabled || steps <= 1 || !data) return;
     const newIndex = Math.round((1 - y) * (steps - 1));
