@@ -419,7 +419,6 @@ export const VisualizationTree = ({
     async (nodes: URITreeNodeData[]) => {
       let updatedActive: Configuration = {
         ...active,
-        saved: false,
         checkedNodeURI: [...nodes],
       };
 
@@ -453,7 +452,18 @@ export const VisualizationTree = ({
           message: 'Unable to plot a new graph.',
           color: 'red',
         });
+        // Uncheck when error occurs
+        const wantedCheckedNodeURI = [...nodes];
+        wantedCheckedNodeURI.pop();
+        updatedActive.checkedNodeURI = wantedCheckedNodeURI;
       } finally {
+        if (
+          JSON.stringify(updatedActive.checkedNodeURI) ===
+          JSON.stringify([...nodes])
+        ) {
+          // Set savable if successfully checked
+          updatedActive.saved = false;
+        }
         updatedConfiguration(updatedActive);
       }
     },
