@@ -143,14 +143,18 @@ export function MainLayout() {
           await window.api.fs.readFile(path).then(async (data: string) => {
             const newIbexState: ConfigurationToSave = JSON.parse(data);
 
-            const configurationNameAlreadyExists = configurations.some(value => {
-              if (value.name == newIbexState.name) return true;
-            });
+            const configurationNameAlreadyExists = configurations.some(
+              (value) => {
+                if (value.name == newIbexState.name) return true;
+              },
+            );
 
             if (configurationNameAlreadyExists) {
-              const configurationAlreadyLoaded = configurations.some(value => {
-                if (value.path == path) return true;
-              });
+              const configurationAlreadyLoaded = configurations.some(
+                (value) => {
+                  if (value.path == path) return true;
+                },
+              );
 
               if (configurationAlreadyLoaded) {
                 showNotification({
@@ -165,9 +169,11 @@ export function MainLayout() {
               // We will add a (x) to the name until there is no name duplicate in the configuration list
               let offsetName = 1;
               let newConfigurationName = newIbexState.name;
-              while (configurations.some(value => {
-                if (value.name == newConfigurationName) return true;
-              })) {
+              while (
+                configurations.some((value) => {
+                  if (value.name == newConfigurationName) return true;
+                })
+              ) {
                 newConfigurationName = newIbexState.name + ` (${offsetName})`;
                 offsetName++;
               }
