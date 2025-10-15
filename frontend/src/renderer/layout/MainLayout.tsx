@@ -95,8 +95,11 @@ export function MainLayout() {
       }),
     );
 
+    // Remove ' (x)' at the end of the name if there has been name duplicates during configuration load
+    const correctedName = active.name.replace(/\s*\(\d+\)$/, '');
+
     const newIbexState: ConfigurationToSave = {
-      name: active.name,
+      name: correctedName,
       dataURI: active.dataURI,
       lastURIInput: active.lastURIInput,
       lastLocalDataSetSelected: active.lastLocalDataSetSelected,
@@ -137,17 +140,36 @@ export function MainLayout() {
           await window.api.fs.readFile(path).then(async (data: string) => {
             const newIbexState: ConfigurationToSave = JSON.parse(data);
 
-            const configurationExists = configurations.find(
-              (config) =>
-                config.name === newIbexState.name && path === config.path,
-            );
-            if (configurationExists) {
-              showNotification({
-                title: 'Configuration already loaded',
-                message: `The configuration ${newIbexState.name} is already loaded.`,
-                color: 'red',
+            const configurationNameAlreadyExists = configurations.some(value => {
+              if (value.name == newIbexState.name) return true;
+            });
+
+            if (configurationNameAlreadyExists) {
+              const configurationAlreadyLoaded = configurations.some(value => {
+                if (value.path == path) return true;
               });
-              return;
+
+              if (configurationAlreadyLoaded) {
+                showNotification({
+                  title: 'Configuration already loaded',
+                  message: `The configuration ${newIbexState.name} is already loaded.`,
+                  color: 'orange',
+                });
+                return;
+              }
+
+              // We have a duplicate configuration name
+              // We will add a (x) to the name until there is no name duplicate in the configuration list
+              let offsetName = 1;
+              let newConfigurationName = newIbexState.name;
+              while (configurations.some(value => {
+                if (value.name == newConfigurationName) return true;
+              })) {
+                newConfigurationName = newIbexState.name + ` (${offsetName})`;
+                offsetName++;
+              }
+
+              newIbexState.name = newConfigurationName;
             }
 
             const newListDataGridPlot: DataGridPlot[] =
