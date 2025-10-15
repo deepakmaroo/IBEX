@@ -97,6 +97,7 @@ export function MainLayout() {
 
     // Remove ' (x)' at the end of the name if there has been name duplicates during configuration load
     const correctedName = active.name.replace(/\s*\(\d+\)$/, '');
+    let savedConfig = false;
 
     const newIbexState: ConfigurationToSave = {
       name: correctedName,
@@ -110,6 +111,7 @@ export function MainLayout() {
         active.path,
         JSON.stringify(newIbexState, null, 2),
       );
+      savedConfig = true;
     } else {
       await window.api.fs
         .saveAsDialog(`${active.name}IbexState.json`, 'json')
@@ -120,13 +122,14 @@ export function MainLayout() {
               path,
               JSON.stringify(newIbexState, null, 2),
             );
+            savedConfig = true;
           }
         });
     }
 
     const updateActive: Configuration = {
       ...active,
-      saved: true,
+      saved: savedConfig,
     };
 
     updatedConfiguration(updateActive);

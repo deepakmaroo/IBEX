@@ -225,8 +225,6 @@ export const GridLayoutPlot = ({
         return item;
       }) as DataGridPlot[],
     };
-
-    console.log("updatedActive : ", updatedActive);
     
     updatedConfiguration(updatedActive);
   };
