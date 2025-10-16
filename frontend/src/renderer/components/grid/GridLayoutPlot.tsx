@@ -106,9 +106,9 @@ export const GridLayoutPlot = ({
           const newCoord = newRes.data.coordinates.find(
             (newCoord) =>
               normalizeIndices(newRes.data.path) ===
-              normalizeIndices(plot.path) &&
+                normalizeIndices(plot.path) &&
               normalizeIndices(newCoord.path) ===
-              normalizeIndices(coordinate.path),
+                normalizeIndices(coordinate.path),
           );
 
           // reset axe index of each coordinate to reset sliders after calling BE
@@ -380,9 +380,9 @@ export const GridLayoutPlot = ({
       dataPlot: updatedDataPlot,
       checkedNodeURI: !findPlot.isEditing
         ? findPlot.plot.map((item) => ({
-          uri: normalizeIndices(item.nodeUri),
-          name: item.labelUri,
-        }))
+            uri: normalizeIndices(item.nodeUri),
+            name: item.labelUri,
+          }))
         : [],
     };
 

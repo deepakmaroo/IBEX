@@ -131,11 +131,12 @@ export const plotData = (
     ...dataPlot,
     title:
       // If the title is overwritten we keep it like that
-      dataPlot.isTitleOverwritten ? dataPlot.title :
-      // Else if the dataPlot already has a title, append the trace name to it
-      dataPlot.title === ''
-        ? `${trace.name}`
-        : `${dataPlot.title} / ${trace.name}`,
+      dataPlot.isTitleOverwritten
+        ? dataPlot.title
+        : // Else if the dataPlot already has a title, append the trace name to it
+          dataPlot.title === ''
+          ? `${trace.name}`
+          : `${dataPlot.title} / ${trace.name}`,
     downsampled_method: downsampled_method,
     plot: [...currentPlot, trace],
   };

@@ -1,7 +1,12 @@
 import Plot from 'react-plotly.js';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Layout } from 'plotly.js';
-import { Axis, Configuration, Coordinates, DataGridPlot } from 'src/renderer/types';
+import {
+  Axis,
+  Configuration,
+  Coordinates,
+  DataGridPlot,
+} from 'src/renderer/types';
 import classe from './SimplePlotly.module.css';
 import { Center, Grid, Group, Select, Stack, Text } from '@mantine/core';
 import { VerticalSlider } from '../verticalSlider';
@@ -324,18 +329,18 @@ export const Surface2D = ({
         </Group>
       </Grid.Col>
       <div className={classes.editableTitle}>
-            <span
-              ref={titleRef}
-              className={itemDataGrid.isEditing ? classes.isEditing : undefined}
-              contentEditable={isEditingTitle && itemDataGrid.isEditing}
-              suppressContentEditableWarning
-              onClick={() => setIsEditingTitle(true)}
-              onBlur={handleBlurTitle}
-              onKeyDown={handleKeyDownTitle}
-            >
-              {title}
-            </span>
-          </div>
+        <span
+          ref={titleRef}
+          className={itemDataGrid.isEditing ? classes.isEditing : undefined}
+          contentEditable={isEditingTitle && itemDataGrid.isEditing}
+          suppressContentEditableWarning
+          onClick={() => setIsEditingTitle(true)}
+          onBlur={handleBlurTitle}
+          onKeyDown={handleKeyDownTitle}
+        >
+          {title}
+        </span>
+      </div>
       {are3DAxisInit && [x, y, z].every(isMatrixPlottable) ? (
         <Grid.Col
           span="auto"
