@@ -34,10 +34,11 @@ export default {
     ipcMain.handle(
       'getFilePathDialog',
       async (event: Electron.IpcMainInvokeEvent, type: string) => {
-        const result = await dialog.showOpenDialog({
+        const win = BrowserWindow.fromWebContents(event.sender);
+        const result = await dialog.showOpenDialog(win, {
           properties: ['openFile'],
           filters: [
-            { name: `${type.toLocaleUpperCase} File`, extensions: [type] },
+            { name: `${type.toLocaleUpperCase()} File`, extensions: [type] },
           ],
         });
         if (!result.canceled && result.filePaths.length > 0) {
@@ -54,7 +55,8 @@ export default {
         return `/tmp/${name}.${ext}`;
       }
 
-      const result = await dialog.showSaveDialog({
+      const win = BrowserWindow.fromWebContents(event.sender);
+      const result = await dialog.showSaveDialog(win, {
         title: 'Save As',
         defaultPath: name,
         filters: [{ name: `${ext} files`, extensions: [ext] }],
