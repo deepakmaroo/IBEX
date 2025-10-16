@@ -90,6 +90,7 @@ export const SimplePlotly = ({
     if (e.key === 'Enter') {
       e.preventDefault();
       if (titleRef.current) {
+        itemDataGrid.isTitleOverwritten = true;
         setTitle(titleRef.current.innerText || 'Untitled');
       }
       setIsEditingTitle(false);

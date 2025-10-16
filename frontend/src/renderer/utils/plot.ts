@@ -130,7 +130,9 @@ export const plotData = (
   return {
     ...dataPlot,
     title:
-      // If the dataPlot already has a title, append the trace name to it
+      // If the title is overwritten we keep it like that
+      dataPlot.isTitleOverwritten ? dataPlot.title :
+      // Else if the dataPlot already has a title, append the trace name to it
       dataPlot.title === ''
         ? `${trace.name}`
         : `${dataPlot.title} / ${trace.name}`,
