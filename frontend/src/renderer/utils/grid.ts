@@ -10,7 +10,7 @@ export const findNextAvailableY = (existingPlots: DataGridPlot[]): number => {
 };
 
 export const generateNewGridPlot = (
-  xCoordinates: Coordinates[],
+  coordinatesOfFirstPlot: Coordinates[],
   xAxis: Axis,
   yAxis: Axis,
   existingPlots: DataGridPlot[],
@@ -23,7 +23,7 @@ export const generateNewGridPlot = (
     xAxisData: xAxis,
     yAxisData: yAxis,
     y2AxisData: y2Axis,
-    coordinates: xCoordinates,
+    coordinates: coordinatesOfFirstPlot,
   };
 };
 

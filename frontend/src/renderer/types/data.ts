@@ -11,7 +11,6 @@ export type PlotCoordinatesResponse = {
   ndim: number;
   path: string;
   description: string;
-  isDimensionCoordinate?: boolean;
 };
 
 export type PlotDataResponse = {

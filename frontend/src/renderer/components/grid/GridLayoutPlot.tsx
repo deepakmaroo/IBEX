@@ -36,9 +36,9 @@ import { useIbexStore } from '../../stores';
 import {
   fetchDataPlot,
   getArrayValueFromDependance,
-  getDefaultUri,
   getLastIndexedField,
   getVectorData,
+  limitSlidersToMaxLength,
   normalizeIndices,
   updateIndexFieldName,
 } from '../../utils';
@@ -81,68 +81,6 @@ export const GridLayoutPlot = ({
     if (!lastTargetLastName)
       return console.warn('No indexed field found in target');
 
-    let updatedDimension: DataGridPlot;
-    // Update plot with new selected dimension
-    if (coordinate?.isDimensionCoordinate) {
-      // Get dataGrid to update
-      updatedDimension = JSON.parse(JSON.stringify(data));
-
-      for (const plot of updatedDimension.plot) {
-        const normalizedUri = normalizeIndices(plot.nodeUri); //Use normalized URI to get all matrix
-        const newUri = normalizedUri.replace(
-          `${coordinate.name}[:]`,
-          `${coordinate.name}[${valueIndex}]`,
-        );
-        const newRes = await fetchDataPlot(newUri);
-
-        // Add information indicating that this coordinate is used to select the dimension
-        newRes.data.coordinates.find(
-          (coord) => coord.name === coordinate.name,
-        ).isDimensionCoordinate = true;
-
-        // Update coordinates with data received from BE (new selected dimension)
-        let resettedAxeIndex = 0;
-        for (const coordinate of updatedDimension.coordinates) {
-          const newCoord = newRes.data.coordinates.find(
-            (newCoord) =>
-              normalizeIndices(newRes.data.path) ===
-                normalizeIndices(plot.path) &&
-              normalizeIndices(newCoord.path) ===
-                normalizeIndices(coordinate.path),
-          );
-
-          // reset axe index of each coordinate to reset sliders after calling BE
-          coordinate.axeIndex = resettedAxeIndex;
-
-          // Update coordinates with getting data from BE (update to new dimension)
-          coordinate.shape = newCoord.shape;
-          coordinate.coordinates = newCoord.coordinates;
-          coordinate.data = newCoord.value;
-          coordinate.valueIndex = 0;
-          resettedAxeIndex++;
-        }
-
-        // Update plots
-        plot.path = newRes.data.path;
-        plot.shape = newRes.data.shape as number[];
-        plot.yData = newRes.data.value;
-
-        // Update xAxisData
-        const xAxis = updatedDimension.coordinates.find(
-          (coord) => coord.axeIndex === 0,
-        );
-        updatedDimension.xAxisData.name = xAxis.name;
-        updatedDimension.xAxisData.path = getDefaultUri(
-          newRes.data.coordinates[0].path,
-        );
-        updatedDimension.xAxisData.unit = xAxis.unit;
-      }
-    }
-
-    if (updatedDimension) {
-      data = updatedDimension;
-    }
-
     // Update coordinates targets & paths with new valueIndex
     const updatedCoordinatesValue = data.coordinates.map((item) => {
       const lastTargetLastName = getLastIndexedField(coordinate.target);
@@ -165,7 +103,9 @@ export const GridLayoutPlot = ({
         valueIndex:
           item.name === coordinate.name ? valueIndex : item.valueIndex,
       };
-    });
+    }) as Coordinates[];
+
+    limitSlidersToMaxLength(updatedCoordinatesValue);
 
     const updatedActive: Configuration = {
       ...active,

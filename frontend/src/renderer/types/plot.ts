@@ -26,7 +26,6 @@ export interface Coordinates extends BaseCoordinates {
   data: AxisData;
   axeIndex: number;
   unit?: string;
-  isDimensionCoordinate?: boolean;
 }
 
 export interface BaseDataPlotly {
