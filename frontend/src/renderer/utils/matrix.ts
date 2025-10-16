@@ -3,28 +3,23 @@ import * as tf from '@tensorflow/tfjs';
 
 export const getFirstArrayValueFromShape = (
   value: AxisData,
-  shape: number[],
+  shape: number[] | 'irregular',
 ): number[] => {
-  if (shape.length === 0) return [];
-
-  if (shape.length === 1) {
-    // Handle 1D arrays
-    return Array.isArray(value) && value.length > 0 ? (value as number[]) : [];
+  if (shape === 'irregular') {
+    // Get shape whe irregular
+    const tensor = tf.tensor(value);
+    shape = tensor.shape;
   }
 
-  if (shape.length === 2) {
-    // Handle 2D arrays
-    return Array.isArray(value) && Array.isArray(value[0])
-      ? (value[0] as number[])
-      : [];
+  let firstArrayValue: AxisData | number | string = value;
+  for (let index = 0; index < shape.length - 1; index++) {
+    if (Array.isArray(firstArrayValue)) {
+      firstArrayValue = firstArrayValue[0];
+    }
   }
 
   // For higher dimensions (3D or more), return the first element of the first array
-  return Array.isArray(value) &&
-    Array.isArray(value[0]) &&
-    Array.isArray(value[0][0])
-    ? (value[0][0] as number[])
-    : [];
+  return firstArrayValue as number[];
 };
 
 export const getArrayValueFromDependance = (
@@ -58,8 +53,7 @@ export const getArrayValueFromDependance = (
     const coordDep = coordinates.find(
       (coord_dep) =>
         dependances.includes(coord_dep.name) &&
-        coord_dep.shape[coord_dep.shape.length - 1] === shapeElement &&
-        !coord_dep.isDimensionCoordinate,
+        coord_dep.shape[coord_dep.shape.length - 1] === shapeElement,
     );
     if (coordDep) {
       sortedIndexValueDependances.push(coordDep.valueIndex);

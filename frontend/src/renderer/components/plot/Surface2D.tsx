@@ -1,7 +1,7 @@
 import Plot from 'react-plotly.js';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Layout } from 'plotly.js';
-import { Axis, Coordinates, DataGridPlot } from 'src/renderer/types';
+import { Axis, AxisData, Coordinates, DataGridPlot } from 'src/renderer/types';
 import classe from './SimplePlotly.module.css';
 import { Center, Grid, Group, Select, Stack, Text } from '@mantine/core';
 import { VerticalSlider } from '../verticalSlider';
@@ -38,11 +38,11 @@ export const Surface2D = ({
   const [xAxis, setXAxis] = useState<Axis>(null);
   const [yAxis, setYAxis] = useState<Axis>(null);
   const [zAxis, setZAxis] = useState<Axis>(null);
-  const [data3D, setData3D] = useState<number[][][] | null>(null);
+  const [data3D, setData3D] = useState<AxisData | null>(null);
   const [are3DAxisInit, setAre3DAxisInit] = useState(false);
   const [x, setX] = useState<number[]>([]);
   const [y, setY] = useState<number[]>([]);
-  const [z, setZ] = useState<number[][]>([]);
+  const [z, setZ] = useState<(number | string)[][]>([]);
   const plotRef = useRef<Plot | null>(null);
   const [layoutPlot, setLayoutPlot] = useState<Partial<Layout>>({
     autosize: true,
@@ -69,7 +69,7 @@ export const Surface2D = ({
     if (!selectedDataMatrix) {
       return;
     }
-    setData3D(selectedDataMatrix as number[][][]);
+    setData3D(selectedDataMatrix);
 
     // get colorscale name and unit linked to selected plot
     const colorscaleName =
@@ -167,13 +167,24 @@ export const Surface2D = ({
       setY(
         getArrayValueFromDependance(itemDataGrid.coordinates, 1) as number[],
       );
-      setZ(
-        data3D[
-          itemDataGrid.coordinates.find(
-            (coord) => coord.axeIndex === itemDataGrid.coordinates.length - 1,
-          ).valueIndex
-        ],
-      ); // Get matrix with correct index
+
+      // Get matrix [[]] needed for z in 3D
+      let zData: AxisData | number | string =
+        itemDataGrid.plot[parseInt(plotIndex)].yData;
+      const dimensions = itemDataGrid.plot[parseInt(plotIndex)].dimensions;
+      for (let index = 0; index < dimensions; index++) {
+        if (Array.isArray(zData)) {
+          zData =
+            zData[
+              itemDataGrid.coordinates.find(
+                (coord) =>
+                  coord.axeIndex ===
+                  itemDataGrid.coordinates.length - 1 - index,
+              ).valueIndex
+            ];
+        }
+      }
+      setZ(zData as (number | string)[][]);
     }
   }, [data3D, itemDataGrid.coordinates]);
 
@@ -210,9 +221,9 @@ export const Surface2D = ({
                       coord.axeIndex === (targetAxis === 'y' ? 1 : 0),
                   ).name
                 }
-                data={JSON.parse(JSON.stringify(itemDataGrid.coordinates))
-                  .filter((coord: Coordinates) => !coord.isDimensionCoordinate)
-                  .map((coord: Coordinates) => coord.name)}
+                data={JSON.parse(JSON.stringify(itemDataGrid.coordinates)).map(
+                  (coord: Coordinates) => coord.name,
+                )}
                 w={`${width * 0.2}px`}
                 onChange={(value) =>
                   value &&

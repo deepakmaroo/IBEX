@@ -25,62 +25,6 @@ import {
 import * as tf from '@tensorflow/tfjs';
 
 /**
- * @description Checks if the response data has more than one dimension.
- * If it does, it shows a notification and updates the active configuration to remove the first node.
- * @param response The PlotDataResponse to check.
- * @param updatedActive The updated active configuration.
- * @param nodes The nodes to update.
- * @returns A boolean indicating whether the dimension check passed.
- */
-export const checkDimension1 = async (
-  response: PlotDataResponse,
-  updatedActive: Configuration,
-  nodes: URITreeNodeData[],
-): Promise<PlotDataResponse> | undefined => {
-  if (
-    !response ||
-    (response.data.ndim > 1 && response.data.shape === 'irregular')
-  ) {
-    // Get new uri to have homogeneous shape
-    const defaultUri = nodes[nodes.length - 1].uri; //Use normalized URI to get all matrix
-    let newUri: string;
-    let coordinateNameDimension: string;
-    for (const coordinate of response.data.coordinates) {
-      if (coordinate.shape !== 'irregular') {
-        newUri = defaultUri.replace(
-          `${coordinate.name}[:]`,
-          `${coordinate.name}[0]`,
-        );
-        coordinateNameDimension = coordinate.name;
-        break;
-      }
-    }
-
-    if (newUri) {
-      const homogenousResponse: PlotDataResponse = await fetchDataPlot(newUri);
-      if (homogenousResponse.data.shape !== 'irregular') {
-        // Add information indicating that this coordinate is used to select the dimension
-        homogenousResponse.data.coordinates.find(
-          (coord) => coord.name === coordinateNameDimension,
-        ).isDimensionCoordinate = true;
-        return homogenousResponse;
-      }
-    }
-
-    showNotification({
-      title: 'Plot',
-      message: 'Cannot plot irregular data with more than one dimension',
-      color: 'yellow',
-    });
-    updatedActive.checkedNodeURI = nodes.filter(
-      (n) => n !== nodes[nodes.length - 1],
-    );
-    return undefined;
-  }
-  return response;
-};
-
-/**
  * @description Generates a new DataGridPlot with the provided coordinates, xAxis, and yAxis.
  * @param coordinates The coordinates to include in the plot.
  * @param xAxis The x-axis data for the plot.
@@ -153,21 +97,10 @@ export const handleNewPlot = async (
   //* : corresponds to all indices (matrix)
   let defaultUri = nodes[0].uri; //Use normalized URI to get all matrix
 
-  let response: PlotDataResponse = await fetchDataPlot(defaultUri);
+  const response: PlotDataResponse = await fetchDataPlot(defaultUri);
   defaultUri = getDefaultUri(defaultUri); //Set defaultUri [0] by default
 
-  const checkedDimensionResponse = await checkDimension1(
-    response,
-    updatedActive,
-    nodes,
-  );
-  if (!checkedDimensionResponse) {
-    return updatedActive;
-  } else {
-    response = checkedDimensionResponse;
-  }
-
-  let xCoordinatesData: Coordinates[] = [];
+  let coordinatesOfFirstPlot: Coordinates[] = [];
   let xAxis: Axis = null;
 
   if (response.data.coordinates.length > 0) {
@@ -179,8 +112,8 @@ export const handleNewPlot = async (
       path: getDefaultUri(response.data.coordinates[0].path),
     };
 
-    //Get coordinates data for slider - all coordinates except the first one, is considered as x coordinates
-    xCoordinatesData = response.data.coordinates.map(
+    //Get coordinates data
+    coordinatesOfFirstPlot = response.data.coordinates.map(
       (coordinate: PlotCoordinatesResponse, index) => {
         const dataValueMatrix: AxisData = coordinate.value;
 
@@ -196,7 +129,6 @@ export const handleNewPlot = async (
           nodeUri: defaultUri,
           axeIndex: index,
           unit: coordinate.unit || '',
-          isDimensionCoordinate: coordinate?.isDimensionCoordinate,
         };
       },
     );
@@ -209,7 +141,7 @@ export const handleNewPlot = async (
   };
 
   const newGrid = generateNewGridPlot(
-    xCoordinatesData,
+    coordinatesOfFirstPlot,
     xAxis,
     yAxis,
     updatedActive.dataPlot || [],
@@ -275,23 +207,12 @@ export const handleExistingPlot = async (
   for (const node of dataToPlot) {
     let defaultUri = node.uri;
 
-    let response = await fetchDataPlot(
+    const response = await fetchDataPlot(
       defaultUri,
       findDataPlot.downsampled_method,
     );
 
     defaultUri = getDefaultUri(defaultUri); //Set defaultUri [0] by default
-
-    const checkedDimensionResponse = await checkDimension1(
-      response,
-      updatedActive,
-      nodes,
-    );
-    if (!checkedDimensionResponse) {
-      return updatedActive;
-    } else {
-      response = checkedDimensionResponse;
-    }
 
     const unit = response.data.unit;
     const unitExists =
@@ -710,10 +631,7 @@ export function getVectorData(coordinates: Coordinates[], yData: AxisData) {
   const matrixIndexes = JSON.parse(JSON.stringify(coordinates))
     .sort(compareByAxeIndex)
     .reverse()
-    .filter(
-      (coord: Coordinates) =>
-        coord.axeIndex !== 0 && !coord.isDimensionCoordinate,
-    )
+    .filter((coord: Coordinates) => coord.axeIndex !== 0)
     .map((coord: Coordinates) => coord.valueIndex);
 
   // Retrieve vector to plot
@@ -928,12 +846,88 @@ export const swapAxis = async (
     plot.x = getArrayValueFromDependance(updatedDataPlot.coordinates, 0);
   }
 
+  // Limit coordinate sliders to the max of their new shape
+  limitSlidersToMaxLength(updatedDataPlot.coordinates);
+
   const updatedActive = {
     ...active,
     dataPlot: updatedDataPlotList,
   };
   updatedConfiguration(updatedActive);
 };
+
+/**
+ * Update coordinates to limit sliders to maximum length.
+ * @param coordinates The coordinates to check and update if necessary.
+ */
+export function limitSlidersToMaxLength(coordinates: Coordinates[]) {
+  for (const coord of coordinates) {
+    const coordLength = getArrayValueFromDependance(
+      coordinates,
+      coord.axeIndex,
+    )?.length;
+    if (coordLength && coord.valueIndex > coordLength - 1) {
+      coord.valueIndex = coordLength - 1;
+    }
+  }
+}
+
+/**
+ * Find the maximum shape of a potentially irregular array.
+ */
+function getMaxShape(arr: any[]): number[] {
+  if (!Array.isArray(arr)) return [];
+  const lengths = arr.map((sub) =>
+    Array.isArray(sub) ? getMaxShape(sub) : [],
+  );
+  const maxInner = lengths.reduce<number[]>(
+    (acc, curr) => curr.map((v, i) => Math.max(acc[i] || 0, v)),
+    [],
+  );
+  return [arr.length, ...maxInner];
+}
+
+/**
+ * Recursively fills an irregular array with NaN
+ * to match a given shape.
+ */
+function reshapeMatrix(arr: any[], shape: number[], depth = 0): any[] {
+  const size = shape[depth];
+  const result = [...arr];
+
+  for (let i = 0; i < size; i++) {
+    if (result[i] === undefined) {
+      // If an element is missing, either NaN or a subarray filled with NaN is inserted
+      if (shape.length > depth + 1) {
+        result[i] = reshapeMatrix([], shape, depth + 1);
+      } else {
+        result[i] = NaN;
+      }
+    } else if (Array.isArray(result[i])) {
+      result[i] = reshapeMatrix(result[i], shape, depth + 1);
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Recursively removes NaNs added by reshapeMatrix.
+ * - Removes NaN values from arrays.
+ * - Deletes empty sub-tables after cleaning.
+ */
+function removeNaNPadding(arr: any): any {
+  if (!Array.isArray(arr)) {
+    return Number.isNaN(arr) ? undefined : arr;
+  }
+
+  // Clean recursively
+  const cleaned = arr
+    .map(removeNaNPadding)
+    .filter((v) => v !== undefined && !(Array.isArray(v) && v.length === 0));
+
+  return cleaned;
+}
 
 async function transposeAxis(
   updatedDataPlot: DataGridPlot,
@@ -943,84 +937,37 @@ async function transposeAxis(
   const axeIndexOfTargetAxis = targetAxis === 'y' ? 1 : 0;
   // Modify each plot in graph
   for (const plotToTranspose of updatedDataPlot.plot) {
-    // Determine which axis to transpose without taking care of dimension coordinate
-    const dimensionCoordndex = updatedDataPlot.coordinates.findIndex(
-      (coord) => coord.isDimensionCoordinate,
-    );
-    const switchableCoordinates = JSON.parse(
-      JSON.stringify(
-        updatedDataPlot.coordinates.filter(
-          (coord) => !coord.isDimensionCoordinate,
-        ),
-      ),
-    );
-    if (dimensionCoordndex !== -1) {
-      for (const swicthaleCoord of switchableCoordinates) {
-        if (
-          swicthaleCoord.axeIndex >
-          updatedDataPlot.coordinates[dimensionCoordndex]?.axeIndex
-        ) {
-          swicthaleCoord.axeIndex--;
-        }
-      }
-    }
-    const coordinatesLength = switchableCoordinates.length - 1;
-    type Position = {
-      newPosition: number;
-      axeIndex: number;
-    };
-    const newAxeOrder: Position[] = switchableCoordinates.map(
-      (coord: Coordinates, index: number) => ({
-        newPosition: index,
-        axeIndex: coordinatesLength - index,
-      }),
-    );
-    if (
-      // set axe indexes without taking care of dimensional coordinate
-      dimensionCoordndex !== -1 &&
-      axeIndexToSwap > updatedDataPlot.coordinates[dimensionCoordndex]?.axeIndex
-    ) {
-      axeIndexToSwap--;
-    }
-    const indexOfAxeIndexSelected = newAxeOrder.findIndex(
-      (newShapeElement) => newShapeElement.axeIndex === axeIndexToSwap,
-    );
-    if (targetAxis === 'x') {
-      // x coordinate is switched with selected axeIndex
-      const indexOfTargetAxis = newAxeOrder.findIndex(
-        (axeOrder) => axeOrder.axeIndex === axeIndexOfTargetAxis,
-      );
-      newAxeOrder[indexOfTargetAxis].newPosition =
-        newAxeOrder[indexOfAxeIndexSelected].newPosition;
-      newAxeOrder[indexOfAxeIndexSelected].newPosition = coordinatesLength;
-    } else {
-      // y cordinate is switched with selected axeIndex
-      const indexOfTargetAxis = newAxeOrder.findIndex(
-        (axeOrder) => axeOrder.axeIndex === axeIndexOfTargetAxis,
-      );
-      newAxeOrder[indexOfTargetAxis].newPosition =
-        newAxeOrder[indexOfAxeIndexSelected].newPosition;
-      newAxeOrder[indexOfAxeIndexSelected].newPosition = axeIndexOfTargetAxis;
-    }
-    const newPositions = newAxeOrder.map((position) => position.newPosition);
-    /* newPositions:
-     * x (1) => [0, 2, 1] (x & y swap)
-     * y (0) => [0, 2, 1] (x & y swap)
-     * x (2) => [2, 1, 0] (x replaced by slider coordinate)
-     * ? y (2) => [1, 0, 2] (y replaced by slider coordinate)
-     */
+    // DETERMINE WHICH AXIS TO TRANSPOSE
+    // Initial position
+    const newPositions: number[] = JSON.parse(
+      JSON.stringify(updatedDataPlot.coordinates),
+    )
+      .map((coord: Coordinates) => coord.axeIndex)
+      .sort()
+      .reverse(); // Reverse to get axeIndex order
+    // SWAP axeIndexOfTargetAxis with axeIndexToSwap
+    const tempSwap = newPositions[axeIndexOfTargetAxis];
+    newPositions[axeIndexOfTargetAxis] = newPositions[axeIndexToSwap];
+    newPositions[axeIndexToSwap] = tempSwap;
+    // Reverse for getting position => [0, 1, 3, 2]
+    newPositions.reverse();
 
-    // Replace nulls by NaN to keep NaN instead of zeros after transposition
-    const matrixWithNaN = replaceNullsWithNaN(plotToTranspose.yData);
-    const data = tf.tensor(matrixWithNaN);
+    // RESHAPE IRREGULAR MATRIX OF NaN TO ALLOW TO TRANSPOSE
+    const matrixWithNaN = replaceNullsWithNaN(plotToTranspose.yData); // Replace nulls by NaN to keep NaN instead of zeros after transposition
+    // Find maximal shape
+    const shape = getMaxShape(matrixWithNaN);
+    // Fill with NaN
+    const reshapedMatrix = reshapeMatrix(matrixWithNaN, shape);
 
     // Transpose dataY
-    const dataT = data.transpose(newPositions);
+    const tensor = tf.tensor(reshapedMatrix);
+    const dataTransposed = tensor.transpose(newPositions);
+    const newMatrix = (await dataTransposed.array()) as AxisData;
 
-    const dataYTransposed = (await dataT.array()) as AxisData;
+    // Restored irregular shape (suppress all NaN)
+    const restoredMatrix = removeNaNPadding(newMatrix);
 
     // Update yData & shape
-    plotToTranspose.yData = dataYTransposed;
-    plotToTranspose.shape = dataT.shape;
+    plotToTranspose.yData = restoredMatrix;
   }
 }
