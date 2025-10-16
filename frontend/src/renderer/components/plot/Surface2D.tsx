@@ -1,7 +1,7 @@
 import Plot from 'react-plotly.js';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Layout } from 'plotly.js';
-import { Axis, Coordinates, DataGridPlot } from 'src/renderer/types';
+import { Axis, Configuration, Coordinates, DataGridPlot } from 'src/renderer/types';
 import classe from './SimplePlotly.module.css';
 import { Center, Grid, Group, Select, Stack, Text } from '@mantine/core';
 import { VerticalSlider } from '../verticalSlider';
@@ -55,6 +55,58 @@ export const Surface2D = ({
       orientation: 'v',
     },
   });
+
+  const [title, setTitle] = useState(itemDataGrid.title);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+
+  const titleRef = useRef<HTMLHeadingElement>(null);
+
+  const handleBlurTitle = () => {
+    if (titleRef.current) {
+      setTitle(titleRef.current.innerText || 'Untitled');
+    }
+    setIsEditingTitle(false);
+  };
+
+  const handleKeyDownTitle = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (titleRef.current) {
+        setTitle(titleRef.current.innerText || 'Untitled');
+      }
+      setIsEditingTitle(false);
+    }
+  };
+
+  /**
+   * Update the layout title & dataPlot configuration when editing title
+   */
+  useEffect(() => {
+    setLayoutPlot((prevLayout) => ({
+      ...prevLayout,
+      title: { text: title },
+    }));
+
+    const updatedDataPlot: DataGridPlot[] = active.dataPlot.map(
+      (item: DataGridPlot) => {
+        if (item.i === itemDataGrid.i) {
+          return {
+            ...itemDataGrid,
+            title: title,
+          };
+        }
+        return item;
+      },
+    );
+
+    const newActive: Configuration = {
+      ...active,
+      saved: false,
+      dataPlot: updatedDataPlot,
+    };
+
+    updatedConfiguration(newActive);
+  }, [title]);
 
   const handleRelayout = (newLayout: Partial<Layout>) => {
     setLayoutPlot((prevLayout) => ({
@@ -270,6 +322,19 @@ export const Surface2D = ({
             )}
         </Group>
       </Grid.Col>
+      <div className={classes.editableTitle}>
+            <span
+              ref={titleRef}
+              className={itemDataGrid.isEditing ? classes.isEditing : undefined}
+              contentEditable={isEditingTitle && itemDataGrid.isEditing}
+              suppressContentEditableWarning
+              onClick={() => setIsEditingTitle(true)}
+              onBlur={handleBlurTitle}
+              onKeyDown={handleKeyDownTitle}
+            >
+              {title}
+            </span>
+          </div>
       {are3DAxisInit && [x, y, z].every(isMatrixPlottable) ? (
         <Grid.Col
           span="auto"
