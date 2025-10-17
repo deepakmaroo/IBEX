@@ -13,24 +13,7 @@ import {
   DataPlotly,
   GridLayoutPlotProps,
 } from 'src/renderer/types';
-import {
-  ActionIcon,
-  Container,
-  Group,
-  ScrollArea,
-  Select,
-  Tabs,
-  Text,
-  Tooltip,
-} from '@mantine/core';
-import {
-  IconBrandDatabricks,
-  IconCheck,
-  IconEdit,
-  IconTrash,
-} from '@tabler/icons-react';
-import { useHover } from '@mantine/hooks';
-import classes from './GridLayoutPlot.module.css';
+import { Container, ScrollArea, Tabs } from '@mantine/core';
 import { SimplePlotly, Surface2D } from '../plot';
 import { useIbexStore } from '../../stores';
 import {
@@ -44,6 +27,7 @@ import {
 } from '../../utils';
 import { showNotification } from '@mantine/notifications';
 import { MetaDataInfos } from '../../pages/visualization/VisualizationMetaData';
+import { HoverButtons } from './HoverButtons';
 
 export const GridLayoutPlot = ({
   data,
@@ -54,7 +38,6 @@ export const GridLayoutPlot = ({
   const { active, updatedConfiguration } = useIbexStore();
   const gridSliderRef = useRef<HTMLDivElement>(null);
 
-  const { hovered, ref: hoverRef } = useHover();
   const [widthSlider, setWidthSlider] = useState<number>(0);
   const [heightGrid, setHeightGrid] = useState(
     data.h * rowHeight + (23 * (data.h * rowHeight)) / 100,
@@ -347,137 +330,21 @@ export const GridLayoutPlot = ({
     [active],
   );
 
-  const heatmapLogo = (
-    <svg width="50" height="50" viewBox="0 0 50 50">
-      <rect x="0" y="0" width="15" height="15" fill="#440154" />
-      <rect x="17" y="0" width="15" height="15" fill="#31688e" />
-      <rect x="34" y="0" width="15" height="15" fill="#35b779" />
-
-      <rect x="0" y="17" width="15" height="15" fill="#fde725" />
-      <rect x="17" y="17" width="15" height="15" fill="#440154" />
-      <rect x="34" y="17" width="15" height="15" fill="#31688e" />
-
-      <rect x="0" y="34" width="15" height="15" fill="#35b779" />
-      <rect x="17" y="34" width="15" height="15" fill="#fde725" />
-      <rect x="34" y="34" width="15" height="15" fill="#440154" />
-    </svg>
-  );
-
   return (
     <Container fluid w={widthGrid} p={0}>
-      <div ref={hoverRef} className={classes.containerButton}>
-        <Group justify="space-between" h={'100%'}>
-          {is3DView ? (
-            <Tabs
-              value={active3DTab}
-              onChange={(value) => setActive3DTab(value)}
-            >
-              <Tabs.List>
-                {data.plot.map((plot, index) => (
-                  <Tabs.Tab key={`3D_tab_${index}`} value={index.toString()}>
-                    {plot.name}
-                  </Tabs.Tab>
-                ))}
-              </Tabs.List>
-            </Tabs>
-          ) : (
-            <div></div>
-          )}
-
-          {hovered || data.isEditing ? (
-            <Group pos="absolute" right={'1rem'} top={5}>
-              {data.coordinates.length && ( // Don't show downsampled methods when showing by default metadata
-                <Tooltip label="Select your downsampling method">
-                  <Select
-                    value={downsamplingMethod || 'None'}
-                    w="7rem"
-                    size="xs"
-                    disabled={!data.isEditing}
-                    data={downsamplingList}
-                    onChange={setDownsamplingMethod}
-                    placeholder="Downsampling"
-                  ></Select>
-                </Tooltip>
-              )}
-              {/* 3D button display */}
-              {data.coordinates.length >= 3 && ( //Only show if there are 3 or more coordinates - corresponding to 3D data
-                <Tooltip label="Toggle 1D/Heatmap view">
-                  <ActionIcon
-                    variant="filled"
-                    aria-label="Toggle 1D/Heatmap view"
-                    onClick={() => setIs3DView((prev) => !prev)}
-                    className={classes.actionButton}
-                  >
-                    {is3DView ? <Text fw="bold">1D</Text> : heatmapLogo}
-                  </ActionIcon>
-                </Tooltip>
-              )}
-              {/* Metadata component button */}
-              {data.coordinates.length && ( // Don't show metadata button when showing by default metadata
-                <Tooltip label="Inspect metadatas information">
-                  <ActionIcon
-                    variant="filled"
-                    aria-label="Metadatas"
-                    onClick={() => handleInspectMetadata(data.i)}
-                    className={classes.actionButton}
-                  >
-                    <IconBrandDatabricks
-                      style={{ width: '70%', height: '70%' }}
-                      stroke={1.5}
-                    />
-                  </ActionIcon>
-                </Tooltip>
-              )}
-              <Tooltip
-                label={
-                  data.isEditing
-                    ? 'Validate/Close editing the grid'
-                    : 'Open editing the grid'
-                }
-              >
-                <ActionIcon
-                  variant="filled"
-                  aria-label="Editing"
-                  onClick={() => handleEditGrid(data.i)}
-                  className={classes.actionButton}
-                  color={data.isEditing ? 'yellow' : 'green'}
-                >
-                  {data.isEditing ? (
-                    <IconCheck
-                      style={{ width: '70%', height: '70%' }}
-                      stroke={1.5}
-                    />
-                  ) : (
-                    <IconEdit
-                      style={{ width: '70%', height: '70%' }}
-                      stroke={1.5}
-                    />
-                  )}
-                </ActionIcon>
-              </Tooltip>
-              {/* Delete grid button */}
-              {handleDeleteGrid && (
-                <Tooltip label="Delete the grid">
-                  <ActionIcon
-                    variant="filled"
-                    aria-label="Delete"
-                    onClick={() => handleDeleteGrid(data.i)}
-                    className={classes.actionButton}
-                    color="red"
-                  >
-                    <IconTrash
-                      style={{ width: '70%', height: '70%' }}
-                      stroke={1.5}
-                    />
-                  </ActionIcon>
-                </Tooltip>
-              )}
-            </Group>
-          ) : (
-            <div></div>
-          )}
-        </Group>
-      </div>
+      <HoverButtons
+        data={data}
+        downsamplingMethod={downsamplingMethod}
+        downsamplingList={downsamplingList}
+        setDownsamplingMethod={setDownsamplingMethod}
+        handleEditGrid={handleEditGrid}
+        handleInspectMetadata={handleInspectMetadata}
+        handleDeleteGrid={handleDeleteGrid}
+        is3DView={is3DView}
+        setIs3DView={setIs3DView}
+        active3DTab={active3DTab}
+        setActive3DTab={setActive3DTab}
+      />
 
       {!data.coordinates.length ? (
         <Container pt="40px" p="1rem">
