@@ -528,7 +528,9 @@ const updateExistingPlot = (
   }
 
   findDataPlot.plot = plots;
-  findDataPlot.title = plots.map((plot) => plot.name).join('/');
+  findDataPlot.title = findDataPlot.isTitleOverwritten
+    ? findDataPlot.title
+    : plots.map((plot) => plot.name).join('/');
   updatedActive.dataPlot = [
     ...updatedActive.dataPlot.filter((plot) => plot.i !== findDataPlot.i),
     findDataPlot,

@@ -87,7 +87,9 @@ export const SimplePlotly = ({
    * Update the editable title when layout title change
    */
   useEffect(() => {
-    setTitle(itemDataGrid.title || '');
+    if (!itemDataGrid.isTitleOverwritten) {
+      setTitle(itemDataGrid.title || '');
+    }
   }, [itemDataGrid.title]);
 
   /**

@@ -64,6 +64,15 @@ export const Surface2D = ({
   const [title, setTitle] = useState(itemDataGrid.title);
 
   /**
+   * Update the editable title when layout title change
+   */
+  useEffect(() => {
+    if (!itemDataGrid.isTitleOverwritten) {
+      setTitle(itemDataGrid.title || '');
+    }
+  }, [itemDataGrid.title]);
+
+  /**
    * Update the layout title & dataPlot configuration when editing title
    */
   useEffect(() => {
