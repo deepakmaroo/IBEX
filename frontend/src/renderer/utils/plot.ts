@@ -74,10 +74,13 @@ export const plotData = (
   return {
     ...dataPlot,
     title:
-      // If the dataPlot already has a title, append the trace name to it
-      dataPlot.title === ''
-        ? `${trace.name}`
-        : `${dataPlot.title} / ${trace.name}`,
+      // If the title is overwritten we keep it like that
+      dataPlot.isTitleOverwritten
+        ? dataPlot.title
+        : // Else if the dataPlot already has a title, append the trace name to it
+          dataPlot.title === ''
+          ? `${trace.name}`
+          : `${dataPlot.title} / ${trace.name}`,
     downsampled_method: downsampled_method,
     plot: [...currentPlot, trace],
   };
@@ -446,7 +449,9 @@ const updateExistingPlot = (
   }
 
   findDataPlot.plot = plots;
-  findDataPlot.title = plots.map((plot) => plot.name).join('/');
+  findDataPlot.title = findDataPlot.isTitleOverwritten
+    ? findDataPlot.title
+    : plots.map((plot) => plot.name).join('/');
   updatedActive.dataPlot = [
     ...updatedActive.dataPlot.filter((plot) => plot.i !== findDataPlot.i),
     findDataPlot,

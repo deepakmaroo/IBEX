@@ -32,6 +32,7 @@ export const generateNewGrid = (
 ): DataGridPlot => {
   return {
     title: '',
+    isTitleOverwritten: false,
     i: generateUuid(),
     isEditing: true,
     static: true,

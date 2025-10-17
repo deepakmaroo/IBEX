@@ -13,6 +13,7 @@ import {
 } from '../../utils';
 import classes from './Surface2D.module.css';
 import { useIbexStore } from '../../stores';
+import { PlotTitle } from './PlotTitle';
 
 interface Surface2DProps {
   itemDataGrid: DataGridPlot;
@@ -55,6 +56,46 @@ export const Surface2D = ({
       orientation: 'v',
     },
   });
+  const [title, setTitle] = useState(itemDataGrid.title);
+
+  /**
+   * Update the editable title when layout title change
+   */
+  useEffect(() => {
+    if (!itemDataGrid.isTitleOverwritten) {
+      setTitle(itemDataGrid.title || '');
+    }
+  }, [itemDataGrid.title]);
+
+  /**
+   * Update the layout title & dataPlot configuration when editing title
+   */
+  useEffect(() => {
+    setLayoutPlot((prevLayout) => ({
+      ...prevLayout,
+      title: { text: title },
+    }));
+
+    const updatedDataPlot: DataGridPlot[] = active.dataPlot.map(
+      (item: DataGridPlot) => {
+        if (item.i === itemDataGrid.i) {
+          return {
+            ...itemDataGrid,
+            title: title,
+          };
+        }
+        return item;
+      },
+    );
+
+    const newActive: Configuration = {
+      ...active,
+      saved: false,
+      dataPlot: updatedDataPlot,
+    };
+
+    updatedConfiguration(newActive);
+  }, [title]);
 
   const handleRelayout = (newLayout: Partial<Layout>) => {
     setLayoutPlot((prevLayout) => ({
@@ -281,6 +322,11 @@ export const Surface2D = ({
             )}
         </Group>
       </Grid.Col>
+      <PlotTitle
+        itemDataGrid={itemDataGrid}
+        title={title}
+        setTitle={setTitle}
+      />
       {are3DAxisInit && [x, y, z].every(isMatrixPlottable) ? (
         <Grid.Col
           span="auto"

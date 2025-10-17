@@ -284,68 +284,64 @@ export const GridLayoutPlot = ({
   /**
    * Handle the delete grid event
    */
-  const handleDeleteGrid = useCallback(
-    (id: string) => {
-      const newDataPlot: DataGridPlot[] = active.dataPlot.filter(
-        (item: DataGridPlot) => item.i !== id,
-      );
-      const newActive: Configuration = {
-        ...active,
-        saved: false,
-        dataPlot: newDataPlot,
-        checkedNodeURI: [],
-      };
+  const handleDeleteGrid = useCallback((id: string) => {
+    const { active, updatedConfiguration } = useIbexStore.getState();
+    const newDataPlot: DataGridPlot[] = active.dataPlot.filter(
+      (item: DataGridPlot) => item.i !== id,
+    );
+    const newActive: Configuration = {
+      ...active,
+      saved: false,
+      dataPlot: newDataPlot,
+      checkedNodeURI: [],
+    };
 
-      updatedConfiguration(newActive);
-    },
-    [active],
-  );
+    updatedConfiguration(newActive);
+  }, []);
 
   /**
    * Handle edit grid event
    */
-  const handleEditGrid = useCallback(
-    (id: string) => {
-      const findPlot = active.dataPlot.find((item) => item.i === id);
-      if (!findPlot) return;
+  const handleEditGrid = useCallback((id: string) => {
+    const { active, updatedConfiguration } = useIbexStore.getState();
 
-      const updatedDataPlot = active.dataPlot.map((item) =>
-        item.i === id
-          ? { ...item, isEditing: !item.isEditing, static: !item.isEditing }
-          : { ...item, isEditing: false, static: false },
-      );
+    const findPlot = active.dataPlot.find((item) => item.i === id);
+    if (!findPlot) return;
 
-      const updatedActive: Configuration = {
-        ...active,
-        saved: false,
-        dataPlot: updatedDataPlot,
-        checkedNodeURI: !findPlot.isEditing
-          ? findPlot.plot.map((item) => ({
-              uri: normalizeIndices(item.nodeUri),
-              name: item.labelUri,
-            }))
-          : [],
-      };
+    const updatedDataPlot = active.dataPlot.map((item) =>
+      item.i === id
+        ? { ...item, isEditing: !item.isEditing, static: !item.isEditing }
+        : { ...item, isEditing: false, static: false },
+    );
 
-      updatedConfiguration(updatedActive);
-    },
-    [active],
-  );
+    const updatedActive: Configuration = {
+      ...active,
+      saved: false,
+      dataPlot: updatedDataPlot,
+      checkedNodeURI: !findPlot.isEditing
+        ? findPlot.plot.map((item) => ({
+            uri: normalizeIndices(item.nodeUri),
+            name: item.labelUri,
+          }))
+        : [],
+    };
+
+    updatedConfiguration(updatedActive);
+  }, []);
 
   /**
    * Inspect metadata of plot
    */
-  const handleInspectMetadata = useCallback(
-    (id: string) => {
-      const updateActive: Configuration = {
-        ...active,
-        gridLayoutSelected: id,
-      };
+  const handleInspectMetadata = useCallback((id: string) => {
+    const { active, updatedConfiguration } = useIbexStore.getState();
 
-      updatedConfiguration(updateActive);
-    },
-    [active],
-  );
+    const updatedActive: Configuration = {
+      ...active,
+      gridLayoutSelected: id,
+    };
+
+    updatedConfiguration(updatedActive);
+  }, []);
 
   const heatmapLogo = (
     <svg width="50" height="50" viewBox="0 0 50 50">
@@ -418,7 +414,10 @@ export const GridLayoutPlot = ({
                   <ActionIcon
                     variant="filled"
                     aria-label="Metadatas"
-                    onClick={() => handleInspectMetadata(data.i)}
+                    onClick={() => {
+                      if (data.isEditing) handleEditGrid(data.i);
+                      handleInspectMetadata(data.i);
+                    }}
                     className={classes.actionButton}
                   >
                     <IconBrandDatabricks

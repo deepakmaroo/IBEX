@@ -52,6 +52,7 @@ export interface BaseDataGridPlot {
   w: number;
   h: number;
   title: string;
+  isTitleOverwritten: boolean;
   xAxisData?: Axis;
   yAxisData?: Axis;
   y2AxisData?: Axis;
