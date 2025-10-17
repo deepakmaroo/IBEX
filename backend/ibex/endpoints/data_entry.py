@@ -9,6 +9,15 @@ from ibex.core import ibex_service
 router = APIRouter()
 
 
+@router.get("/data_entry/uri_from_path/")
+@ibex_service.measure_execution_time
+async def uri_from_path(path: str) -> dict:
+    """
+    IBEX endpoint. Returns uri based on PATH passed as parameter.
+    """
+    return ibex_service.uri_from_path(path.strip())
+
+
 @router.get("/data_entry/exists/")
 @ibex_service.measure_execution_time
 async def exists(uri: str) -> dict:

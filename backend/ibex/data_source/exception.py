@@ -71,3 +71,11 @@ class NoDataException(IbexException):
     def __init__(self, message: str, code: int = 464):
         self.code = code
         super().__init__(message, code)
+
+
+class CannotGenerateUriException(IbexException):
+    "Raised when IBEX cannot convert path to URI"
+
+    def __init__(self, message: str, code: int = 465):
+        self.code = code
+        super().__init__(message, code)

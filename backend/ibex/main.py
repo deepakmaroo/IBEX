@@ -8,14 +8,8 @@ from ibex.endpoints.data_entry import router as data_entry_router
 from ibex.endpoints.ids_info import router as ids_info_router
 from ibex.endpoints.info import router as info_router
 
-from ibex.data_source.exception import (
-    NodeNotFoundException,
-    IdsNotFoundException,
-    NotALeafNodeException,
-    NotAnArrayException,
-    EntryNotFoundException,
-    NoDataException,
-)
+from ibex.data_source.exception import IbexException
+
 
 from .exception_handlers import general_exception_handler
 
@@ -34,12 +28,7 @@ app.add_exception_handler(KeyError, general_exception_handler)
 app.add_exception_handler(RuntimeError, general_exception_handler)
 app.add_exception_handler(NotImplementedError, general_exception_handler)
 
-app.add_exception_handler(NodeNotFoundException, general_exception_handler)
-app.add_exception_handler(IdsNotFoundException, general_exception_handler)
-app.add_exception_handler(NotALeafNodeException, general_exception_handler)
-app.add_exception_handler(NotAnArrayException, general_exception_handler)
-app.add_exception_handler(EntryNotFoundException, general_exception_handler)
-app.add_exception_handler(NoDataException, general_exception_handler)
+app.add_exception_handler(IbexException, general_exception_handler)
 
 
 try:

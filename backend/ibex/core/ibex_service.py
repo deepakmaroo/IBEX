@@ -2,10 +2,12 @@
 
 import time
 import re
+from pathlib import Path
 from functools import wraps  # for measure_execution_time()
 from typing import Any, Callable, Optional, Sequence, List
 
 from ibex.data_source.imas_python_source import IMASPythonSource
+from ibex.data_source.exception import CannotGenerateUriException
 from dataclasses import dataclass
 
 
@@ -81,6 +83,24 @@ def measure_execution_time(func: Callable[..., Any]) -> Callable[..., Any]:
         return response
 
     return wrapper
+
+
+def uri_from_path(path: str) -> dict:
+    """
+    Converts path string to uri
+    """
+    uri = None
+    path = Path(path)
+    if path.suffix == ".h5":
+        uri = f"imas:hdf5?path={path.parent}"
+    elif path.suffix in [".characteristics", ".datafile", ".tree"]:
+        uri = f"imas:mdsplus?path={path.parent}"
+    elif path.suffix == ".ids":
+        uri = f"imas:ascii?path={path.parent}"
+
+    if not uri:
+        raise CannotGenerateUriException("Cannot convert path to URI. Make sure path points to imas data file.")
+    return {"uri": uri}
 
 
 def data_entry_exists(uri: str) -> dict:
