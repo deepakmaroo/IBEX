@@ -1,7 +1,13 @@
 import Plot from 'react-plotly.js';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Layout } from 'plotly.js';
-import { Axis, AxisData, Coordinates, DataGridPlot } from 'src/renderer/types';
+import {
+  Axis,
+  AxisData,
+  Configuration,
+  Coordinates,
+  DataGridPlot,
+} from 'src/renderer/types';
 import classe from './SimplePlotly.module.css';
 import { Center, Grid, Group, Select, Stack, Text } from '@mantine/core';
 import { VerticalSlider } from '../verticalSlider';
