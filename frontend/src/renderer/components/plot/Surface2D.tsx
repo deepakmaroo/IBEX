@@ -18,6 +18,7 @@ import {
 } from '../../utils';
 import classes from './Surface2D.module.css';
 import { useIbexStore } from '../../stores';
+import { PlotTitle } from './PlotTitle';
 
 interface Surface2DProps {
   itemDataGrid: DataGridPlot;
@@ -60,29 +61,7 @@ export const Surface2D = ({
       orientation: 'v',
     },
   });
-
   const [title, setTitle] = useState(itemDataGrid.title);
-  const [isEditingTitle, setIsEditingTitle] = useState(false);
-
-  const titleRef = useRef<HTMLHeadingElement>(null);
-
-  const handleBlurTitle = () => {
-    if (titleRef.current) {
-      setTitle(titleRef.current.innerText || 'Untitled');
-    }
-    setIsEditingTitle(false);
-  };
-
-  const handleKeyDownTitle = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      if (titleRef.current) {
-        itemDataGrid.isTitleOverwritten = true;
-        setTitle(titleRef.current.innerText || 'Untitled');
-      }
-      setIsEditingTitle(false);
-    }
-  };
 
   /**
    * Update the layout title & dataPlot configuration when editing title
@@ -328,19 +307,11 @@ export const Surface2D = ({
             )}
         </Group>
       </Grid.Col>
-      <div className={classes.editableTitle}>
-        <span
-          ref={titleRef}
-          className={itemDataGrid.isEditing ? classes.isEditing : undefined}
-          contentEditable={isEditingTitle && itemDataGrid.isEditing}
-          suppressContentEditableWarning
-          onClick={() => setIsEditingTitle(true)}
-          onBlur={handleBlurTitle}
-          onKeyDown={handleKeyDownTitle}
-        >
-          {title}
-        </span>
-      </div>
+      <PlotTitle
+        itemDataGrid={itemDataGrid}
+        title={title}
+        setTitle={setTitle}
+      />
       {are3DAxisInit && [x, y, z].every(isMatrixPlottable) ? (
         <Grid.Col
           span="auto"

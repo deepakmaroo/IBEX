@@ -12,6 +12,7 @@ import {
   swapAxis,
 } from '../../utils';
 import classes from './SimplePlotly.module.css';
+import { PlotTitle } from './PlotTitle';
 interface SimplePlotlyProps {
   itemDataGrid: DataGridPlot;
   width: number;
@@ -72,30 +73,8 @@ export const SimplePlotly = ({
     plot_bgcolor: '#c7c7c7',
     dragmode: 'zoom',
   });
-
   const [title, setTitle] = useState(itemDataGrid.title);
-  const [isEditingTitle, setIsEditingTitle] = useState(false);
-
-  const titleRef = useRef<HTMLHeadingElement>(null);
   const plotRef = useRef<Plot | null>(null);
-
-  const handleBlurTitle = () => {
-    if (titleRef.current) {
-      setTitle(titleRef.current.innerText || 'Untitled');
-    }
-    setIsEditingTitle(false);
-  };
-
-  const handleKeyDownTitle = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      if (titleRef.current) {
-        itemDataGrid.isTitleOverwritten = true;
-        setTitle(titleRef.current.innerText || 'Untitled');
-      }
-      setIsEditingTitle(false);
-    }
-  };
 
   const handleRelayout = (relayout: Partial<Layout>) => {
     setLayoutPlot((prevLayout) => ({
@@ -322,7 +301,11 @@ export const SimplePlotly = ({
             </Group>
           </Grid.Col>
         )}
-
+      <PlotTitle
+        itemDataGrid={itemDataGrid}
+        title={title}
+        setTitle={setTitle}
+      />
       {itemDataGrid.plot.every((plot) =>
         [plot.x, plot.y].every(isMatrixPlottable),
       ) ? (
@@ -337,20 +320,6 @@ export const SimplePlotly = ({
             flexDirection: 'column',
           }}
         >
-          <div className={classes.editableTitle}>
-            <span
-              ref={titleRef}
-              className={itemDataGrid.isEditing ? classes.isEditing : undefined}
-              contentEditable={isEditingTitle && itemDataGrid.isEditing}
-              suppressContentEditableWarning
-              onClick={() => setIsEditingTitle(true)}
-              onBlur={handleBlurTitle}
-              onKeyDown={handleKeyDownTitle}
-            >
-              {title}
-            </span>
-          </div>
-
           <Plot
             ref={plotRef}
             className={classes.simplePlot}
