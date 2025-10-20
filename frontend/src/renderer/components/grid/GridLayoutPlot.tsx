@@ -315,16 +315,22 @@ export const GridLayoutPlot = ({
   /**
    * Inspect metadata of plot
    */
-  const handleInspectMetadata = useCallback((id: string) => {
-    const { active, updatedConfiguration } = useIbexStore.getState();
+  const handleInspectMetadata = useCallback(
+    (id: string) => {
+      const updatedDataPlot: DataGridPlot[] = JSON.parse(
+        JSON.stringify(active.dataPlot),
+      );
+      updatedDataPlot.find((dataPlot) => dataPlot.i === id).isEditing = false;
 
-    const updatedActive: Configuration = {
-      ...active,
-      gridLayoutSelected: id,
-    };
-
-    updatedConfiguration(updatedActive);
-  }, []);
+      const updatedActive: Configuration = {
+        ...active,
+        gridLayoutSelected: id,
+        dataPlot: updatedDataPlot,
+      };
+      updatedConfiguration(updatedActive);
+    },
+    [active],
+  );
 
   return (
     <Container fluid w={widthGrid} p={0}>

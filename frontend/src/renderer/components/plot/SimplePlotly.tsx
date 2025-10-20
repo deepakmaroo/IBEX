@@ -84,15 +84,6 @@ export const SimplePlotly = ({
   };
 
   /**
-   * Update the editable title when layout title change
-   */
-  useEffect(() => {
-    if (!itemDataGrid.isTitleOverwritten) {
-      setTitle(itemDataGrid.title || '');
-    }
-  }, [itemDataGrid.title]);
-
-  /**
    * Update the layout title & dataPlot configuration when editing title
    */
   useEffect(() => {
@@ -101,17 +92,19 @@ export const SimplePlotly = ({
       title: { text: title },
     }));
 
-    const updatedDataPlot: DataGridPlot[] = active.dataPlot.map(
-      (item: DataGridPlot) => {
-        if (item.i === itemDataGrid.i) {
-          return {
-            ...itemDataGrid,
-            title: title,
-          };
-        }
-        return item;
-      },
+    if (!itemDataGrid.isEditing) {
+      return;
+    }
+
+    // Update title only if is editing
+    const updatedDataPlot: DataGridPlot[] = JSON.parse(
+      JSON.stringify(active.dataPlot),
     );
+    for (const dataPlot of updatedDataPlot) {
+      if (dataPlot.i === itemDataGrid.i) {
+        dataPlot.title = title;
+      }
+    }
 
     const newActive: Configuration = {
       ...active,
