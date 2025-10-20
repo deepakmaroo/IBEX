@@ -23,6 +23,7 @@ import { useForm } from '@mantine/form';
 import {
   fetchDataEntries,
   fetchURIExists,
+  fetchURIFromPath,
   updateCustomDataTree,
 } from '../../utils';
 
@@ -54,6 +55,9 @@ export const VisualizationURIModal = ({
   const [itemsPerPage] = useState(10);
   const [fromURIisSuccess, setFromURIisSuccess] = useState(false);
   const [fromFileisSuccess, setFromFileisSuccess] = useState(false);
+  const [localDatasetPath, setLocalDatasetPath] = useState('');
+  const [localFile, setLocalFile] = useState<File | null>(null);
+  const [localFileError, setLocalFileError] = useState('');
 
   const formURI = useForm<FormIDS>({
     initialValues: {
@@ -87,6 +91,29 @@ export const VisualizationURIModal = ({
       setDataDbEntries([...dataURIsSelected, ...dbEntriesNotSelected]);
     }
   }, [active]);
+
+  useEffect(() => {
+    // Get file from selected path (local dataset)
+    const loadFile = async () => {
+      if (!localDatasetPath) {
+        return;
+      }
+
+      const response = await fetch(localDatasetPath);
+      const blob = await response.blob();
+
+      const splittedPath = localDatasetPath.split('/');
+      const filename = splittedPath[splittedPath.length - 1];
+
+      const file = new File([blob], filename, { type: blob.type });
+      setLocalFile(file);
+
+      if (file) {
+        fetchDataIDSFromFile();
+      }
+    };
+    loadFile();
+  }, [localDatasetPath]);
 
   const tableHeaders = (
     <Table.Tr>
@@ -173,12 +200,93 @@ export const VisualizationURIModal = ({
   };
 
   /**
+   * Verifies a given URI, updates data entries, and handles errors.
+   * @param {string} uriToCheck - URI to verify.
+   * @param {(arg1: string, arg2?: string) => void} errorSetter
+   *   Function to handle errors:
+   *   - Single argument → error message only (e.g., React state setter)
+   *   - Two arguments → path + error message (e.g., form field setter)
+   */
+  const URIVerification = async (
+    uriToCheck: string,
+    errorSetter: (arg1: string, arg2?: string) => void,
+  ) => {
+    const setter = (message: string) => {
+      if (errorSetter.length === 1) {
+        errorSetter(message);
+      } else {
+        errorSetter('uri', message);
+      }
+    };
+
+    // Verify if the URI exists
+    const responseURIExists = await fetchURIExists(uriToCheck);
+
+    if (!responseURIExists.exists) {
+      setter('URI does not exist');
+      showNotification({
+        title: 'Error',
+        message: 'URI does not exist',
+        color: 'red',
+      });
+      return;
+    }
+
+    if (dataURIsSelected.some((d) => d.uri === uriToCheck)) {
+      setter('URI already added');
+      showNotification({
+        title: 'Error',
+        message: 'URI already added',
+        color: 'red',
+      });
+      return;
+    }
+
+    if (dataDbEntries.some((d) => d.uri === uriToCheck)) {
+      //if uri in dataDbEntries, then add to dataURIsSelected
+      handleCheckUri(uriToCheck, dataDbEntries);
+      if (errorSetter.length === 1) {
+        setFromURIisSuccess(false);
+        setFromFileisSuccess(true);
+      } else {
+        setFromURIisSuccess(true);
+        setFromFileisSuccess(false);
+      }
+
+      return;
+    }
+
+    const oldDataEntriesSelected = dataDbEntries.filter((loaded) =>
+      dataURIsSelected.some((selected) => selected.uri === loaded.uri),
+    );
+    const newDataEntries = [
+      ...oldDataEntriesSelected,
+      {
+        name: `URI-${dataDbEntries.length}`,
+        uri: uriToCheck,
+        uriColor: getColorRandom(),
+      },
+    ];
+
+    setDataDbEntries(newDataEntries);
+    handleCheckUri(uriToCheck, newDataEntries);
+    if (errorSetter.length === 1) {
+      setFromURIisSuccess(false);
+      setFromFileisSuccess(true);
+    } else {
+      setFromURIisSuccess(true);
+      setFromFileisSuccess(false);
+    }
+  };
+
+  /**
    * Fetch IDS data from URI
    * @returns {Promise<void>}
    * Return data uri with name and occurrences
    *
    */
   async function fetchDataIDSFromURI() {
+    // ? function write/paste
     if (!formURI.values.uri) {
       console.error('URI is empty.');
       formURI.setFieldError('uri', 'Please provide a valid URI');
@@ -193,65 +301,25 @@ export const VisualizationURIModal = ({
         throw new Error('Failed to load configuration');
       }
 
-      // Verify if the URI exists
-      const responseURIExists = await fetchURIExists(formURI.values.uri);
-
-      if (!responseURIExists.exists) {
-        formURI.setFieldError('uri', 'URI does not exist');
-        showNotification({
-          title: 'Error',
-          message: 'URI does not exist',
-          color: 'red',
-        });
-        return;
-      }
-
-      if (dataURIsSelected.some((d) => d.uri === formURI.values.uri)) {
-        formURI.setFieldError('uri', 'URI already added');
-        showNotification({
-          title: 'Error',
-          message: 'URI already added',
-          color: 'red',
-        });
-        return;
-      }
-
-      if (dataDbEntries.some((d) => d.uri === formURI.values.uri)) {
-        //if uri in dataDbEntries, then add to dataURIsSelected
-        handleCheckUri(formURI.values.uri, dataDbEntries);
-        setFromURIisSuccess(true);
-        setFromFileisSuccess(false);
-        return;
-      }
-
-      const oldDataEntriesSelected = dataDbEntries.filter((loaded) =>
-        dataURIsSelected.some((selected) => selected.uri === loaded.uri),
-      );
-      const newDataEntries = [
-        ...oldDataEntriesSelected,
-        {
-          name: `URI-${dataDbEntries.length}`,
-          uri: formURI.values.uri,
-          uriColor: getColorRandom(),
-        },
-      ];
-
-      setDataDbEntries(newDataEntries);
-      handleCheckUri(formURI.values.uri, newDataEntries);
-      setFromURIisSuccess(true);
-      setFromFileisSuccess(false);
+      await URIVerification(formURI.values.uri, formURI.setFieldError);
     } catch (error) {
       console.error('Error:', error.message || error);
       formURI.setFieldError('uri', error.message || 'An error occurred');
-      showNotification({
-        title: 'Error',
-        message: error.message || 'Failed to fetch data',
-        color: 'red',
-      });
     } finally {
       setIsLoading(false);
     }
   }
+
+  const handleLoadLocalFile = async () => {
+    await window.api.fs
+      .getFilePathDialog('*')
+      .then(async (path: string | null) => {
+        if (path) {
+          setLocalDatasetPath(path);
+          setLocalFileError('');
+        }
+      });
+  };
 
   /**
    * Fetch IDS data from file
@@ -259,26 +327,17 @@ export const VisualizationURIModal = ({
    * Return data uri with name and occurrences
    */
   async function fetchDataIDSFromFile() {
-    const formData = new FormData();
-    formData.append('file', formURI.values.file);
-
-    //Print the file to check if it is being sent
-    formData.forEach((value, key) => {
-      console.info(`${key}:`, value);
-    });
-
     try {
       setIsLoading(true);
+      const responseURIExists = await fetchURIFromPath(localDatasetPath);
+
+      await URIVerification(responseURIExists.uri, setLocalFileError);
     } catch (error) {
-      console.error('Promise rejected:', error);
-      formURI.setFieldError('file', 'Error occurred while fetching data');
-      showNotification({
-        title: 'Error',
-        message: 'Error to search IDS',
-        color: 'red',
-      });
+      console.error('Error:', error.message || error);
+      setLocalFileError(error.message || 'An error occurred');
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }
 
   /**
@@ -356,14 +415,13 @@ export const VisualizationURIModal = ({
           clearable
           label="Upload local dataset"
           placeholder="Select local imas file"
-          value={formURI.values.file}
-          error={formURI.errors.file}
-          onChange={(file) => {
-            if (file) {
-              formURI.setFieldValue('file', file);
-              fetchDataIDSFromFile();
-            } else {
-              formURI.setFieldValue('file', null);
+          value={localFile}
+          error={localFileError}
+          onClick={handleLoadLocalFile}
+          onChange={(value) => {
+            if (value === null) {
+              setLocalFile(null);
+              setLocalFileError('');
             }
           }}
           w="calc(50% - 30px)"

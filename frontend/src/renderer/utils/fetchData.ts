@@ -11,6 +11,7 @@ import {
   SearchNodeResponse,
   URDataEntriesResponse,
   URIExistsResponse,
+  URIFromPathResponse,
 } from '../types';
 
 /**
@@ -222,6 +223,15 @@ export const fetchFieldValue = async (uri: string) => {
 export const fetchDataIds = async (uri: string) => {
   return fetchFromApi<DataIdsResponse>(
     `/data_entry/list_idses/?uri=${encodeURIComponent(uri)}`,
+  );
+};
+
+/**
+ * Checks whether a specific URI exists.
+ */
+export const fetchURIFromPath = async (path: string) => {
+  return fetchFromApi<URIFromPathResponse>(
+    `/data_entry/uri_from_path/?path=${encodeURIComponent(path)}`,
   );
 };
 

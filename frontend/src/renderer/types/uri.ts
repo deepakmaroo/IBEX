@@ -13,6 +13,10 @@ export type URIExistsResponse = {
   exists: boolean;
 };
 
+export type URIFromPathResponse = {
+  uri: string;
+};
+
 export type URDataEntriesResponse = {
   entries: string[];
 };
