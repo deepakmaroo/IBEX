@@ -490,87 +490,76 @@ export async function plotNodeUriLoaded(
 
               let yResponsePath = response.data.path;
 
-              let index = 0;
-              for (const responseCoordinates of response.data.coordinates) {
-                index++;
-                const matchingCoord = dataGrid.coordinates.find(
-                  (c) =>
-                    normalizeIndices(c.target) === responseCoordinates.target,
-                );
+              const plotIndex = dataGrid.plot.findIndex(
+                (plotFromList) => plotFromList.nodeUri === plot.nodeUri,
+              );
+              if (plotIndex === 0) {
+                // Get coordinates from first plot response
+                for (const responseCoordinates of response.data.coordinates) {
+                  const matchingCoord = dataGrid.coordinates.find(
+                    (c) =>
+                      normalizeIndices(c.target) === responseCoordinates.target,
+                  );
 
-                if (!matchingCoord) {
-                  dataGrid.coordinates.push({
-                    name: responseCoordinates.name,
-                    shape: responseCoordinates.shape,
-                    downsampled_shape: responseCoordinates.downsampled_shape,
-                    coordinates: responseCoordinates.coordinates,
-                    data: responseCoordinates.value,
-                    path: getDefaultUri(responseCoordinates.path),
-                    target: getDefaultUri(responseCoordinates.target),
-                    unit: responseCoordinates.unit || '',
-                    valueIndex: 0,
-                    axeIndex: index,
+                  const lastField = getLastIndexedField(
+                    responseCoordinates.target,
+                  );
+                  if (!lastField) continue;
+
+                  // If coordinates exist, update the data and shape
+                  matchingCoord.data = responseCoordinates.value;
+                  matchingCoord.name = responseCoordinates.name;
+                  matchingCoord.path = getDefaultUri(responseCoordinates.path);
+                  matchingCoord.unit = responseCoordinates.unit || '';
+                  matchingCoord.shape = responseCoordinates.shape;
+                  matchingCoord.downsampled_shape =
+                    responseCoordinates.downsampled_shape;
+                  matchingCoord.coordinates = responseCoordinates.coordinates;
+
+                  //* Update the target - yPath - axis data with the index
+                  matchingCoord.target = updateIndexFieldName(
+                    matchingCoord.target,
+                    lastField,
+                    matchingCoord.valueIndex,
+                  );
+
+                  yResponsePath = updateIndexFieldName(
+                    yResponsePath,
+                    lastField,
+                    matchingCoord.valueIndex,
+                  );
+
+                  updatedXAxisData.path = updateIndexFieldName(
+                    updatedXAxisData.path,
+                    lastField,
+                    matchingCoord.valueIndex,
+                  );
+
+                  //Upgrade datagrid coordinates with the response
+                  dataGrid.coordinates = dataGrid.coordinates.map((coord) => {
+                    // Update the target if it matches the response coordinates
+                    if (coord.name === matchingCoord.name) {
+                      return matchingCoord;
+                    }
+                    return coord;
                   });
                 }
-
-                const lastField = getLastIndexedField(
-                  responseCoordinates.target,
-                );
-                if (!lastField) continue;
-
-                // If coordinates exist, update the data and shape
-                matchingCoord.data = responseCoordinates.value;
-                matchingCoord.name = responseCoordinates.name;
-                matchingCoord.path = getDefaultUri(responseCoordinates.path);
-                matchingCoord.unit = responseCoordinates.unit || '';
-                matchingCoord.shape = responseCoordinates.shape;
-                matchingCoord.downsampled_shape =
-                  responseCoordinates.downsampled_shape;
-                matchingCoord.coordinates = responseCoordinates.coordinates;
-
-                //* Update the target - yPath - axis data with the index
-                matchingCoord.target = updateIndexFieldName(
-                  matchingCoord.target,
-                  lastField,
-                  matchingCoord.valueIndex,
-                );
-
-                yResponsePath = updateIndexFieldName(
-                  yResponsePath,
-                  lastField,
-                  matchingCoord.valueIndex,
-                );
-
-                updatedXAxisData.path = updateIndexFieldName(
-                  updatedXAxisData.path,
-                  lastField,
-                  matchingCoord.valueIndex,
-                );
-
-                //Upgrade datagrid coordinates with the response
-                dataGrid.coordinates = dataGrid.coordinates.map((coord) => {
-                  // Update the target if it matches the response coordinates
-                  if (coord.name === matchingCoord.name) {
-                    return matchingCoord;
-                  }
-                  return coord;
-                });
               }
 
               if (response.data.downsampled_method) {
                 dataGrid.downsampled_method = response.data.downsampled_method;
               }
 
-              let defaultXValue: number[] = [];
+              let defaultXValue: number[] | string[] = [];
               if (response.data.coordinates.length > 0) {
-                defaultXValue = getFirstArrayValueFromShape(
-                  response.data.coordinates[0].value,
-                  response.data.coordinates[0].shape as number[],
+                defaultXValue = getArrayValueFromDependance(
+                  dataGrid.coordinates,
+                  0,
                 );
               }
-              const defaultYValue = getFirstArrayValueFromShape(
+              const defaultYValue = getVectorData(
+                dataGrid.coordinates,
                 response.data.value,
-                response.data.shape as number[],
               );
 
               return {
