@@ -100,10 +100,20 @@ function Element({
   }, [selectedNode]);
 
   useEffect(() => {
-    if (textRef.current) {
-      const { scrollWidth, offsetWidth } = textRef.current;
-      setIsTextOverflowing(scrollWidth > offsetWidth);
-    }
+    const el = textRef.current;
+    if (!el) return;
+
+    const checkOverflow = () => {
+      setIsTextOverflowing(el.scrollWidth > el.offsetWidth);
+    };
+
+    checkOverflow();
+
+    // Check overflow each time container width change
+    const resizeObserver = new ResizeObserver(checkOverflow);
+    resizeObserver.observe(el);
+
+    return () => resizeObserver.disconnect();
   }, [node.label]);
 
   const handleExpandTree = () => {
@@ -120,7 +130,7 @@ function Element({
   };
 
   return (
-    <Group gap={5} {...elementProps} onClick={handleExpandTree}>
+    <Group gap={5} {...elementProps} onClick={handleExpandTree} wrap="nowrap">
       <NodeIcon
         type={type}
         uriLabel={uriLabel}
@@ -194,56 +204,68 @@ function NodeIcon({
 
     const labels = (
       <Tooltip label={node.label} position="left" disabled={!isOverflowing}>
-        <Text truncate="end" w={125} ref={textRef}>
+        <Text truncate="end" ref={textRef} w="auto">
           {node.label}
         </Text>
       </Tooltip>
     );
 
     const getFolderIcon = () => (
-      <Group gap={2} style={{ userSelect: 'text' }}>
+      <Group gap={2} style={{ userSelect: 'text' }} wrap="nowrap">
         {expanded ? (
-          <IconFolderOpen {...commonProps} />
+          <IconFolderOpen {...commonProps} className={classes.forcedWidth} />
         ) : (
-          <IconFolder {...commonProps} />
+          <IconFolder {...commonProps} className={classes.forcedWidth} />
         )}
         {labels}
       </Group>
     );
 
     const getCheckboxIcon = (IconComponent: JSX.Element) => (
-      <Checkbox
-        checked={checked}
-        onChange={handleCheckNode}
-        styles={{
-          label: {
-            paddingLeft: 5,
-          },
-        }}
-        label={
-          <Group gap={2} style={{ userSelect: 'text' }}>
-            {IconComponent}
-            {labels}
-          </Group>
-        }
-      />
+      <Tooltip label={node.label} position="left" disabled={!isOverflowing}>
+        <Group
+          gap={2}
+          style={{ userSelect: 'text', cursor: 'pointer' }}
+          wrap="nowrap"
+          onClick={handleCheckNode}
+        >
+          <Checkbox
+            checked={checked}
+            readOnly
+            styles={{
+              input: {
+                minWidth: 20,
+                minHeight: 20,
+              },
+            }}
+          />
+          {IconComponent}
+          <Text truncate="end" ref={textRef} w="auto">
+            {node.label}
+          </Text>
+        </Group>
+      </Tooltip>
     );
 
     const icons: Record<NodeInfoTypeEnum, JSX.Element> = {
       [NodeInfoTypeEnum.STRUCTURE]: getFolderIcon(),
       [NodeInfoTypeEnum.ARRAY]: getFolderIcon(),
       [NodeInfoTypeEnum.INTEGER]: getCheckboxIcon(
-        <IconHash {...commonProps} />,
+        <IconHash {...commonProps} className={classes.forcedWidth} />,
       ),
       [NodeInfoTypeEnum.FLOAT]: getCheckboxIcon(
-        <IconRipple {...commonProps} />,
+        <IconRipple {...commonProps} className={classes.forcedWidth} />,
       ),
       [NodeInfoTypeEnum.STRING]: getCheckboxIcon(
-        <IconTypography {...commonProps} />,
+        <IconTypography {...commonProps} className={classes.forcedWidth} />,
       ),
     };
 
-    return icons[type] || <IconFileUnknown {...commonProps} />;
+    return (
+      icons[type] || (
+        <IconFileUnknown {...commonProps} className={classes.forcedWidth} />
+      )
+    );
   };
 
   return type ? (
@@ -251,6 +273,7 @@ function NodeIcon({
   ) : (
     <IconFileUnknown
       size={14}
+      className={classes.forcedWidth}
       stroke={2.5}
       color="var(--mantine-color-blue-8)"
     />
@@ -305,7 +328,7 @@ export const TreeLibrary = ({
       <Tree
         tree={tree}
         data={treeData}
-        className={classes}
+        className={classes.tree}
         expandOnClick={false}
         renderNode={(payload) => (
           <Element

@@ -1,0 +1,12 @@
+.tree li {
+  box-sizing: border-box;
+}
+.tree li *:not(svg):not(input) {
+  box-sizing: inherit;
+  max-width: 100%;
+}
+
+.forcedWidth {
+  min-width: 14px !important;
+  min-height: 14px !important;
+}
