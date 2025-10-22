@@ -229,11 +229,11 @@ export const SimplePlotly = ({
               <Select
                 label=""
                 value={
-                  JSON.parse(JSON.stringify(itemDataGrid.coordinates)).find(
+                  itemDataGrid.coordinates.find(
                     (coord: Coordinates) => coord.axeIndex === 0,
                   ).name
                 }
-                data={JSON.parse(JSON.stringify(itemDataGrid.coordinates)).map(
+                data={itemDataGrid.coordinates.map(
                   (coord: Coordinates) => coord.name,
                 )}
                 w={`${width * 0.2}px`}
@@ -243,13 +243,14 @@ export const SimplePlotly = ({
                     itemDataGrid,
                     active,
                     updatedConfiguration,
-                    JSON.parse(JSON.stringify(itemDataGrid.coordinates)).find(
+                    itemDataGrid.coordinates.find(
                       (coord: Coordinates) => coord.name === value,
                     ).axeIndex,
                     'x',
                   )
                 }
                 size="xs"
+                disabled={!itemDataGrid.isEditing}
               />
             </Group>
 

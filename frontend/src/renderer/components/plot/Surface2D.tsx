@@ -263,12 +263,12 @@ export const Surface2D = ({
               <Select
                 label=""
                 value={
-                  JSON.parse(JSON.stringify(itemDataGrid.coordinates)).find(
+                  itemDataGrid.coordinates.find(
                     (coord: Coordinates) =>
                       coord.axeIndex === (targetAxis === 'y' ? 1 : 0),
                   ).name
                 }
-                data={JSON.parse(JSON.stringify(itemDataGrid.coordinates)).map(
+                data={itemDataGrid.coordinates.map(
                   (coord: Coordinates) => coord.name,
                 )}
                 w={`${width * 0.2}px`}
@@ -278,13 +278,14 @@ export const Surface2D = ({
                     itemDataGrid,
                     active,
                     updatedConfiguration,
-                    JSON.parse(JSON.stringify(itemDataGrid.coordinates)).find(
+                    itemDataGrid.coordinates.find(
                       (coord: Coordinates) => coord.name === value,
                     ).axeIndex,
                     targetAxis,
                   )
                 }
                 size="xs"
+                disabled={!itemDataGrid.isEditing}
               />
             </Group>
           ))}
