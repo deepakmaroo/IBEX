@@ -297,47 +297,51 @@ export const SimplePlotly = ({
             </Group>
           </Grid.Col>
         )}
-      <PlotTitle
-        itemDataGrid={itemDataGrid}
-        title={title}
-        setTitle={setTitle}
-      />
+
       {itemDataGrid.plot.every((plot) =>
         [plot.x, plot.y].every(isMatrixPlottable),
       ) ? (
-        <Grid.Col
-          span="auto"
-          pos="relative"
-          w={`${width * (itemDataGrid.coordinates?.length > 1 ? 0.8 : 1) - 32}px`}
-          maw={`${width * (itemDataGrid.coordinates?.length > 1 ? 0.8 : 1) - 32}px`}
-          h={`${height}px`}
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-          }}
-        >
-          <Plot
-            ref={plotRef}
-            className={classes.simplePlot}
-            style={{
-              maxWidth: `${width * (itemDataGrid.coordinates?.length > 1 ? 0.8 : 1) - 32}px !important`,
-              height: `${height}px`,
-            }}
-            data={itemDataGrid.plot}
-            config={{
-              autosizable: false,
-              staticPlot: !itemDataGrid.static,
-              scrollZoom: true,
-              displayModeBar: true,
-              showTips: true,
-              displaylogo: false,
-              modeBarButtonsToRemove: ['lasso2d', 'select2d'],
-            }}
-            layout={layoutPlot}
-            onRelayout={handleRelayout}
-            useResizeHandler={false}
+        <>
+          <PlotTitle
+            itemDataGrid={itemDataGrid}
+            title={title}
+            setTitle={setTitle}
           />
-        </Grid.Col>
+
+          <Grid.Col
+            span="auto"
+            pos="relative"
+            w={`${width * (itemDataGrid.coordinates?.length > 1 ? 0.8 : 1) - 32}px`}
+            maw={`${width * (itemDataGrid.coordinates?.length > 1 ? 0.8 : 1) - 32}px`}
+            h={`${height}px`}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          >
+            <Plot
+              ref={plotRef}
+              className={classes.simplePlot}
+              style={{
+                maxWidth: `${width * (itemDataGrid.coordinates?.length > 1 ? 0.8 : 1) - 32}px !important`,
+                height: `${height}px`,
+              }}
+              data={itemDataGrid.plot}
+              config={{
+                autosizable: false,
+                staticPlot: !itemDataGrid.static,
+                scrollZoom: true,
+                displayModeBar: true,
+                showTips: true,
+                displaylogo: false,
+                modeBarButtonsToRemove: ['lasso2d', 'select2d'],
+              }}
+              layout={layoutPlot}
+              onRelayout={handleRelayout}
+              useResizeHandler={false}
+            />
+          </Grid.Col>
+        </>
       ) : (
         <Grid.Col
           span="auto"

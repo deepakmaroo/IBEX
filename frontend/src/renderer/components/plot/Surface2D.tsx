@@ -329,60 +329,64 @@ export const Surface2D = ({
             )}
         </Group>
       </Grid.Col>
-      <PlotTitle
-        itemDataGrid={itemDataGrid}
-        title={title}
-        setTitle={setTitle}
-      />
+
       {are3DAxisInit && [x, y, z].every(isMatrixPlottable) ? (
-        <Grid.Col
-          span="auto"
-          pos="relative"
-          w={`${width * 0.8 - 32}px`}
-          maw={`${width * 0.8 - 32}px`}
-          h={`${height}px`}
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-          }}
-        >
-          <Plot
-            ref={plotRef}
-            data={[
-              {
-                type: 'heatmap',
-                colorscale: 'Viridis',
-                colorbar: {
-                  title: {
-                    text: zAxis?.name
-                      ? `${zAxis?.name} ${(zAxis?.unit && '[' + zAxis.unit + ']') || ''}`
-                      : '',
-                  },
-                },
-                x: x,
-                y: y,
-                z: z,
-              },
-            ]}
-            config={{
-              autosizable: false,
-              staticPlot: !itemDataGrid.static,
-              scrollZoom: true,
-              displayModeBar: true,
-              showTips: true,
-              displaylogo: false,
-              modeBarButtonsToRemove: ['lasso2d', 'select2d'],
-            }}
-            layout={layoutPlot}
-            onRelayout={handleRelayout}
-            useResizeHandler={false}
-            className={classe.plot2D}
-            style={{
-              maxWidth: `${width * 0.8 - 32}px !important`,
-              height: `${height}px`,
-            }}
+        <>
+          <PlotTitle
+            itemDataGrid={itemDataGrid}
+            title={title}
+            setTitle={setTitle}
           />
-        </Grid.Col>
+
+          <Grid.Col
+            span="auto"
+            pos="relative"
+            w={`${width * 0.8 - 32}px`}
+            maw={`${width * 0.8 - 32}px`}
+            h={`${height}px`}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          >
+            <Plot
+              ref={plotRef}
+              data={[
+                {
+                  type: 'heatmap',
+                  colorscale: 'Viridis',
+                  colorbar: {
+                    title: {
+                      text: zAxis?.name
+                        ? `${zAxis?.name} ${(zAxis?.unit && '[' + zAxis.unit + ']') || ''}`
+                        : '',
+                    },
+                  },
+                  x: x,
+                  y: y,
+                  z: z,
+                },
+              ]}
+              config={{
+                autosizable: false,
+                staticPlot: !itemDataGrid.static,
+                scrollZoom: true,
+                displayModeBar: true,
+                showTips: true,
+                displaylogo: false,
+                modeBarButtonsToRemove: ['lasso2d', 'select2d'],
+              }}
+              layout={layoutPlot}
+              onRelayout={handleRelayout}
+              useResizeHandler={false}
+              className={classe.plot2D}
+              style={{
+                maxWidth: `${width * 0.8 - 32}px !important`,
+                height: `${height}px`,
+              }}
+            />
+          </Grid.Col>
+        </>
       ) : (
         <Grid.Col
           span="auto"
