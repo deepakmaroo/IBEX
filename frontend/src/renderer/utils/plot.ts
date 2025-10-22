@@ -496,9 +496,13 @@ export async function plotNodeUriLoaded(
               if (plotIndex === 0) {
                 // Get coordinates from first plot response
                 for (const responseCoordinates of response.data.coordinates) {
-                  const matchingCoord = dataGrid.coordinates.find(
-                    (c) =>
-                      normalizeIndices(c.target) === responseCoordinates.target,
+                  const matchingCoord = dataGrid.coordinates.find((c) =>
+                    c?.path
+                      ? normalizeIndices(c.target) ===
+                          responseCoordinates.target &&
+                        normalizeIndices(c.path) === responseCoordinates.path
+                      : normalizeIndices(c.target) ===
+                        responseCoordinates.target,
                   );
 
                   const lastField = getLastIndexedField(
