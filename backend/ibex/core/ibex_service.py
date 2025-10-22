@@ -67,9 +67,6 @@ class IMAS_URI:
         )
 
 
-data_source = IMASPythonSource()
-
-
 # helper decorator used during development
 # TODO to be deleted before release
 def measure_execution_time(func: Callable[..., Any]) -> Callable[..., Any]:
@@ -101,6 +98,13 @@ def uri_from_path(path: str) -> dict:
     if not uri:
         raise CannotGenerateUriException("Cannot convert path to URI. Make sure path points to imas data file.")
     return {"uri": uri}
+
+
+# =============== IBEX CORE ===============
+# this is just a layer between endpoints and IBEX data source
+
+# data_source can be replaced
+data_source = IMASPythonSource()
 
 
 def data_entry_exists(uri: str) -> dict:

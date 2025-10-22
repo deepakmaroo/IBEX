@@ -32,7 +32,7 @@ from ibex.core.utils import downsample_data, transform_2D_data, find_first_value
 
 class IMASPythonSource(DataSourceInterface):
     """
-    Default data source for IBEX
+    Default data_source for IBEX
     """
 
     def __init__(self):
@@ -53,7 +53,7 @@ class IMASPythonSource(DataSourceInterface):
         except ImasCoreBackendException as e:
             raise EntryNotFoundException(e) from None
 
-    def _open_entry_and_get_ids(self, uri: str, ids: str, occurrence: int = 0):
+    def _open_entry_and_get_ids(self, uri: str, ids: str, occurrence: int = 0) -> IDSBase:
         """
         Opens DBEntry with mode "r" and reads an IDS. Handles possible exceptions.
 

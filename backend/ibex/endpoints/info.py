@@ -13,7 +13,12 @@ router = APIRouter()
 @ibex_service.measure_execution_time
 async def version() -> dict:
     """
-    IBEX endpoint. Returns backend version
+    IBEX endpoint. Returns backend version.
+
+    Response JSON is constructed as follows:
+    {
+        "version": <IBEX_version (str)>
+    }
     """
     res = {"version": str(__version__)}
     return res
@@ -23,7 +28,18 @@ async def version() -> dict:
 @ibex_service.measure_execution_time
 async def downsampling_methods() -> dict:
     """
-    IBEX endpoint. Available downsampling methods to be passed to /data/plot_data endpoint as query argument
+    IBEX endpoint. Returns list of available downsampling methods to be passed to /data/plot_data endpoint as query argument.
+
+    Response JSON is constructed as follows:
+    {
+        "downsampling_methods": [
+        {
+          "name": <method_name>,
+          "description": <method_description>
+        },
+        ...
+        ]
+    }
     """
 
     methods = [{"name": val.value["name"], "description": val.value["description"]} for val in DownsamplingMethods]

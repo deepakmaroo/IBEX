@@ -14,6 +14,12 @@ router = APIRouter()
 async def uri_from_path(path: str) -> dict:
     """
     IBEX endpoint. Returns uri based on PATH passed as parameter.
+
+    Response JSON is constructed as follows:
+    {
+        "uri": <IMAS_uri>
+    }
+
     """
     return ibex_service.uri_from_path(path.strip())
 
@@ -23,6 +29,12 @@ async def uri_from_path(path: str) -> dict:
 async def exists(uri: str) -> dict:
     """
     IBEX endpoint. Checks if pulsefile exists and can be opened.
+
+    Response JSON is constructed as follows:
+    {
+        "exists": <true_or_false>
+    }
+
     """
     return ibex_service.data_entry_exists(uri.strip())
 
@@ -32,6 +44,16 @@ async def exists(uri: str) -> dict:
 async def list_idses(uri: str) -> dict:
     """
     IBEX endpoint. Returns list of available IDSes and occurrences from pulsefile.
+
+    Response JSON is constructed as follows:
+    {
+      "idses": [
+        {
+          "name": <ids_name>,
+          "occurrences": <list_of_filled_occurences (list(int))>
+        },...
+        ]
+    }
     """
     return ibex_service.list_idses(uri.strip())
 
@@ -46,6 +68,16 @@ async def available_entries(
 ) -> dict:
     """
     IBEX endpoint. Returns list of available pulsefiles from current filesystem
+
+    Response JSON is constructed as follows:
+    {
+      "entries": [
+        <uri_1 (str),
+        <uri_2 (str),
+        ...,
+        <uri_N (str),
+        ]
+    }
     """
     if not backend:
         backends = None
