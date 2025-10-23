@@ -161,7 +161,7 @@ export function MainLayout() {
                 showNotification({
                   title: 'Configuration already loaded',
                   message: `The configuration ${newIbexState.name} is already loaded.`,
-                  color: 'orange',
+                  color: 'yellow',
                 });
                 return;
               }
