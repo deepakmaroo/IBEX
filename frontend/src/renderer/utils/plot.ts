@@ -497,60 +497,52 @@ export async function plotNodeUriLoaded(
             const plotIndex = dataGrid.plot.findIndex(
               (plotFromList) => plotFromList.nodeUri === plot.nodeUri,
             );
+            const matchingCoordList: Coordinates[] = [];
+            for (const responseCoordinates of response.data.coordinates) {
+              const matchingCoord: Coordinates = JSON.parse(
+                JSON.stringify(dataGrid.coordinates),
+              ).find(
+                (c: Coordinates) =>
+                  normalizeIndices(c.path) === responseCoordinates.path,
+              );
+              const lastField = getLastIndexedField(responseCoordinates.target);
+              if (!lastField) continue;
+
+              // If coordinates exist, update the data and shape
+              matchingCoord.data = responseCoordinates.value;
+              matchingCoord.name = responseCoordinates.name;
+              matchingCoord.path = getDefaultUri(responseCoordinates.path);
+              matchingCoord.unit = responseCoordinates.unit || '';
+              matchingCoord.shape = responseCoordinates.shape;
+              matchingCoord.downsampled_shape =
+                responseCoordinates.downsampled_shape;
+              matchingCoord.coordinates = responseCoordinates.coordinates;
+
+              //* Update the target - yPath - axis data with the index
+              matchingCoord.target = updateIndexFieldName(
+                matchingCoord.target,
+                lastField,
+                matchingCoord.valueIndex,
+              );
+
+              yResponsePath = updateIndexFieldName(
+                yResponsePath,
+                lastField,
+                matchingCoord.valueIndex,
+              );
+
+              updatedXAxisData.path = updateIndexFieldName(
+                updatedXAxisData.path,
+                lastField,
+                matchingCoord.valueIndex,
+              );
+
+              matchingCoordList.push(matchingCoord);
+            }
+
             if (plotIndex === 0) {
-              // Get coordinates from first plot response
-              for (const responseCoordinates of response.data.coordinates) {
-                const matchingCoord = dataGrid.coordinates.find((c) =>
-                  c?.path
-                    ? normalizeIndices(c.target) ===
-                        responseCoordinates.target &&
-                      normalizeIndices(c.path) === responseCoordinates.path
-                    : normalizeIndices(c.target) === responseCoordinates.target,
-                );
-
-                const lastField = getLastIndexedField(
-                  responseCoordinates.target,
-                );
-                if (!lastField) continue;
-
-                // If coordinates exist, update the data and shape
-                matchingCoord.data = responseCoordinates.value;
-                matchingCoord.name = responseCoordinates.name;
-                matchingCoord.path = getDefaultUri(responseCoordinates.path);
-                matchingCoord.unit = responseCoordinates.unit || '';
-                matchingCoord.shape = responseCoordinates.shape;
-                matchingCoord.downsampled_shape =
-                  responseCoordinates.downsampled_shape;
-                matchingCoord.coordinates = responseCoordinates.coordinates;
-
-                //* Update the target - yPath - axis data with the index
-                matchingCoord.target = updateIndexFieldName(
-                  matchingCoord.target,
-                  lastField,
-                  matchingCoord.valueIndex,
-                );
-
-                yResponsePath = updateIndexFieldName(
-                  yResponsePath,
-                  lastField,
-                  matchingCoord.valueIndex,
-                );
-
-                updatedXAxisData.path = updateIndexFieldName(
-                  updatedXAxisData.path,
-                  lastField,
-                  matchingCoord.valueIndex,
-                );
-
-                //Upgrade datagrid coordinates with the response
-                dataGrid.coordinates = dataGrid.coordinates.map((coord) => {
-                  // Update the target if it matches the response coordinates
-                  if (coord.name === matchingCoord.name) {
-                    return matchingCoord;
-                  }
-                  return coord;
-                });
-              }
+              // Update datagrid coordinates with first plot response
+              dataGrid.coordinates = matchingCoordList;
             }
 
             if (response.data.downsampled_method) {
@@ -559,10 +551,8 @@ export async function plotNodeUriLoaded(
 
             let defaultXValue: number[] | string[] = [];
             if (response.data.coordinates.length > 0) {
-              defaultXValue = getArrayValueFromDependance(
-                dataGrid.coordinates,
-                0,
-              );
+              // Get x vector for each plot
+              defaultXValue = getArrayValueFromDependance(matchingCoordList, 0);
             }
             const defaultYValue = getVectorData(
               dataGrid.coordinates,
@@ -579,6 +569,7 @@ export async function plotNodeUriLoaded(
               yData: response.data.value,
               x: defaultXValue,
               y: defaultYValue,
+              mode: defaultYValue.length > 1 ? 'lines' : 'lines+markers',
             } as DataPlotly;
             updatedPlot.push(plotToPush);
           } catch (error) {
