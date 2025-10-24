@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { TreeLibrariesAccordion } from '../../components';
 import { useIbexStore } from '../../stores';
 import {
@@ -106,6 +106,7 @@ export const VisualizationTree = ({
     async (nodeUri: string, showErrorBars: boolean, searchNode: boolean) => {
       if (!nodeUri) return;
       if (searchNode) return;
+      console.log("JUMP")
 
       try {
         /**
@@ -133,7 +134,7 @@ export const VisualizationTree = ({
                 seeErrorBars: showErrorBars,
                 type: child.type,
                 children: [] as CustomTreeNodeData[],
-                uriLabel: uriSelected.name,
+                uriLabel: "imas:hdf5?user=public;pulse=100002;run=1;database=iterdb;version=3",
               };
             },
           );
@@ -361,8 +362,10 @@ export const VisualizationTree = ({
    * @returns
    */
   const handleSelectChildren = useCallback(
-    (nodeUri: string) => {
-      fetchNodeTree(nodeUri, showErrorBars, formSearchNode.values.node !== '');
+    async (nodeUri: string) => {
+      console.log("HANDLE")
+      await fetchNodeTree(nodeUri, showErrorBars, formSearchNode.values.node !== '');
+      console.log("FERT")
       setNodeSelected(nodeUri);
     },
     [active, showErrorBars, formSearchNode.values.node, fetchNodeTree],
@@ -554,6 +557,8 @@ export const VisualizationTree = ({
                 handleAccordionChange={handleAccordionChange}
                 handleSelectChildren={handleSelectChildren}
                 getNodesChecked={getNodesChecked}
+                setUriSelected={setUriSelected}
+                fetchIDSData={fetchIDSData}
               />
             </Container>
           </div>

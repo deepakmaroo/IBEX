@@ -10,7 +10,7 @@ import {
   UseTreeReturnType,
   useTree,
 } from '@mantine/core';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   IconFileUnknown,
   IconFolder,
@@ -27,6 +27,7 @@ import {
   URITreeNodeData,
 } from '../../types';
 import { hasUserSelectedText } from '../../utils';
+import { useIbexStore } from '../../stores';
 
 interface NodeIconProps {
   node: TreeNodeData;
@@ -45,8 +46,10 @@ interface TreeLibraryProps {
   height?: string;
   checkedNodes?: URIData[];
   expendAll?: boolean;
-  handleSelectChildren: (node: string) => void;
+  handleSelectChildren: (nodeUri: string) => Promise<void>
   getCheckedNodes?: (nodes: URITreeNodeData[]) => void;
+  setUriSelected: React.Dispatch<React.SetStateAction<URIData>>;
+  fetchIDSData: (dataUri: URIData) => Promise<void>;
 }
 
 interface ElementProps extends RenderTreeNodePayload {
@@ -56,7 +59,7 @@ interface ElementProps extends RenderTreeNodePayload {
   checkedNodes?: URIData[];
   tree: UseTreeReturnType;
   setSelectedNode: (node: string | null) => void;
-  handleSelectChildren: (node: string) => void;
+  handleSelectChildren: (nodeUri: string) => Promise<void>
   getCheckedNodes: (nodes: URITreeNodeData[]) => void;
 }
 
@@ -287,7 +290,10 @@ export const TreeLibrary = ({
   expendAll,
   handleSelectChildren,
   getCheckedNodes,
+  setUriSelected,
+  fetchIDSData,
 }: TreeLibraryProps) => {
+  const { active, updatedConfiguration } = useIbexStore();
   const tree = useTree();
   const [selectedNode, setSelectedNode] = useState<string>(null);
 
@@ -322,6 +328,55 @@ export const TreeLibrary = ({
       tree.clearSelected();
     }
   }, [expendAll]);
+
+  const isEditingPlot = useMemo(
+    () => active?.dataPlot?.map((p) => p.isEditing).join(','),
+    [active]
+  );
+
+  useEffect(() => {
+    if (!active?.dataPlot) return;
+
+    const run = async () => {
+      const dataPlot = active.dataPlot.find((p) => p.isEditing);
+      if (!dataPlot || dataPlot.plot.length === 0) return;
+
+      let selectedURI: URIData | undefined = undefined;
+
+      for (const plot of dataPlot.plot) {
+        const plotUri = plot.nodeUri.split('#')[0];
+
+        if (!selectedURI || selectedURI.uri === plotUri) {
+          selectedURI = active.dataURI.find(
+            (item) => item.uri === plotUri,
+          );
+
+          if (!selectedURI) return;
+
+          setUriSelected(selectedURI);
+          console.log(selectedURI);
+          await fetchIDSData(selectedURI);
+
+          const nodeList = plot.nodeUri
+            .replace(/\[\d+\]/g, "[:]")
+            .split(/(?<=\/)/);
+          nodeList.pop();
+
+          let endPoint = "";
+          for (const node of nodeList) {
+            endPoint += node;
+            console.log("ENDPOINT")
+            await handleSelectChildren(endPoint);
+            setSelectedNode(endPoint);
+            console.log("EXPAND")
+            tree.expand(endPoint);
+          }
+        }
+      }
+    };
+
+    run();
+  }, [isEditingPlot]);
 
   return (
     <ScrollArea h={height}>
