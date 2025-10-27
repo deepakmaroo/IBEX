@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { TreeLibrariesAccordion } from '../../components';
 import { useIbexStore } from '../../stores';
 import {
@@ -102,140 +102,142 @@ export const VisualizationTree = ({
    * Handle node update using full URI
    * @param fullUri The full URI for fetching or updating node data
    */
-  const fetchNodeTree = useCallback(
-    async (nodeUri: string, showErrorBars: boolean, searchNode: boolean) => {
-      if (!nodeUri) return;
-      if (searchNode) return;
-      console.log("JUMP")
+  async function fetchNodeTree(
+    nodeUri: string,
+    showErrorBars: boolean,
+    searchNode: boolean,
+  ) {
+    if (!nodeUri) return;
+    if (searchNode) return;
 
-      try {
-        /**
-         * Fetch children node infos
-         * @param uri
-         * @returns
-         */
+    const { active, updatedConfiguration } = useIbexStore.getState();
 
-        const fetchChildrenNodeInfos = async (
-          nodeInfoschildren: NodeInfoChildrenResponse[],
-        ): Promise<CustomTreeNodeData[]> => {
-          if (nodeInfoschildren.length === 0) return;
+    try {
+      /**
+       * Fetch children node infos
+       * @param uri
+       * @returns
+       */
 
-          const newChildren: CustomTreeNodeData[] = nodeInfoschildren.map(
-            (child: NodeInfoChildrenResponse) => {
-              const newValue =
-                child.type === NodeInfoTypeEnum.ARRAY
-                  ? `${nodeUri}${child.name}[:]/`
-                  : child.type === NodeInfoTypeEnum.STRUCTURE
-                    ? `${nodeUri}${child.name}/`
-                    : `${nodeUri}${child.name}`;
-              return {
-                label: child.name,
-                value: newValue,
-                seeErrorBars: showErrorBars,
-                type: child.type,
-                children: [] as CustomTreeNodeData[],
-                uriLabel: "imas:hdf5?user=public;pulse=100002;run=1;database=iterdb;version=3",
-              };
-            },
-          );
+      const fetchChildrenNodeInfos = async (
+        nodeInfoschildren: NodeInfoChildrenResponse[],
+      ): Promise<CustomTreeNodeData[]> => {
+        if (nodeInfoschildren.length === 0) return;
 
-          return newChildren;
-        };
-
-        /**
-         * Update the children of the node
-         * @param nodes
-         * @param nodeValueToUpdate
-         * @returns
-         */
-        const updateNodeChildren = async (
-          dataTree: CustomTreeNodeData[],
-          targetUri: string,
-        ): Promise<CustomTreeNodeData[]> => {
-          if (dataTree.length === 0) {
-            const nodeInfos: NodeInfoResponse = await fetchNodeInfos(
-              targetUri.slice(0, -1),
-              showErrorBars,
-            );
-            const nodeInfoschildren = nodeInfos.children || [];
-
-            return await fetchChildrenNodeInfos(nodeInfoschildren);
-          }
-
-          return Promise.all(
-            dataTree.map(async (node) => {
-              if (node.value === targetUri) {
-                if (
-                  node.children.length === 0 ||
-                  node.seeErrorBars !== showErrorBars
-                ) {
-                  /**
-                   * Replace [:] and remove the last /
-                   */
-                  targetUri = targetUri.replace(/\[:\]/, '').slice(0, -1);
-
-                  const nodeInfos: NodeInfoResponse = await fetchNodeInfos(
-                    targetUri,
-                    showErrorBars,
-                  );
-                  const nodeInfoschildren = nodeInfos.children || [];
-
-                  const newChildren =
-                    await fetchChildrenNodeInfos(nodeInfoschildren);
-
-                  return {
-                    ...node,
-                    seeErrorBars: showErrorBars,
-                    shape: nodeInfos.shape,
-                    children: newChildren,
-                  };
-                }
-              }
-
-              if (node.children.length > 0) {
-                const updatedChildren = await updateNodeChildren(
-                  node.children,
-                  targetUri,
-                );
-                return {
-                  ...node,
-                  children: updatedChildren,
-                };
-              }
-
-              return node;
-            }),
-          );
-        };
-
-        const updatedCustomDataTree: CustomTreeData[] = await Promise.all(
-          active.customDataTree.map(async (dataTree: CustomTreeData) => {
-            if (dataTree.uri && nodeUri.startsWith(dataTree.uri)) {
-              const updatedData = await updateNodeChildren(
-                dataTree.data,
-                nodeUri,
-              );
-              return {
-                ...dataTree,
-                data: updatedData,
-              };
-            }
-            return dataTree;
-          }),
+        const newChildren: CustomTreeNodeData[] = nodeInfoschildren.map(
+          (child: NodeInfoChildrenResponse) => {
+            const newValue =
+              child.type === NodeInfoTypeEnum.ARRAY
+                ? `${nodeUri}${child.name}[:]/`
+                : child.type === NodeInfoTypeEnum.STRUCTURE
+                  ? `${nodeUri}${child.name}/`
+                  : `${nodeUri}${child.name}`;
+            return {
+              label: child.name,
+              value: newValue,
+              seeErrorBars: showErrorBars,
+              type: child.type,
+              children: [] as CustomTreeNodeData[],
+              uriLabel: uriSelected?.name,
+            };
+          },
         );
 
-        const updatedActive: Configuration = {
-          ...active,
-          customDataTree: updatedCustomDataTree,
-        };
+        return newChildren;
+      };
 
-        updatedConfiguration(updatedActive);
-      } catch (error) {
-        console.error(error);
-      }
-    },
-    [active],
-  );
+      /**
+       * Update the children of the node
+       * @param nodes
+       * @param nodeValueToUpdate
+       * @returns
+       */
+      const updateNodeChildren = async (
+        dataTree: CustomTreeNodeData[],
+        targetUri: string,
+      ): Promise<CustomTreeNodeData[]> => {
+        if (dataTree.length === 0) {
+          const nodeInfos: NodeInfoResponse = await fetchNodeInfos(
+            targetUri.slice(0, -1),
+            showErrorBars,
+          );
+          const nodeInfoschildren = nodeInfos.children || [];
+
+          return await fetchChildrenNodeInfos(nodeInfoschildren);
+        }
+
+        return Promise.all(
+          dataTree.map(async (node) => {
+            if (node.value === targetUri) {
+              if (
+                node.children.length === 0 ||
+                node.seeErrorBars !== showErrorBars
+              ) {
+                /**
+                 * Replace [:] and remove the last /
+                 */
+                targetUri = targetUri.replace(/\[:\]/, '').slice(0, -1);
+
+                const nodeInfos: NodeInfoResponse = await fetchNodeInfos(
+                  targetUri,
+                  showErrorBars,
+                );
+                const nodeInfoschildren = nodeInfos.children || [];
+
+                const newChildren =
+                  await fetchChildrenNodeInfos(nodeInfoschildren);
+
+                return {
+                  ...node,
+                  seeErrorBars: showErrorBars,
+                  shape: nodeInfos.shape,
+                  children: newChildren,
+                };
+              }
+            }
+
+            if (node.children.length > 0) {
+              const updatedChildren = await updateNodeChildren(
+                node.children,
+                targetUri,
+              );
+              return {
+                ...node,
+                children: updatedChildren,
+              };
+            }
+
+            return node;
+          }),
+        );
+      };
+
+      const updatedCustomDataTree: CustomTreeData[] = await Promise.all(
+        active.customDataTree.map(async (dataTree: CustomTreeData) => {
+          if (dataTree.uri && nodeUri.startsWith(dataTree.uri)) {
+            const updatedData = await updateNodeChildren(
+              dataTree.data,
+              nodeUri,
+            );
+            return {
+              ...dataTree,
+              data: updatedData,
+            };
+          }
+          return dataTree;
+        }),
+      );
+
+      const updatedActive: Configuration = {
+        ...active,
+        customDataTree: updatedCustomDataTree,
+      };
+
+      updatedConfiguration(updatedActive);
+    } catch (error) {
+      console.error(error);
+    }
+  }
 
   /**
    * Fetch IDS data
@@ -328,48 +330,45 @@ export const VisualizationTree = ({
     }
   };
 
+  const getCurrentSelectedURI = useCallback(() => {
+    return uriSelected?.uri;
+  }, [uriSelected]);
+
   /**
    * Handle accordion change
    * @param value
    * @returns
    */
-  const handleAccordionChange = useCallback(
-    (value: string) => {
-      // open uri Accordion only if user don't select text
-      if (hasUserSelectedText()) {
-        return;
-      }
+  async function handleAccordionChange(value: string) {
+    if (hasUserSelectedText()) {
+      return;
+    }
 
-      if (value) {
-        const selectedURIData = active.dataURI.find(
-          (item) => item.uri === value,
-        );
+    if (value) {
+      const selectedURIData = active.dataURI.find((item) => item.uri === value);
 
-        if (selectedURIData) {
-          setUriSelected(selectedURIData);
-          fetchIDSData(selectedURIData);
-        }
-      } else {
-        setUriSelected(null);
+      if (selectedURIData) {
+        setUriSelected(selectedURIData);
+        await fetchIDSData(selectedURIData);
       }
-    },
-    [active],
-  );
+    } else {
+      setUriSelected(null);
+    }
+  }
 
   /**
    * Fetch children node infos
    * @param nodeUri
    * @returns
    */
-  const handleSelectChildren = useCallback(
-    async (nodeUri: string) => {
-      console.log("HANDLE")
-      await fetchNodeTree(nodeUri, showErrorBars, formSearchNode.values.node !== '');
-      console.log("FERT")
-      setNodeSelected(nodeUri);
-    },
-    [active, showErrorBars, formSearchNode.values.node, fetchNodeTree],
-  );
+  async function handleSelectChildren(nodeUri: string) {
+    await fetchNodeTree(
+      nodeUri,
+      showErrorBars,
+      formSearchNode.values.node !== '',
+    );
+    setNodeSelected(nodeUri);
+  }
 
   /**
    * Handles see error bars
@@ -557,8 +556,7 @@ export const VisualizationTree = ({
                 handleAccordionChange={handleAccordionChange}
                 handleSelectChildren={handleSelectChildren}
                 getNodesChecked={getNodesChecked}
-                setUriSelected={setUriSelected}
-                fetchIDSData={fetchIDSData}
+                getCurrentSelectedURI={getCurrentSelectedURI}
               />
             </Container>
           </div>

@@ -46,10 +46,10 @@ interface TreeLibraryProps {
   height?: string;
   checkedNodes?: URIData[];
   expendAll?: boolean;
-  handleSelectChildren: (nodeUri: string) => Promise<void>
+  handleSelectChildren: (nodeUri: string) => Promise<void>;
   getCheckedNodes?: (nodes: URITreeNodeData[]) => void;
-  setUriSelected: React.Dispatch<React.SetStateAction<URIData>>;
-  fetchIDSData: (dataUri: URIData) => Promise<void>;
+  getCurrentSelectedURI: () => string;
+  handleAccordionChange(value: string): Promise<void>;
 }
 
 interface ElementProps extends RenderTreeNodePayload {
@@ -59,7 +59,7 @@ interface ElementProps extends RenderTreeNodePayload {
   checkedNodes?: URIData[];
   tree: UseTreeReturnType;
   setSelectedNode: (node: string | null) => void;
-  handleSelectChildren: (nodeUri: string) => Promise<void>
+  handleSelectChildren: (nodeUri: string) => Promise<void>;
   getCheckedNodes: (nodes: URITreeNodeData[]) => void;
 }
 
@@ -290,10 +290,10 @@ export const TreeLibrary = ({
   expendAll,
   handleSelectChildren,
   getCheckedNodes,
-  setUriSelected,
-  fetchIDSData,
+  getCurrentSelectedURI,
+  handleAccordionChange,
 }: TreeLibraryProps) => {
-  const { active, updatedConfiguration } = useIbexStore();
+  const { active } = useIbexStore();
   const tree = useTree();
   const [selectedNode, setSelectedNode] = useState<string>(null);
 
@@ -331,7 +331,7 @@ export const TreeLibrary = ({
 
   const isEditingPlot = useMemo(
     () => active?.dataPlot?.map((p) => p.isEditing).join(','),
-    [active]
+    [active],
   );
 
   useEffect(() => {
@@ -341,34 +341,28 @@ export const TreeLibrary = ({
       const dataPlot = active.dataPlot.find((p) => p.isEditing);
       if (!dataPlot || dataPlot.plot.length === 0) return;
 
-      let selectedURI: URIData | undefined = undefined;
+      let selectedURI: string | undefined = undefined;
 
       for (const plot of dataPlot.plot) {
         const plotUri = plot.nodeUri.split('#')[0];
 
-        if (!selectedURI || selectedURI.uri === plotUri) {
-          selectedURI = active.dataURI.find(
-            (item) => item.uri === plotUri,
-          );
+        if (!selectedURI || selectedURI === plotUri) {
+          selectedURI = plotUri;
 
-          if (!selectedURI) return;
-
-          setUriSelected(selectedURI);
-          console.log(selectedURI);
-          await fetchIDSData(selectedURI);
+          if (selectedURI !== getCurrentSelectedURI()) {
+            await handleAccordionChange(selectedURI);
+          }
 
           const nodeList = plot.nodeUri
-            .replace(/\[\d+\]/g, "[:]")
+            .replace(/\[\d+\]/g, '[:]')
             .split(/(?<=\/)/);
           nodeList.pop();
 
-          let endPoint = "";
+          let endPoint = '';
           for (const node of nodeList) {
             endPoint += node;
-            console.log("ENDPOINT")
             await handleSelectChildren(endPoint);
             setSelectedNode(endPoint);
-            console.log("EXPAND")
             tree.expand(endPoint);
           }
         }

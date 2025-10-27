@@ -15,11 +15,10 @@ interface VisualizationTreeProps {
   height: string;
   checkedNodes: URIData[];
   value?: string;
-  handleAccordionChange: (value: string) => void;
-  handleSelectChildren: (nodeUri: string) => Promise<void>
+  handleAccordionChange(value: string): Promise<void>;
+  handleSelectChildren: (nodeUri: string) => Promise<void>;
   getNodesChecked: (nodes: URITreeNodeData[]) => void;
-  setUriSelected: React.Dispatch<React.SetStateAction<URIData>>;
-  fetchIDSData: (dataUri: URIData) => Promise<void>;
+  getCurrentSelectedURI: () => string;
 }
 
 interface AccordionLabelProps {
@@ -61,8 +60,7 @@ export const TreeLibrariesAccordion = ({
   handleAccordionChange,
   handleSelectChildren,
   getNodesChecked,
-  setUriSelected,
-  fetchIDSData,
+  getCurrentSelectedURI,
 }: VisualizationTreeProps) => {
   const items = customDataTree.map((item) => {
     return (
@@ -81,8 +79,8 @@ export const TreeLibrariesAccordion = ({
             handleSelectChildren={handleSelectChildren}
             getCheckedNodes={getNodesChecked}
             expendAll={item.expendAll}
-            setUriSelected={setUriSelected}
-            fetchIDSData={fetchIDSData}
+            getCurrentSelectedURI={getCurrentSelectedURI}
+            handleAccordionChange={handleAccordionChange}
           />
         </Accordion.Panel>
       </Accordion.Item>
