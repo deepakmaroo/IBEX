@@ -209,6 +209,15 @@ export const handleExistingPlot = async (
 
   for (const node of dataToPlot) {
     let defaultUri = node.uri;
+    if (defaultUri !== nodes[0].uri) {
+      showNotification({
+        title: 'Plot',
+        message: 'Unable to plot data from different URIs',
+        color: 'yellow',
+      });
+      updatedActive.checkedNodeURI = nodes.filter((n) => n !== node);
+      continue;
+    }
 
     const response = await fetchDataPlot(
       defaultUri,
@@ -286,7 +295,7 @@ export const handleExistingPlot = async (
       JSON.parse(JSON.stringify(findDataPlot.coordinates))
         .sort(compareByAxeIndex)
         .every((coord: Coordinates, index: number) => {
-          const responseCoord = coordsResponse[index]; // Skip the first coordinate
+          const responseCoord = coordsResponse[index];
           return coord.name === responseCoord.name;
         });
 
@@ -483,6 +492,19 @@ export async function plotNodeUriLoaded(
 
           try {
             const defaultUri = normalizeIndices(plot.nodeUri); // Normalize the URI to ensure it matches the expected format
+
+            if (
+              defaultUri.split('#')[0] !==
+              dataGrid.plot[0].nodeUri.split('#')[0]
+            ) {
+              showNotification({
+                title: 'Plot',
+                message: 'Unable to plot data from different URIs',
+                color: 'yellow',
+              });
+              continue;
+            }
+
             const response = await fetchDataPlot(defaultUri);
 
             if (!response || !response.data) {
