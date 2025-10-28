@@ -332,7 +332,7 @@ export const VisualizationTree = ({
   };
 
   const getCurrentSelectedURI = useCallback(() => {
-    return uriSelected?.uri;
+    return uriSelectedRef.current?.uri;
   }, [uriSelected]);
 
   /**
