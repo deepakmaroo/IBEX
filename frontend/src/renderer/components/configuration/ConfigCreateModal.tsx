@@ -1,6 +1,16 @@
-import { Button, Center, Modal, Stack, TextInput } from '@mantine/core';
+import {
+  Button,
+  Center,
+  Checkbox,
+  FileInput,
+  Modal,
+  Select,
+  Stack,
+  TextInput,
+} from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
+import { useState } from 'react';
 import { ConfigForm } from 'src/renderer/types';
 
 interface Props {
@@ -18,6 +28,13 @@ export function ConfigCreateModal({
   handleAddConfiguration,
   handleAddTree,
 }: Props) {
+  const [useTemplate, setUseTemplate] = useState(false);
+  const [selectedFolderTemplate, setSelectedFolderTemplate] = useState<
+    string | null
+  >(null);
+  const [selectedLocalTemplate, setSelectedLocalTemplate] =
+    useState<File | null>(null);
+
   const form = useForm<ConfigForm>({
     initialValues: {
       name: '',
@@ -36,7 +53,10 @@ export function ConfigCreateModal({
     handleAddConfiguration(data);
     form.reset();
     onClose();
+
+    // Show URIs selection modal
     handleAddTree();
+    resetTemplates();
   }
 
   function handleValidationError() {
@@ -46,6 +66,44 @@ export function ConfigCreateModal({
       color: 'red',
     });
   }
+
+  const handleUseTemplate = (checked: boolean) => {
+    setUseTemplate(checked);
+    if (!checked) resetTemplates();
+  };
+
+  // Used to reset templates fields
+  const resetTemplates = () => {
+    setSelectedFolderTemplate(null);
+    setSelectedLocalTemplate(null);
+  };
+
+  const handleSelectFolderTemplate = async (value: string) => {
+    setSelectedFolderTemplate(value);
+    setSelectedLocalTemplate(null);
+  };
+
+  const handleSelectLocalTemplate = async () => {
+    // Open file selector
+    const localFilePath: string = await window.api.fs.getFilePathDialog('json');
+
+    // Reset selected template from folder
+    setSelectedFolderTemplate(null);
+
+    // Save local template in useState
+    if (!localFilePath) {
+      return;
+    }
+
+    const response = await fetch(localFilePath);
+    const blob = await response.blob();
+
+    const splittedPath = localFilePath.split('/');
+    const filename = splittedPath[splittedPath.length - 1];
+
+    const file = new File([blob], filename, { type: blob.type });
+    setSelectedLocalTemplate(file);
+  };
 
   return (
     <Modal
@@ -63,6 +121,36 @@ export function ConfigCreateModal({
             data-autofocus
             data-testid="config-create-name-input"
           />
+          <Checkbox
+            label="Use template"
+            radius="sm"
+            size="sm"
+            checked={useTemplate}
+            onChange={(event) => handleUseTemplate(event.currentTarget.checked)}
+          />
+          {useTemplate && (
+            <>
+              <Select
+                label="Template from folders"
+                value={selectedFolderTemplate}
+                data={['A', 'B', 'C']}
+                onChange={handleSelectFolderTemplate}
+              />
+
+              <FileInput
+                clearable
+                label="Local template"
+                placeholder="Select local imas file"
+                value={selectedLocalTemplate ?? null}
+                onClick={handleSelectLocalTemplate}
+                onChange={(value) => {
+                  if (value === null) {
+                    setSelectedLocalTemplate(null);
+                  }
+                }}
+              />
+            </>
+          )}
           <Center mt="md">
             <Button type="submit" data-testid="config-create-submit-button">
               Select URIs
