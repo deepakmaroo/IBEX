@@ -16,6 +16,8 @@ export const API = {
 
     saveAsDialog: (name: string, ext: string) =>
       ipcRenderer.invoke('saveAsDialog', name, ext),
+
+    getHomePath: async () => await ipcRenderer.invoke('getHomePath'),
   },
   getConfig: () => ipcRenderer.invoke('getConfig'),
 
