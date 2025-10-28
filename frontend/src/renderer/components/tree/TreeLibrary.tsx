@@ -346,12 +346,12 @@ export const TreeLibrary = ({
       for (const plot of dataPlot.plot) {
         const plotUriSplit = plot.nodeUri.split('#');
         const plotUri = plotUriSplit[0];
-        let nodeList = plotUriSplit[1]
-        .replace(/\[\d+\]/g, '[:]')
-        .split(/(?<=\/)/);
+        const nodeList = plotUriSplit[1]
+          .replace(/\[\d+\]/g, '[:]')
+          .split(/(?<=\/)/);
         nodeList.pop();
 
-        if (!plotUri || plotUri === "") {
+        if (!plotUri || plotUri === '') {
           continue;
         }
 
@@ -368,12 +368,20 @@ export const TreeLibrary = ({
 
           let endPoint = selectedURI + '#';
           const { active } = useIbexStore.getState();
-          let customTreeNodeData = active.customDataTree.find(customTreeData => customTreeData.uri === selectedURI)?.data;
+          let customTreeNodeData = active.customDataTree.find(
+            (customTreeData) => customTreeData.uri === selectedURI,
+          )?.data;
           let nodeLoaded = true;
           for (const node of nodeList) {
             endPoint += node;
-            customTreeNodeData = customTreeNodeData?.find(customTreeData => customTreeData.value === endPoint)?.children;
-            if (!nodeLoaded || !customTreeNodeData || customTreeNodeData.length === 0) {
+            customTreeNodeData = customTreeNodeData?.find(
+              (customTreeData) => customTreeData.value === endPoint,
+            )?.children;
+            if (
+              !nodeLoaded ||
+              !customTreeNodeData ||
+              customTreeNodeData.length === 0
+            ) {
               nodeLoaded = false;
               await handleSelectChildren(endPoint);
             }
