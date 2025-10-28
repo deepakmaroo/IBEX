@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { TreeLibrariesAccordion } from '../../components';
 import { useIbexStore } from '../../stores';
 import {
@@ -59,6 +59,7 @@ export const VisualizationTree = ({
   const [nodeSelected, setNodeSelected] = useState<string | null>();
   const [searchNodeIsLoading, setSearchNodeIsLoading] =
     useState<boolean>(false);
+  const uriSelectedRef = useRef(uriSelected);
 
   const heightFormatted = `calc(${height} - 155px)`;
 
@@ -138,7 +139,7 @@ export const VisualizationTree = ({
               seeErrorBars: showErrorBars,
               type: child.type,
               children: [] as CustomTreeNodeData[],
-              uriLabel: uriSelected?.name,
+              uriLabel: uriSelectedRef.current.name,
             };
           },
         );
@@ -384,6 +385,10 @@ export const VisualizationTree = ({
     },
     [active, formSearchNode.values.node, uriSelected, nodeSelected],
   );
+
+  useEffect(() => {
+    uriSelectedRef.current = uriSelected;
+  }, [uriSelected]);
 
   /**
    * Handle search node
