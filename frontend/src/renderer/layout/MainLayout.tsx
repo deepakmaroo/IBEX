@@ -325,6 +325,7 @@ export function MainLayout() {
           configurationsNames={configurations.map((c) => c?.name)}
           onClose={closeConfigCreateModal}
           handleAddConfiguration={handleAddConfiguration}
+          handleAddTree={openAddTreeModal}
         />
 
         <ConfirmModal

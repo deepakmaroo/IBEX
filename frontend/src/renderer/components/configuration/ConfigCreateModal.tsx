@@ -8,6 +8,7 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   handleAddConfiguration: (data: ConfigForm) => void;
+  handleAddTree: () => void;
 }
 
 export function ConfigCreateModal({
@@ -15,6 +16,7 @@ export function ConfigCreateModal({
   isOpen,
   onClose,
   handleAddConfiguration,
+  handleAddTree,
 }: Props) {
   const form = useForm<ConfigForm>({
     initialValues: {
@@ -34,6 +36,7 @@ export function ConfigCreateModal({
     handleAddConfiguration(data);
     form.reset();
     onClose();
+    handleAddTree();
   }
 
   function handleValidationError() {
@@ -62,7 +65,7 @@ export function ConfigCreateModal({
           />
           <Center mt="md">
             <Button type="submit" data-testid="config-create-submit-button">
-              Create
+              Select URIs
             </Button>
           </Center>
         </Stack>
