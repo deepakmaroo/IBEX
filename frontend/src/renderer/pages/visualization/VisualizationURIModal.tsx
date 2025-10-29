@@ -46,7 +46,7 @@ export const VisualizationURIModal = ({
   close,
 }: VisualizationSelectIDSModalProps) => {
   const { active, updatedConfiguration } = useIbexStore();
-  const [dataURIsSelected, setDataURIsSelected] = useState<URIData[]>([]);
+  const [dataURIsSelected, setDataURIsSelected] = useState<string[]>([]);
   const [dataDbEntries, setDataDbEntries] = useState<URIData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingDbEntries, setIsLoadingDbEntries] = useState(false);
@@ -80,17 +80,47 @@ export const VisualizationURIModal = ({
     },
   });
 
-  useEffect(() => {
-    if (active && active.dataURI.length > 0) {
-      setDataURIsSelected(active?.dataURI);
+  function getNextAvailableUriName(uriNameList: string[]): string {
+    let i = 1;
+    let uriName = 'URI-0';
 
-      const dbEntriesNotSelected = active.dataURI.filter(
-        (d: URIData) =>
-          !dataURIsSelected.some((selected) => selected.uri === d.uri),
-      );
-      setDataDbEntries([...dataURIsSelected, ...dbEntriesNotSelected]);
+    while (uriNameList.includes(uriName)) {
+      uriName = `URI-${i}`;
+      i++;
     }
-  }, [active]);
+
+    return uriName;
+  }
+
+  function properlyAddUriToUriList(
+    uriList: URIData[],
+    newUri: URIData,
+  ): URIData[] {
+    if (uriList.map((value) => value.uri).includes(newUri.uri)) {
+      // URI already present in list, leaving
+      return uriList;
+    }
+
+    newUri.name = getNextAvailableUriName(uriList.map((value) => value.name));
+
+    uriList.push(newUri);
+    return uriList;
+  }
+
+  useEffect(() => {
+    if (active?.dataURI?.length > 0) {
+      const oldUriDb = dataDbEntries;
+      const newUriDb = active.dataURI;
+
+      setDataURIsSelected(newUriDb.map((value) => value.uri));
+
+      for (const uri of oldUriDb) {
+        properlyAddUriToUriList(newUriDb, uri);
+      }
+
+      setDataDbEntries(active.dataURI);
+    }
+  }, [active?.name]);
 
   useEffect(() => {
     // Get file from selected path (local dataset)
@@ -135,12 +165,10 @@ export const VisualizationURIModal = ({
           radius="sm"
           size="sm"
           w={50}
-          onChange={() => handleCheckUri(element.uri, dataDbEntries)}
-          checked={
-            dataURIsSelected?.findIndex(
-              (d: URIData) => d.uri === element.uri,
-            ) !== -1
-          }
+          onChange={() => {
+            handleCheckUri(element.uri);
+          }}
+          checked={dataURIsSelected.includes(element.uri)}
         />
       </Table.Td>
       <Table.Td>{element.name}</Table.Td>
@@ -154,27 +182,12 @@ export const VisualizationURIModal = ({
    * @param dataEntries
    * @returns
    */
-  const handleCheckUri = (uri: string, dataEntries: URIData[]): void => {
-    //Verify if dataIDSSelected[] contains the uri then use the color of the uri or generate a new color
-    const color =
-      dataURIsSelected?.findIndex((d: URIData) => d.uri === uri) !== -1
-        ? dataURIsSelected.find((d) => d.uri === uri)?.uriColor
-        : getColorRandom();
-
-    const updateDataURIs: URIData[] = dataURIsSelected.some(
-      (d) => d.uri === uri,
-    )
-      ? dataURIsSelected.filter((d) => !(d.uri === uri))
-      : [
-          ...dataURIsSelected,
-          {
-            name: dataEntries.find((d) => d.uri === uri)?.name,
-            uri,
-            uriColor: color,
-          },
-        ];
-
-    setDataURIsSelected(updateDataURIs);
+  const handleCheckUri = (uri: string): void => {
+    if (dataURIsSelected.includes(uri)) {
+      setDataURIsSelected(dataURIsSelected.filter((value) => value !== uri));
+    } else {
+      setDataURIsSelected([...dataURIsSelected, uri]);
+    }
   };
 
   /**
@@ -184,14 +197,16 @@ export const VisualizationURIModal = ({
   const updateDataURI = (): void => {
     const newCustomDataTree = updateCustomDataTree(
       active.customDataTree,
-      dataURIsSelected,
+      dataDbEntries.filter((value) => dataURIsSelected.includes(value.uri)),
     );
 
     const updatedActive: Configuration = {
       ...active,
       saved: false,
       customDataTree: newCustomDataTree,
-      dataURI: dataURIsSelected,
+      dataURI: dataDbEntries.filter((value) =>
+        dataURIsSelected.includes(value.uri),
+      ),
     };
 
     updatedConfiguration(updatedActive);
@@ -219,6 +234,16 @@ export const VisualizationURIModal = ({
       }
     };
 
+    if (dataURIsSelected.includes(uriToCheck)) {
+      setter('URI already added');
+      showNotification({
+        title: 'Error',
+        message: 'URI already added',
+        color: 'red',
+      });
+      return;
+    }
+
     // Verify if the URI exists
     const responseURIExists = await fetchURIExists(uriToCheck);
 
@@ -232,19 +257,9 @@ export const VisualizationURIModal = ({
       return;
     }
 
-    if (dataURIsSelected.some((d) => d.uri === uriToCheck)) {
-      setter('URI already added');
-      showNotification({
-        title: 'Error',
-        message: 'URI already added',
-        color: 'red',
-      });
-      return;
-    }
-
     if (dataDbEntries.some((d) => d.uri === uriToCheck)) {
       //if uri in dataDbEntries, then add to dataURIsSelected
-      handleCheckUri(uriToCheck, dataDbEntries);
+      handleCheckUri(uriToCheck);
       if (errorSetter.length === 1) {
         setFromURIisSuccess(false);
         setFromFileisSuccess(true);
@@ -256,20 +271,14 @@ export const VisualizationURIModal = ({
       return;
     }
 
-    const oldDataEntriesSelected = dataDbEntries.filter((loaded) =>
-      dataURIsSelected.some((selected) => selected.uri === loaded.uri),
-    );
-    const newDataEntries = [
-      ...oldDataEntriesSelected,
-      {
-        name: `URI-${dataDbEntries.length}`,
-        uri: uriToCheck,
-        uriColor: getColorRandom(),
-      },
-    ];
+    const newUri: URIData = {
+      name: `URI-0`,
+      uri: uriToCheck,
+      uriColor: getColorRandom(),
+    };
 
-    setDataDbEntries(newDataEntries);
-    handleCheckUri(uriToCheck, newDataEntries);
+    setDataDbEntries(properlyAddUriToUriList(dataDbEntries, newUri));
+    handleCheckUri(uriToCheck);
     if (errorSetter.length === 1) {
       setFromURIisSuccess(false);
       setFromFileisSuccess(true);
@@ -355,29 +364,30 @@ export const VisualizationURIModal = ({
       setIsLoadingDbEntries(true);
       const response = await fetchDataEntries(formDbEntries.values);
 
-      const oldDataEntriesSelected = dataDbEntries.filter((loaded) =>
-        dataURIsSelected.some((selected) => selected.uri === loaded.uri),
+      const existingMap = new Map<string, URIData>(
+        dataDbEntries.map((e) => [e.uri, e]),
       );
 
-      const maxId = Math.max(
-        0,
-        ...oldDataEntriesSelected.map((d) => {
-          const match = d.name.match(/URI-(\d+)/);
-          return match ? parseInt(match[1], 10) : 0;
-        }),
+      // Deduplicate URIs (existing + new)
+      const allUris = Array.from(
+        new Set([...dataDbEntries.map((e) => e.uri), ...response.entries]),
       );
 
-      const newDataEntries: URIData[] = response.entries
-        .filter(
-          (entry: string) =>
-            !oldDataEntriesSelected.some((d) => d.uri === entry),
-        )
-        .map((entry: string, index: number) => ({
-          name: `URI-${maxId + index + 1}`,
-          uri: entry,
-        }));
+      const newUriNameList = dataDbEntries.map((e) => e.name);
 
-      setDataDbEntries([...oldDataEntriesSelected, ...newDataEntries]);
+      const newUriData: URIData[] = allUris.map((uri) => {
+        const existing = existingMap.get(uri);
+        const name = existing
+          ? existing.name
+          : getNextAvailableUriName(newUriNameList);
+        const uriColor = existing ? existing.uriColor : getColorRandom();
+
+        if (!existing) newUriNameList.push(name);
+
+        return { uri, name, uriColor };
+      });
+
+      setDataDbEntries(newUriData);
       showNotification({
         title: 'Success',
         message: 'Data successfully fetched from db entries',
