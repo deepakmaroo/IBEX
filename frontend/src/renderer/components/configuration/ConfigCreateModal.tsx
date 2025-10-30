@@ -6,6 +6,7 @@ import {
   Modal,
   Select,
   Stack,
+  Text,
   TextInput,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
@@ -17,7 +18,7 @@ interface Props {
   configurationsNames: string[];
   isOpen: boolean;
   onClose: () => void;
-  handleAddConfiguration: (data: ConfigForm) => void;
+  handleAddConfiguration: (data: ConfigForm, templatePath?: string) => void;
   handleAddTree: () => void;
 }
 
@@ -34,6 +35,8 @@ export function ConfigCreateModal({
   >(null);
   const [selectedLocalTemplate, setSelectedLocalTemplate] =
     useState<File | null>(null);
+  const [selectedLocalTemplatePath, setSelectedLocalTemplatePath] =
+    useState('');
 
   const form = useForm<ConfigForm>({
     initialValues: {
@@ -49,14 +52,22 @@ export function ConfigCreateModal({
     },
   });
 
-  function handleSubmit(data: ConfigForm) {
-    handleAddConfiguration(data);
-    form.reset();
-    onClose();
+  async function handleSubmit(data: ConfigForm) {
+    if (!useTemplate) {
+      // Add configuration
+      handleAddConfiguration(data);
+    } else {
+      // Add configuration with template
+      handleAddConfiguration(data, selectedLocalTemplatePath);
+    }
 
-    // Show URIs selection modal
-    handleAddTree();
+    // Reset forms from add modal
+    form.reset();
     resetTemplates();
+
+    // Redirect to URIs selection modal
+    onClose();
+    handleAddTree();
   }
 
   function handleValidationError() {
@@ -86,6 +97,7 @@ export function ConfigCreateModal({
   const handleSelectLocalTemplate = async () => {
     // Open file selector
     const localFilePath: string = await window.api.fs.getFilePathDialog('json');
+    setSelectedLocalTemplatePath(localFilePath);
 
     // Reset selected template from folder
     setSelectedFolderTemplate(null);
@@ -114,7 +126,7 @@ export function ConfigCreateModal({
       data-testid="config-create-modal"
     >
       <form onSubmit={form.onSubmit(handleSubmit, handleValidationError)}>
-        <Stack>
+        <Stack gap={16}>
           <TextInput
             label="Name"
             {...form.getInputProps('name')}
@@ -129,18 +141,25 @@ export function ConfigCreateModal({
             onChange={(event) => handleUseTemplate(event.currentTarget.checked)}
           />
           {useTemplate && (
-            <>
+            <Stack gap={0}>
               <Select
                 label="Template from folders"
+                placeholder="Select template from folders"
                 value={selectedFolderTemplate}
                 data={['A', 'B', 'C']}
+                mx="2rem"
                 onChange={handleSelectFolderTemplate}
+                disabled={true} // TODO => alimenter en templates de configuration (prend un ou plusieurs dossiers et affiche toutes les configs enfants)
               />
 
-              <FileInput
+              <Center mt={8}>
+                <Text>or</Text>
+              </Center>
+
+              <FileInput // TODO (in-progress) => Modifier la configuration pour qu'elle soit le template & permettre de modifier le/les URIs
                 clearable
                 label="Local template"
-                placeholder="Select local imas file"
+                placeholder="Select local template"
                 value={selectedLocalTemplate ?? null}
                 onClick={handleSelectLocalTemplate}
                 onChange={(value) => {
@@ -148,8 +167,9 @@ export function ConfigCreateModal({
                     setSelectedLocalTemplate(null);
                   }
                 }}
+                mx="2rem"
               />
-            </>
+            </Stack>
           )}
           <Center mt="md">
             <Button type="submit" data-testid="config-create-submit-button">

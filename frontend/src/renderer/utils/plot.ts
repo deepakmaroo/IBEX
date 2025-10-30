@@ -2,12 +2,15 @@ import { showNotification } from '@mantine/notifications';
 import {
   Axis,
   AxisData,
+  BaseCoordinates,
   Configuration,
+  ConfigurationToSave,
   Coordinates,
   DataGridPlot,
   DataPlotly,
   PlotCoordinatesResponse,
   PlotDataResponse,
+  URIData,
   URITreeNodeData,
 } from '../types';
 import { fetchDataPlot } from './fetchData';
@@ -467,6 +470,59 @@ const updateExistingPlot = (
   ];
   return updatedActive;
 };
+
+/**
+ * @description Format config to allow to call plotNodeUriLoaded
+ * @param activeConfiguration The configuration to format
+ */
+export function formatConfigBeforeLoadingURIs(
+  activeConfiguration: ConfigurationToSave | Configuration,
+) {
+  const newListDataGridPlot: DataGridPlot[] = activeConfiguration.dataPlot.map(
+    (data): DataGridPlot => ({
+      ...data,
+      isEditing: false,
+      static: false,
+      coordinates:
+        data.coordinates && data.coordinates.length > 0
+          ? data.coordinates.map(
+              (coord: BaseCoordinates, index): Coordinates => {
+                return {
+                  ...coord,
+                  name: '',
+                  shape: [],
+                  downsampled_shape: [],
+                  coordinates: [],
+                  data: [],
+                  axeIndex: index,
+                };
+              },
+            )
+          : [],
+      plot: data.plot.map((plot): DataPlotly => {
+        const matched = activeConfiguration.dataURI.find(
+          (uri: URIData) => plot.labelUri === uri.name,
+        );
+
+        let fullNodeUri = plot.nodeUri;
+        if (matched) {
+          const suffix = plot.nodeUri.slice(matched.name.length);
+          fullNodeUri = `${matched.uri}${suffix}`;
+        }
+
+        return {
+          ...plot,
+          nodeUri: fullNodeUri,
+          yData: [],
+          x: [],
+          y: [],
+        };
+      }),
+    }),
+  );
+
+  return newListDataGridPlot;
+}
 
 /**
  * @description Fetches data for each plot in the provided DataGridPlot from file configuration.

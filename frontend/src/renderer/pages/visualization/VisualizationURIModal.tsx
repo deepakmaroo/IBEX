@@ -15,7 +15,7 @@ import {
   TextInput,
 } from '@mantine/core';
 import { useIbexStore } from '../../stores';
-import { Configuration, FormDbEntries, URIData } from 'src/renderer/types';
+import { Configuration, FormDbEntries, URIData } from '../../types';
 import { useEffect, useState } from 'react';
 import { IconPlus } from '@tabler/icons-react';
 import { showNotification } from '@mantine/notifications';
@@ -24,6 +24,8 @@ import {
   fetchDataEntries,
   fetchURIExists,
   fetchURIFromPath,
+  formatConfigBeforeLoadingURIs,
+  plotNodeUriLoaded,
   updateCustomDataTree,
 } from '../../utils';
 
@@ -181,11 +183,29 @@ export const VisualizationURIModal = ({
    * Update data URI
    * @returns
    */
-  const updateDataURI = (): void => {
+  const updateDataURI = async (): Promise<void> => {
     const newCustomDataTree = updateCustomDataTree(
       active.customDataTree,
       dataURIsSelected,
     );
+
+    // Update plot.nodeUri with selected URIs
+    for (const dataPlot of active.dataPlot) {
+      for (const plot of dataPlot.plot) {
+        const splittedNodeUri = plot.nodeUri.split('#');
+        if (plot.labelUri === splittedNodeUri[0]) {
+          const uriToApply = dataURIsSelected.find(
+            (selectedUri) => selectedUri.name === plot.labelUri,
+          )?.uri;
+          plot.nodeUri = uriToApply + '#' + splittedNodeUri[1];
+        }
+      }
+    }
+
+    // Get new data from BE
+    const newListDataGridPlot = formatConfigBeforeLoadingURIs(active);
+    const wantedDataPlot = await plotNodeUriLoaded(newListDataGridPlot);
+    active.dataPlot = wantedDataPlot;
 
     const updatedActive: Configuration = {
       ...active,

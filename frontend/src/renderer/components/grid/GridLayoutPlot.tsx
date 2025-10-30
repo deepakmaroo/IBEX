@@ -13,7 +13,7 @@ import {
   DataPlotly,
   GridLayoutPlotProps,
 } from 'src/renderer/types';
-import { Container, ScrollArea, Tabs } from '@mantine/core';
+import { Center, Container, ScrollArea, Tabs, Text } from '@mantine/core';
 import { SimplePlotly, Surface2D } from '../plot';
 import { useIbexStore } from '../../stores';
 import {
@@ -334,21 +334,29 @@ export const GridLayoutPlot = ({
 
   return (
     <Container fluid w={widthGrid} p={0}>
-      <HoverButtons
-        data={data}
-        downsamplingMethod={downsamplingMethod}
-        downsamplingList={downsamplingList}
-        setDownsamplingMethod={setDownsamplingMethod}
-        handleEditGrid={handleEditGrid}
-        handleInspectMetadata={handleInspectMetadata}
-        handleDeleteGrid={handleDeleteGrid}
-        is3DView={is3DView}
-        setIs3DView={setIs3DView}
-        active3DTab={active3DTab}
-        setActive3DTab={setActive3DTab}
-      />
+      {active.dataURI.length > 0 && (
+        <HoverButtons
+          data={data}
+          downsamplingMethod={downsamplingMethod}
+          downsamplingList={downsamplingList}
+          setDownsamplingMethod={setDownsamplingMethod}
+          handleEditGrid={handleEditGrid}
+          handleInspectMetadata={handleInspectMetadata}
+          handleDeleteGrid={handleDeleteGrid}
+          is3DView={is3DView}
+          setIs3DView={setIs3DView}
+          active3DTab={active3DTab}
+          setActive3DTab={setActive3DTab}
+        />
+      )}
 
-      {!data.coordinates.length ? (
+      {!(active.dataURI.length > 0) ? (
+        // Control when loading a template without selecting URIs
+        <Center h={heightGrid}>
+          <Text>Current configuration has no data. Please, select URIs.</Text>
+        </Center>
+      ) : !data.coordinates.length ? (
+        // Show metadata when not enough coordinates to plot
         <Container pt="40px" p="1rem">
           <Tabs
             value={metadataTabsValue}
@@ -402,6 +410,7 @@ export const GridLayoutPlot = ({
           </Tabs>
         </Container>
       ) : is3DView ? (
+        // Show heatmap
         <Surface2D
           itemDataGrid={data}
           width={
@@ -414,6 +423,7 @@ export const GridLayoutPlot = ({
           handleUpdateCoordinate={handleUpdateCoordinate}
         />
       ) : (
+        // Show simple plot
         <SimplePlotly
           itemDataGrid={data}
           width={

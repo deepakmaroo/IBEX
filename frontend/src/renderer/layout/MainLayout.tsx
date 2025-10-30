@@ -11,12 +11,11 @@ import {
   Coordinates,
   DataGridPlot,
   DataGridPlotToSave,
-  DataPlotly,
-  URIData,
 } from '../types';
 import { ConfigCreateModal, ConfirmModal, Header } from '../components';
 import {
   createDefaultConfig,
+  formatConfigBeforeLoadingURIs,
   plotNodeUriLoaded,
   updateCustomDataTree,
 } from '../utils';
@@ -53,12 +52,27 @@ export function MainLayout() {
   }
   const w = window as InitWindow;
 
-  const handleAddConfiguration = (config: ConfigForm) => {
+  const handleAddConfiguration = async (
+    config: ConfigForm,
+    templatePath?: string,
+  ) => {
+    let dataPlotFromTemplate: DataGridPlot[];
+    if (templatePath) {
+      const rawFileContent: string = await window.api.fs.readFile(templatePath);
+      const fileContent: Configuration = rawFileContent.trim()
+        ? JSON.parse(rawFileContent)
+        : {};
+      if (fileContent?.dataPlot && Array.isArray(fileContent.dataPlot)) {
+        // Get data plots from template
+        dataPlotFromTemplate = fileContent.dataPlot;
+      }
+    }
+
     const newConfig: Configuration = {
       name: config.name,
       dataURI: [],
       customDataTree: [],
-      dataPlot: [],
+      dataPlot: dataPlotFromTemplate ?? [],
       checkedNodeURI: [],
     };
     addConfiguration(newConfig);
@@ -193,49 +207,7 @@ export function MainLayout() {
         newIbexState.name = newConfigurationName;
       }
 
-      const newListDataGridPlot: DataGridPlot[] = newIbexState.dataPlot.map(
-        (data): DataGridPlot => ({
-          ...data,
-          isEditing: false,
-          static: false,
-          coordinates:
-            data.coordinates && data.coordinates.length > 0
-              ? data.coordinates.map(
-                  (coord: BaseCoordinates, index): Coordinates => {
-                    return {
-                      ...coord,
-                      name: '',
-                      shape: [],
-                      downsampled_shape: [],
-                      coordinates: [],
-                      data: [],
-                      axeIndex: index,
-                    };
-                  },
-                )
-              : [],
-          plot: data.plot.map((plot): DataPlotly => {
-            const matched = newIbexState.dataURI.find(
-              (uri: URIData) => plot.labelUri === uri.name,
-            );
-
-            let fullNodeUri = plot.nodeUri;
-            if (matched) {
-              const suffix = plot.nodeUri.slice(matched.name.length);
-              fullNodeUri = `${matched.uri}${suffix}`;
-            }
-
-            return {
-              ...plot,
-              nodeUri: fullNodeUri,
-              yData: [],
-              x: [],
-              y: [],
-            };
-          }),
-        }),
-      );
-
+      const newListDataGridPlot = formatConfigBeforeLoadingURIs(newIbexState);
       const newConfig: Configuration = {
         name: newIbexState.name,
         dataURI: newIbexState.dataURI,
