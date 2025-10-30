@@ -2,6 +2,9 @@ export type URIData = {
   name: string;
   uri: string;
   uriColor?: string;
+};
+
+export type URISelectionData = URIData & {
   isSelected: boolean;
 };
 

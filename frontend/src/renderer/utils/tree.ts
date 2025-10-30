@@ -85,7 +85,6 @@ export const updateCustomDataTree = (
       data: existingItem ? existingItem.data : [],
       uriColor: existingItem ? existingItem.uriColor : ids.uriColor,
       expendAll: false,
-      isSelected: existingItem ? existingItem.isSelected : ids.isSelected,
     };
   });
 

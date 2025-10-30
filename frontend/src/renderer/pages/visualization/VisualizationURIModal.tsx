@@ -15,7 +15,11 @@ import {
   TextInput,
 } from '@mantine/core';
 import { useIbexStore } from '../../stores';
-import { Configuration, FormDbEntries, URIData } from 'src/renderer/types';
+import {
+  Configuration,
+  FormDbEntries,
+  URISelectionData,
+} from 'src/renderer/types';
 import { useEffect, useState } from 'react';
 import { IconPlus } from '@tabler/icons-react';
 import { showNotification } from '@mantine/notifications';
@@ -46,7 +50,7 @@ export const VisualizationURIModal = ({
   close,
 }: VisualizationSelectIDSModalProps) => {
   const { active, updatedConfiguration } = useIbexStore();
-  const [dataDbEntries, setDataDbEntries] = useState<URIData[]>([]);
+  const [dataDbEntries, setDataDbEntries] = useState<URISelectionData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingDbEntries, setIsLoadingDbEntries] = useState(false);
   const [isLoadedDbEntries, setIsLoadedDbEntries] = useState(false);
@@ -92,9 +96,9 @@ export const VisualizationURIModal = ({
   }
 
   function properlyAddUriToUriList(
-    uriList: URIData[],
-    newUri: URIData,
-  ): URIData[] {
+    uriList: URISelectionData[],
+    newUri: URISelectionData,
+  ): URISelectionData[] {
     if (uriList.map((value) => value.uri).includes(newUri.uri)) {
       // URI already present in list, leaving
       return uriList;
@@ -113,7 +117,10 @@ export const VisualizationURIModal = ({
         isSelected: false,
       }));
 
-      const newUriDb = active.dataURI;
+      const newUriDb: URISelectionData[] = active.dataURI.map((dataUri) => ({
+        ...dataUri,
+        isSelected: true,
+      }));
 
       for (const uri of oldUriDb) {
         properlyAddUriToUriList(newUriDb, uri);
@@ -255,15 +262,14 @@ export const VisualizationURIModal = ({
       return;
     }
 
-    const newUri: URIData = {
-      name: `URI-0`,
+    const newUri: URISelectionData = {
+      name: getNextAvailableUriName(dataDbEntries.map((value) => value.name)),
       uri: uriToCheck,
       uriColor: getColorRandom(),
       isSelected: true,
     };
 
-    setDataDbEntries(properlyAddUriToUriList(dataDbEntries, newUri));
-    handleCheckUri(uriToCheck);
+    dataDbEntries.push(newUri);
     if (errorSetter.length === 1) {
       setFromURIisSuccess(false);
       setFromFileisSuccess(true);
@@ -289,12 +295,6 @@ export const VisualizationURIModal = ({
 
     try {
       setIsLoading(true);
-
-      const config = await window.api.getConfig();
-      if (!config) {
-        throw new Error('Failed to load configuration');
-      }
-
       await URIVerification(formURI.values.uri, formURI.setFieldError);
     } catch (error) {
       console.error('Error:', error.message || error);
@@ -349,7 +349,7 @@ export const VisualizationURIModal = ({
       setIsLoadingDbEntries(true);
       const response = await fetchDataEntries(formDbEntries.values);
 
-      const existingMap = new Map<string, URIData>(
+      const existingMap = new Map<string, URISelectionData>(
         dataDbEntries.map((e) => [e.uri, e]),
       );
 
@@ -360,13 +360,13 @@ export const VisualizationURIModal = ({
 
       const newUriNameList = dataDbEntries.map((e) => e.name);
 
-      const newUriData: URIData[] = allUris.map((uri) => {
+      const newUriData: URISelectionData[] = allUris.map((uri) => {
         const existing = existingMap.get(uri);
         const name = existing
           ? existing.name
           : getNextAvailableUriName(newUriNameList);
         const uriColor = existing ? existing.uriColor : getColorRandom();
-        const isSelected = false;
+        const isSelected = existing ? existing.isSelected : false;
 
         if (!existing) newUriNameList.push(name);
 
