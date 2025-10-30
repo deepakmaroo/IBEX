@@ -21,7 +21,7 @@ import {
   URISelectionData,
 } from 'src/renderer/types';
 import { useEffect, useState } from 'react';
-import { IconPlus } from '@tabler/icons-react';
+import { IconTrashFilled, IconPlus } from '@tabler/icons-react';
 import { showNotification } from '@mantine/notifications';
 import { useForm } from '@mantine/form';
 import {
@@ -30,6 +30,7 @@ import {
   fetchURIFromPath,
   updateCustomDataTree,
 } from '../../utils';
+import { ConfirmModal } from '../../components';
 
 interface VisualizationSelectIDSModalProps {
   opened: boolean;
@@ -61,6 +62,7 @@ export const VisualizationURIModal = ({
   const [localDatasetPath, setLocalDatasetPath] = useState('');
   const [localFile, setLocalFile] = useState<File | null>(null);
   const [localFileError, setLocalFileError] = useState('');
+  const [isDeletingAllUri, setIsDeletingAllUri] = useState(false);
 
   const formURI = useForm<FormIDS>({
     initialValues: {
@@ -157,6 +159,20 @@ export const VisualizationURIModal = ({
       <Table.Th>Select</Table.Th>
       <Table.Th>Name</Table.Th>
       <Table.Th>URI</Table.Th>
+      <Table.Td>
+        <ActionIcon
+          variant="filled"
+          aria-label="Remove URI"
+          component="button"
+          type="button"
+          onClick={() => setIsDeletingAllUri(true)}
+        >
+          <IconTrashFilled
+            style={{ width: '70%', height: '70%' }}
+            stroke={1.5}
+          />
+        </ActionIcon>
+      </Table.Td>
     </Table.Tr>
   );
 
@@ -180,6 +196,20 @@ export const VisualizationURIModal = ({
       </Table.Td>
       <Table.Td>{element.name}</Table.Td>
       <Table.Td>{element.uri}</Table.Td>
+      <Table.Td>
+        <ActionIcon
+          variant="filled"
+          aria-label="Remove URI"
+          component="button"
+          type="button"
+          onClick={() => setDataDbEntries(entries => entries.filter((entry => entry.uri !== element.uri)))}
+        >
+          <IconTrashFilled
+            style={{ width: '70%', height: '70%' }}
+            stroke={1.5}
+          />
+        </ActionIcon>
+      </Table.Td>
     </Table.Tr>
   ));
 
@@ -559,6 +589,15 @@ export const VisualizationURIModal = ({
           Validate
         </Button>
       </Group>
+      <ConfirmModal
+        isOpen={isDeletingAllUri}
+        onClose={() => setIsDeletingAllUri(false)}
+        onConfirm={() => { setDataDbEntries([]); setIsDeletingAllUri(false) }}
+      >
+        <Text size="sm" data-testid="uri-delete-confirmation-text">
+          Are you sure you want to delete all the listed URIs ?
+        </Text>
+      </ConfirmModal>
     </Modal>
   );
 };
