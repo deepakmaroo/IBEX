@@ -7,13 +7,13 @@ import {
   Text,
   Tooltip,
 } from '@mantine/core';
-import { CustomTreeData, URIData, URITreeNodeData } from 'src/renderer/types';
+import { CustomTreeData, URITreeNodeData } from 'src/renderer/types';
 import { TreeLibrary } from '../../components';
 
 interface VisualizationTreeProps {
   customDataTree: CustomTreeData[];
   height: string;
-  checkedNodes: URIData[];
+  checkedNodes: URITreeNodeData[];
   value?: string;
   handleAccordionChange(value: string): Promise<void>;
   handleSelectChildren: (nodeUri: string) => Promise<void>;

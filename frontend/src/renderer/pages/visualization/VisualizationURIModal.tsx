@@ -46,7 +46,6 @@ export const VisualizationURIModal = ({
   close,
 }: VisualizationSelectIDSModalProps) => {
   const { active, updatedConfiguration } = useIbexStore();
-  const [dataURIsSelected, setDataURIsSelected] = useState<string[]>([]);
   const [dataDbEntries, setDataDbEntries] = useState<URIData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingDbEntries, setIsLoadingDbEntries] = useState(false);
@@ -108,17 +107,18 @@ export const VisualizationURIModal = ({
   }
 
   useEffect(() => {
-    if (active?.dataURI?.length > 0) {
-      const oldUriDb = dataDbEntries;
-      const newUriDb = active.dataURI;
+    if (active?.dataURI) {
+      const oldUriDb = dataDbEntries.map((entry) => ({
+        ...entry,
+        isSelected: false,
+      }));
 
-      setDataURIsSelected(newUriDb.map((value) => value.uri));
+      const newUriDb = active.dataURI;
 
       for (const uri of oldUriDb) {
         properlyAddUriToUriList(newUriDb, uri);
       }
-
-      setDataDbEntries(active.dataURI);
+      setDataDbEntries(newUriDb);
     }
   }, [active?.name]);
 
@@ -168,7 +168,7 @@ export const VisualizationURIModal = ({
           onChange={() => {
             handleCheckUri(element.uri);
           }}
-          checked={dataURIsSelected.includes(element.uri)}
+          checked={element.isSelected}
         />
       </Table.Td>
       <Table.Td>{element.name}</Table.Td>
@@ -183,11 +183,11 @@ export const VisualizationURIModal = ({
    * @returns
    */
   const handleCheckUri = (uri: string): void => {
-    if (dataURIsSelected.includes(uri)) {
-      setDataURIsSelected(dataURIsSelected.filter((value) => value !== uri));
-    } else {
-      setDataURIsSelected([...dataURIsSelected, uri]);
-    }
+    setDataDbEntries((prevEntries) =>
+      prevEntries.map((entry) =>
+        entry.uri === uri ? { ...entry, isSelected: !entry.isSelected } : entry,
+      ),
+    );
   };
 
   /**
@@ -197,16 +197,14 @@ export const VisualizationURIModal = ({
   const updateDataURI = (): void => {
     const newCustomDataTree = updateCustomDataTree(
       active.customDataTree,
-      dataDbEntries.filter((value) => dataURIsSelected.includes(value.uri)),
+      dataDbEntries.filter((value) => value.isSelected),
     );
 
     const updatedActive: Configuration = {
       ...active,
       saved: false,
       customDataTree: newCustomDataTree,
-      dataURI: dataDbEntries.filter((value) =>
-        dataURIsSelected.includes(value.uri),
-      ),
+      dataURI: dataDbEntries.filter((value) => value.isSelected),
     };
 
     updatedConfiguration(updatedActive);
@@ -234,7 +232,7 @@ export const VisualizationURIModal = ({
       }
     };
 
-    if (dataURIsSelected.includes(uriToCheck)) {
+    if (dataDbEntries.some((value) => value.uri === uriToCheck)) {
       setter('URI already added');
       showNotification({
         title: 'Error',
@@ -257,24 +255,11 @@ export const VisualizationURIModal = ({
       return;
     }
 
-    if (dataDbEntries.some((d) => d.uri === uriToCheck)) {
-      //if uri in dataDbEntries, then add to dataURIsSelected
-      handleCheckUri(uriToCheck);
-      if (errorSetter.length === 1) {
-        setFromURIisSuccess(false);
-        setFromFileisSuccess(true);
-      } else {
-        setFromURIisSuccess(true);
-        setFromFileisSuccess(false);
-      }
-
-      return;
-    }
-
     const newUri: URIData = {
       name: `URI-0`,
       uri: uriToCheck,
       uriColor: getColorRandom(),
+      isSelected: true,
     };
 
     setDataDbEntries(properlyAddUriToUriList(dataDbEntries, newUri));
@@ -381,10 +366,11 @@ export const VisualizationURIModal = ({
           ? existing.name
           : getNextAvailableUriName(newUriNameList);
         const uriColor = existing ? existing.uriColor : getColorRandom();
+        const isSelected = false;
 
         if (!existing) newUriNameList.push(name);
 
-        return { uri, name, uriColor };
+        return { uri, name, uriColor, isSelected };
       });
 
       setDataDbEntries(newUriData);
@@ -566,7 +552,10 @@ export const VisualizationURIModal = ({
       </Group>
 
       <Group justify="flex-end" mt={20}>
-        <Button disabled={!dataURIsSelected.length} onClick={updateDataURI}>
+        <Button
+          disabled={!dataDbEntries.filter((value) => value.isSelected).length}
+          onClick={updateDataURI}
+        >
           Validate
         </Button>
       </Group>

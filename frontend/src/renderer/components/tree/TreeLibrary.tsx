@@ -23,7 +23,6 @@ import classes from './TreeLibrary.module.css';
 import {
   CustomTreeNodeData,
   NodeInfoTypeEnum,
-  URIData,
   URITreeNodeData,
 } from '../../types';
 import { hasUserSelectedText } from '../../utils';
@@ -34,7 +33,7 @@ interface NodeIconProps {
   type: NodeInfoTypeEnum;
   uriLabel: string;
   expanded: boolean;
-  checkedNodes: URIData[];
+  checkedNodes: URITreeNodeData[];
   tree: UseTreeReturnType;
   textRef: React.RefObject<HTMLDivElement>;
   isOverflowing: boolean;
@@ -44,7 +43,7 @@ interface NodeIconProps {
 interface TreeLibraryProps {
   treeData: CustomTreeNodeData[];
   height?: string;
-  checkedNodes?: URIData[];
+  checkedNodes?: URITreeNodeData[];
   expendAll?: boolean;
   handleSelectChildren: (nodeUri: string) => Promise<void>;
   getCheckedNodes?: (nodes: URITreeNodeData[]) => void;
@@ -56,7 +55,7 @@ interface ElementProps extends RenderTreeNodePayload {
   type: NodeInfoTypeEnum;
   uriLabel: string;
   selectedNode: string | null;
-  checkedNodes?: URIData[];
+  checkedNodes?: URITreeNodeData[];
   tree: UseTreeReturnType;
   setSelectedNode: (node: string | null) => void;
   handleSelectChildren: (nodeUri: string) => Promise<void>;
