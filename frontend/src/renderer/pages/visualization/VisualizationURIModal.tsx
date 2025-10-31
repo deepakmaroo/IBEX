@@ -128,6 +128,27 @@ export const VisualizationURIModal = ({
 
   useEffect(() => {
     if (active?.dataURI) {
+      const uriList = dataDbEntries.map(value => value.uri);
+      for (const activeUri of active.dataURI) {
+        if (!uriList.includes(activeUri.uri)) {
+          dataDbEntries.push({...activeUri, isSelected: true});
+        }
+      }
+
+      dataDbEntries.sort((a, b) => {
+        if (a.isSelected && !b.isSelected) return -1;
+        if (!a.isSelected && b.isSelected) return 1;
+
+        const lengthDiff = a.name.length - b.name.length;
+        if (lengthDiff !== 0) return lengthDiff;
+
+        return a.name.localeCompare(b.name);
+      })
+    }
+  }, [opened]);
+
+  useEffect(() => {
+    if (active?.dataURI) {
       const oldUriDb = dataDbEntries.map((entry) => ({
         ...entry,
         isSelected: false,
@@ -213,6 +234,7 @@ export const VisualizationURIModal = ({
       <Table.Th>Name</Table.Th>
       <Table.Th>URI</Table.Th>
       <Table.Td>
+        {dataDbEntries.length && (
         <ActionIcon
           variant="filled"
           size="lg"
@@ -225,6 +247,7 @@ export const VisualizationURIModal = ({
             stroke={1.5}
           />
         </ActionIcon>
+        )}
       </Table.Td>
     </Table.Tr>
   );
