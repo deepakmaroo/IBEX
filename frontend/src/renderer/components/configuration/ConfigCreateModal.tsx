@@ -156,7 +156,7 @@ export function ConfigCreateModal({
                 <Text>or</Text>
               </Center>
 
-              <FileInput // TODO (in-progress) => Modifier la configuration pour qu'elle soit le template & permettre de modifier le/les URIs
+              <FileInput
                 clearable
                 label="Local template"
                 placeholder="Select local template"

@@ -500,19 +500,17 @@ export function formatConfigBeforeLoadingURIs(
             )
           : [],
       plot: data.plot.map((plot): DataPlotly => {
-        const matched = activeConfiguration.dataURI.find(
-          (uri: URIData) => plot.labelUri === uri.name,
-        );
-
-        let fullNodeUri = plot.nodeUri;
-        if (matched) {
-          const suffix = plot.nodeUri.slice(matched.name.length);
-          fullNodeUri = `${matched.uri}${suffix}`;
+        // Update plot.nodeUri with selected URIs
+        const splittedNodeUri = plot.nodeUri.split('#');
+        if (plot.labelUri === splittedNodeUri[0]) {
+          const uriToApply = activeConfiguration.dataURI.find(
+            (uri: URIData) => plot.labelUri === uri.name,
+          )?.uri;
+          plot.nodeUri = uriToApply + '#' + splittedNodeUri[1];
         }
 
         return {
           ...plot,
-          nodeUri: fullNodeUri,
           yData: [],
           x: [],
           y: [],

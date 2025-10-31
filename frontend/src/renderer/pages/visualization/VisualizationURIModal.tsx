@@ -13,11 +13,12 @@ import {
   Table,
   Text,
   TextInput,
+  Tooltip,
 } from '@mantine/core';
 import { useIbexStore } from '../../stores';
 import { Configuration, FormDbEntries, URIData } from '../../types';
 import { useEffect, useState } from 'react';
-import { IconPlus } from '@tabler/icons-react';
+import { IconAlertSquareRounded, IconPlus } from '@tabler/icons-react';
 import { showNotification } from '@mantine/notifications';
 import { useForm } from '@mantine/form';
 import {
@@ -60,6 +61,10 @@ export const VisualizationURIModal = ({
   const [localDatasetPath, setLocalDatasetPath] = useState('');
   const [localFile, setLocalFile] = useState<File | null>(null);
   const [localFileError, setLocalFileError] = useState('');
+  const [nodeURIsRequiredByTemplate, setNodeURIsRequiredByTemplate] = useState<
+    string[]
+  >([]);
+  const [isMissingURIs, setIsMissingURIs] = useState(false);
 
   const formURI = useForm<FormIDS>({
     initialValues: {
@@ -93,6 +98,45 @@ export const VisualizationURIModal = ({
       setDataDbEntries([...dataURIsSelected, ...dbEntriesNotSelected]);
     }
   }, [active]);
+
+  useEffect(() => {
+    const updateRequiredURIsList = () => {
+      if (active?.dataPlot?.length) {
+        // Get URIs used in dataPlots
+        const nodeURIsRequired = Array.from(
+          new Set(
+            active.dataPlot.flatMap((d) => d.plot.map((p) => p.labelUri)),
+          ),
+        );
+        setNodeURIsRequiredByTemplate(nodeURIsRequired);
+      } else {
+        // No URIs used in dataPlots
+        setNodeURIsRequiredByTemplate([]);
+      }
+    };
+
+    // When changing active config or adding / removing dataPlot, update required URIs list
+    updateRequiredURIsList();
+  }, [active?.name, active?.dataPlot]);
+
+  useEffect(() => {
+    const checkIfMissingURIs = () => {
+      if (dataURIsSelected.length) {
+        // Check if all required URIs are selected
+        const missingURIs = nodeURIsRequiredByTemplate.filter(
+          (uri) =>
+            !dataURIsSelected.map((selected) => selected.name).includes(uri),
+        );
+        setIsMissingURIs(missingURIs?.length > 0 || false);
+      } else {
+        // No URI selected so missing if some URIs are required
+        setIsMissingURIs(nodeURIsRequiredByTemplate?.length > 0);
+      }
+    };
+
+    // When select/unslect uri or when required URIs list change, check if there is missing URIs
+    checkIfMissingURIs();
+  }, [dataURIsSelected, nodeURIsRequiredByTemplate]);
 
   useEffect(() => {
     // Get file from selected path (local dataset)
@@ -554,6 +598,20 @@ export const VisualizationURIModal = ({
         </Fieldset>
       </form>
 
+      {isMissingURIs && nodeURIsRequiredByTemplate?.length > 0 && (
+        <Tooltip
+          position="top-start"
+          label={`Requires ${nodeURIsRequiredByTemplate.length > 1 ? ' these URIs' : ' this URI'}: "${nodeURIsRequiredByTemplate.join(', ')}".`}
+        >
+          <Group gap={10} w="fit-content">
+            <IconAlertSquareRounded size={20} color="red" />
+            <Text
+              size="sm"
+              c="red"
+            >{`The selected template requires ${nodeURIsRequiredByTemplate.length} URIs.`}</Text>
+          </Group>
+        </Tooltip>
+      )}
       <Table withTableBorder>
         <Table.Thead>{tableHeaders}</Table.Thead>
 
@@ -576,7 +634,10 @@ export const VisualizationURIModal = ({
       </Group>
 
       <Group justify="flex-end" mt={20}>
-        <Button disabled={!dataURIsSelected.length} onClick={updateDataURI}>
+        <Button
+          disabled={!dataURIsSelected.length || isMissingURIs}
+          onClick={updateDataURI}
+        >
           Validate
         </Button>
       </Group>
