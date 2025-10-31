@@ -4,6 +4,10 @@ export type URIData = {
   uriColor?: string;
 };
 
+export type URISelectionData = URIData & {
+  isSelected: boolean;
+};
+
 export type URITreeNodeData = {
   name: string;
   uri: string;

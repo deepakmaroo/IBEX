@@ -10,7 +10,7 @@ import {
   UseTreeReturnType,
   useTree,
 } from '@mantine/core';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   IconFileUnknown,
   IconFolder,
@@ -23,17 +23,17 @@ import classes from './TreeLibrary.module.css';
 import {
   CustomTreeNodeData,
   NodeInfoTypeEnum,
-  URIData,
   URITreeNodeData,
 } from '../../types';
 import { hasUserSelectedText } from '../../utils';
+import { useIbexStore } from '../../stores';
 
 interface NodeIconProps {
   node: TreeNodeData;
   type: NodeInfoTypeEnum;
   uriLabel: string;
   expanded: boolean;
-  checkedNodes: URIData[];
+  checkedNodes: URITreeNodeData[];
   tree: UseTreeReturnType;
   textRef: React.RefObject<HTMLDivElement>;
   isOverflowing: boolean;
@@ -43,20 +43,22 @@ interface NodeIconProps {
 interface TreeLibraryProps {
   treeData: CustomTreeNodeData[];
   height?: string;
-  checkedNodes?: URIData[];
+  checkedNodes?: URITreeNodeData[];
   expendAll?: boolean;
-  handleSelectChildren: (node: string) => void;
+  handleSelectChildren: (nodeUri: string) => Promise<void>;
   getCheckedNodes?: (nodes: URITreeNodeData[]) => void;
+  getCurrentSelectedURI: () => string;
+  handleAccordionChange(value: string): Promise<void>;
 }
 
 interface ElementProps extends RenderTreeNodePayload {
   type: NodeInfoTypeEnum;
   uriLabel: string;
   selectedNode: string | null;
-  checkedNodes?: URIData[];
+  checkedNodes?: URITreeNodeData[];
   tree: UseTreeReturnType;
   setSelectedNode: (node: string | null) => void;
-  handleSelectChildren: (node: string) => void;
+  handleSelectChildren: (nodeUri: string) => Promise<void>;
   getCheckedNodes: (nodes: URITreeNodeData[]) => void;
 }
 
@@ -287,7 +289,10 @@ export const TreeLibrary = ({
   expendAll,
   handleSelectChildren,
   getCheckedNodes,
+  getCurrentSelectedURI,
+  handleAccordionChange,
 }: TreeLibraryProps) => {
+  const { active } = useIbexStore();
   const tree = useTree();
   const [selectedNode, setSelectedNode] = useState<string>(null);
 
@@ -322,6 +327,72 @@ export const TreeLibrary = ({
       tree.clearSelected();
     }
   }, [expendAll]);
+
+  const isEditingPlot = useMemo(
+    () => active?.dataPlot?.map((p) => p.isEditing).join(','),
+    [active],
+  );
+
+  useEffect(() => {
+    if (!active?.dataPlot) return;
+
+    const run = async () => {
+      const dataPlot = active.dataPlot.find((p) => p.isEditing);
+      if (!dataPlot || dataPlot.plot.length === 0) return;
+
+      let selectedURI: string | undefined = undefined;
+
+      for (const plot of dataPlot.plot) {
+        const plotUriSplit = plot.nodeUri.split('#');
+        const plotUri = plotUriSplit[0];
+        const nodeList = plotUriSplit[1]
+          .replace(/\[\d+\]/g, '[:]')
+          .split(/(?<=\/)/);
+        nodeList.pop();
+
+        if (!plotUri || plotUri === '') {
+          continue;
+        }
+
+        if (!nodeList || nodeList.length === 0) {
+          continue;
+        }
+
+        if (!selectedURI || selectedURI === plotUri) {
+          selectedURI = plotUri;
+
+          if (selectedURI !== getCurrentSelectedURI()) {
+            await handleAccordionChange(selectedURI);
+          }
+
+          let endPoint = selectedURI + '#';
+          const { active } = useIbexStore.getState();
+          let customTreeNodeData = active.customDataTree.find(
+            (customTreeData) => customTreeData.uri === selectedURI,
+          )?.data;
+          let nodeLoaded = true;
+          for (const node of nodeList) {
+            endPoint += node;
+            customTreeNodeData = customTreeNodeData?.find(
+              (customTreeData) => customTreeData.value === endPoint,
+            )?.children;
+            if (
+              !nodeLoaded ||
+              !customTreeNodeData ||
+              customTreeNodeData.length === 0
+            ) {
+              nodeLoaded = false;
+              await handleSelectChildren(endPoint);
+            }
+            setSelectedNode(endPoint);
+            tree.expand(endPoint);
+          }
+        }
+      }
+    };
+
+    run();
+  }, [isEditingPlot]);
 
   return (
     <ScrollArea h={height}>

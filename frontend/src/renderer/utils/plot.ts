@@ -212,7 +212,7 @@ export const handleExistingPlot = async (
 
   for (const node of dataToPlot) {
     let defaultUri = node.uri;
-    if (defaultUri !== nodes[0].uri) {
+    if (defaultUri.split('#')[0] !== nodes[0].uri.split('#')[0]) {
       showNotification({
         title: 'Plot',
         message: 'Unable to plot data from different URIs',

@@ -1,4 +1,4 @@
-import { URIData } from './uri';
+import { URIData, URITreeNodeData } from './uri';
 import { DataGridPlot, DataGridPlotToSave } from './plot';
 import { CustomTreeData } from './tree';
 
@@ -10,7 +10,7 @@ export interface BaseConfiguration {
 }
 
 export interface Configuration extends BaseConfiguration {
-  checkedNodeURI: URIData[];
+  checkedNodeURI: URITreeNodeData[];
   customDataTree: CustomTreeData[];
   dataPlot: DataGridPlot[];
   path?: string;
