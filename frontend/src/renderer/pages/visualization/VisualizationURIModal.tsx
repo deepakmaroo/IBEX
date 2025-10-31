@@ -202,7 +202,11 @@ export const VisualizationURIModal = ({
           aria-label="Remove URI"
           component="button"
           type="button"
-          onClick={() => setDataDbEntries(entries => entries.filter((entry => entry.uri !== element.uri)))}
+          onClick={() =>
+            setDataDbEntries((entries) =>
+              entries.filter((entry) => entry.uri !== element.uri),
+            )
+          }
         >
           <IconTrashFilled
             style={{ width: '70%', height: '70%' }}
@@ -222,7 +226,17 @@ export const VisualizationURIModal = ({
   const handleCheckUri = (uri: string): void => {
     setDataDbEntries((prevEntries) =>
       prevEntries.map((entry) =>
-        entry.uri === uri ? { ...entry, isSelected: !entry.isSelected } : entry,
+        entry.uri === uri
+          ? {
+              ...entry,
+              isSelected: !entry.isSelected,
+              name: entry.isSelected
+                ? ''
+                : getNextAvailableUriName(
+                  dataDbEntries.map((value) => value.name),
+                ),
+            }
+          : entry,
       ),
     );
   };
@@ -392,9 +406,7 @@ export const VisualizationURIModal = ({
 
       const newUriData: URISelectionData[] = allUris.map((uri) => {
         const existing = existingMap.get(uri);
-        const name = existing
-          ? existing.name
-          : getNextAvailableUriName(newUriNameList);
+        const name = existing ? existing.name : '';
         const uriColor = existing ? existing.uriColor : getColorRandom();
         const isSelected = existing ? existing.isSelected : false;
 
@@ -592,7 +604,10 @@ export const VisualizationURIModal = ({
       <ConfirmModal
         isOpen={isDeletingAllUri}
         onClose={() => setIsDeletingAllUri(false)}
-        onConfirm={() => { setDataDbEntries([]); setIsDeletingAllUri(false) }}
+        onConfirm={() => {
+          setDataDbEntries([]);
+          setIsDeletingAllUri(false);
+        }}
       >
         <Text size="sm" data-testid="uri-delete-confirmation-text">
           Are you sure you want to delete all the listed URIs ?
