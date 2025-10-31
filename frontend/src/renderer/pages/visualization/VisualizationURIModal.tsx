@@ -19,7 +19,8 @@ import { useIbexStore } from '../../stores';
 import { useEffect, useMemo, useState } from 'react';
 import {
   IconAlertSquareRounded,
-  IconTrashFilled,
+  IconX,
+  IconSquareRoundedLetterX,
   IconPlus,
 } from '@tabler/icons-react';
 import { Configuration, FormDbEntries, URISelectionData } from '../../types';
@@ -214,12 +215,12 @@ export const VisualizationURIModal = ({
       <Table.Td>
         <ActionIcon
           variant="filled"
-          aria-label="Remove URI"
-          component="button"
-          type="button"
+          size="lg"
+          color="red"
           onClick={() => setIsDeletingAllUri(true)}
         >
-          <IconTrashFilled
+          <IconX
+            color="white"
             style={{ width: '70%', height: '70%' }}
             stroke={1.5}
           />
@@ -250,7 +251,7 @@ export const VisualizationURIModal = ({
       <Table.Td>{element.uri}</Table.Td>
       <Table.Td>
         <ActionIcon
-          variant="filled"
+          variant="transparent"
           aria-label="Remove URI"
           component="button"
           type="button"
@@ -260,7 +261,8 @@ export const VisualizationURIModal = ({
             )
           }
         >
-          <IconTrashFilled
+          <IconX
+            color="red"
             style={{ width: '70%', height: '70%' }}
             stroke={1.5}
           />
