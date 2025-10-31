@@ -16,7 +16,7 @@ import {
   Tooltip,
 } from '@mantine/core';
 import { useIbexStore } from '../../stores';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   IconAlertSquareRounded,
   IconX,
@@ -126,24 +126,27 @@ export const VisualizationURIModal = ({
     return uriList;
   }
 
+  const sortUri = useCallback(() => {
+    dataDbEntries.sort((a, b) => {
+      if (a.isSelected && !b.isSelected) return -1;
+      if (!a.isSelected && b.isSelected) return 1;
+
+      const lengthDiff = a.name.length - b.name.length;
+      if (lengthDiff !== 0) return lengthDiff;
+
+      return a.name.localeCompare(b.name);
+    })
+  }, [dataDbEntries]);
+
   useEffect(() => {
-    if (active?.dataURI) {
+    if (active?.dataURI && !opened) {
       const uriList = dataDbEntries.map(value => value.uri);
       for (const activeUri of active.dataURI) {
         if (!uriList.includes(activeUri.uri)) {
           dataDbEntries.push({...activeUri, isSelected: true});
         }
       }
-
-      dataDbEntries.sort((a, b) => {
-        if (a.isSelected && !b.isSelected) return -1;
-        if (!a.isSelected && b.isSelected) return 1;
-
-        const lengthDiff = a.name.length - b.name.length;
-        if (lengthDiff !== 0) return lengthDiff;
-
-        return a.name.localeCompare(b.name);
-      })
+      sortUri();
     }
   }, [opened]);
 
