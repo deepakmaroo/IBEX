@@ -106,7 +106,7 @@ export const VisualizationURIModal = ({
       return uriList;
     }
 
-    newUri.name = getNextAvailableUriName(uriList.map((value) => value.name));
+    newUri.name = newUri.isSelected ? getNextAvailableUriName(uriList.map((value) => value.name)) : "";
 
     uriList.push(newUri);
     return uriList;
