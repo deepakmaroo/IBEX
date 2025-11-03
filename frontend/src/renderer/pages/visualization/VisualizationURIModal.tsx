@@ -126,8 +126,8 @@ export const VisualizationURIModal = ({
     return uriList;
   }
 
-  const sortUri = useCallback(() => {
-    dataDbEntries.sort((a, b) => {
+  function sortUri(uriList: URISelectionData[]) {
+    uriList.sort((a, b) => {
       if (a.isSelected && !b.isSelected) return -1;
       if (!a.isSelected && b.isSelected) return 1;
 
@@ -135,23 +135,11 @@ export const VisualizationURIModal = ({
       if (lengthDiff !== 0) return lengthDiff;
 
       return a.name.localeCompare(b.name);
-    })
-  }, [dataDbEntries]);
+    });
+  }
 
   useEffect(() => {
     if (active?.dataURI && !opened) {
-      const uriList = dataDbEntries.map(value => value.uri);
-      for (const activeUri of active.dataURI) {
-        if (!uriList.includes(activeUri.uri)) {
-          dataDbEntries.push({...activeUri, isSelected: true});
-        }
-      }
-      sortUri();
-    }
-  }, [opened]);
-
-  useEffect(() => {
-    if (active?.dataURI) {
       const oldUriDb = dataDbEntries.map((entry) => ({
         ...entry,
         isSelected: false,
@@ -165,9 +153,11 @@ export const VisualizationURIModal = ({
       for (const uri of oldUriDb) {
         properlyAddUriToUriList(newUriDb, uri);
       }
+
+      sortUri(newUriDb);
       setDataDbEntries(newUriDb);
     }
-  }, [active?.name]);
+  }, [opened, active?.name]);
 
   useEffect(() => {
     const updateRequiredURIsList = () => {
@@ -238,18 +228,18 @@ export const VisualizationURIModal = ({
       <Table.Th>URI</Table.Th>
       <Table.Td>
         {dataDbEntries.length && (
-        <ActionIcon
-          variant="filled"
-          size="lg"
-          color="red"
-          onClick={() => setIsDeletingAllUri(true)}
-        >
-          <IconX
-            color="white"
-            style={{ width: '70%', height: '70%' }}
-            stroke={1.5}
-          />
-        </ActionIcon>
+          <ActionIcon
+            variant="filled"
+            size="lg"
+            color="red"
+            onClick={() => setIsDeletingAllUri(true)}
+          >
+            <IconX
+              color="white"
+              style={{ width: '70%', height: '70%' }}
+              stroke={1.5}
+            />
+          </ActionIcon>
         )}
       </Table.Td>
     </Table.Tr>
@@ -308,14 +298,14 @@ export const VisualizationURIModal = ({
       prevEntries.map((entry) =>
         entry.uri === uri
           ? {
-              ...entry,
-              isSelected: !entry.isSelected,
-              name: entry.isSelected
-                ? ''
-                : getNextAvailableUriName(
-                    dataDbEntries.map((value) => value.name),
-                  ),
-            }
+            ...entry,
+            isSelected: !entry.isSelected,
+            name: entry.isSelected
+              ? ''
+              : getNextAvailableUriName(
+                dataDbEntries.map((value) => value.name),
+              ),
+          }
           : entry,
       ),
     );
