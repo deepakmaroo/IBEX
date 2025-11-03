@@ -19,7 +19,7 @@ import {
 } from '../../utils';
 import classes from './Surface2D.module.css';
 import { useIbexStore } from '../../stores';
-import { PlotTitle } from './PlotTitle';
+import { NoDataForURI, PlotTitle } from '../plot';
 
 interface Surface2DProps {
   itemDataGrid: DataGridPlot;
@@ -251,84 +251,90 @@ export const Surface2D = ({
       }}
       mt={10}
     >
-      <Grid.Col
-        className={classes.handlePlotExplorationContainer}
-        span="content"
-        mt={25}
-      >
-        <Stack gap={5}>
-          {['x', 'y'].map((targetAxis: 'x' | 'y', axisIndex) => (
-            <Group key={`handle_axis_${axisIndex}`} gap={5}>
-              <Text>{targetAxis}</Text>
-              <Select
-                label=""
-                value={
-                  itemDataGrid.coordinates.find(
-                    (coord: Coordinates) =>
-                      coord.axeIndex === (targetAxis === 'y' ? 1 : 0),
-                  ).name
-                }
-                data={itemDataGrid.coordinates.map(
-                  (coord: Coordinates) => coord.name,
-                )}
-                w={`${width * 0.2}px`}
-                onChange={(value) =>
-                  value &&
-                  swapAxis(
-                    itemDataGrid,
-                    active,
-                    updatedConfiguration,
-                    itemDataGrid.coordinates.find(
-                      (coord: Coordinates) => coord.name === value,
-                    ).axeIndex,
-                    targetAxis,
-                  )
-                }
-                size="xs"
-                disabled={!itemDataGrid.isEditing}
-              />
-            </Group>
-          ))}
-        </Stack>
-
-        <Group
-          justify="space-between"
-          gap="0"
-          w={`${width * 0.2}px`}
-          miw={`${(itemDataGrid.coordinates.length - coordsUsedInAxes) * 50}px`}
-          align="flex-end"
-        >
-          {JSON.parse(JSON.stringify(itemDataGrid.coordinates))
-            .sort(compareByAxeIndex)
-            .map(
-              (item: Coordinates, valueIndex: number) =>
-                item.axeIndex !== 0 &&
-                item.axeIndex !== 1 && ( // Don't return slider linked to x & y
-                  <VerticalSlider
-                    key={`heatmap_slider_${valueIndex}`}
-                    name={item.name}
-                    valueIndex={item.valueIndex || 0}
-                    data={getArrayValueFromDependance(
-                      itemDataGrid.coordinates,
-                      item.axeIndex,
+      {itemDataGrid.coordinates.filter((coord) => coord.name !== '')?.length >
+        0 && (
+        <>
+          <Grid.Col
+            className={classes.handlePlotExplorationContainer}
+            span="content"
+            mt={25}
+          >
+            <Stack gap={5}>
+              {['x', 'y'].map((targetAxis: 'x' | 'y', axisIndex) => (
+                <Group key={`handle_axis_${axisIndex}`} gap={5}>
+                  <Text>{targetAxis}</Text>
+                  <Select
+                    label=""
+                    value={
+                      itemDataGrid.coordinates.find(
+                        (coord: Coordinates) =>
+                          coord.axeIndex === (targetAxis === 'y' ? 1 : 0),
+                      ).name
+                    }
+                    data={itemDataGrid.coordinates.map(
+                      (coord: Coordinates) => coord.name,
                     )}
-                    getValue={(valueIndex) =>
-                      handleUpdateCoordinate(item, valueIndex)
+                    w={`${width * 0.2}px`}
+                    onChange={(value) =>
+                      value &&
+                      swapAxis(
+                        itemDataGrid,
+                        active,
+                        updatedConfiguration,
+                        itemDataGrid.coordinates.find(
+                          (coord: Coordinates) => coord.name === value,
+                        ).axeIndex,
+                        targetAxis,
+                      )
                     }
-                    maxWidth={
-                      itemDataGrid.coordinates.length &&
-                      itemDataGrid.coordinates.length > coordsUsedInAxes
-                        ? 100 /
-                          (itemDataGrid.coordinates.length - coordsUsedInAxes)
-                        : 100
-                    }
-                    height={height - 80 - SELECT_AXIS_HEIGHT}
+                    size="xs"
                     disabled={!itemDataGrid.isEditing}
                   />
-                ),
-            )}
-        </Group>
-      </Grid.Col>
+                </Group>
+              ))}
+            </Stack>
+
+            <Group
+              justify="space-between"
+              gap="0"
+              w={`${width * 0.2}px`}
+              miw={`${(itemDataGrid.coordinates.length - coordsUsedInAxes) * 50}px`}
+              align="flex-end"
+            >
+              {JSON.parse(JSON.stringify(itemDataGrid.coordinates))
+                .sort(compareByAxeIndex)
+                .map(
+                  (item: Coordinates, valueIndex: number) =>
+                    item.axeIndex !== 0 &&
+                    item.axeIndex !== 1 && ( // Don't return slider linked to x & y
+                      <VerticalSlider
+                        key={`heatmap_slider_${valueIndex}`}
+                        name={item.name}
+                        valueIndex={item.valueIndex || 0}
+                        data={getArrayValueFromDependance(
+                          itemDataGrid.coordinates,
+                          item.axeIndex,
+                        )}
+                        getValue={(valueIndex) =>
+                          handleUpdateCoordinate(item, valueIndex)
+                        }
+                        maxWidth={
+                          itemDataGrid.coordinates.length &&
+                          itemDataGrid.coordinates.length > coordsUsedInAxes
+                            ? 100 /
+                              (itemDataGrid.coordinates.length -
+                                coordsUsedInAxes)
+                            : 100
+                        }
+                        height={height - 80 - SELECT_AXIS_HEIGHT}
+                        disabled={!itemDataGrid.isEditing}
+                      />
+                    ),
+                )}
+            </Group>
+          </Grid.Col>
+        </>
+      )}
 
       {are3DAxisInit && [x, y, z].every(isMatrixPlottable) ? (
         <>
@@ -387,6 +393,24 @@ export const Surface2D = ({
             />
           </Grid.Col>
         </>
+      ) : are3DAxisInit && ![x, y, z].some(isMatrixPlottable) ? (
+        <Grid.Col
+          span="auto"
+          pos="relative"
+          w={'100%'}
+          h={`${height}px`}
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
+          <Center h={height}>
+            <NoDataForURI
+              itemDataGrid={itemDataGrid}
+              selectedPlot={itemDataGrid.plot[parseInt(plotIndex)]}
+            />
+          </Center>
+        </Grid.Col>
       ) : (
         <Grid.Col
           span="auto"

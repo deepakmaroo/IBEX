@@ -12,7 +12,7 @@ import {
   swapAxis,
 } from '../../utils';
 import classes from './SimplePlotly.module.css';
-import { PlotTitle } from './PlotTitle';
+import { NoDataForURI, PlotTitle } from '../plot';
 interface SimplePlotlyProps {
   itemDataGrid: DataGridPlot;
   width: number;
@@ -215,9 +215,9 @@ export const SimplePlotly = ({
       }}
     >
       {/* Coordinates sliders */}
-      {itemDataGrid.coordinates.length > 0 &&
-        sliderRef &&
-        itemDataGrid.coordinates?.length > 1 && (
+      {itemDataGrid.coordinates.filter((coord) => coord.name !== '')?.length >
+        1 &&
+        sliderRef && (
           <Grid.Col
             className={classes.handlePlotExplorationContainer}
             span="content"
@@ -342,6 +342,23 @@ export const SimplePlotly = ({
             />
           </Grid.Col>
         </>
+      ) : itemDataGrid.plot.every(
+          (plot) => ![plot.x, plot.y, plot.yData].some(isMatrixPlottable),
+        ) ? (
+        <Grid.Col
+          span="auto"
+          pos="relative"
+          w={'100%'}
+          h={`${height}px`}
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
+          <Center h={height} w={`100%`}>
+            <NoDataForURI itemDataGrid={itemDataGrid} />
+          </Center>
+        </Grid.Col>
       ) : (
         <Grid.Col
           span="auto"
@@ -354,7 +371,7 @@ export const SimplePlotly = ({
             flexDirection: 'column',
           }}
         >
-          <Center h={height}>
+          <Center h={height} w={`100%`}>
             <Text>Current index has no data</Text>
           </Center>
         </Grid.Col>
