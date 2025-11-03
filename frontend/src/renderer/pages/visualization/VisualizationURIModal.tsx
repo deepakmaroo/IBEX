@@ -16,13 +16,8 @@ import {
   Tooltip,
 } from '@mantine/core';
 import { useIbexStore } from '../../stores';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  IconAlertSquareRounded,
-  IconX,
-  IconSquareRoundedLetterX,
-  IconPlus,
-} from '@tabler/icons-react';
+import { useEffect, useMemo, useState } from 'react';
+import { IconAlertSquareRounded, IconX, IconPlus } from '@tabler/icons-react';
 import { Configuration, FormDbEntries, URISelectionData } from '../../types';
 import { showNotification } from '@mantine/notifications';
 import { useForm } from '@mantine/form';
@@ -298,14 +293,14 @@ export const VisualizationURIModal = ({
       prevEntries.map((entry) =>
         entry.uri === uri
           ? {
-            ...entry,
-            isSelected: !entry.isSelected,
-            name: entry.isSelected
-              ? ''
-              : getNextAvailableUriName(
-                dataDbEntries.map((value) => value.name),
-              ),
-          }
+              ...entry,
+              isSelected: !entry.isSelected,
+              name: entry.isSelected
+                ? ''
+                : getNextAvailableUriName(
+                    dataDbEntries.map((value) => value.name),
+                  ),
+            }
           : entry,
       ),
     );
