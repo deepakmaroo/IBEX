@@ -53,16 +53,15 @@ class IMASPythonSource(DataSourceInterface):
         except ImasCoreBackendException as e:
             raise EntryNotFoundException(e) from None
 
-    def _open_entry_and_get_ids(self, uri: str, ids: str, occurrence: int = 0):
+    def _get_ids_from_entry(self, entry: imas.DBEntry, ids: str, occurrence: int = 0):
         """
-        Opens DBEntry with mode "r" and reads an IDS. Handles possible exceptions.
+        Reads ids from already opened DBEntry. Handles possible exceptions.
 
-        :param uri: imas URI
+        :param entry: imas.DBEntry
         :param ids: name of ids e.g. core_profiles
         :param occurrence: ids occurrence number
         :return: IDSBase object
         """
-        entry = self._open_entry(uri)
         try:
             ids_root = entry.get(ids, lazy=True, autoconvert=False, occurrence=occurrence)
             return ids_root
@@ -157,33 +156,34 @@ class IMASPythonSource(DataSourceInterface):
         :return: dictionary containing node metadata
         """
 
-        metadata, coordinates = self._get_metadata_and_coordinates(uri, ids, node_path, occurrence)
-        metadata_dict = self._jsonify_metadata(metadata, recursive, show_error_bars)
+        with self._open_entry(uri) as entry:
+            metadata, coordinates = self._get_metadata_and_coordinates(entry, ids, node_path, occurrence)
+            metadata_dict = self._jsonify_metadata(metadata, recursive, show_error_bars)
 
-        # coordinates key contains list of lists of strings
-        metadata_dict["coordinates"] = list(coordinates.values())
-        # flatten list
-        metadata_dict["coordinates"] = list(chain.from_iterable(metadata_dict["coordinates"]))
+            # coordinates key contains list of lists of strings
+            metadata_dict["coordinates"] = list(coordinates.values())
+            # flatten list
+            metadata_dict["coordinates"] = list(chain.from_iterable(metadata_dict["coordinates"]))
 
-        # fill 'shape', but omit it if path points to more than one node
-        if metadata_dict["ndim"] > 0 and ":" not in node_path:
-            ids_path = IDSPath(node_path)
-            path_elements = list(ids_path.items())
-            ids_obj = self._open_entry_and_get_ids(uri, ids, occurrence)
-            data_nodes = self._get_raw_data(ids_obj, path_elements)
+            # fill 'shape', but omit it if path points to more than one node
+            if metadata_dict["ndim"] > 0 and ":" not in node_path:
+                ids_path = IDSPath(node_path)
+                path_elements = list(ids_path.items())
+                ids_obj = self._get_ids_from_entry(entry, ids, occurrence)
+                data_nodes = self._get_raw_data(ids_obj, path_elements)
 
-            target_node = data_nodes
-            # traverse through data until you find value
-            while isinstance(target_node, list):
-                target_node = target_node[0]
+                target_node = data_nodes
+                # traverse through data until you find value
+                while isinstance(target_node, list):
+                    target_node = target_node[0]
 
-            if isinstance(target_node, IDSStructure):
-                return metadata_dict
+                if isinstance(target_node, IDSStructure):
+                    return metadata_dict
 
-            if metadata_dict["type"] == IDSDataType.STRUCT_ARRAY or metadata_dict["type"] == IDSDataType.STR:
-                metadata_dict["shape"] = [len(target_node)]
-            else:  # Numeric array
-                metadata_dict["shape"] = target_node.shape
+                if metadata_dict["type"] == IDSDataType.STRUCT_ARRAY or metadata_dict["type"] == IDSDataType.STR:
+                    metadata_dict["shape"] = [len(target_node)]
+                else:  # Numeric array
+                    metadata_dict["shape"] = target_node.shape
 
         return metadata_dict
 
@@ -306,21 +306,21 @@ class IMASPythonSource(DataSourceInterface):
         return ancestors_and_path
 
     def _get_metadata_and_coordinates(
-        self, uri: str, ids: str, node_path: str, occurrence: int = 0
+        self, entry: imas.DBEntry, ids: str, node_path: str, occurrence: int = 0
     ) -> (IDSMetadata, List[str]):
         """
         Returns metadata of node and coordinates of node and it's ancestors
 
-        :param uri: pulsefile uri - used only to get proper DD version
+        :param entry: IMAS.DBEntry - used only to get proper DD version
         :param ids: name of ids e.g. core_profiles
         :param node_path: path to ids node e.g. ids_properties/version_put
         :param occurrence: ids occurrence number
         :return: tuple(IDSMetadata, dict(k: <node_name>, v: <coordinate_node_name>))
         """
 
-        ids_obj = self._open_entry_and_get_ids(uri, ids, occurrence)
+        ids_obj = self._get_ids_from_entry(entry, ids, occurrence)
 
-        is_time_homogeneous = ids_obj.ids_properties.homogeneous_time
+        is_time_homogeneous = ids_obj.ids_properties.homogeneous_time.value
 
         data_path = IDSPath(node_path)
         try:
@@ -340,7 +340,7 @@ class IMASPythonSource(DataSourceInterface):
                 if element not in coordinates:
                     coordinates[element] = []
 
-                if is_time_homogeneous and coord.is_time_coordinate:
+                if is_time_homogeneous and bool(coord.is_time_coordinate):
                     coordinates[element].append("time")
                 else:
                     coordinates[element].append(str(coord))
@@ -367,11 +367,12 @@ class IMASPythonSource(DataSourceInterface):
         :return: dictionary {'value':<node_value>}, where <node_value> represents data extracted from IDS node
         """
 
-        ids_root = self._open_entry_and_get_ids(uri, ids, occurrence)
+        with self._open_entry(uri) as entry:
+            ids_root = self._get_ids_from_entry(entry, ids, occurrence)
 
-        ids_path = IDSPath(node_path)
-        path_elements = list(ids_path.items())
-        ids_data = self._get_raw_data(ids_root, path_elements)
+            ids_path = IDSPath(node_path)
+            path_elements = list(ids_path.items())
+            ids_data = self._get_raw_data(ids_root, path_elements)
 
         data_to_be_returned = self._serialize_data(ids_data)
 
@@ -419,28 +420,27 @@ class IMASPythonSource(DataSourceInterface):
         :param show_error_bars: whether error bar nodes should be returned, or not
         :return: dictionary {'paths': ['path/to/node1','path/to/node2', ...]}
         """
-        entry = self._open_entry(uri)
+        with self._open_entry(uri) as entry:
+            found_paths = []
+            ids_list = entry.factory.ids_names()
 
-        found_paths = []
-        ids_list = entry.factory.ids_names()
+            for ids in ids_list:
+                try:
+                    ids_obj = entry.get(ids, occurrence=0, autoconvert=False, lazy=True)
+                    paths = [node for node in imas.util.find_paths(ids_obj, searched_node)]
+                    for path in paths:
+                        if not show_error_bars and any(
+                            error_node in path for error_node in ["_error_upper", "_error_lower", "_error_index"]
+                        ):
+                            continue
 
-        for ids in ids_list:
-            try:
-                ids_obj = entry.get(ids, occurrence=0, autoconvert=False, lazy=True)
-                paths = [node for node in imas.util.find_paths(ids_obj, searched_node)]
-                for path in paths:
-                    if not show_error_bars and any(
-                        error_node in path for error_node in ["_error_upper", "_error_lower", "_error_index"]
-                    ):
-                        continue
+                        # collect only leaf nodes
+                        node_data_type = ids_obj.metadata[path].data_type
+                        if node_data_type.value != "structure" and node_data_type.value != "struct_array":
+                            found_paths.append(f"#{ids}/{self._add_index_to_aos_in_path(ids_obj.metadata, path)}")
 
-                    # collect only leaf nodes
-                    node_data_type = ids_obj.metadata[path].data_type
-                    if node_data_type.value != "structure" and node_data_type.value != "struct_array":
-                        found_paths.append(f"#{ids}/{self._add_index_to_aos_in_path(ids_obj.metadata, path)}")
-
-            except imas.exception.DataEntryException:
-                continue
+                except imas.exception.DataEntryException:
+                    continue
 
         return {"paths": found_paths}
 
@@ -458,8 +458,9 @@ class IMASPythonSource(DataSourceInterface):
         ids_path = IDSPath(node_path)
         path_elements = list(ids_path.items())
 
-        ids_obj = self._open_entry_and_get_ids(uri, ids, occurrence)
-        ids_data = self._get_raw_data(ids_obj, path_elements)
+        with self._open_entry(uri) as entry:
+            ids_obj = self._get_ids_from_entry(entry, ids, occurrence)
+            ids_data = self._get_raw_data(ids_obj, path_elements)
 
         if isinstance(ids_data, IDSStructure) or isinstance(ids_data, IDSStructArray):
             raise NotALeafNodeException(f"Path {node_path} does not point to a leaf node")
@@ -573,247 +574,237 @@ class IMASPythonSource(DataSourceInterface):
         :return: Dictionary containing data values, metadata and coordinates.
         """
 
-        ids_obj = self._open_entry_and_get_ids(uri, ids, occurrence)
+        with self._open_entry(uri) as entry:
+            ids_obj = self._get_ids_from_entry(entry, ids, occurrence)
 
-        ids_path = IDSPath(node_path)
-        path_elements = list(ids_path.items())
-        ids_data = self._get_raw_data(ids_obj, path_elements)
+            ids_path = IDSPath(node_path)
+            path_elements = list(ids_path.items())
+            ids_data = self._get_raw_data(ids_obj, path_elements)
 
-        # function to check if list is essentially empty (contains only empty lists or empty strings)
-        def is_empty(seq):
-            if isinstance(seq, (IDSNumericArray, IDSString0D, IDSString1D)):
-                return not seq.has_value
-            if isinstance(seq, np.ndarray):
-                return seq.size == 0
-            elif isinstance(seq, list):
-                return all(map(is_empty, seq))
-            else:
-                return False
+            # function to check if list is essentially empty (contains only empty lists or empty strings)
+            def is_empty(seq):
+                if isinstance(seq, (IDSNumericArray, IDSString0D, IDSString1D)):
+                    return not seq.has_value
+                if isinstance(seq, np.ndarray):
+                    return seq.size == 0
+                elif isinstance(seq, list):
+                    return all(map(is_empty, seq))
+                else:
+                    return False
 
-        if is_empty(ids_data):
-            raise NoDataException(f"No data for {node_path}")
+            if is_empty(ids_data):
+                raise NoDataException(f"No data for {node_path}")
+            coordinates_to_be_returned = []
 
-        coordinates_to_be_returned = []
+            # =================================
+            metadata, coordinates_dict = self._get_metadata_and_coordinates(entry, ids, node_path, occurrence)
+            # replace all dummy indexes i.e. "itime", "i1", "i2", "i3"... -> [<value_from_target_node>]
+            for _node_path, _coordinate_path_list in coordinates_dict.items():
+                _new_coordinate_path_list = []
+                for _coordinate_path in _coordinate_path_list:
+                    if _coordinate_path == "1...N":
+                        _new_coordinate_path_list.append("1...N")
+                        continue
 
-        # =================================
+                    _new_coordinate_path = ""
 
-        metadata, coordinates_dict = self._get_metadata_and_coordinates(uri, ids, node_path, occurrence)
+                    # iterate over path elements. X stands target node path element, while Y stands for coordinate path elements
+                    # we do this in order to fill dummy indexes with indexes extracted from target node path
+                    for x, y in zip_longest(_node_path.items(), IDSPath(_coordinate_path).items()):
+                        # x[0] is node name in path eg. profiles_1d
+                        # x[1] is indices or single index. For instance x=profiles_1d[123] -> x[0]=profiles_1d & x[1]=123
+                        # the same applies to y
 
-        # replace all dummy indexes i.e. "itime", "i1", "i2", "i3"... -> [<value_from_target_node>]
-        for _node_path, _coordinate_path_list in coordinates_dict.items():
-            _new_coordinate_path_list = []
-            for _coordinate_path in _coordinate_path_list:
-                if _coordinate_path == "1...N":
-                    _new_coordinate_path_list.append("1...N")
-                    continue
+                        y_indices = y[1] if y is not None else None
 
-                _new_coordinate_path = ""
+                        if y is not None:
+                            if x is not None and x[0] == y[0]:
+                                y_indices = x[1]
+                            # construct new coordinate path element from node_name and slice extracted from x[1]
+                            _new_coordinate_path += f"{y[0]}{self._slice_to_string(y_indices)}/"
 
-                # iterate over path elements. X stands target node path element, while Y stands for coordinate path elements
-                # we do this in order to fill dummy indexes with indexes extracted from target node path
-                for x, y in zip_longest(_node_path.items(), IDSPath(_coordinate_path).items()):
-                    # x[0] is node name in path eg. profiles_1d
-                    # x[1] is indices or single index. For instance x=profiles_1d[123] -> x[0]=profiles_1d & x[1]=123
-                    # the same applies to y
+                    # delete last "/" from path
+                    _new_coordinate_path = _new_coordinate_path[:-1]
 
-                    y_indices = y[1] if y is not None else None
+                    _new_coordinate_path_list.append(_new_coordinate_path)
+                coordinates_dict[_node_path] = _new_coordinate_path_list
 
-                    if y is not None:
-                        if x is not None and x[0] == y[0]:
-                            y_indices = x[1]
-                        # construct new coordinate path element from node_name and slice extracted from x[1]
-                        _new_coordinate_path += f"{y[0]}{self._slice_to_string(y_indices)}/"
+            # =================================
+            for target, coord_list in coordinates_dict.items():
+                # certain coordinate has influence on final data shape only if it is a slice (e.g. profiles_1d[:]), or a leaf node
+                # search for [<number>] in coordinate target
+                shapes_dimension = not bool(re.search(r"\[\d+\]$", str(target)))
 
-                # delete last "/" from path
-                _new_coordinate_path = _new_coordinate_path[:-1]
+                for coord in coord_list:
+                    if coord == "1...N":
+                        # 1...N coords are targeting AoS
+                        # remove last array operator ([<number or colon>]) from path and save it as target_str
 
-                _new_coordinate_path_list.append(_new_coordinate_path)
-            coordinates_dict[_node_path] = _new_coordinate_path_list
+                        splitted_target = str(target).split("/")
+                        splitted_target[-1] = re.sub(r"[\[\(](.*?)[\]\)]", "", splitted_target[-1])
+                        target_str = "/".join([x for x in splitted_target])
+                        # ====================================
 
-        # =================================
+                        ids_path = IDSPath(str(target_str))
+                        path_elements = list(ids_path.items())
+                        coord_target_objects = self._get_raw_data(ids_obj, path_elements)
 
-        for target, coord_list in coordinates_dict.items():
-            # certain coordinate has influence on final data shape only if it is a slice (e.g. profiles_1d[:]), or a leaf node
-            # search for [<number>] in coordinate target
-            shapes_dimension = not bool(re.search(r"\[\d+\]$", str(target)))
-
-            for coord in coord_list:
-                if coord == "1...N":
-                    # 1...N coords are targeting AoS
-                    # remove last array operator ([<number or colon>]) from path and save it as target_str
-
-                    splitted_target = str(target).split("/")
-                    splitted_target[-1] = re.sub(r"[\[\(](.*?)[\]\)]", "", splitted_target[-1])
-                    target_str = "/".join([x for x in splitted_target])
-                    # ====================================
-
-                    ids_path = IDSPath(str(target_str))
-                    path_elements = list(ids_path.items())
-                    coord_target_objects = self._get_raw_data(ids_obj, path_elements)
-
-                    # collect labels for 1...N coordinates
-                    labels = []
-                    try:
-                        for element in coord_target_objects:
-                            if hasattr(element, "name"):
-                                labels.append(str(element.name))
-                            elif hasattr(element, "label"):
-                                labels.append(str(element.label))
-                            elif hasattr(element, "identifier") and hasattr(element.identifier, "name"):
-                                labels.append(str(element.identifier.name))
-                            elif hasattr(element, "type") and hasattr(element.type, "name"):
-                                labels.append(str(element.type.name))
-                            else:
-                                raise AttributeError("No additional data to create label")
-
-                        # if any label is empty, use indexes instead
-                        if any(s == "" for s in labels):
-                            labels = []
-                    except AttributeError:
+                        # collect labels for 1...N coordinates
                         labels = []
+                        try:
+                            for element in coord_target_objects:
+                                if hasattr(element, "name"):
+                                    labels.append(str(element.name))
+                                elif hasattr(element, "label"):
+                                    labels.append(str(element.label))
+                                elif hasattr(element, "identifier") and hasattr(element.identifier, "name"):
+                                    labels.append(str(element.identifier.name))
+                                elif hasattr(element, "type") and hasattr(element.type, "name"):
+                                    labels.append(str(element.type.name))
+                                else:
+                                    raise AttributeError("No additional data to create label")
 
-                    coord_values: np.ndarray = self._extract_1_N_coord_values(coord_target_objects)
+                            # if any label is empty, use indexes instead
+                            if any(s == "" for s in labels):
+                                labels = []
+                        except AttributeError:
+                            labels = []
 
-                    # ==================================== find and add shape factors
-                    _, coordinates_of_coordinate = self._get_metadata_and_coordinates(uri, ids, str(target), occurrence)
-                    shape_factors = []
+                        coord_values: np.ndarray = self._extract_1_N_coord_values(coord_target_objects)
 
-                    for k, v in coordinates_of_coordinate.items():
-                        if k == target:
-                            continue
-                        shape_factors.append(f"#{ids}/{k}")
-                    # ====================================
+                        # ==================================== find and add shape factors
+                        _, coordinates_of_coordinate = self._get_metadata_and_coordinates(
+                            entry, ids, str(target), occurrence
+                        )
+                        shape_factors = []
 
-                    # If direct coordinate of node is 1...N, replace name with '1...N'
-                    # (otherwise coordinate name would be the same as target node name)
-                    coordinate_name = splitted_target[-1]
-                    if f"{target}" == f"{node_path}":
-                        coordinate_name = "1...N"
+                        for k, v in coordinates_of_coordinate.items():
+                            if k == target:
+                                continue
+                            shape_factors.append(f"#{ids}/{k}")
+                        # ====================================
 
-                    try:
-                        coord_data_shape = np.asarray(coord_values).shape
-                    except ValueError:
-                        coord_data_shape = "irregular"
+                        # If direct coordinate of node is 1...N, replace name with '1...N'
+                        # (otherwise coordinate name would be the same as target node name)
+                        coordinate_name = splitted_target[-1]
+                        if f"{target}" == f"{node_path}":
+                            coordinate_name = "1...N"
 
-                    c = {
-                        "name": coordinate_name,
-                        "target": f"#{ids}/{target}",
-                        "unit": "",
-                        "shape": coord_data_shape,
-                        "downsampled_shape": coord_data_shape,
-                        "ndim": 1,  # 1...N coord always have 1 dimension
-                        "path": "",
-                        "description": "1...N",
-                        "coordinates": shape_factors,
-                        "shapes_dimension": shapes_dimension,
-                        "value": labels if labels else coord_values,
-                    }
-                    coordinates_to_be_returned.append(c)
+                        try:
+                            coord_data_shape = np.asarray(coord_values).shape
+                        except ValueError:
+                            coord_data_shape = "irregular"
+
+                        c = {
+                            "name": coordinate_name,
+                            "target": f"#{ids}/{target}",
+                            "unit": "",
+                            "shape": coord_data_shape,
+                            "downsampled_shape": coord_data_shape,
+                            "ndim": 1,  # 1...N coord always have 1 dimension
+                            "path": "",
+                            "description": "1...N",
+                            "coordinates": shape_factors,
+                            "shapes_dimension": shapes_dimension,
+                            "value": labels if labels else coord_values,
+                        }
+                        coordinates_to_be_returned.append(c)
+
+                    else:
+                        coord_path = IDSPath(coord)
+                        coord_real_paths = list(coord_path.items())
+                        coord_data = self._get_raw_data(ids_obj, coord_real_paths)
+
+                        first_value = find_first_value_in_list(coord_data)
+
+                        # ==================================== find and add shape factors
+                        _, coordinates_of_coordinate = self._get_metadata_and_coordinates(entry, ids, coord, occurrence)
+                        shape_factors = []
+
+                        for k, v in coordinates_of_coordinate.items():
+                            if str(k) == coord:
+                                continue
+                            shape_factors.append(f"#{ids}/{k}")
+                        # ====================================
+
+                        try:
+                            coord_data_shape = np.asarray(coord_data).shape
+                        except ValueError:
+                            coord_data_shape = "irregular"
+
+                        c = {
+                            "name": coord.split("/")[-1],
+                            "target": f"#{ids}/{target}",
+                            "unit": first_value.metadata.units,
+                            "shape": coord_data_shape,  # coord_data could be np.ndarray or list[np.ndarray]
+                            "downsampled_shape": coord_data_shape,
+                            "ndim": first_value.metadata.ndim,
+                            "path": f"#{ids}/{coord}",
+                            "description": first_value.metadata.documentation,
+                            "coordinates": shape_factors,
+                            "shapes_dimension": shapes_dimension,
+                            "value": coord_data,
+                        }
+                        coordinates_to_be_returned.append(c)
+            first_value = find_first_value_in_list(ids_data)
+            data_to_be_returned = ids_data
+
+            if first_value.metadata.ndim == 2:
+                # Transform 2D arrays.
+                # By default first dimension of 2D has coordinate that is second on the list
+                # FE expects data's first dimension to be connected with second dimension, thus this transformation
+                data_to_be_returned = transform_2D_data(data_to_be_returned)
+            try:
+                original_data_shape = np.asarray(data_to_be_returned).shape
+            except ValueError:
+                original_data_shape = "irregular"
+            # Downsample only 1D data
+            if first_value.metadata.ndim == 1:
+                if coordinates_to_be_returned[0]["target"].split("/")[-1] == f"{node_path.split('/')[-1]}":
+                    # If coordinate targets node -> downsample coordinate as well
+                    coordinates_to_be_returned[0]["value"], data_to_be_returned = downsample_data(
+                        data_to_be_returned,
+                        target_size=downsampled_size,
+                        method=downsampling_method,
+                        x=coordinates_to_be_returned[0]["value"],
+                    )
 
                 else:
-                    coord_path = IDSPath(coord)
-                    coord_real_paths = list(coord_path.items())
-                    coord_data = self._get_raw_data(ids_obj, coord_real_paths)
-
-                    first_value = find_first_value_in_list(coord_data)
-
-                    # ==================================== find and add shape factors
-                    _, coordinates_of_coordinate = self._get_metadata_and_coordinates(uri, ids, coord, occurrence)
-                    shape_factors = []
-
-                    for k, v in coordinates_of_coordinate.items():
-                        if str(k) == coord:
-                            continue
-                        shape_factors.append(f"#{ids}/{k}")
-                    # ====================================
-
-                    try:
-                        coord_data_shape = np.asarray(coord_data).shape
-                    except ValueError:
-                        coord_data_shape = "irregular"
-
-                    c = {
-                        "name": coord.split("/")[-1],
-                        "target": f"#{ids}/{target}",
-                        "unit": first_value.metadata.units,
-                        "shape": coord_data_shape,  # coord_data could be np.ndarray or list[np.ndarray]
-                        "downsampled_shape": coord_data_shape,
-                        "ndim": first_value.metadata.ndim,
-                        "path": f"#{ids}/{coord}",
-                        "description": first_value.metadata.documentation,
-                        "coordinates": shape_factors,
-                        "shapes_dimension": shapes_dimension,
-                        "value": coord_data,
-                    }
-                    coordinates_to_be_returned.append(c)
-
-        first_value = find_first_value_in_list(ids_data)
-
-        data_to_be_returned = ids_data
-
-        if first_value.metadata.ndim == 2:
-            # Transform 2D arrays.
-            # By default first dimension of 2D has coordinate that is second on the list
-            # FE expects data's first dimension to be connected with second dimension, thus this transformation
-            data_to_be_returned = transform_2D_data(data_to_be_returned)
-
-        try:
-            original_data_shape = np.asarray(data_to_be_returned).shape
-        except ValueError:
-            original_data_shape = "irregular"
-
-        # Downsample only 1D data
-        if first_value.metadata.ndim == 1:
-            if coordinates_to_be_returned[0]["target"].split("/")[-1] == f"{node_path.split('/')[-1]}":
-                # If coordinate targets node -> downsample coordinate as well
-                coordinates_to_be_returned[0]["value"], data_to_be_returned = downsample_data(
-                    data_to_be_returned,
-                    target_size=downsampled_size,
-                    method=downsampling_method,
-                    x=coordinates_to_be_returned[0]["value"],
-                )
-
-            else:
-                _, data_to_be_returned = downsample_data(
-                    data_to_be_returned, target_size=downsampled_size, method=downsampling_method
-                )
-
-        # serialize coordinates and update shapes (they could be changed by downsampling)
-        for c in coordinates_to_be_returned:
+                    _, data_to_be_returned = downsample_data(
+                        data_to_be_returned, target_size=downsampled_size, method=downsampling_method
+                    )
+            # serialize coordinates and update shapes (they could be changed by downsampling)
+            for c in coordinates_to_be_returned:
+                try:
+                    c["downsampled_shape"] = np.asarray(c["value"]).shape
+                except ValueError:
+                    c["downsampled_shape"] = "irregular"
+                c["value"] = self._serialize_data(c["value"])
             try:
-                c["downsampled_shape"] = np.asarray(c["value"]).shape
+                downsampled_shape = np.asarray(data_to_be_returned).shape
             except ValueError:
-                c["downsampled_shape"] = "irregular"
-            c["value"] = self._serialize_data(c["value"])
-
-        try:
-            downsampled_shape = np.asarray(data_to_be_returned).shape
-        except ValueError:
-            downsampled_shape = "irregular"
-
-        result = {
-            "data": {
-                "name": node_path.split("/")[-1],
-                "unit": first_value.metadata.units,
-                "shape": original_data_shape,
-                "downsampled_shape": downsampled_shape,
-                "ndim": first_value.metadata.ndim,
-                "path": f"#{ids}/{node_path}",
-                "description": first_value.metadata.documentation,
-                "coordinates": coordinates_to_be_returned,
-                "value": self._serialize_data(data_to_be_returned),
+                downsampled_shape = "irregular"
+            result = {
+                "data": {
+                    "name": node_path.split("/")[-1],
+                    "unit": first_value.metadata.units,
+                    "shape": original_data_shape,
+                    "downsampled_shape": downsampled_shape,
+                    "ndim": first_value.metadata.ndim,
+                    "path": f"#{ids}/{node_path}",
+                    "description": first_value.metadata.documentation,
+                    "coordinates": coordinates_to_be_returned,
+                    "value": self._serialize_data(data_to_be_returned),
+                }
             }
-        }
 
-        # =================================
-        # update shape factors
-
-        for coordinate in coordinates_to_be_returned:
-            new_shape_factors_list = []
-            for shape_factor in coordinate["coordinates"]:
-                # search for coordinates that have <shape_factor> name in "target" key
-                coord_name = next(x["name"] for x in coordinates_to_be_returned if x["target"] == shape_factor)
-                new_shape_factors_list.append(coord_name)
-            coordinate["coordinates"] = new_shape_factors_list
-
+            # =================================
+            # update shape factors
+            for coordinate in coordinates_to_be_returned:
+                new_shape_factors_list = []
+                for shape_factor in coordinate["coordinates"]:
+                    # search for coordinates that have <shape_factor> name in "target" key
+                    coord_name = next(x["name"] for x in coordinates_to_be_returned if x["target"] == shape_factor)
+                    new_shape_factors_list.append(coord_name)
+                coordinate["coordinates"] = new_shape_factors_list
         return result
