@@ -247,6 +247,8 @@ export const Surface2D = ({
         inner: {
           margin: 0,
           width: 'inherit',
+          flexWrap: 'nowrap',
+          whiteSpace: 'nowrap',
         },
       }}
       mt={10}

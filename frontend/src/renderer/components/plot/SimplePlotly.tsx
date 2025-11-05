@@ -211,6 +211,8 @@ export const SimplePlotly = ({
         inner: {
           margin: 0,
           width: 'inherit',
+          flexWrap: 'nowrap',
+          whiteSpace: 'nowrap',
         },
       }}
     >
