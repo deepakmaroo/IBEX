@@ -131,7 +131,7 @@ export const SimplePlotly = ({
   useEffect(() => {
     setLayoutPlot((prevLayout) => ({
       ...prevLayout,
-      width: width,
+      width: width * (itemDataGrid.coordinates?.length > 1 ? 0.8 : 1) - 75,
     }));
   }, [width]);
 
@@ -322,10 +322,6 @@ export const SimplePlotly = ({
             <Plot
               ref={plotRef}
               className={classes.simplePlot}
-              style={{
-                maxWidth: `${width * (itemDataGrid.coordinates?.length > 1 ? 0.8 : 1) - 32}px !important`,
-                height: `${height}px`,
-              }}
               data={itemDataGrid.plot}
               config={{
                 autosizable: false,

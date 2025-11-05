@@ -37,8 +37,6 @@ export const GridLayoutPlot = ({
 }: GridLayoutPlotProps) => {
   const { active, updatedConfiguration } = useIbexStore();
   const gridSliderRef = useRef<HTMLDivElement>(null);
-
-  const [widthSlider, setWidthSlider] = useState<number>(0);
   const [heightGrid, setHeightGrid] = useState(
     data.h * rowHeight + (23 * (data.h * rowHeight)) / 100,
   );
@@ -256,15 +254,6 @@ export const GridLayoutPlot = ({
   }, []);
 
   /**
-   * Update the width of the slider when the grid is resized
-   */
-  useLayoutEffect(() => {
-    if (gridSliderRef.current) {
-      setWidthSlider(gridSliderRef.current.offsetWidth);
-    }
-  }, [gridSliderRef.current?.offsetWidth]);
-
-  /**
    * Handle the delete grid event
    */
   const handleDeleteGrid = useCallback((id: string) => {
@@ -413,11 +402,7 @@ export const GridLayoutPlot = ({
         // Show heatmap
         <Surface2D
           itemDataGrid={data}
-          width={
-            data.coordinates.length > 0
-              ? widthGrid - widthSlider - 30
-              : widthGrid - 40
-          }
+          width={widthGrid}
           height={heightGrid - 10}
           plotIndex={active3DTab}
           handleUpdateCoordinate={handleUpdateCoordinate}
@@ -426,11 +411,7 @@ export const GridLayoutPlot = ({
         // Show simple plot
         <SimplePlotly
           itemDataGrid={data}
-          width={
-            data.coordinates.length > 0
-              ? widthGrid - widthSlider - 30
-              : widthGrid - 40
-          }
+          width={widthGrid}
           height={heightGrid}
           sliderRef={gridSliderRef}
           is3DView={is3DView}

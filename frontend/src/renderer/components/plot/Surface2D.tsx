@@ -163,7 +163,7 @@ export const Surface2D = ({
       ...prevLayout,
       title: { text: itemDataGrid.title },
       height: height,
-      width: width,
+      width: width * 0.8 - 75,
     }));
   }, [itemDataGrid, width, height]);
 
@@ -380,10 +380,6 @@ export const Surface2D = ({
               onRelayout={handleRelayout}
               useResizeHandler={false}
               className={classe.plot2D}
-              style={{
-                maxWidth: `${width * 0.8 - 32}px !important`,
-                height: `${height}px`,
-              }}
             />
           </Grid.Col>
         </>
