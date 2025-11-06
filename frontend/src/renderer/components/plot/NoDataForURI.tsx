@@ -17,7 +17,7 @@ export const NoDataForURI = ({
         ? !selectedPlot.x.length &&
           !selectedPlot.y.length &&
           !selectedPlot.yData.length && (
-            <Text>{`- '${selectedPlot.labelUri}' with path '${selectedPlot.path}'`}</Text>
+            <Text>{`- '${selectedPlot.labelUri}' with path '${selectedPlot.nodeUri.split('#')[1]}'`}</Text>
           )
         : // Each plots
           itemDataGrid.plot.map(
@@ -25,7 +25,7 @@ export const NoDataForURI = ({
               !unplottablePlot.x.length &&
               !unplottablePlot.y.length &&
               !unplottablePlot.yData.length && (
-                <Text>{`- '${unplottablePlot.labelUri}' with path '${unplottablePlot.path}'`}</Text>
+                <Text>{`- '${unplottablePlot.labelUri}' with path '${unplottablePlot.nodeUri.split('#')[1]}'`}</Text>
               ),
           )}
     </Stack>

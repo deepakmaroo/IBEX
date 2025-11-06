@@ -56,10 +56,6 @@ export function MainLayout() {
     { open: openTemplateCreateModal, close: closeTemplateModal },
   ] = useDisclosure(false);
 
-  useEffect(() => {
-    window.api.preferences.onOpenTemplateModal(() => openTemplateCreateModal());
-  }, []);
-
   // Used in useEffect to load configuration once in dev mode
   interface InitWindow extends Window {
     __didInit?: boolean;
@@ -242,6 +238,9 @@ export function MainLayout() {
   };
 
   useEffect(() => {
+    // Listener to open template modal when triggered
+    window.api.preferences.onOpenTemplateModal(() => openTemplateCreateModal());
+
     // Used to load configuration once in dev mode
     if (w.__didInit) return;
     w.__didInit = true;
