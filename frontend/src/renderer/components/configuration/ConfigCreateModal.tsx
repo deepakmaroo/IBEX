@@ -11,9 +11,12 @@ import {
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ConfigForm } from 'src/renderer/types';
+import { readIbexConfig } from '../../utils';
 
+type SelectTemplateData = { group: string; items: SelectDataItems }[];
+type SelectDataItems = { value: string; label: string }[];
 interface Props {
   configurationsNames: string[];
   isOpen: boolean;
@@ -30,13 +33,13 @@ export function ConfigCreateModal({
   handleAddTree,
 }: Props) {
   const [useTemplate, setUseTemplate] = useState(false);
-  const [selectedFolderTemplate, setSelectedFolderTemplate] = useState<
-    string | null
-  >(null);
-  const [selectedLocalTemplate, setSelectedLocalTemplate] =
-    useState<File | null>(null);
-  const [selectedLocalTemplatePath, setSelectedLocalTemplatePath] =
-    useState('');
+  const [templateFilesData, setTemplateFilesData] =
+    useState<SelectTemplateData>([]);
+
+  const [folderTemplate, setFolderTemplate] = useState('');
+  const [localTemplate, setLocalTemplate] = useState('');
+  const [localTemplateFile, setLocalTemplateFile] = useState<File | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState('');
 
   const form = useForm<ConfigForm>({
     initialValues: {
@@ -58,12 +61,11 @@ export function ConfigCreateModal({
       handleAddConfiguration(data);
     } else {
       // Add configuration with template
-      handleAddConfiguration(data, selectedLocalTemplatePath);
+      handleAddConfiguration(data, selectedTemplate);
     }
 
     // Reset forms from add modal
-    form.reset();
-    resetTemplates();
+    resetFields();
 
     // Redirect to URIs selection modal
     onClose();
@@ -85,37 +87,108 @@ export function ConfigCreateModal({
 
   // Used to reset templates fields
   const resetTemplates = () => {
-    setSelectedFolderTemplate(null);
-    setSelectedLocalTemplate(null);
+    setFolderTemplate('');
+    setLocalTemplateFile(null);
+    setLocalTemplate('');
+    setSelectedTemplate('');
   };
 
   const handleSelectFolderTemplate = async (value: string) => {
-    setSelectedFolderTemplate(value);
-    setSelectedLocalTemplate(null);
+    setFolderTemplate(value);
   };
 
   const handleSelectLocalTemplate = async () => {
     // Open file selector
     const localFilePath: string = await window.api.fs.getFilePathDialog('json');
-    setSelectedLocalTemplatePath(localFilePath);
-
-    // Reset selected template from folder
-    setSelectedFolderTemplate(null);
-
-    // Save local template in useState
-    if (!localFilePath) {
-      return;
-    }
-
-    const response = await fetch(localFilePath);
-    const blob = await response.blob();
-
-    const splittedPath = localFilePath.split('/');
-    const filename = splittedPath[splittedPath.length - 1];
-
-    const file = new File([blob], filename, { type: blob.type });
-    setSelectedLocalTemplate(file);
+    setLocalTemplate(localFilePath);
   };
+
+  const updateLocalTemplateFile = useCallback(
+    async (localTemplatePath: string) => {
+      if (!localTemplatePath) {
+        return;
+      }
+
+      const response = await fetch(localTemplatePath);
+      const blob = await response.blob();
+
+      const splittedPath = localTemplatePath.split('/');
+      const filename = splittedPath[splittedPath.length - 1];
+
+      const file = new File([blob], filename, { type: blob.type });
+      setLocalTemplateFile(file);
+    },
+    [],
+  );
+
+  const loadIbexConfig = useCallback(async () => {
+    const userPreferences = await readIbexConfig();
+    // Get default template folders
+    if (userPreferences?.templateFolders.length > 0) {
+      // Get templateFolders to show paths & update config file
+      const tempTemplateFilesData: SelectTemplateData = [];
+      for (const templateFolder of userPreferences.templateFolders) {
+        const listFiles: { name: string; isDirectory: boolean }[] =
+          await window.api.fs.listFiles(templateFolder);
+        const listFilesNames = listFiles
+          .filter((file) => !file.isDirectory && file.name.endsWith('.json'))
+          .map((file) => file.name);
+
+        const itemList: SelectDataItems = [];
+        for (const fileName of listFilesNames) {
+          itemList.push({
+            value: templateFolder + '/' + fileName,
+            label: fileName,
+          });
+        }
+        tempTemplateFilesData.push({ group: templateFolder, items: itemList });
+      }
+      // Used for discerning in Select labels from values
+      setTemplateFilesData(tempTemplateFilesData);
+    }
+  }, []);
+
+  const resetFields = () => {
+    form.reset();
+    setUseTemplate(false);
+    setFolderTemplate('');
+    setLocalTemplateFile(null);
+    setLocalTemplate('');
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      loadIbexConfig();
+    } else {
+      resetFields();
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    // Set choosen template from folder as selected
+    if (folderTemplate) {
+      // Set folderTemplate to selected one
+      setSelectedTemplate(folderTemplate);
+
+      // Reset local template
+      setLocalTemplate('');
+      setLocalTemplateFile(null);
+    }
+  }, [folderTemplate]);
+
+  useEffect(() => {
+    // Set choosen local template as selected
+    if (localTemplate) {
+      // Set localTemplate to selected one
+      setSelectedTemplate(localTemplate);
+
+      // Reset selected template from folder
+      setFolderTemplate('');
+
+      // Get file to show in FileInput
+      updateLocalTemplateFile(localTemplate);
+    }
+  }, [localTemplate]);
 
   return (
     <Modal
@@ -145,11 +218,10 @@ export function ConfigCreateModal({
               <Select
                 label="Template from folders"
                 placeholder="Select template from folders"
-                value={selectedFolderTemplate}
-                data={['A', 'B', 'C']}
+                value={folderTemplate}
+                data={templateFilesData}
                 mx="2rem"
                 onChange={handleSelectFolderTemplate}
-                disabled={true} // TODO => alimenter en templates de configuration (prend un ou plusieurs dossiers et affiche toutes les configs enfants)
               />
 
               <Center mt={8}>
@@ -160,11 +232,11 @@ export function ConfigCreateModal({
                 clearable
                 label="Local template"
                 placeholder="Select local template"
-                value={selectedLocalTemplate ?? null}
+                value={localTemplateFile ?? null}
                 onClick={handleSelectLocalTemplate}
                 onChange={(value) => {
                   if (value === null) {
-                    setSelectedLocalTemplate(null);
+                    setLocalTemplateFile(null);
                   }
                 }}
                 mx="2rem"

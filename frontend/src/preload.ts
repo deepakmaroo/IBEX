@@ -16,6 +16,8 @@ export const API = {
 
     selectFolder: () => ipcRenderer.invoke('selectFolder'),
 
+    listFiles: (dirPath: string) => ipcRenderer.invoke('listFiles', dirPath),
+
     saveAsDialog: (name: string, ext: string) =>
       ipcRenderer.invoke('saveAsDialog', name, ext),
 

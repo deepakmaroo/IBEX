@@ -72,6 +72,22 @@ export default {
       },
     );
 
+    ipcMain.handle('listFiles', async (_event, dirPath: string) => {
+      try {
+        const entries = await fs.readdir(dirPath, { withFileTypes: true });
+        return entries.map((entry) => ({
+          name: entry.name,
+          isDirectory: entry.isDirectory(),
+        }));
+      } catch (error) {
+        if (error instanceof Error) {
+          throw new Error(`Failed to read files in folder: ${error.message}`);
+        } else {
+          throw new Error(`Failed to read files in folder: ${String(error)}`);
+        }
+      }
+    });
+
     ipcMain.handle('saveAsDialog', async (event, name: string, ext: string) => {
       if (process.env.E2E_TEST === 'true') {
         // For E2E tests, we save to a temporary file
