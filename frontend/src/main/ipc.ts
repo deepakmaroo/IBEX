@@ -56,6 +56,22 @@ export default {
       },
     );
 
+    ipcMain.handle(
+      'selectFolder',
+      async (event: Electron.IpcMainInvokeEvent) => {
+        const win = BrowserWindow.fromWebContents(event.sender);
+
+        if (!win) return null;
+
+        const result = await dialog.showOpenDialog(win, {
+          properties: ['openDirectory'],
+        });
+
+        if (result.canceled || result.filePaths.length === 0) return null;
+        return result.filePaths[0]; // return selected filepath
+      },
+    );
+
     ipcMain.handle('saveAsDialog', async (event, name: string, ext: string) => {
       if (process.env.E2E_TEST === 'true') {
         // For E2E tests, we save to a temporary file
