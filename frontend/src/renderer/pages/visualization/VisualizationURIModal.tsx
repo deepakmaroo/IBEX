@@ -530,6 +530,7 @@ export const VisualizationURIModal = ({
       title="Select URIs"
       size="90%"
       centered
+      data-testid="config-uri-selection-modal"
     >
       <Group justify="space-between" mb={10}>
         <FileInput
@@ -706,7 +707,7 @@ export const VisualizationURIModal = ({
           setIsDeletingAllUri(false);
         }}
       >
-        <Text size="sm" data-testid="uri-delete-confirmation-text">
+        <Text size="sm">
           Are you sure you want to delete all the listed URIs ?
         </Text>
       </ConfirmModal>

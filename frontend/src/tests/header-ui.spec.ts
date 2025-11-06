@@ -9,6 +9,7 @@ import {
   setTestState,
   getTestState,
 } from './setup';
+import { dialog } from 'electron';
 
 /**
  * UI Test Suite for the Visualization Component
@@ -59,6 +60,7 @@ describe('UI Tests for Header Component', function () {
       console.warn('No overlay to wait for');
     }
   }
+
   it('Should create new configuration from header', async () => {
     const newConfigButton = await driver.wait(
       until.elementLocated(By.css('[data-testid="header-add-configuration"]')),
@@ -99,6 +101,24 @@ describe('UI Tests for Header Component', function () {
 
     const names = state.configurations.map((c) => c.name);
     expect(names).to.include('My New Config');
+
+    // The URI selection modal should apear, we should close it for the next test
+    const configUriSelectionModal = await driver.wait(
+      until.elementLocated(By.css('[data-testid="config-uri-selection-modal"]')),
+      5000,
+    );
+    expect(await configUriSelectionModal.isDisplayed()).to.be.true;
+    
+    // Find the close button INSIDE the modal
+    const closeButton = await configUriSelectionModal.findElement(
+      By.css('button.mantine-Modal-close')
+    );
+    
+    // Click it to close
+    await closeButton.click();
+
+    // Wait for the modal to disappear
+    await waitForOverlayToDisappear();
   });
 
   it('Should delete configuration from header', async () => {
