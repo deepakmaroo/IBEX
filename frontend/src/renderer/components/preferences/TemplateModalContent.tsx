@@ -108,7 +108,7 @@ export function TemplateModalContent({
       // Get defaultConfig to update config file
       setDefaultConfig(userPreferences.defaultConfigPath);
     }
-    if (userPreferences?.templateFolders.length > 0) {
+    if (userPreferences?.templateFolders?.length > 0) {
       // Get templateFolders to show paths & update config file
       setFolderPathList(userPreferences.templateFolders);
     }
