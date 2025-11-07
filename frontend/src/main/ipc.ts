@@ -56,6 +56,38 @@ export default {
       },
     );
 
+    ipcMain.handle(
+      'selectFolder',
+      async (event: Electron.IpcMainInvokeEvent) => {
+        const win = BrowserWindow.fromWebContents(event.sender);
+
+        if (!win) return null;
+
+        const result = await dialog.showOpenDialog(win, {
+          properties: ['openDirectory'],
+        });
+
+        if (result.canceled || result.filePaths.length === 0) return null;
+        return result.filePaths[0]; // return selected filepath
+      },
+    );
+
+    ipcMain.handle('listFiles', async (_event, dirPath: string) => {
+      try {
+        const entries = await fs.readdir(dirPath, { withFileTypes: true });
+        return entries.map((entry) => ({
+          name: entry.name,
+          isDirectory: entry.isDirectory(),
+        }));
+      } catch (error) {
+        if (error instanceof Error) {
+          throw new Error(`Failed to read files in folder: ${error.message}`);
+        } else {
+          throw new Error(`Failed to read files in folder: ${String(error)}`);
+        }
+      }
+    });
+
     ipcMain.handle('saveAsDialog', async (event, name: string, ext: string) => {
       if (process.env.E2E_TEST === 'true') {
         // For E2E tests, we save to a temporary file

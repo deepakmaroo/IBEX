@@ -14,11 +14,22 @@ export const API = {
     getFilePathDialog: (type: string) =>
       ipcRenderer.invoke('getFilePathDialog', type),
 
+    selectFolder: () => ipcRenderer.invoke('selectFolder'),
+
+    listFiles: (dirPath: string) => ipcRenderer.invoke('listFiles', dirPath),
+
     saveAsDialog: (name: string, ext: string) =>
       ipcRenderer.invoke('saveAsDialog', name, ext),
 
     getHomePath: async () => await ipcRenderer.invoke('getHomePath'),
   },
+
+  preferences: {
+    onOpenTemplateModal: (callback: () => void) => {
+      ipcRenderer.on('openTemplateModal', callback);
+    },
+  },
+
   getConfig: () => ipcRenderer.invoke('getConfig'),
 
   setTestState: (testState: Partial<ConfigurationState>) =>

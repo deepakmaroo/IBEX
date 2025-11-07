@@ -320,12 +320,10 @@ export const VisualizationURIModal = ({
     for (const dataPlot of active.dataPlot) {
       for (const plot of dataPlot.plot) {
         const splittedNodeUri = plot.nodeUri.split('#');
-        if (plot.labelUri === splittedNodeUri[0]) {
-          const uriToApply = dataURIsSelected.find(
-            (selectedUri) => selectedUri.name === plot.labelUri,
-          )?.uri;
-          plot.nodeUri = uriToApply + '#' + splittedNodeUri[1];
-        }
+        const uriToApply = dataURIsSelected.find(
+          (selectedUri) => selectedUri.name === plot.labelUri,
+        )?.uri;
+        plot.nodeUri = uriToApply + '#' + splittedNodeUri[1];
       }
     }
 

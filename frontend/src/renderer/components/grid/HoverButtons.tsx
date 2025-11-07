@@ -112,6 +112,10 @@ export const HoverButtons = React.memo(
                     aria-label="Metadatas"
                     onClick={() => handleInspectMetadata(data.i)}
                     className={classes.actionButton}
+                    // Disable when no names in plots (case when add template with bad URIs in first URIs selection)
+                    disabled={
+                      !(data.plot.filter((plot) => plot.name)?.length > 0)
+                    }
                   >
                     <IconBrandDatabricks
                       style={{ width: '70%', height: '70%' }}

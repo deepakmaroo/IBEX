@@ -20,7 +20,11 @@ import {
   IconStarFilled,
 } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
-import { createDefaultConfig, fetchInfoVersion } from '../../utils';
+import {
+  updateIbexConfig,
+  fetchInfoVersion,
+  readIbexConfig,
+} from '../../utils';
 
 interface HeaderProps {
   active: Configuration;
@@ -125,9 +129,10 @@ export const Header = ({
     return () => clearInterval(interval);
   }, []);
 
-  const updateDefaultConfiguration = () => {
+  const updateDefaultConfiguration = async () => {
     const path = defaultConfigPath === active?.path ? '' : (active?.path ?? '');
-    createDefaultConfig(path);
+    const userPreferences = await readIbexConfig();
+    updateIbexConfig(path, userPreferences?.templateFolders);
     setDefaultConfigPath(path);
   };
 

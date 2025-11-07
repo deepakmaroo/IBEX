@@ -13,15 +13,18 @@ import {
   DataGridPlotToSave,
 } from '../types';
 import { ConfigCreateModal, ConfirmModal, Header } from '../components';
+import { PreferenceModal } from '../components/preferences/PreferenceModal';
 import {
-  createDefaultConfig,
+  updateIbexConfig,
   formatConfigBeforeLoadingURIs,
   plotNodeUriLoaded,
   updateCustomDataTree,
+  readIbexConfig,
 } from '../utils';
 import { VisualizationURIModal } from '../pages';
 import { showNotification } from '@mantine/notifications';
 import { useEffect, useState } from 'react';
+import { TemplateModalContent } from '../components/preferences/TemplateModalContent';
 
 export function MainLayout() {
   const {
@@ -45,6 +48,13 @@ export function MainLayout() {
     { open: openAddTreeModal, close: closeAddTreeModal },
   ] = useDisclosure(false);
   const [defaultConfigPath, setDefaultConfigPath] = useState('');
+  const [isSavingTemplatePreferences, setIsSavingTemplatePreferences] =
+    useState(false);
+
+  const [
+    isTemplateModalOpen,
+    { open: openTemplateCreateModal, close: closeTemplateModal },
+  ] = useDisclosure(false);
 
   // Used in useEffect to load configuration once in dev mode
   interface InitWindow extends Window {
@@ -228,39 +238,34 @@ export function MainLayout() {
   };
 
   useEffect(() => {
+    // Listener to open template modal when triggered
+    window.api.preferences.onOpenTemplateModal(() => openTemplateCreateModal());
+
     // Used to load configuration once in dev mode
     if (w.__didInit) return;
     w.__didInit = true;
 
     // Get default configuration path to load
     const loadDefaultConfiguration = async function () {
-      const homePath = await window.api.fs.getHomePath();
-      const IbexConfPath = '/.ibexConfig';
-      let data: string;
+      const userPreferences = await readIbexConfig();
       try {
-        data = await window.api.fs.readFile(homePath + IbexConfPath);
-        if (!data) {
-          createDefaultConfig();
-          return;
-        }
-
         // Load default configuration
-        const userPreferences = data && JSON.parse(data);
         if (userPreferences?.defaultConfigPath) {
           await handleLoadConfiguration(userPreferences.defaultConfigPath);
           setDefaultConfigPath(userPreferences.defaultConfigPath);
         }
       } catch (error) {
-        const userPreferences = data && JSON.parse(data);
         if (!userPreferences?.defaultConfigPath) return;
-
         console.warn('Default configuration file not found. ', error);
         showNotification({
           title: 'Default configuration file not found',
           message: `The default configuration is no longer in path '${userPreferences.defaultConfigPath}'.`,
           color: 'yellow',
         });
-        createDefaultConfig();
+        updateIbexConfig(
+          userPreferences.defaultConfigPath,
+          userPreferences.templateFolders,
+        );
       }
     };
 
@@ -309,6 +314,22 @@ export function MainLayout() {
             Are you sure you want to delete the configuration?
           </Text>
         </ConfirmModal>
+
+        <PreferenceModal
+          isOpen={isTemplateModalOpen}
+          titleModal="Template folders"
+          contentComponent={
+            <TemplateModalContent
+              isSavingTemplatePreferences={isSavingTemplatePreferences}
+              setIsSavingTemplatePreferences={setIsSavingTemplatePreferences}
+              closeTemplateModal={closeTemplateModal}
+            />
+          }
+          onClose={closeTemplateModal}
+          handleSavePreferences={() => {
+            setIsSavingTemplatePreferences(true);
+          }}
+        />
 
         <VisualizationURIModal
           opened={isAddTreeModalOpen}
