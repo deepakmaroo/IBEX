@@ -47,18 +47,21 @@ describe('UI Tests for Header Component', function () {
     }
   });
 
-  async function waitForElementToDisappear(element: WebElement, timeout = 10000) {
+  async function waitForElementToDisappear(
+    element: WebElement,
+    timeout = 10000,
+  ) {
     try {
       if (await element.isDisplayed()) {
         const start = Date.now();
         await driver.wait(until.elementIsNotVisible(element), timeout);
         const elapsed = Date.now() - start;
-        console.log(`Waited ${elapsed} ms for element to disappear`);
+        console.info(`Waited ${elapsed} ms for element to disappear`);
       }
     } catch {
       console.warn('Element did not disappear within timeout');
     }
-  }  
+  }
 
   it('Should create new configuration from header', async () => {
     const newConfigButton = await driver.wait(
@@ -102,14 +105,16 @@ describe('UI Tests for Header Component', function () {
 
     // The URI selection modal should apear, we should close it for the next test
     const configUriSelectionModal = await driver.wait(
-      until.elementLocated(By.css('[data-testid="config-uri-selection-modal"]')),
+      until.elementLocated(
+        By.css('[data-testid="config-uri-selection-modal"]'),
+      ),
       5000,
     );
     expect(await configUriSelectionModal.isDisplayed()).to.be.true;
 
     // Find the close button INSIDE the modal
     const closeButton = await configUriSelectionModal.findElement(
-      By.css('button.mantine-Modal-close')
+      By.css('button.mantine-Modal-close'),
     );
 
     // Click it to close
