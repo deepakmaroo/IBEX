@@ -1,4 +1,4 @@
-import { Data } from 'plotly.js';
+import { Data, ErrorBar } from 'plotly.js';
 import { Layout } from 'react-grid-layout';
 
 export interface Axis {
@@ -39,6 +39,7 @@ export type DataPlotly = BaseDataPlotly &
     x: (string | number)[];
     y: (string | number)[];
     yData: AxisData;
+    error_y?: ErrorBar;
     path?: string;
     dimensions?: number;
     shape?: number[];

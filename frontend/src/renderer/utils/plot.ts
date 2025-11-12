@@ -26,6 +26,7 @@ import {
   getFirstArrayValueFromShape,
 } from './matrix';
 import * as tf from '@tensorflow/tfjs';
+import { removeSuffix } from './functions';
 
 /**
  * @description Generates a new DataGridPlot with the provided coordinates, xAxis, and yAxis.
@@ -36,6 +37,7 @@ import * as tf from '@tensorflow/tfjs';
  * @returns A new DataGridPlot object with the provided data.
  */
 export const plotData = (
+  treeNodes: URITreeNodeData[],
   dataPlot: DataGridPlot,
   name: string,
   xValue: number[],
@@ -50,6 +52,68 @@ export const plotData = (
   description?: string,
   y2Axis?: boolean,
 ): DataGridPlot => {
+  // TODO : conditionner selon *_error_* au lieu de _error_lower || _error_upper
+  if (nodeUri.endsWith('_error_lower') || nodeUri.endsWith('_error_upper')) {
+    // Change the plot format for error bands
+    let error_suffix = '';
+    if (nodeUri.endsWith('_error_lower')) {
+      error_suffix = '_error_lower';
+    } else if (nodeUri.endsWith('_error_upper')) {
+      error_suffix = '_error_upper';
+    }
+
+    const existing_trace = dataPlot.plot.find(
+      (plot) => plot.nodeUri === removeSuffix(nodeUri, error_suffix),
+    );
+
+    const mainNodeUri = removeSuffix(nodeUri, error_suffix);
+    let isSymmetric = false;
+
+    if (
+      !treeNodes.find(
+        (node) =>
+          getDefaultUri(node.uri) ===
+          getDefaultUri(mainNodeUri + '_error_lower'),
+      ) ||
+      !treeNodes.find(
+        (node) =>
+          getDefaultUri(node.uri) ===
+          getDefaultUri(mainNodeUri + '_error_upper'),
+      )
+    ) {
+      // Only one of the two fields is filled in (symmetrical case) so we apply on both sides
+      isSymmetric = true;
+    }
+
+    // Update existing plot with data.error_y
+    existing_trace.error_y = {
+      type: 'data',
+      symmetric: isSymmetric,
+      array: yValue,
+    };
+
+    // TODO : pusher dans une liste string[] le chemin du error_band selected
+
+    const foundedPlot = dataPlot.plot.find(
+      (plotItem) => plotItem.nodeUri === mainNodeUri,
+    );
+    if (
+      error_suffix === '_error_lower' ||
+      (foundedPlot?.error_y?.type === 'data' &&
+        !foundedPlot?.error_y?.arrayminus &&
+        treeNodes.find((node) => node.uri === mainNodeUri + '_error_lower'))
+    ) {
+      // Set to arrayminus when lower
+      existing_trace.error_y.arrayminus = yValue;
+    }
+
+    const currentPlot = Array.isArray(dataPlot.plot) ? dataPlot.plot : [];
+    return {
+      ...dataPlot,
+      plot: [...currentPlot],
+    };
+  }
+
   const trace: DataPlotly = {
     x: xValue,
     y: yValue,
@@ -103,6 +167,19 @@ export const handleNewPlot = async (
   //* : corresponds to all indices (matrix)
   let defaultUri = nodes[0].uri; //Use normalized URI to get all matrix
 
+  if (
+    nodes[0].uri.endsWith('_error_lower') ||
+    nodes[0].uri.endsWith('_error_upper')
+  ) {
+    showNotification({
+      title: 'Unable to plot error bands',
+      message: `Requires main data to plot error bands`,
+      color: 'yellow',
+    });
+    throw new Error('Unable to plot error bands');
+  }
+
+  console.log('call C');
   const response: PlotDataResponse = await fetchDataPlot(defaultUri);
   defaultUri = getDefaultUri(defaultUri); //Set defaultUri [0] by default
 
@@ -167,6 +244,7 @@ export const handleNewPlot = async (
   );
 
   const updatedPlot: DataGridPlot = plotData(
+    nodes,
     newGrid,
     yAxis.name,
     defaultXValue,
@@ -197,6 +275,10 @@ export const handleExistingPlot = async (
   findDataPlot: DataGridPlot,
   updatedActive: Configuration,
 ): Promise<Configuration> => {
+  console.log('in handleExistingPlot =>');
+
+  console.log('- findDataPlot : ', findDataPlot);
+
   const dataToPlot = nodes.filter(
     (node) =>
       !findDataPlot.plot.some(
@@ -210,6 +292,9 @@ export const handleExistingPlot = async (
     return updateExistingPlot(nodes, findDataPlot, updatedActive);
   }
 
+  console.log('nodes : ', nodes);
+  console.log('dataToPlot : ', dataToPlot);
+
   for (const node of dataToPlot) {
     let defaultUri = node.uri;
     if (defaultUri.split('#')[0] !== nodes[0].uri.split('#')[0]) {
@@ -222,6 +307,7 @@ export const handleExistingPlot = async (
       continue;
     }
 
+    console.log('call E');
     const response = await fetchDataPlot(
       defaultUri,
       findDataPlot.downsampled_method,
@@ -369,6 +455,8 @@ export const handleExistingPlot = async (
 
     if (unitExists) {
       const updatedPlot = await plotData(
+        // ? Modif dans plotData pour mettre en forme les error_band
+        nodes,
         findDataPlot,
         yAxis.name,
         defaultXValue,
@@ -382,12 +470,18 @@ export const handleExistingPlot = async (
         response.data.downsampled_method,
         response.data.description,
       );
+      console.log('updatedActive.dataPlot BEFORE : ', updatedActive.dataPlot);
+      console.log('updatedPlot : ', updatedPlot);
+      console.log('findDataPlot : ', findDataPlot);
+      console.log('findDataPlot.i : ', findDataPlot.i);
+
       updatedActive.dataPlot = [
         ...(updatedActive.dataPlot || []).filter(
           (plot) => plot.i !== findDataPlot.i,
         ),
         updatedPlot,
       ];
+      console.log('updatedActive.dataPlot AFTER : ', updatedActive.dataPlot);
     } else if (!findDataPlot.y2AxisData) {
       findDataPlot.y2AxisData = {
         name: response.data.name,
@@ -395,6 +489,8 @@ export const handleExistingPlot = async (
       };
 
       const updatedPlot = await plotData(
+        //
+        nodes,
         findDataPlot,
         yAxis.name,
         defaultXValue,
@@ -424,6 +520,8 @@ export const handleExistingPlot = async (
       updatedActive.checkedNodeURI = nodes.filter((n) => n !== node);
     }
   }
+  console.log('updatedActive : ', updatedActive);
+
   return updatedActive;
 };
 
@@ -457,6 +555,8 @@ const updateExistingPlot = (
 
     for (const plot of plots) {
       plot.yaxis = '';
+      delete plot.error_y;
+      // delete plot.error_x; // TODO : vérifier si le changement d'axe nécéssite un error_x
     }
   }
 
@@ -559,6 +659,7 @@ export async function plotNodeUriLoaded(
               continue;
             }
 
+            console.log('call D');
             const response = await fetchDataPlot(defaultUri);
 
             if (!response || !response.data) {
