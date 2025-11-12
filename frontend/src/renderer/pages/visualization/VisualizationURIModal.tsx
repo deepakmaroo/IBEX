@@ -13,19 +13,23 @@ import {
   Table,
   Text,
   TextInput,
+  Tooltip,
 } from '@mantine/core';
 import { useIbexStore } from '../../stores';
-import { Configuration, FormDbEntries, URIData } from 'src/renderer/types';
-import { useEffect, useState } from 'react';
-import { IconPlus } from '@tabler/icons-react';
+import { useEffect, useMemo, useState } from 'react';
+import { IconAlertSquareRounded, IconX, IconPlus } from '@tabler/icons-react';
+import { Configuration, FormDbEntries, URISelectionData } from '../../types';
 import { showNotification } from '@mantine/notifications';
 import { useForm } from '@mantine/form';
 import {
   fetchDataEntries,
   fetchURIExists,
   fetchURIFromPath,
+  formatConfigBeforeLoadingURIs,
+  plotNodeUriLoaded,
   updateCustomDataTree,
 } from '../../utils';
+import { ConfirmModal } from '../../components';
 
 interface VisualizationSelectIDSModalProps {
   opened: boolean;
@@ -46,8 +50,7 @@ export const VisualizationURIModal = ({
   close,
 }: VisualizationSelectIDSModalProps) => {
   const { active, updatedConfiguration } = useIbexStore();
-  const [dataURIsSelected, setDataURIsSelected] = useState<URIData[]>([]);
-  const [dataDbEntries, setDataDbEntries] = useState<URIData[]>([]);
+  const [dataDbEntries, setDataDbEntries] = useState<URISelectionData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingDbEntries, setIsLoadingDbEntries] = useState(false);
   const [isLoadedDbEntries, setIsLoadedDbEntries] = useState(false);
@@ -58,6 +61,15 @@ export const VisualizationURIModal = ({
   const [localDatasetPath, setLocalDatasetPath] = useState('');
   const [localFile, setLocalFile] = useState<File | null>(null);
   const [localFileError, setLocalFileError] = useState('');
+  const [nodeURIsRequiredByTemplate, setNodeURIsRequiredByTemplate] = useState<
+    string[]
+  >([]);
+  const [isMissingURIs, setIsMissingURIs] = useState(false);
+  const [isDeletingAllUri, setIsDeletingAllUri] = useState(false);
+  const dataURIsSelected = useMemo(
+    () => dataDbEntries.filter((value) => value.isSelected),
+    [dataDbEntries],
+  );
 
   const formURI = useForm<FormIDS>({
     initialValues: {
@@ -80,17 +92,106 @@ export const VisualizationURIModal = ({
     },
   });
 
-  useEffect(() => {
-    if (active && active.dataURI.length > 0) {
-      setDataURIsSelected(active?.dataURI);
+  function getNextAvailableUriName(uriNameList: string[]): string {
+    let i = 1;
+    let uriName = 'URI-0';
 
-      const dbEntriesNotSelected = active.dataURI.filter(
-        (d: URIData) =>
-          !dataURIsSelected.some((selected) => selected.uri === d.uri),
-      );
-      setDataDbEntries([...dataURIsSelected, ...dbEntriesNotSelected]);
+    while (uriNameList.includes(uriName)) {
+      uriName = `URI-${i}`;
+      i++;
     }
-  }, [active]);
+
+    return uriName;
+  }
+
+  function properlyAddUriToUriList(
+    uriList: URISelectionData[],
+    newUri: URISelectionData,
+  ): URISelectionData[] {
+    if (uriList.map((value) => value.uri).includes(newUri.uri)) {
+      // URI already present in list, leaving
+      return uriList;
+    }
+
+    newUri.name = newUri.isSelected
+      ? getNextAvailableUriName(uriList.map((value) => value.name))
+      : '';
+
+    uriList.push(newUri);
+    return uriList;
+  }
+
+  function sortUri(uriList: URISelectionData[]) {
+    uriList.sort((a, b) => {
+      if (a.isSelected && !b.isSelected) return -1;
+      if (!a.isSelected && b.isSelected) return 1;
+
+      const lengthDiff = a.name.length - b.name.length;
+      if (lengthDiff !== 0) return lengthDiff;
+
+      return a.name.localeCompare(b.name);
+    });
+  }
+
+  useEffect(() => {
+    if (active?.dataURI && !opened) {
+      const oldUriDb = dataDbEntries.map((entry) => ({
+        ...entry,
+        isSelected: false,
+      }));
+
+      const newUriDb: URISelectionData[] = active.dataURI.map((dataUri) => ({
+        ...dataUri,
+        isSelected: true,
+      }));
+
+      for (const uri of oldUriDb) {
+        properlyAddUriToUriList(newUriDb, uri);
+      }
+
+      sortUri(newUriDb);
+      setDataDbEntries(newUriDb);
+    }
+  }, [opened, active?.name]);
+
+  useEffect(() => {
+    const updateRequiredURIsList = () => {
+      if (active?.dataPlot?.length) {
+        // Get URIs used in dataPlots
+        const nodeURIsRequired = Array.from(
+          new Set(
+            active.dataPlot.flatMap((d) => d.plot.map((p) => p.labelUri)),
+          ),
+        );
+        setNodeURIsRequiredByTemplate(nodeURIsRequired);
+      } else {
+        // No URIs used in dataPlots
+        setNodeURIsRequiredByTemplate([]);
+      }
+    };
+
+    // When changing active config or adding / removing dataPlot, update required URIs list
+    updateRequiredURIsList();
+  }, [active?.name, active?.dataPlot]);
+
+  useEffect(() => {
+    const checkIfMissingURIs = () => {
+      if (dataURIsSelected.length) {
+        // Check if all required URIs are selected
+        const missingURIs = nodeURIsRequiredByTemplate.filter(
+          (uri) =>
+            !dataURIsSelected.map((selected) => selected.name).includes(uri),
+        );
+        setIsMissingURIs(missingURIs?.length > 0 || false);
+      } else {
+        // No URI selected so missing if some URIs are required
+        setIsMissingURIs(nodeURIsRequiredByTemplate?.length > 0);
+      }
+    };
+
+    // When select/unslect uri or when required URIs list change, check if there is missing URIs
+    checkIfMissingURIs();
+  }, [dataURIsSelected, nodeURIsRequiredByTemplate]);
 
   useEffect(() => {
     // Get file from selected path (local dataset)
@@ -120,6 +221,22 @@ export const VisualizationURIModal = ({
       <Table.Th>Select</Table.Th>
       <Table.Th>Name</Table.Th>
       <Table.Th>URI</Table.Th>
+      <Table.Td>
+        {dataDbEntries.length && (
+          <ActionIcon
+            variant="filled"
+            size="lg"
+            color="red"
+            onClick={() => setIsDeletingAllUri(true)}
+          >
+            <IconX
+              color="white"
+              style={{ width: '70%', height: '70%' }}
+              stroke={1.5}
+            />
+          </ActionIcon>
+        )}
+      </Table.Td>
     </Table.Tr>
   );
 
@@ -135,16 +252,33 @@ export const VisualizationURIModal = ({
           radius="sm"
           size="sm"
           w={50}
-          onChange={() => handleCheckUri(element.uri, dataDbEntries)}
-          checked={
-            dataURIsSelected?.findIndex(
-              (d: URIData) => d.uri === element.uri,
-            ) !== -1
-          }
+          onChange={() => {
+            handleCheckUri(element.uri);
+          }}
+          checked={element.isSelected}
         />
       </Table.Td>
       <Table.Td>{element.name}</Table.Td>
       <Table.Td>{element.uri}</Table.Td>
+      <Table.Td>
+        <ActionIcon
+          variant="transparent"
+          aria-label="Remove URI"
+          component="button"
+          type="button"
+          onClick={() =>
+            setDataDbEntries((entries) =>
+              entries.filter((entry) => entry.uri !== element.uri),
+            )
+          }
+        >
+          <IconX
+            color="red"
+            style={{ width: '70%', height: '70%' }}
+            stroke={1.5}
+          />
+        </ActionIcon>
+      </Table.Td>
     </Table.Tr>
   ));
 
@@ -154,44 +288,55 @@ export const VisualizationURIModal = ({
    * @param dataEntries
    * @returns
    */
-  const handleCheckUri = (uri: string, dataEntries: URIData[]): void => {
-    //Verify if dataIDSSelected[] contains the uri then use the color of the uri or generate a new color
-    const color =
-      dataURIsSelected?.findIndex((d: URIData) => d.uri === uri) !== -1
-        ? dataURIsSelected.find((d) => d.uri === uri)?.uriColor
-        : getColorRandom();
-
-    const updateDataURIs: URIData[] = dataURIsSelected.some(
-      (d) => d.uri === uri,
-    )
-      ? dataURIsSelected.filter((d) => !(d.uri === uri))
-      : [
-          ...dataURIsSelected,
-          {
-            name: dataEntries.find((d) => d.uri === uri)?.name,
-            uri,
-            uriColor: color,
-          },
-        ];
-
-    setDataURIsSelected(updateDataURIs);
+  const handleCheckUri = (uri: string): void => {
+    setDataDbEntries((prevEntries) =>
+      prevEntries.map((entry) =>
+        entry.uri === uri
+          ? {
+              ...entry,
+              isSelected: !entry.isSelected,
+              name: entry.isSelected
+                ? ''
+                : getNextAvailableUriName(
+                    dataDbEntries.map((value) => value.name),
+                  ),
+            }
+          : entry,
+      ),
+    );
   };
 
   /**
    * Update data URI
    * @returns
    */
-  const updateDataURI = (): void => {
+  const updateDataURI = async (): Promise<void> => {
     const newCustomDataTree = updateCustomDataTree(
       active.customDataTree,
-      dataURIsSelected,
+      dataDbEntries.filter((value) => value.isSelected),
     );
+
+    // Update plot.nodeUri with selected URIs
+    for (const dataPlot of active.dataPlot) {
+      for (const plot of dataPlot.plot) {
+        const splittedNodeUri = plot.nodeUri.split('#');
+        const uriToApply = dataURIsSelected.find(
+          (selectedUri) => selectedUri.name === plot.labelUri,
+        )?.uri;
+        plot.nodeUri = uriToApply + '#' + splittedNodeUri[1];
+      }
+    }
+
+    // Get new data from BE
+    const newListDataGridPlot = formatConfigBeforeLoadingURIs(active);
+    const wantedDataPlot = await plotNodeUriLoaded(newListDataGridPlot);
+    active.dataPlot = wantedDataPlot;
 
     const updatedActive: Configuration = {
       ...active,
       saved: false,
       customDataTree: newCustomDataTree,
-      dataURI: dataURIsSelected,
+      dataURI: dataDbEntries.filter((value) => value.isSelected),
     };
 
     updatedConfiguration(updatedActive);
@@ -219,6 +364,16 @@ export const VisualizationURIModal = ({
       }
     };
 
+    if (dataDbEntries.some((value) => value.uri === uriToCheck)) {
+      setter('URI already added');
+      showNotification({
+        title: 'Error',
+        message: 'URI already added',
+        color: 'red',
+      });
+      return;
+    }
+
     // Verify if the URI exists
     const responseURIExists = await fetchURIExists(uriToCheck);
 
@@ -232,44 +387,14 @@ export const VisualizationURIModal = ({
       return;
     }
 
-    if (dataURIsSelected.some((d) => d.uri === uriToCheck)) {
-      setter('URI already added');
-      showNotification({
-        title: 'Error',
-        message: 'URI already added',
-        color: 'red',
-      });
-      return;
-    }
+    const newUri: URISelectionData = {
+      name: getNextAvailableUriName(dataDbEntries.map((value) => value.name)),
+      uri: uriToCheck,
+      uriColor: getColorRandom(),
+      isSelected: true,
+    };
 
-    if (dataDbEntries.some((d) => d.uri === uriToCheck)) {
-      //if uri in dataDbEntries, then add to dataURIsSelected
-      handleCheckUri(uriToCheck, dataDbEntries);
-      if (errorSetter.length === 1) {
-        setFromURIisSuccess(false);
-        setFromFileisSuccess(true);
-      } else {
-        setFromURIisSuccess(true);
-        setFromFileisSuccess(false);
-      }
-
-      return;
-    }
-
-    const oldDataEntriesSelected = dataDbEntries.filter((loaded) =>
-      dataURIsSelected.some((selected) => selected.uri === loaded.uri),
-    );
-    const newDataEntries = [
-      ...oldDataEntriesSelected,
-      {
-        name: `URI-${dataDbEntries.length}`,
-        uri: uriToCheck,
-        uriColor: getColorRandom(),
-      },
-    ];
-
-    setDataDbEntries(newDataEntries);
-    handleCheckUri(uriToCheck, newDataEntries);
+    setDataDbEntries([...dataDbEntries, newUri]);
     if (errorSetter.length === 1) {
       setFromURIisSuccess(false);
       setFromFileisSuccess(true);
@@ -295,12 +420,6 @@ export const VisualizationURIModal = ({
 
     try {
       setIsLoading(true);
-
-      const config = await window.api.getConfig();
-      if (!config) {
-        throw new Error('Failed to load configuration');
-      }
-
       await URIVerification(formURI.values.uri, formURI.setFieldError);
     } catch (error) {
       console.error('Error:', error.message || error);
@@ -355,29 +474,29 @@ export const VisualizationURIModal = ({
       setIsLoadingDbEntries(true);
       const response = await fetchDataEntries(formDbEntries.values);
 
-      const oldDataEntriesSelected = dataDbEntries.filter((loaded) =>
-        dataURIsSelected.some((selected) => selected.uri === loaded.uri),
+      const existingMap = new Map<string, URISelectionData>(
+        dataDbEntries.map((e) => [e.uri, e]),
       );
 
-      const maxId = Math.max(
-        0,
-        ...oldDataEntriesSelected.map((d) => {
-          const match = d.name.match(/URI-(\d+)/);
-          return match ? parseInt(match[1], 10) : 0;
-        }),
+      // Deduplicate URIs (existing + new)
+      const allUris = Array.from(
+        new Set([...dataDbEntries.map((e) => e.uri), ...response.entries]),
       );
 
-      const newDataEntries: URIData[] = response.entries
-        .filter(
-          (entry: string) =>
-            !oldDataEntriesSelected.some((d) => d.uri === entry),
-        )
-        .map((entry: string, index: number) => ({
-          name: `URI-${maxId + index + 1}`,
-          uri: entry,
-        }));
+      const newUriNameList = dataDbEntries.map((e) => e.name);
 
-      setDataDbEntries([...oldDataEntriesSelected, ...newDataEntries]);
+      const newUriData: URISelectionData[] = allUris.map((uri) => {
+        const existing = existingMap.get(uri);
+        const name = existing ? existing.name : '';
+        const uriColor = existing ? existing.uriColor : getColorRandom();
+        const isSelected = existing ? existing.isSelected : false;
+
+        if (!existing) newUriNameList.push(name);
+
+        return { uri, name, uriColor, isSelected };
+      });
+
+      setDataDbEntries(newUriData);
       showNotification({
         title: 'Success',
         message: 'Data successfully fetched from db entries',
@@ -534,6 +653,20 @@ export const VisualizationURIModal = ({
         </Fieldset>
       </form>
 
+      {isMissingURIs && nodeURIsRequiredByTemplate?.length > 0 && (
+        <Tooltip
+          position="top-start"
+          label={`Requires ${nodeURIsRequiredByTemplate.length > 1 ? ' these URIs' : ' this URI'}: "${nodeURIsRequiredByTemplate.join(', ')}".`}
+        >
+          <Group gap={10} w="fit-content">
+            <IconAlertSquareRounded size={20} color="red" />
+            <Text
+              size="sm"
+              c="red"
+            >{`The selected template requires ${nodeURIsRequiredByTemplate.length} URIs.`}</Text>
+          </Group>
+        </Tooltip>
+      )}
       <Table withTableBorder>
         <Table.Thead>{tableHeaders}</Table.Thead>
 
@@ -556,10 +689,25 @@ export const VisualizationURIModal = ({
       </Group>
 
       <Group justify="flex-end" mt={20}>
-        <Button disabled={!dataURIsSelected.length} onClick={updateDataURI}>
+        <Button
+          disabled={!dataURIsSelected.length || isMissingURIs}
+          onClick={updateDataURI}
+        >
           Validate
         </Button>
       </Group>
+      <ConfirmModal
+        isOpen={isDeletingAllUri}
+        onClose={() => setIsDeletingAllUri(false)}
+        onConfirm={() => {
+          setDataDbEntries([]);
+          setIsDeletingAllUri(false);
+        }}
+      >
+        <Text size="sm" data-testid="uri-delete-confirmation-text">
+          Are you sure you want to delete all the listed URIs ?
+        </Text>
+      </ConfirmModal>
     </Modal>
   );
 };

@@ -13,7 +13,7 @@ import {
   DataPlotly,
   GridLayoutPlotProps,
 } from 'src/renderer/types';
-import { Container, ScrollArea, Tabs } from '@mantine/core';
+import { Center, Container, ScrollArea, Tabs, Text } from '@mantine/core';
 import { SimplePlotly, Surface2D } from '../plot';
 import { useIbexStore } from '../../stores';
 import {
@@ -37,8 +37,6 @@ export const GridLayoutPlot = ({
 }: GridLayoutPlotProps) => {
   const { active, updatedConfiguration } = useIbexStore();
   const gridSliderRef = useRef<HTMLDivElement>(null);
-
-  const [widthSlider, setWidthSlider] = useState<number>(0);
   const [heightGrid, setHeightGrid] = useState(
     data.h * rowHeight + (23 * (data.h * rowHeight)) / 100,
   );
@@ -256,15 +254,6 @@ export const GridLayoutPlot = ({
   }, []);
 
   /**
-   * Update the width of the slider when the grid is resized
-   */
-  useLayoutEffect(() => {
-    if (gridSliderRef.current) {
-      setWidthSlider(gridSliderRef.current.offsetWidth);
-    }
-  }, [gridSliderRef.current?.offsetWidth]);
-
-  /**
    * Handle the delete grid event
    */
   const handleDeleteGrid = useCallback((id: string) => {
@@ -334,21 +323,29 @@ export const GridLayoutPlot = ({
 
   return (
     <Container fluid w={widthGrid} p={0}>
-      <HoverButtons
-        data={data}
-        downsamplingMethod={downsamplingMethod}
-        downsamplingList={downsamplingList}
-        setDownsamplingMethod={setDownsamplingMethod}
-        handleEditGrid={handleEditGrid}
-        handleInspectMetadata={handleInspectMetadata}
-        handleDeleteGrid={handleDeleteGrid}
-        is3DView={is3DView}
-        setIs3DView={setIs3DView}
-        active3DTab={active3DTab}
-        setActive3DTab={setActive3DTab}
-      />
+      {active.dataURI.length > 0 && (
+        <HoverButtons
+          data={data}
+          downsamplingMethod={downsamplingMethod}
+          downsamplingList={downsamplingList}
+          setDownsamplingMethod={setDownsamplingMethod}
+          handleEditGrid={handleEditGrid}
+          handleInspectMetadata={handleInspectMetadata}
+          handleDeleteGrid={handleDeleteGrid}
+          is3DView={is3DView}
+          setIs3DView={setIs3DView}
+          active3DTab={active3DTab}
+          setActive3DTab={setActive3DTab}
+        />
+      )}
 
-      {!data.coordinates.length ? (
+      {!(active.dataURI.length > 0) ? (
+        // Control when loading a template without selecting URIs
+        <Center h={heightGrid}>
+          <Text>Current configuration has no data. Please, select URIs.</Text>
+        </Center>
+      ) : !data.coordinates.length ? (
+        // Show metadata when not enough coordinates to plot
         <Container pt="40px" p="1rem">
           <Tabs
             value={metadataTabsValue}
@@ -402,25 +399,19 @@ export const GridLayoutPlot = ({
           </Tabs>
         </Container>
       ) : is3DView ? (
+        // Show heatmap
         <Surface2D
           itemDataGrid={data}
-          width={
-            data.coordinates.length > 0
-              ? widthGrid - widthSlider - 30
-              : widthGrid - 40
-          }
+          width={widthGrid}
           height={heightGrid - 10}
           plotIndex={active3DTab}
           handleUpdateCoordinate={handleUpdateCoordinate}
         />
       ) : (
+        // Show simple plot
         <SimplePlotly
           itemDataGrid={data}
-          width={
-            data.coordinates.length > 0
-              ? widthGrid - widthSlider - 30
-              : widthGrid - 40
-          }
+          width={widthGrid}
           height={heightGrid}
           sliderRef={gridSliderRef}
           is3DView={is3DView}

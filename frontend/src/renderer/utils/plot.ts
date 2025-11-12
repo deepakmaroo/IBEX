@@ -2,12 +2,15 @@ import { showNotification } from '@mantine/notifications';
 import {
   Axis,
   AxisData,
+  BaseCoordinates,
   Configuration,
+  ConfigurationToSave,
   Coordinates,
   DataGridPlot,
   DataPlotly,
   PlotCoordinatesResponse,
   PlotDataResponse,
+  URIData,
   URITreeNodeData,
 } from '../types';
 import { fetchDataPlot } from './fetchData';
@@ -209,6 +212,15 @@ export const handleExistingPlot = async (
 
   for (const node of dataToPlot) {
     let defaultUri = node.uri;
+    if (defaultUri.split('#')[0] !== nodes[0].uri.split('#')[0]) {
+      showNotification({
+        title: 'Plot',
+        message: 'Unable to plot data from different URIs',
+        color: 'yellow',
+      });
+      updatedActive.checkedNodeURI = nodes.filter((n) => n !== node);
+      continue;
+    }
 
     const response = await fetchDataPlot(
       defaultUri,
@@ -286,7 +298,7 @@ export const handleExistingPlot = async (
       JSON.parse(JSON.stringify(findDataPlot.coordinates))
         .sort(compareByAxeIndex)
         .every((coord: Coordinates, index: number) => {
-          const responseCoord = coordsResponse[index]; // Skip the first coordinate
+          const responseCoord = coordsResponse[index];
           return coord.name === responseCoord.name;
         });
 
@@ -460,6 +472,57 @@ const updateExistingPlot = (
 };
 
 /**
+ * @description Format config to allow to call plotNodeUriLoaded
+ * @param activeConfiguration The configuration to format
+ */
+export function formatConfigBeforeLoadingURIs(
+  activeConfiguration: ConfigurationToSave | Configuration,
+) {
+  const newListDataGridPlot: DataGridPlot[] = activeConfiguration.dataPlot.map(
+    (data): DataGridPlot => ({
+      ...data,
+      isEditing: false,
+      static: false,
+      coordinates:
+        data.coordinates && data.coordinates.length > 0
+          ? data.coordinates.map(
+              (coord: BaseCoordinates, index): Coordinates => {
+                return {
+                  ...coord,
+                  name: '',
+                  shape: [],
+                  downsampled_shape: [],
+                  coordinates: [],
+                  data: [],
+                  axeIndex: index,
+                };
+              },
+            )
+          : [],
+      plot: data.plot.map((plot): DataPlotly => {
+        // Update plot.nodeUri with selected URIs
+        const splittedNodeUri = plot.nodeUri.split('#');
+        if (plot.labelUri === splittedNodeUri[0]) {
+          const uriToApply = activeConfiguration.dataURI.find(
+            (uri: URIData) => plot.labelUri === uri.name,
+          )?.uri;
+          plot.nodeUri = uriToApply + '#' + splittedNodeUri[1];
+        }
+
+        return {
+          ...plot,
+          yData: [],
+          x: [],
+          y: [],
+        };
+      }),
+    }),
+  );
+
+  return newListDataGridPlot;
+}
+
+/**
  * @description Fetches data for each plot in the provided DataGridPlot from file configuration.
  * @param dataGridPlot The array of DataGridPlot objects to fetch data for.
  * @returns A promise that resolves to an array of updated DataGridPlot objects.
@@ -474,116 +537,123 @@ export async function plotNodeUriLoaded(
       dataGridPlot.map(async (dataGrid): Promise<DataGridPlot> => {
         const updatedXAxisData: Axis = dataGrid.xAxisData;
 
-        const updatedPlot = await Promise.all(
-          dataGrid.plot.map(async (plot): Promise<DataPlotly> => {
-            if (!plot.nodeUri) return plot;
+        const updatedPlot: DataPlotly[] = [];
+        for (const plot of dataGrid.plot) {
+          if (!plot.nodeUri) {
+            updatedPlot.push(plot);
+            continue;
+          }
 
-            try {
-              const defaultUri = normalizeIndices(plot.nodeUri); // Normalize the URI to ensure it matches the expected format
-              const response = await fetchDataPlot(defaultUri);
+          try {
+            const defaultUri = normalizeIndices(plot.nodeUri); // Normalize the URI to ensure it matches the expected format
 
-              if (!response || !response.data) {
-                console.warn(`No data returned for nodeUri: ${plot.nodeUri}`);
-                errorHasOccurred = true;
-                return plot;
-              }
-
-              let yResponsePath = response.data.path;
-
-              const plotIndex = dataGrid.plot.findIndex(
-                (plotFromList) => plotFromList.nodeUri === plot.nodeUri,
-              );
-              if (plotIndex === 0) {
-                // Get coordinates from first plot response
-                for (const responseCoordinates of response.data.coordinates) {
-                  const matchingCoord = dataGrid.coordinates.find((c) =>
-                    c?.path
-                      ? normalizeIndices(c.target) ===
-                          responseCoordinates.target &&
-                        normalizeIndices(c.path) === responseCoordinates.path
-                      : normalizeIndices(c.target) ===
-                        responseCoordinates.target,
-                  );
-
-                  const lastField = getLastIndexedField(
-                    responseCoordinates.target,
-                  );
-                  if (!lastField) continue;
-
-                  // If coordinates exist, update the data and shape
-                  matchingCoord.data = responseCoordinates.value;
-                  matchingCoord.name = responseCoordinates.name;
-                  matchingCoord.path = getDefaultUri(responseCoordinates.path);
-                  matchingCoord.unit = responseCoordinates.unit || '';
-                  matchingCoord.shape = responseCoordinates.shape;
-                  matchingCoord.downsampled_shape =
-                    responseCoordinates.downsampled_shape;
-                  matchingCoord.coordinates = responseCoordinates.coordinates;
-
-                  //* Update the target - yPath - axis data with the index
-                  matchingCoord.target = updateIndexFieldName(
-                    matchingCoord.target,
-                    lastField,
-                    matchingCoord.valueIndex,
-                  );
-
-                  yResponsePath = updateIndexFieldName(
-                    yResponsePath,
-                    lastField,
-                    matchingCoord.valueIndex,
-                  );
-
-                  updatedXAxisData.path = updateIndexFieldName(
-                    updatedXAxisData.path,
-                    lastField,
-                    matchingCoord.valueIndex,
-                  );
-
-                  //Upgrade datagrid coordinates with the response
-                  dataGrid.coordinates = dataGrid.coordinates.map((coord) => {
-                    // Update the target if it matches the response coordinates
-                    if (coord.name === matchingCoord.name) {
-                      return matchingCoord;
-                    }
-                    return coord;
-                  });
-                }
-              }
-
-              if (response.data.downsampled_method) {
-                dataGrid.downsampled_method = response.data.downsampled_method;
-              }
-
-              let defaultXValue: number[] | string[] = [];
-              if (response.data.coordinates.length > 0) {
-                defaultXValue = getArrayValueFromDependance(
-                  dataGrid.coordinates,
-                  0,
-                );
-              }
-              const defaultYValue = getVectorData(
-                dataGrid.coordinates,
-                response.data.value,
-              );
-
-              return {
-                ...plot,
-                name: `${response.data.name}_${plot.labelUri}`,
-                description: response.data.description,
-                dimensions: response.data.ndim,
-                path: yResponsePath,
-                shape: response.data.shape as number[],
-                yData: response.data.value,
-                x: defaultXValue.map((x) => x.toString()),
-                y: defaultYValue,
-              };
-            } catch (error) {
-              console.error(`Error fetching data for ${plot.nodeUri}:`, error);
-              errorHasOccurred = true;
-              return plot;
+            if (
+              defaultUri.split('#')[0] !==
+              dataGrid.plot[0].nodeUri.split('#')[0]
+            ) {
+              showNotification({
+                title: 'Plot',
+                message: 'Unable to plot data from different URIs',
+                color: 'yellow',
+              });
+              continue;
             }
-          }),
-        );
+
+            const response = await fetchDataPlot(defaultUri);
+
+            if (!response || !response.data) {
+              console.warn(`No data returned for nodeUri: ${plot.nodeUri}`);
+              errorHasOccurred = true;
+              updatedPlot.push(plot);
+              continue;
+            }
+
+            let yResponsePath = response.data.path;
+
+            const plotIndex = dataGrid.plot.findIndex(
+              (plotFromList) => plotFromList.nodeUri === plot.nodeUri,
+            );
+            const matchingCoordList: Coordinates[] = [];
+            for (const responseCoordinates of response.data.coordinates) {
+              const matchingCoord: Coordinates = JSON.parse(
+                JSON.stringify(dataGrid.coordinates),
+              ).find(
+                (c: Coordinates) =>
+                  normalizeIndices(c.path) === responseCoordinates.path,
+              );
+              const lastField = getLastIndexedField(responseCoordinates.target);
+              if (!lastField) continue;
+
+              // If coordinates exist, update the data and shape
+              matchingCoord.data = responseCoordinates.value;
+              matchingCoord.name = responseCoordinates.name;
+              matchingCoord.path = getDefaultUri(responseCoordinates.path);
+              matchingCoord.unit = responseCoordinates.unit || '';
+              matchingCoord.shape = responseCoordinates.shape;
+              matchingCoord.downsampled_shape =
+                responseCoordinates.downsampled_shape;
+              matchingCoord.coordinates = responseCoordinates.coordinates;
+
+              //* Update the target - yPath - axis data with the index
+              matchingCoord.target = updateIndexFieldName(
+                matchingCoord.target,
+                lastField,
+                matchingCoord.valueIndex,
+              );
+
+              yResponsePath = updateIndexFieldName(
+                yResponsePath,
+                lastField,
+                matchingCoord.valueIndex,
+              );
+
+              updatedXAxisData.path = updateIndexFieldName(
+                updatedXAxisData.path,
+                lastField,
+                matchingCoord.valueIndex,
+              );
+
+              matchingCoordList.push(matchingCoord);
+            }
+
+            if (plotIndex === 0) {
+              // Update datagrid coordinates with first plot response
+              dataGrid.coordinates = matchingCoordList;
+            }
+
+            if (response.data.downsampled_method) {
+              dataGrid.downsampled_method = response.data.downsampled_method;
+            }
+
+            let defaultXValue: number[] | string[] = [];
+            if (response.data.coordinates.length > 0) {
+              // Get x vector for each plot
+              defaultXValue = getArrayValueFromDependance(matchingCoordList, 0);
+            }
+            const defaultYValue = getVectorData(
+              dataGrid.coordinates,
+              response.data.value,
+            );
+
+            const plotToPush = {
+              ...plot,
+              name: `${response.data.name}_${plot.labelUri}`,
+              description: response.data.description,
+              dimensions: response.data.ndim,
+              path: yResponsePath,
+              shape: response.data.shape as number[],
+              yData: response.data.value,
+              x: defaultXValue,
+              y: defaultYValue,
+              mode: defaultYValue.length > 1 ? 'lines' : 'lines+markers',
+            } as DataPlotly;
+            updatedPlot.push(plotToPush);
+          } catch (error) {
+            console.error(`Error fetching data for ${plot.nodeUri}:`, error);
+            errorHasOccurred = true;
+            updatedPlot.push(plot);
+          }
+        }
 
         const dataGridUpdated = {
           ...dataGrid,

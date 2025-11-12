@@ -7,3 +7,4 @@ export * from './stores';
 export * from './tree';
 export * from './plot';
 export * from './uri';
+export * from './userPreferences';
