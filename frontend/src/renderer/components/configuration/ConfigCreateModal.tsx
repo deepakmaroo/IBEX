@@ -103,7 +103,7 @@ export function ConfigCreateModal({
     setLocalTemplate(localFilePath);
   };
 
-  const updateLocalTemplateFile = useCallback(
+  const saveLocalTemplateFile = useCallback(
     async (localTemplatePath: string) => {
       if (!localTemplatePath) {
         return;
@@ -124,7 +124,7 @@ export function ConfigCreateModal({
   const loadIbexConfig = useCallback(async () => {
     const userPreferences = await readIbexConfig();
     // Get default template folders
-    if (userPreferences?.templateFolders.length > 0) {
+    if (userPreferences?.templateFolders?.length > 0) {
       // Get templateFolders to show paths & update config file
       const tempTemplateFilesData: SelectTemplateData = [];
       for (const templateFolder of userPreferences.templateFolders) {
@@ -141,10 +141,17 @@ export function ConfigCreateModal({
             label: fileName,
           });
         }
-        tempTemplateFilesData.push({ group: templateFolder, items: itemList });
+        if (itemList.length) {
+          tempTemplateFilesData.push({
+            group: templateFolder,
+            items: itemList,
+          });
+        }
       }
       // Used for discerning in Select labels from values
       setTemplateFilesData(tempTemplateFilesData);
+    } else {
+      setTemplateFilesData([]);
     }
   }, []);
 
@@ -186,7 +193,7 @@ export function ConfigCreateModal({
       setFolderTemplate('');
 
       // Get file to show in FileInput
-      updateLocalTemplateFile(localTemplate);
+      saveLocalTemplateFile(localTemplate);
     }
   }, [localTemplate]);
 
@@ -217,11 +224,12 @@ export function ConfigCreateModal({
             <Stack gap={0}>
               <Select
                 label="Template from folders"
-                placeholder="Select template from folders"
+                placeholder={`${!templateFilesData?.length ? 'No selected folder in preferences' : 'Select template from folders'}`}
                 value={folderTemplate}
                 data={templateFilesData}
                 mx="2rem"
                 onChange={handleSelectFolderTemplate}
+                disabled={!templateFilesData?.length}
               />
 
               <Center mt={8}>
