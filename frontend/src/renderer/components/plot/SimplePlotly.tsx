@@ -12,7 +12,7 @@ import {
   swapAxis,
 } from '../../utils';
 import classes from './SimplePlotly.module.css';
-import { PlotTitle } from './PlotTitle';
+import { NoDataForURI, PlotTitle } from '../plot';
 interface SimplePlotlyProps {
   itemDataGrid: DataGridPlot;
   width: number;
@@ -84,15 +84,6 @@ export const SimplePlotly = ({
   };
 
   /**
-   * Update the editable title when layout title change
-   */
-  useEffect(() => {
-    if (!itemDataGrid.isTitleOverwritten) {
-      setTitle(itemDataGrid.title || '');
-    }
-  }, [itemDataGrid.title]);
-
-  /**
    * Update the layout title & dataPlot configuration when editing title
    */
   useEffect(() => {
@@ -101,17 +92,19 @@ export const SimplePlotly = ({
       title: { text: title },
     }));
 
-    const updatedDataPlot: DataGridPlot[] = active.dataPlot.map(
-      (item: DataGridPlot) => {
-        if (item.i === itemDataGrid.i) {
-          return {
-            ...itemDataGrid,
-            title: title,
-          };
-        }
-        return item;
-      },
+    if (!itemDataGrid.isEditing) {
+      return;
+    }
+
+    // Update title only if is editing
+    const updatedDataPlot: DataGridPlot[] = JSON.parse(
+      JSON.stringify(active.dataPlot),
     );
+    for (const dataPlot of updatedDataPlot) {
+      if (dataPlot.i === itemDataGrid.i) {
+        dataPlot.title = title;
+      }
+    }
 
     const newActive: Configuration = {
       ...active,
@@ -138,7 +131,7 @@ export const SimplePlotly = ({
   useEffect(() => {
     setLayoutPlot((prevLayout) => ({
       ...prevLayout,
-      width: width,
+      width: width * (itemDataGrid.coordinates?.length > 1 ? 0.8 : 1) - 75,
     }));
   }, [width]);
 
@@ -218,13 +211,15 @@ export const SimplePlotly = ({
         inner: {
           margin: 0,
           width: 'inherit',
+          flexWrap: 'nowrap',
+          whiteSpace: 'nowrap',
         },
       }}
     >
       {/* Coordinates sliders */}
-      {itemDataGrid.coordinates.length > 0 &&
-        sliderRef &&
-        itemDataGrid.coordinates?.length > 1 && (
+      {itemDataGrid.coordinates.filter((coord) => coord.name !== '')?.length >
+        1 &&
+        sliderRef && (
           <Grid.Col
             className={classes.handlePlotExplorationContainer}
             span="content"
@@ -236,11 +231,11 @@ export const SimplePlotly = ({
               <Select
                 label=""
                 value={
-                  JSON.parse(JSON.stringify(itemDataGrid.coordinates)).find(
+                  itemDataGrid.coordinates.find(
                     (coord: Coordinates) => coord.axeIndex === 0,
                   ).name
                 }
-                data={JSON.parse(JSON.stringify(itemDataGrid.coordinates)).map(
+                data={itemDataGrid.coordinates.map(
                   (coord: Coordinates) => coord.name,
                 )}
                 w={`${width * 0.2}px`}
@@ -250,13 +245,14 @@ export const SimplePlotly = ({
                     itemDataGrid,
                     active,
                     updatedConfiguration,
-                    JSON.parse(JSON.stringify(itemDataGrid.coordinates)).find(
+                    itemDataGrid.coordinates.find(
                       (coord: Coordinates) => coord.name === value,
                     ).axeIndex,
                     'x',
                   )
                 }
                 size="xs"
+                disabled={!itemDataGrid.isEditing}
               />
             </Group>
 
@@ -303,46 +299,63 @@ export const SimplePlotly = ({
             </Group>
           </Grid.Col>
         )}
-      <PlotTitle
-        itemDataGrid={itemDataGrid}
-        title={title}
-        setTitle={setTitle}
-      />
+
       {itemDataGrid.plot.every((plot) =>
         [plot.x, plot.y].every(isMatrixPlottable),
       ) ? (
+        <>
+          <PlotTitle
+            itemDataGrid={itemDataGrid}
+            title={title}
+            setTitle={setTitle}
+          />
+
+          <Grid.Col
+            span="auto"
+            pos="relative"
+            w={`${width * (itemDataGrid.coordinates?.length > 1 ? 0.8 : 1) - 32}px`}
+            maw={`${width * (itemDataGrid.coordinates?.length > 1 ? 0.8 : 1) - 32}px`}
+            h={`${height}px`}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          >
+            <Plot
+              ref={plotRef}
+              className={classes.simplePlot}
+              data={itemDataGrid.plot}
+              config={{
+                autosizable: false,
+                staticPlot: !itemDataGrid.static,
+                scrollZoom: true,
+                displayModeBar: true,
+                showTips: true,
+                displaylogo: false,
+                modeBarButtonsToRemove: ['lasso2d', 'select2d'],
+              }}
+              layout={layoutPlot}
+              onRelayout={handleRelayout}
+              useResizeHandler={false}
+            />
+          </Grid.Col>
+        </>
+      ) : itemDataGrid.plot.every(
+          (plot) => ![plot.x, plot.y, plot.yData].some(isMatrixPlottable),
+        ) ? (
         <Grid.Col
           span="auto"
           pos="relative"
-          w={`${width * (itemDataGrid.coordinates?.length > 1 ? 0.8 : 1) - 32}px`}
-          maw={`${width * (itemDataGrid.coordinates?.length > 1 ? 0.8 : 1) - 32}px`}
+          w={'100%'}
           h={`${height}px`}
           style={{
             display: 'flex',
             flexDirection: 'column',
           }}
         >
-          <Plot
-            ref={plotRef}
-            className={classes.simplePlot}
-            style={{
-              maxWidth: `${width * (itemDataGrid.coordinates?.length > 1 ? 0.8 : 1) - 32}px !important`,
-              height: `${height}px`,
-            }}
-            data={itemDataGrid.plot}
-            config={{
-              autosizable: false,
-              staticPlot: !itemDataGrid.static,
-              scrollZoom: true,
-              displayModeBar: true,
-              showTips: true,
-              displaylogo: false,
-              modeBarButtonsToRemove: ['lasso2d', 'select2d'],
-            }}
-            layout={layoutPlot}
-            onRelayout={handleRelayout}
-            useResizeHandler={false}
-          />
+          <Center h={height} w={`100%`}>
+            <NoDataForURI itemDataGrid={itemDataGrid} />
+          </Center>
         </Grid.Col>
       ) : (
         <Grid.Col
@@ -356,7 +369,7 @@ export const SimplePlotly = ({
             flexDirection: 'column',
           }}
         >
-          <Center h={height}>
+          <Center h={height} w={`100%`}>
             <Text>Current index has no data</Text>
           </Center>
         </Grid.Col>

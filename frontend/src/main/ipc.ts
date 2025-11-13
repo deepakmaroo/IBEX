@@ -1,5 +1,6 @@
-import { ipcMain, dialog, BrowserWindow } from 'electron';
-import * as fs from 'fs';
+import { app, ipcMain, dialog, BrowserWindow } from 'electron';
+import fs from 'fs/promises';
+import path from 'path';
 import { getConfigSync } from '../config';
 import { ConfigurationState } from 'src/renderer/types';
 export default {
@@ -10,7 +11,7 @@ export default {
       'readFile',
       async (event: Electron.IpcMainInvokeEvent, filePath: string) => {
         try {
-          const fileContent: string = fs.readFileSync(filePath, 'utf-8');
+          const fileContent: string = await fs.readFile(filePath, 'utf-8');
           return fileContent;
         } catch (error) {
           if (error instanceof Error) {
@@ -22,14 +23,20 @@ export default {
       },
     );
 
-    ipcMain.handle('writeFile', (event, path, data) => {
-      try {
-        fs.writeFileSync(path, data);
-        return true;
-      } catch {
-        return false;
-      }
-    });
+    ipcMain.handle(
+      'writeFile',
+      async (_event, filePath: string, data: string) => {
+        try {
+          const dir = path.dirname(filePath);
+          await fs.mkdir(dir, { recursive: true }); // Creates recursively folders if needed
+          await fs.writeFile(filePath, data, 'utf-8');
+          return { success: true, message: 'File written successfully' };
+        } catch (err) {
+          console.error('Error writing file:', err);
+          return { success: false, message: err.message };
+        }
+      },
+    );
 
     ipcMain.handle(
       'getFilePathDialog',
@@ -48,6 +55,38 @@ export default {
         return null;
       },
     );
+
+    ipcMain.handle(
+      'selectFolder',
+      async (event: Electron.IpcMainInvokeEvent) => {
+        const win = BrowserWindow.fromWebContents(event.sender);
+
+        if (!win) return null;
+
+        const result = await dialog.showOpenDialog(win, {
+          properties: ['openDirectory'],
+        });
+
+        if (result.canceled || result.filePaths.length === 0) return null;
+        return result.filePaths[0]; // return selected filepath
+      },
+    );
+
+    ipcMain.handle('listFiles', async (_event, dirPath: string) => {
+      try {
+        const entries = await fs.readdir(dirPath, { withFileTypes: true });
+        return entries.map((entry) => ({
+          name: entry.name,
+          isDirectory: entry.isDirectory(),
+        }));
+      } catch (error) {
+        if (error instanceof Error) {
+          throw new Error(`Failed to read files in folder: ${error.message}`);
+        } else {
+          throw new Error(`Failed to read files in folder: ${String(error)}`);
+        }
+      }
+    });
 
     ipcMain.handle('saveAsDialog', async (event, name: string, ext: string) => {
       if (process.env.E2E_TEST === 'true') {
@@ -102,6 +141,10 @@ export default {
         ipcMain.on(replyChannel, listener);
         win.webContents.send('getTestState', replyChannel);
       });
+    });
+
+    ipcMain.handle('getHomePath', () => {
+      return app.getPath('home');
     });
   },
 };

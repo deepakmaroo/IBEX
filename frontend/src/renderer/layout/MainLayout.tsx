@@ -11,13 +11,20 @@ import {
   Coordinates,
   DataGridPlot,
   DataGridPlotToSave,
-  DataPlotly,
-  URIData,
 } from '../types';
 import { ConfigCreateModal, ConfirmModal, Header } from '../components';
-import { plotNodeUriLoaded, updateCustomDataTree } from '../utils';
+import { PreferenceModal } from '../components/preferences/PreferenceModal';
+import {
+  updateIbexConfig,
+  formatConfigBeforeLoadingURIs,
+  plotNodeUriLoaded,
+  updateCustomDataTree,
+  readIbexConfig,
+} from '../utils';
 import { VisualizationURIModal } from '../pages';
 import { showNotification } from '@mantine/notifications';
+import { useEffect, useState } from 'react';
+import { TemplateModalContent } from '../components/preferences/TemplateModalContent';
 
 export function MainLayout() {
   const {
@@ -28,28 +35,54 @@ export function MainLayout() {
     updatedConfiguration,
     setActive,
   } = useIbexStore();
-
   const [
     isConfigCreateModalOpen,
     { open: openConfigCreateModal, close: closeConfigCreateModal },
   ] = useDisclosure(false);
-
   const [
     isConfigDeleteModalOpen,
     { open: openConfigDeleteModal, close: closeConfigDeleteModal },
   ] = useDisclosure(false);
-
   const [
     isAddTreeModalOpen,
     { open: openAddTreeModal, close: closeAddTreeModal },
   ] = useDisclosure(false);
+  const [defaultConfigPath, setDefaultConfigPath] = useState('');
+  const [isSavingTemplatePreferences, setIsSavingTemplatePreferences] =
+    useState(false);
 
-  const handleAddConfiguration = (config: ConfigForm) => {
+  const [
+    isTemplateModalOpen,
+    { open: openTemplateCreateModal, close: closeTemplateModal },
+  ] = useDisclosure(false);
+
+  // Used in useEffect to load configuration once in dev mode
+  interface InitWindow extends Window {
+    __didInit?: boolean;
+  }
+  const w = window as InitWindow;
+
+  const handleAddConfiguration = async (
+    config: ConfigForm,
+    templatePath?: string,
+  ) => {
+    let dataPlotFromTemplate: DataGridPlot[];
+    if (templatePath) {
+      const rawFileContent: string = await window.api.fs.readFile(templatePath);
+      const fileContent: Configuration = rawFileContent.trim()
+        ? JSON.parse(rawFileContent)
+        : {};
+      if (fileContent?.dataPlot && Array.isArray(fileContent.dataPlot)) {
+        // Get data plots from template
+        dataPlotFromTemplate = fileContent.dataPlot;
+      }
+    }
+
     const newConfig: Configuration = {
       name: config.name,
       dataURI: [],
       customDataTree: [],
-      dataPlot: [],
+      dataPlot: dataPlotFromTemplate ?? [],
       checkedNodeURI: [],
     };
     addConfiguration(newConfig);
@@ -136,116 +169,108 @@ export function MainLayout() {
     updatedConfiguration(updateActive);
   };
 
-  const handleLoadConfiguration = async () => {
-    await window.api.fs
-      .getFilePathDialog('json')
-      .then(async (path: string | null) => {
-        if (path) {
-          await window.api.fs.readFile(path).then(async (data: string) => {
-            const newIbexState: ConfigurationToSave = JSON.parse(data);
+  const handleLoadConfiguration = async (path?: string) => {
+    if (!path) {
+      // If no path is provided, the file selector is opened.
+      path = await window.api.fs.getFilePathDialog('json');
+    }
 
-            const configurationNameAlreadyExists = configurations.some(
-              (value) => {
-                if (value.name == newIbexState.name) return true;
-              },
-            );
+    if (!path) {
+      // Stop load if the user has cancelled the selection (or if path is still null)
+      return;
+    }
 
-            if (configurationNameAlreadyExists) {
-              const configurationAlreadyLoaded = configurations.some(
-                (value) => {
-                  if (value.path == path) return true;
-                },
-              );
+    await window.api.fs.readFile(path).then(async (data: string) => {
+      const newIbexState: ConfigurationToSave = JSON.parse(data);
 
-              if (configurationAlreadyLoaded) {
-                showNotification({
-                  title: 'Configuration already loaded',
-                  message: `The configuration ${newIbexState.name} is already loaded.`,
-                  color: 'orange',
-                });
-                return;
-              }
-
-              // We have a duplicate configuration name
-              // We will add a (x) to the name until there is no name duplicate in the configuration list
-              let offsetName = 1;
-              let newConfigurationName = newIbexState.name;
-              while (
-                configurations.some((value) => {
-                  if (value.name == newConfigurationName) return true;
-                })
-              ) {
-                newConfigurationName = newIbexState.name + ` (${offsetName})`;
-                offsetName++;
-              }
-
-              newIbexState.name = newConfigurationName;
-            }
-
-            const newListDataGridPlot: DataGridPlot[] =
-              newIbexState.dataPlot.map(
-                (data): DataGridPlot => ({
-                  ...data,
-                  isEditing: false,
-                  static: false,
-                  coordinates:
-                    data.coordinates && data.coordinates.length > 0
-                      ? data.coordinates.map(
-                          (coord: BaseCoordinates, index): Coordinates => {
-                            return {
-                              ...coord,
-                              name: '',
-                              shape: [],
-                              downsampled_shape: [],
-                              coordinates: [],
-                              data: [],
-                              axeIndex: index,
-                            };
-                          },
-                        )
-                      : [],
-                  plot: data.plot.map((plot): DataPlotly => {
-                    const matched = newIbexState.dataURI.find(
-                      (uri: URIData) => plot.labelUri === uri.name,
-                    );
-
-                    let fullNodeUri = plot.nodeUri;
-                    if (matched) {
-                      const suffix = plot.nodeUri.slice(matched.name.length);
-                      fullNodeUri = `${matched.uri}${suffix}`;
-                    }
-
-                    return {
-                      ...plot,
-                      nodeUri: fullNodeUri,
-                      yData: [],
-                      x: [],
-                      y: [],
-                    };
-                  }),
-                }),
-              );
-
-            const newConfig: Configuration = {
-              name: newIbexState.name,
-              dataURI: newIbexState.dataURI,
-              customDataTree: updateCustomDataTree([], newIbexState.dataURI),
-              checkedNodeURI: [],
-              dataPlot: await plotNodeUriLoaded(newListDataGridPlot),
-              saved: true,
-              path: path,
-            };
-
-            addConfiguration(newConfig);
-            setActive(newConfig.name);
-          });
-        }
+      const configurationNameAlreadyExists = configurations.some((value) => {
+        if (value.name == newIbexState.name) return true;
       });
+
+      if (configurationNameAlreadyExists) {
+        const configurationAlreadyLoaded = configurations.some((value) => {
+          if (value.path == path) return true;
+        });
+
+        if (configurationAlreadyLoaded) {
+          showNotification({
+            title: 'Configuration already loaded',
+            message: `The configuration ${newIbexState.name} is already loaded.`,
+            color: 'yellow',
+          });
+          return;
+        }
+
+        // We have a duplicate configuration name
+        // We will add a (x) to the name until there is no name duplicate in the configuration list
+        let offsetName = 1;
+        let newConfigurationName = newIbexState.name;
+        while (
+          configurations.some((value) => {
+            if (value.name == newConfigurationName) return true;
+          })
+        ) {
+          newConfigurationName = newIbexState.name + ` (${offsetName})`;
+          offsetName++;
+        }
+
+        newIbexState.name = newConfigurationName;
+      }
+
+      const newListDataGridPlot = formatConfigBeforeLoadingURIs(newIbexState);
+      const newConfig: Configuration = {
+        name: newIbexState.name,
+        dataURI: newIbexState.dataURI,
+        customDataTree: updateCustomDataTree([], newIbexState.dataURI),
+        checkedNodeURI: [],
+        dataPlot: await plotNodeUriLoaded(newListDataGridPlot),
+        saved: true,
+        path: path,
+      };
+
+      addConfiguration(newConfig);
+      setActive(newConfig.name);
+    });
   };
 
   const handleSelectConfiguration = (value: string) => {
     setActive(value);
   };
+
+  useEffect(() => {
+    // Listener to open template modal when triggered
+    window.api.preferences.onOpenTemplateModal(() => openTemplateCreateModal());
+
+    // Used to load configuration once in dev mode
+    if (w.__didInit) return;
+    w.__didInit = true;
+
+    // Get default configuration path to load
+    const loadDefaultConfiguration = async function () {
+      const userPreferences = await readIbexConfig();
+      try {
+        // Load default configuration
+        if (userPreferences?.defaultConfigPath) {
+          await handleLoadConfiguration(userPreferences.defaultConfigPath);
+          setDefaultConfigPath(userPreferences.defaultConfigPath);
+        }
+      } catch (error) {
+        if (!userPreferences?.defaultConfigPath) return;
+        console.warn('Default configuration file not found. ', error);
+        showNotification({
+          title: 'Default configuration file not found',
+          message: `The default configuration is no longer in path '${userPreferences.defaultConfigPath}'.`,
+          color: 'yellow',
+        });
+        updateIbexConfig(
+          userPreferences.defaultConfigPath,
+          userPreferences.templateFolders,
+        );
+      }
+    };
+
+    loadDefaultConfiguration();
+  }, []);
 
   return (
     <AppShell header={{ height: 70 }}>
@@ -266,6 +291,8 @@ export function MainLayout() {
           handleLoadConfiguration={handleLoadConfiguration}
           handleSelectConfiguration={handleSelectConfiguration}
           handleAddTree={openAddTreeModal}
+          defaultConfigPath={defaultConfigPath}
+          setDefaultConfigPath={setDefaultConfigPath}
         />
       </AppShell.Header>
       <AppShell.Main>
@@ -275,6 +302,7 @@ export function MainLayout() {
           configurationsNames={configurations.map((c) => c?.name)}
           onClose={closeConfigCreateModal}
           handleAddConfiguration={handleAddConfiguration}
+          handleAddTree={openAddTreeModal}
         />
 
         <ConfirmModal
@@ -286,6 +314,22 @@ export function MainLayout() {
             Are you sure you want to delete the configuration?
           </Text>
         </ConfirmModal>
+
+        <PreferenceModal
+          isOpen={isTemplateModalOpen}
+          titleModal="Template folders"
+          contentComponent={
+            <TemplateModalContent
+              isSavingTemplatePreferences={isSavingTemplatePreferences}
+              setIsSavingTemplatePreferences={setIsSavingTemplatePreferences}
+              closeTemplateModal={closeTemplateModal}
+            />
+          }
+          onClose={closeTemplateModal}
+          handleSavePreferences={() => {
+            setIsSavingTemplatePreferences(true);
+          }}
+        />
 
         <VisualizationURIModal
           opened={isAddTreeModalOpen}

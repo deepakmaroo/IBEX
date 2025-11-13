@@ -271,7 +271,7 @@ export const VisualizationMetaData = () => {
 
     observer.observe(containerRef.current);
     return () => observer.disconnect();
-  }, [containerRef.current]);
+  }, [tabsValue]);
 
   /**
    * Handle the switch grid event

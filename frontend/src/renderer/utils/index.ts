@@ -5,3 +5,4 @@ export * from './plot';
 export * from './tree';
 export * from './uuid';
 export * from './uri';
+export * from './userPreferences';

@@ -1,4 +1,5 @@
 import {
+  ActionIcon,
   Button,
   Center,
   ComboboxData,
@@ -12,9 +13,18 @@ import {
 } from '@mantine/core';
 import logoPath from '../../assets/imas_extra.png';
 import { Configuration } from 'src/renderer/types';
-import { IconPlus, IconCircleFilled } from '@tabler/icons-react';
+import {
+  IconPlus,
+  IconCircleFilled,
+  IconStar,
+  IconStarFilled,
+} from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
-import { fetchInfoVersion } from '../../utils';
+import {
+  updateIbexConfig,
+  fetchInfoVersion,
+  readIbexConfig,
+} from '../../utils';
 
 interface HeaderProps {
   active: Configuration;
@@ -25,6 +35,8 @@ interface HeaderProps {
   handleLoadConfiguration: () => void;
   handleSelectConfiguration: (value: string) => void;
   handleAddTree: () => void;
+  defaultConfigPath: string;
+  setDefaultConfigPath: (value: string) => void;
 }
 
 export const Header = ({
@@ -36,6 +48,8 @@ export const Header = ({
   handleLoadConfiguration,
   handleSelectConfiguration,
   handleAddTree,
+  defaultConfigPath,
+  setDefaultConfigPath,
 }: HeaderProps) => {
   const [isServerResponding, setIsServerResponding] = useState(true);
 
@@ -49,7 +63,7 @@ export const Header = ({
         Add
       </Button>
       <Button
-        onClick={handleLoadConfiguration}
+        onClick={() => handleLoadConfiguration()}
         data-testid="header-load-configuration"
         variant="outline"
       >
@@ -88,7 +102,7 @@ export const Header = ({
 
   const serverStatus = (
     <Group>
-      <Tooltip label="Server status">
+      <Tooltip openDelay={300} label="Server status">
         <IconCircleFilled
           size={20}
           color={isServerResponding ? 'green' : 'red'}
@@ -115,6 +129,13 @@ export const Header = ({
     return () => clearInterval(interval);
   }, []);
 
+  const updateDefaultConfiguration = async () => {
+    const path = defaultConfigPath === active?.path ? '' : (active?.path ?? '');
+    const userPreferences = await readIbexConfig();
+    updateIbexConfig(path, userPreferences?.templateFolders);
+    setDefaultConfigPath(path);
+  };
+
   return (
     <Container fluid p={5}>
       <Group justify="space-between">
@@ -134,13 +155,41 @@ export const Header = ({
             placeholder="Configuration"
             data={configurations}
             value={active?.name}
+            disabled={configurations?.length <= 0}
             label="Configurations"
             onChange={handleSelectConfiguration}
+            leftSection={
+              active?.path && (
+                <Tooltip
+                  openDelay={300}
+                  label={
+                    defaultConfigPath === active?.path
+                      ? 'No longer set as default configuration.'
+                      : 'Set as default configuration.'
+                  }
+                  position="top-start"
+                  disabled={!active?.path}
+                >
+                  <ActionIcon
+                    variant="transparent"
+                    onClick={updateDefaultConfiguration}
+                    disabled={!active?.path}
+                  >
+                    {defaultConfigPath === active?.path ? (
+                      <IconStarFilled size={16} />
+                    ) : (
+                      <IconStar size={16} />
+                    )}
+                  </ActionIcon>
+                </Tooltip>
+              )
+            }
             inputContainer={(children) => (
               <Tooltip
-                openDelay={500}
+                openDelay={300}
                 label="Select configuration to set as current configuration."
                 position="top-start"
+                disabled={configurations?.length <= 0}
               >
                 {children}
               </Tooltip>
