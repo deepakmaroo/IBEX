@@ -12,6 +12,7 @@ import {
   DataGridPlot,
   DataPlotly,
   GridLayoutPlotProps,
+  URITreeNodeData,
 } from 'src/renderer/types';
 import { Center, Container, ScrollArea, Tabs, Text } from '@mantine/core';
 import { SimplePlotly, Surface2D } from '../plot';
@@ -286,16 +287,34 @@ export const GridLayoutPlot = ({
         : { ...item, isEditing: false, static: false },
     );
 
+    // Check from tree selected plots (all plots used in dataGrid)
+    const checkedNodeURI: URITreeNodeData[] = !findPlot.isEditing
+      ? findPlot.plot.map((item) => ({
+          uri: normalizeIndices(item.nodeUri),
+          name: item.labelUri,
+        }))
+      : [];
+
+    if (checkedNodeURI.length) {
+      for (const plot of findPlot.plot) {
+        if (!plot.error_bands_paths) {
+          continue;
+        }
+        for (const error_band of plot.error_bands_paths) {
+          // Check from tree selected error bands to plot
+          checkedNodeURI.push({
+            name: plot.labelUri,
+            uri: normalizeIndices(error_band),
+          });
+        }
+      }
+    }
+
     const updatedActive: Configuration = {
       ...active,
       saved: false,
       dataPlot: updatedDataPlot,
-      checkedNodeURI: !findPlot.isEditing
-        ? findPlot.plot.map((item) => ({
-            uri: normalizeIndices(item.nodeUri),
-            name: item.labelUri,
-          }))
-        : [],
+      checkedNodeURI: checkedNodeURI,
     };
 
     updatedConfiguration(updatedActive);

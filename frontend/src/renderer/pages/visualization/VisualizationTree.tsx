@@ -442,7 +442,7 @@ export const VisualizationTree = ({
             (plot) => plot.isEditing,
           );
         } else {
-          // Check presence of error bands nodes
+          // Check presence of error bands nodes to remove dataGrid when main data is unchecked
           const errorBandNode =
             nodes.find((node) => node.uri.endsWith('_error_lower')) ||
             nodes.find((node) => node.uri.endsWith('_error_upper'));
