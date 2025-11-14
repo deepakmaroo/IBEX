@@ -15,10 +15,15 @@ async def uri_from_path(path: str) -> dict:
     """
     IBEX endpoint. Returns uri based on PATH passed as parameter.
 
-    Response JSON is constructed as follows:
-    {
-        "uri": <IMAS_uri>
-    }
+    | Response JSON is constructed as follows:
+    | {
+    |     "uri": <IMAS_uri>
+    | }
+
+    :param: path: path to the file
+    :rtype: dict (automatically converted to JSON by FastAPI)
+    :return: JSON response
+
 
     """
     return ibex_service.uri_from_path(path.strip())
@@ -30,10 +35,15 @@ async def exists(uri: str) -> dict:
     """
     IBEX endpoint. Checks if pulsefile exists and can be opened.
 
-    Response JSON is constructed as follows:
-    {
-        "exists": <true_or_false>
-    }
+    | Response JSON is constructed as follows:
+    | {
+    |     "exists": <true_or_false>
+    | }
+
+    :param uri: IMAS URI
+    :rtype: dict (automatically converted to JSON by FastAPI)
+    :return: JSON response
+
 
     """
     return ibex_service.data_entry_exists(uri.strip())
@@ -45,15 +55,20 @@ async def list_idses(uri: str) -> dict:
     """
     IBEX endpoint. Returns list of available IDSes and occurrences from pulsefile.
 
-    Response JSON is constructed as follows:
-    {
-      "idses": [
-        {
-          "name": <ids_name>,
-          "occurrences": <list_of_filled_occurences (list(int))>
-        },...
-        ]
-    }
+    | Response JSON is constructed as follows:
+    | {
+    |   "idses": [
+    |     {
+    |       "name": <ids_name>,
+    |       "occurrences": <list_of_filled_occurences (list(int))>
+    |     },...
+    |     ]
+    | }
+
+    :param uri: IMAS URI
+    :rtype: dict (automatically converted to JSON by FastAPI)
+    :return: JSON response
+
     """
     return ibex_service.list_idses(uri.strip())
 
@@ -69,15 +84,23 @@ async def available_entries(
     """
     IBEX endpoint. Returns list of available pulsefiles from current filesystem
 
-    Response JSON is constructed as follows:
-    {
-      "entries": [
-        <uri_1 (str),
-        <uri_2 (str),
-        ...,
-        <uri_N (str),
-        ]
-    }
+    | Response JSON is constructed as follows:
+    | {
+    |   "entries": [
+    |     <uri_1 (str),
+    |     <uri_2 (str),
+    |     ...,
+    |     <uri_N (str),
+    |     ]
+    | }
+
+    :param user: username - used to filter entries
+    :param backend: backend - used to filter entries
+    :param database: database - used to filter entries
+    :param version: version - used to filter entries
+    :rtype: dict (automatically converted to JSON by FastAPI)
+    :return: JSON response
+
     """
     if not backend:
         backends = None

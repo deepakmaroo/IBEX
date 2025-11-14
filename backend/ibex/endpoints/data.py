@@ -20,10 +20,17 @@ async def field_value(
     """
     IBEX endpoint. Returns value extracted from pulsefile's leaf node.
 
-    Response JSON is constructed as follows:
-    {
-        "value": <extracted_value(s)>
-    }
+    | Response JSON is constructed as follows:
+    | {
+    |     "value": <extracted_value(s)>
+    | }
+
+    :param uri: IMAS URI with the path to leaf node
+    :param downsampling_method: one of the downsampling metods returend by :func:`~ibex.endpoints.info.downsampling_methods` endpoint, or None
+    :param downsampled_size: target size of downsampled data
+    :rtype: dict (automatically converted to JSON by FastAPI)
+    :return: JSON response
+
     """
     return ibex_service.get_data(uri.strip(), downsampling_method, downsampled_size, range)
 
@@ -34,34 +41,42 @@ async def plot_data(uri: str, downsampling_method: str | None = Query(None), dow
     """
     IBEX endpoint. Prepares and returns full information about data node and it's coordinates.
 
-    Response JSON is constructed as follows:
-    {
-      "data": {
-        "name": <node_name (str)>,
-        "unit": <data_unit (str)>,
-        "shape": <original_data_shape (list(int))>,
-        "downsampled_shape": <data_shape list(int)>,
-        "ndim": <number_of_data_dimensions (int)>,
-        "path": <path_to_selected_node (str)>,
-        "description": <node_description (str)>,
-        "coordinates": [
-          {
-            "name": <node_name (str)>,
-            "target": <path_to_origin_node_of_coordinate (str)>,
-            "unit": <data_unit (str)>,
-            "shape": <original_data_shape list(int)>,
-            "downsampled_shape": <data_shape list(int)>,
-            "ndim": <number_of_data_dimensions (int)>,
-            "path": <path_to_coordonate (str)>,
-            "description": <coordinate_description (str)>,
-            "coordinates": <names_of_coordinates_of_this_coordinate (list(str))>,
-            "shapes_dimension": <if_coordinate_has_influence_on_data_shape (bool)>,
-            "value": <value(s)_of_coordinate>
-          },
-        {<another_coordinate},
-        ...],
-        "value": <value(s)_of_selected_data_node>
-      }
-    }
+    | Response JSON is constructed as follows:
+    | {
+    |   "data": {
+    |     "name": <node_name (str)>,
+    |     "unit": <data_unit (str)>,
+    |     "shape": <original_data_shape (list(int))>,
+    |     "downsampled_shape": <data_shape list(int)>,
+    |     "ndim": <number_of_data_dimensions (int)>,
+    |     "path": <path_to_selected_node (str)>,
+    |     "description": <node_description (str)>,
+    |     "coordinates": [
+    |       {
+    |         "name": <node_name (str)>,
+    |         "target": <path_to_origin_node_of_coordinate (str)>,
+    |         "unit": <data_unit (str)>,
+    |         "shape": <original_data_shape list(int)>,
+    |         "downsampled_shape": <data_shape list(int)>,
+    |         "ndim": <number_of_data_dimensions (int)>,
+    |         "path": <path_to_coordonate (str)>,
+    |         "description": <coordinate_description (str)>,
+    |         "coordinates": <names_of_coordinates_of_this_coordinate (list(str))>,
+    |         "shapes_dimension": <if_coordinate_has_influence_on_data_shape (bool)>,
+    |         "value": <value(s)_of_coordinate>
+    |       },
+    |     {<another_coordinate},
+    |     ...],
+    |     "value": <value(s)_of_selected_data_node>
+    |   }
+    | }
+
+    :param uri: IMAS URI with the path to leaf node
+    :param downsampling_method: one of the downsampling metods returend by :func:`~ibex.endpoints.info.downsampling_methods` endpoint, or None
+    :param downsampled_size: target size of downsampled data
+    :rtype: dict (automatically converted to JSON by FastAPI)
+    :return: JSON response
+
+
     """
     return ibex_service.get_plot_data(uri.strip(), downsampling_method, downsampled_size)

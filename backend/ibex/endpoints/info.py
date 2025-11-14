@@ -15,10 +15,14 @@ async def version() -> dict:
     """
     IBEX endpoint. Returns backend version.
 
-    Response JSON is constructed as follows:
-    {
-        "version": <IBEX_version (str)>
-    }
+    | Response JSON is constructed as follows:
+    | {
+    |     "version": <IBEX_version (str)>
+    | }
+
+    :rtype: dict (automatically converted to JSON by FastAPI)
+    :return: JSON response
+
     """
     res = {"version": str(__version__)}
     return res
@@ -30,16 +34,20 @@ async def downsampling_methods() -> dict:
     """
     IBEX endpoint. Returns list of available downsampling methods to be passed to /data/plot_data endpoint as query argument.
 
-    Response JSON is constructed as follows:
-    {
-        "downsampling_methods": [
-        {
-          "name": <method_name>,
-          "description": <method_description>
-        },
-        ...
-        ]
-    }
+    | Response JSON is constructed as follows:
+    | {
+    |     "downsampling_methods": [
+    |     {
+    |       "name": <method_name>,
+    |       "description": <method_description>
+    |     },
+    |     ...
+    |     ]
+    | }
+
+    :rtype: dict (automatically converted to JSON by FastAPI)
+    :return: JSON response
+
     """
 
     methods = [{"name": val.value["name"], "description": val.value["description"]} for val in DownsamplingMethods]

@@ -15,4 +15,3 @@ documentation.
    endpoints.data_entry
    endpoints.ids_info
    endpoints.info
-   data_source.data_source_interface.DataSourceInterface
