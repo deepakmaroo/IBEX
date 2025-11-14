@@ -40,12 +40,17 @@ export type DataPlotly = BaseDataPlotly &
     y: (string | number)[];
     yData: AxisData;
     error_y?: ErrorBar;
-    error_bands_paths?: string[];
+    error_bands?: ErrorBandData[];
     path?: string;
     dimensions?: number;
     shape?: number[];
     description?: string;
   };
+
+export type ErrorBandData = {
+  path: string;
+  yData: AxisData;
+};
 
 export interface BaseDataGridPlot {
   i: string;

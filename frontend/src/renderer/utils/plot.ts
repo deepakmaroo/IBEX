@@ -64,9 +64,9 @@ export const plotData = (
       (plotItem) => plotItem.nodeUri === mainNodeUri,
     );
 
-    if (!foundedPlot?.error_bands_paths) {
-      // Init error_bands_paths
-      foundedPlot.error_bands_paths = [];
+    if (!foundedPlot?.error_bands) {
+      // Init error_bands
+      foundedPlot.error_bands = [];
     }
 
     if (!foundedPlot?.error_y) {
@@ -78,15 +78,16 @@ export const plotData = (
       };
     }
 
-    if (foundedPlot?.error_bands_paths?.length) {
+    if (foundedPlot?.error_bands?.length) {
       // We are not in symectric case when there is more than one selected error band
       foundedPlot.error_y.symmetric = false;
     }
 
     if (
       error_suffix === '_error_lower' &&
-      foundedPlot?.error_bands_paths.includes(
-        normalizeIndices(mainNodeUri) + '_error_upper',
+      foundedPlot?.error_bands.find(
+        (error_band) =>
+          error_band.path === normalizeIndices(mainNodeUri) + '_error_upper',
       ) &&
       foundedPlot?.error_y?.type === 'data'
     ) {
@@ -94,8 +95,9 @@ export const plotData = (
       foundedPlot.error_y.arrayminus = yValue;
     } else if (
       error_suffix === '_error_upper' &&
-      foundedPlot?.error_bands_paths.includes(
-        normalizeIndices(mainNodeUri) + '_error_lower',
+      foundedPlot?.error_bands.find(
+        (error_band) =>
+          error_band.path === normalizeIndices(mainNodeUri) + '_error_lower',
       ) &&
       foundedPlot?.error_y?.type === 'data'
     ) {
@@ -104,8 +106,11 @@ export const plotData = (
       foundedPlot.error_y.array = yValue;
     }
 
-    // Update error_bands_paths by adding the new selected one
-    foundedPlot.error_bands_paths.push(normalizeIndices(nodeUri));
+    // Update error_bands by adding the new selected one
+    foundedPlot.error_bands.push({
+      path: normalizeIndices(nodeUri),
+      yData: yData,
+    });
 
     const currentPlot = Array.isArray(dataPlot.plot) ? dataPlot.plot : [];
     return {
@@ -284,35 +289,36 @@ export const handleExistingPlot = async (
 
   // Add or remove error bands
   for (const plot of findDataPlot.plot) {
-    if (!plot.error_bands_paths) {
+    if (!plot.error_bands) {
       continue;
     }
-    for (const error_band of plot.error_bands_paths) {
+    for (const error_band of plot.error_bands) {
       if (
         nodes
           .map((node) => normalizeIndices(node.uri))
-          .includes(normalizeIndices(error_band))
+          .includes(normalizeIndices(error_band.path))
       ) {
         // Triggered when we check error band => so we filter dataToPlot to load only the new selected one
         dataToPlot = dataToPlot.filter(
           (treeNode) =>
-            normalizeIndices(treeNode.uri) !== normalizeIndices(error_band),
+            normalizeIndices(treeNode.uri) !==
+            normalizeIndices(error_band.path),
         );
       } else {
-        // Uncheck error_band so we update error_bands_paths & error_y
-        plot.error_bands_paths = plot.error_bands_paths.filter(
+        // Uncheck error_band so we update error_bands & error_y
+        plot.error_bands = plot.error_bands.filter(
           (error) => error !== error_band,
         );
 
-        if (plot.error_bands_paths?.length === 0) {
+        if (plot.error_bands?.length === 0) {
           // Delete error_y when no error bands are selected
           delete plot.error_y;
-        } else if (plot.error_bands_paths?.length === 1) {
+        } else if (plot.error_bands?.length === 1) {
           // Set to symmetric case when only one error band checked
           plot.error_y.symmetric = true;
           if (plot.error_y.type === 'data') {
             // Type is always data but we need to controle for type syntaxe
-            if (error_band.endsWith('_error_upper')) {
+            if (error_band.path.endsWith('_error_upper')) {
               // Lower became alone so set to array
               plot.error_y.array = plot.error_y.arrayminus;
             }

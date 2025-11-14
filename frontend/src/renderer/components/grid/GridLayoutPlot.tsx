@@ -29,6 +29,7 @@ import {
 import { showNotification } from '@mantine/notifications';
 import { MetaDataInfos } from '../../pages/visualization/VisualizationMetaData';
 import { HoverButtons } from './HoverButtons';
+import { ErrorBar } from 'plotly.js';
 
 export const GridLayoutPlot = ({
   data,
@@ -126,14 +127,50 @@ export const GridLayoutPlot = ({
               plotItem.yData,
             );
 
-            return {
-              ...plotItem,
-              x: newXData,
-              y: newYData,
-              nodeUri: updatedNodeUri,
+            if (plotItem?.error_bands?.length) {
+              // Get error bands vectors switch coordinates indexes
+              const updated_error_y: ErrorBar = JSON.parse(
+                JSON.stringify(plotItem.error_y),
+              );
+              if (updated_error_y?.type === 'data') {
+                if (updated_error_y?.arrayminus) {
+                  updated_error_y.arrayminus = getVectorData(
+                    updatedCoordinatesValue,
+                    plotItem.error_bands.find((err_b) =>
+                      err_b.path.endsWith('_error_lower'),
+                    ).yData,
+                  );
+                }
+                const error_array_yData =
+                  plotItem.error_bands.find((err_b) =>
+                    err_b.path.endsWith('_error_upper'),
+                  )?.yData ||
+                  plotItem.error_bands.find((err_b) =>
+                    err_b.path.endsWith('_error_lower'),
+                  )?.yData;
 
-              path: updatedPath,
-            };
+                updated_error_y.array = getVectorData(
+                  updatedCoordinatesValue,
+                  error_array_yData,
+                );
+              }
+              return {
+                ...plotItem,
+                x: newXData,
+                y: newYData,
+                error_y: updated_error_y,
+                nodeUri: updatedNodeUri,
+                path: updatedPath,
+              };
+            } else {
+              return {
+                ...plotItem,
+                x: newXData,
+                y: newYData,
+                nodeUri: updatedNodeUri,
+                path: updatedPath,
+              };
+            }
           });
 
           return {
@@ -297,14 +334,14 @@ export const GridLayoutPlot = ({
 
     if (checkedNodeURI.length) {
       for (const plot of findPlot.plot) {
-        if (!plot.error_bands_paths) {
+        if (!plot.error_bands) {
           continue;
         }
-        for (const error_band of plot.error_bands_paths) {
+        for (const error_band of plot.error_bands) {
           // Check from tree selected error bands to plot
           checkedNodeURI.push({
             name: plot.labelUri,
-            uri: normalizeIndices(error_band),
+            uri: normalizeIndices(error_band.path),
           });
         }
       }
