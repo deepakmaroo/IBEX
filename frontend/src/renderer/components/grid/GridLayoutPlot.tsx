@@ -20,6 +20,7 @@ import { useIbexStore } from '../../stores';
 import {
   fetchDataPlot,
   getArrayValueFromDependance,
+  getErrorYVectors,
   getLastIndexedField,
   getVectorData,
   limitSlidersToMaxLength,
@@ -29,7 +30,6 @@ import {
 import { showNotification } from '@mantine/notifications';
 import { MetaDataInfos } from '../../pages/visualization/VisualizationMetaData';
 import { HoverButtons } from './HoverButtons';
-import { ErrorBar } from 'plotly.js';
 
 export const GridLayoutPlot = ({
   data,
@@ -128,32 +128,10 @@ export const GridLayoutPlot = ({
             );
 
             if (plotItem?.error_bands?.length) {
-              // Get error bands vectors switch coordinates indexes
-              const updated_error_y: ErrorBar = JSON.parse(
-                JSON.stringify(plotItem.error_y),
+              const updated_error_y = getErrorYVectors(
+                plotItem,
+                updatedCoordinatesValue,
               );
-              if (updated_error_y?.type === 'data') {
-                if (updated_error_y?.arrayminus) {
-                  updated_error_y.arrayminus = getVectorData(
-                    updatedCoordinatesValue,
-                    plotItem.error_bands.find((err_b) =>
-                      err_b.path.endsWith('_error_lower'),
-                    ).yData,
-                  );
-                }
-                const error_array_yData =
-                  plotItem.error_bands.find((err_b) =>
-                    err_b.path.endsWith('_error_upper'),
-                  )?.yData ||
-                  plotItem.error_bands.find((err_b) =>
-                    err_b.path.endsWith('_error_lower'),
-                  )?.yData;
-
-                updated_error_y.array = getVectorData(
-                  updatedCoordinatesValue,
-                  error_array_yData,
-                );
-              }
               return {
                 ...plotItem,
                 x: newXData,

@@ -27,6 +27,7 @@ import {
 } from './matrix';
 import * as tf from '@tensorflow/tfjs';
 import { removeSuffix } from './functions';
+import { ErrorBar } from 'plotly.js';
 
 /**
  * @description Generates a new DataGridPlot with the provided coordinates, xAxis, and yAxis.
@@ -61,10 +62,11 @@ export const plotData = (
     }
     const mainNodeUri = removeSuffix(nodeUri, error_suffix);
     const foundedPlot = dataPlot.plot.find(
-      (plotItem) => plotItem.nodeUri === mainNodeUri,
+      (plotItem) =>
+        normalizeIndices(plotItem.nodeUri) === normalizeIndices(mainNodeUri),
     );
 
-    if (!foundedPlot?.error_bands) {
+    if (foundedPlot && !foundedPlot?.error_bands) {
       // Init error_bands
       foundedPlot.error_bands = [];
     }
@@ -819,7 +821,7 @@ export async function plotNodeUriLoaded(
 export function getVectorData(coordinates: Coordinates[], yData: AxisData) {
   const coordinatesLength: number = coordinates.length;
 
-  // Extract only matrix indexes without taking care of dimension coordinate
+  // Extract only matrix indexes
   const matrixIndexes = JSON.parse(JSON.stringify(coordinates))
     .sort(compareByAxeIndex)
     .reverse()
@@ -845,6 +847,29 @@ export function getVectorData(coordinates: Coordinates[], yData: AxisData) {
   }
   const vectorData: number[] = result;
   return vectorData;
+}
+
+export function getErrorYVectors(plot: DataPlotly, coordinates: Coordinates[]) {
+  // Get error bands vectors switch coordinates indexes
+  const updated_error_y: ErrorBar = JSON.parse(JSON.stringify(plot.error_y));
+
+  if (updated_error_y?.type === 'data') {
+    if (updated_error_y?.arrayminus) {
+      updated_error_y.arrayminus = getVectorData(
+        coordinates,
+        plot.error_bands.find((err_b) => err_b.path.endsWith('_error_lower'))
+          .yData,
+      );
+    }
+    const error_array_yData =
+      plot.error_bands.find((err_b) => err_b.path.endsWith('_error_upper'))
+        ?.yData ||
+      plot.error_bands.find((err_b) => err_b.path.endsWith('_error_lower'))
+        ?.yData;
+
+    updated_error_y.array = getVectorData(coordinates, error_array_yData);
+  }
+  return updated_error_y;
 }
 
 /**
@@ -1036,6 +1061,15 @@ export const swapAxis = async (
     plot.y = vectorData;
     // Get x values switch x dependances
     plot.x = getArrayValueFromDependance(updatedDataPlot.coordinates, 0);
+
+    if (plot?.error_bands?.length) {
+      // Update error_y vectors after transpositions
+      const swapped_error_y = getErrorYVectors(
+        plot,
+        updatedDataPlot.coordinates,
+      );
+      plot.error_y = swapped_error_y;
+    }
   }
 
   // Limit coordinate sliders to the max of their new shape
@@ -1121,6 +1155,25 @@ function removeNaNPadding(arr: any): any {
   return cleaned;
 }
 
+async function transposeMatrix(yData: AxisData, newPositions: number[]) {
+  // RESHAPE IRREGULAR MATRIX OF NaN TO ALLOW TO TRANSPOSE
+  const matrixWithNaN = replaceNullsWithNaN(yData); // Replace nulls by NaN to keep NaN instead of zeros after transposition
+  // Find maximal shape
+  const shape = getMaxShape(matrixWithNaN);
+  // Fill with NaN
+  const reshapedMatrix = reshapeMatrix(matrixWithNaN, shape);
+
+  // Transpose dataY
+  const tensor = tf.tensor(reshapedMatrix);
+  const dataTransposed = tensor.transpose(newPositions);
+  const newMatrix = (await dataTransposed.array()) as AxisData;
+
+  // Restored irregular shape (suppress all NaN)
+  const restoredMatrix = removeNaNPadding(newMatrix);
+
+  return restoredMatrix;
+}
+
 async function transposeAxis(
   updatedDataPlot: DataGridPlot,
   axeIndexToSwap: number,
@@ -1144,22 +1197,26 @@ async function transposeAxis(
     // Reverse for getting position => [0, 1, 3, 2]
     newPositions.reverse();
 
-    // RESHAPE IRREGULAR MATRIX OF NaN TO ALLOW TO TRANSPOSE
-    const matrixWithNaN = replaceNullsWithNaN(plotToTranspose.yData); // Replace nulls by NaN to keep NaN instead of zeros after transposition
-    // Find maximal shape
-    const shape = getMaxShape(matrixWithNaN);
-    // Fill with NaN
-    const reshapedMatrix = reshapeMatrix(matrixWithNaN, shape);
+    // Transpose dataY matrix
+    const transposedDataY = await transposeMatrix(
+      plotToTranspose.yData,
+      newPositions,
+    );
+    plotToTranspose.yData = transposedDataY;
 
-    // Transpose dataY
-    const tensor = tf.tensor(reshapedMatrix);
-    const dataTransposed = tensor.transpose(newPositions);
-    const newMatrix = (await dataTransposed.array()) as AxisData;
-
-    // Restored irregular shape (suppress all NaN)
-    const restoredMatrix = removeNaNPadding(newMatrix);
-
-    // Update yData & shape
-    plotToTranspose.yData = restoredMatrix;
+    if (
+      plotToTranspose?.error_bands &&
+      plotToTranspose?.error_y &&
+      plotToTranspose.error_y.type === 'data'
+    ) {
+      for (const error_band of plotToTranspose.error_bands) {
+        // Transpose each error band matrix
+        const transposedErrorBand = await transposeMatrix(
+          error_band.yData,
+          newPositions,
+        );
+        error_band.yData = transposedErrorBand;
+      }
+    }
   }
 }
