@@ -205,6 +205,11 @@ export const SimplePlotly = ({
     }));
   }, [itemDataGrid.y2AxisData]);
 
+  useEffect(() => {
+    // Update title when itemDataGrid.title change (when selecting a plot with original plot title)
+    setTitle(itemDataGrid.title);
+  }, [itemDataGrid.title]);
+
   return (
     <Grid
       styles={{
