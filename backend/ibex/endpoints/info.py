@@ -9,7 +9,13 @@ from ibex import __version__
 router = APIRouter()
 
 
-@router.get("/info/version/")
+@router.get(
+    "/info/version/",
+    status_code=200,
+    responses={
+        200: {"description": "IBEX version returned successfully"},
+    },
+)
 @ibex_service.measure_execution_time
 async def version() -> dict:
     """
@@ -28,7 +34,13 @@ async def version() -> dict:
     return res
 
 
-@router.get("/info/downsampling_methods/")
+@router.get(
+    "/info/downsampling_methods/",
+    status_code=200,
+    responses={
+        200: {"description": "Downsampling methods returned successfully"},
+    },
+)
 @ibex_service.measure_execution_time
 async def downsampling_methods() -> dict:
     """

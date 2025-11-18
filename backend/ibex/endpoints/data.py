@@ -9,7 +9,15 @@ from ibex.core import ibex_service
 router = APIRouter()
 
 
-@router.get("/data/field_value")
+@router.get(
+    "/data/field_value",
+    status_code=200,
+    responses={
+        200: {"description": "Field value returned successfully"},
+        404: {"description": "Data node not found"},
+        464: {"description": "Given data node is empty"},
+    },
+)
 @ibex_service.measure_execution_time
 async def field_value(
     uri: str,
@@ -35,7 +43,15 @@ async def field_value(
     return ibex_service.get_data(uri.strip(), downsampling_method, downsampled_size, range)
 
 
-@router.get("/data/plot_data")
+@router.get(
+    "/data/plot_data",
+    status_code=200,
+    responses={
+        200: {"description": "Plot data returned successfully"},
+        404: {"description": "Data node not found"},
+        464: {"description": "Given data node is empty"},
+    },
+)
 @ibex_service.measure_execution_time
 async def plot_data(uri: str, downsampling_method: str | None = Query(None), downsampled_size: int = 1000) -> dict:
     """

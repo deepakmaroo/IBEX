@@ -7,7 +7,14 @@ from ibex.core import ibex_service
 router = APIRouter()
 
 
-@router.get("/ids_info/node_info/")
+@router.get(
+    "/ids_info/node_info/",
+    status_code=200,
+    responses={
+        200: {"description": "Node info returned successfully"},
+        404: {"description": "Data node not found"},
+    },
+)
 @ibex_service.measure_execution_time
 async def node_info(uri: str, show_error_bars: bool = False) -> dict:
     """
@@ -31,7 +38,13 @@ async def node_info(uri: str, show_error_bars: bool = False) -> dict:
     return ibex_service.get_node_info(uri.strip(), show_error_bars)
 
 
-@router.get("/ids_info/find_paths/")
+@router.get(
+    "/ids_info/find_paths/",
+    status_code=200,
+    responses={
+        200: {"description": "Paths returned successfully"},
+    },
+)
 @ibex_service.measure_execution_time
 async def find_field(uri: str, searched_node: str, show_error_bars: bool = False) -> dict:
     """
@@ -57,7 +70,16 @@ async def find_field(uri: str, searched_node: str, show_error_bars: bool = False
     return ibex_service.find_paths(uri.strip(), searched_node, show_error_bars)
 
 
-@router.get("/ids_info/array_summary/")
+@router.get(
+    "/ids_info/array_summary/",
+    status_code=200,
+    responses={
+        200: {"description": "Array summary returned successfully"},
+        404: {"description": "Data node not found"},
+        462: {"description": "Given node is not an array"},
+        466: {"description": "Current implementation does not support tensorized paths"},
+    },
+)
 @ibex_service.measure_execution_time
 async def array_summary(uri: str) -> dict:
     """

@@ -9,7 +9,11 @@ from ibex.core import ibex_service
 router = APIRouter()
 
 
-@router.get("/data_entry/uri_from_path/")
+@router.get(
+    "/data_entry/uri_from_path",
+    status_code=200,
+    responses={200: {"description": "Success"}, 465: {"description": "Cannot generate URI from path"}},
+)
 @ibex_service.measure_execution_time
 async def uri_from_path(path: str) -> dict:
     """
@@ -29,7 +33,13 @@ async def uri_from_path(path: str) -> dict:
     return ibex_service.uri_from_path(path.strip())
 
 
-@router.get("/data_entry/exists/")
+@router.get(
+    "/data_entry/exists",
+    status_code=200,
+    responses={
+        200: {"description": "Success"},
+    },
+)
 @ibex_service.measure_execution_time
 async def exists(uri: str) -> dict:
     """
@@ -49,7 +59,14 @@ async def exists(uri: str) -> dict:
     return ibex_service.data_entry_exists(uri.strip())
 
 
-@router.get("/data_entry/list_idses/")
+@router.get(
+    "/data_entry/list_idses",
+    status_code=200,
+    responses={
+        200: {"description": "Success"},
+        404: {"description": "Could not open given pulsefile"},
+    },
+)
 @ibex_service.measure_execution_time
 async def list_idses(uri: str) -> dict:
     """
@@ -73,7 +90,14 @@ async def list_idses(uri: str) -> dict:
     return ibex_service.list_idses(uri.strip())
 
 
-@router.get("/data_entry/available_entries/")
+@router.get(
+    "/data_entry/available_entries",
+    status_code=200,
+    responses={
+        200: {"description": "Success"},
+        466: {"description": "Invalid parameters passed in query (e.g. non existing user)"},
+    },
+)
 @ibex_service.measure_execution_time
 async def available_entries(
     user: str = "public",
