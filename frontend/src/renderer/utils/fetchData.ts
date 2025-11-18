@@ -178,6 +178,15 @@ export const fetchDataPlot = async (
     }
   }
 
+  // Rule to rename data when "value" or "data":
+  if (response.data.name == 'data' || response.data.name == 'value') {
+    const targetStringList = response.data.path.split('/');
+    response.data.name =
+      targetStringList.length >= 2
+        ? `${targetStringList.at(-2)}/${response.data.name}`
+        : response.data.name;
+  }
+
   // Force all targets to ends with '[:]'
   for (const coord of response.data.coordinates) {
     if (!coord.target.endsWith(']')) {

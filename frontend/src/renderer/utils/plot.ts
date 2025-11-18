@@ -141,19 +141,8 @@ export const handleNewPlot = async (
   }
 
   // Set the yAxis properties
-  let yAxisName = '';
-  if (response.data.name == 'data' || response.data.name == 'value') {
-    const targetStringList = response.data.path.split('/');
-    yAxisName =
-      targetStringList.length >= 2
-        ? `${targetStringList.at(-2)}/${response.data.name}`
-        : response.data.name;
-  } else {
-    yAxisName = response.data.name;
-  }
-
   const yAxis: Axis = {
-    name: yAxisName,
+    name: response.data.name,
     unit: response.data.unit,
   };
 
@@ -360,19 +349,8 @@ export const handleExistingPlot = async (
       continue;
     }
 
-    let yAxisName = '';
-    if (response.data.name == 'data' || response.data.name == 'value') {
-      const targetStringList = response.data.path.split('/');
-      yAxisName =
-        targetStringList.length >= 2
-          ? `${targetStringList.at(-2)}/${response.data.name}`
-          : response.data.name;
-    } else {
-      yAxisName = response.data.name;
-    }
-
     const yAxis: Axis = {
-      name: yAxisName,
+      name: response.data.name,
       unit: unit,
     };
 
