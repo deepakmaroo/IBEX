@@ -69,6 +69,42 @@ def test_plot_data(entry_path):
     assert time_coordinate["description"] == "Generic time"
 
 
+def test_plot_data_2d(entry_path):
+    parameters = {
+        "uri": f"imas:mdsplus?path={entry_path}#core_profiles/profiles_2d[:]/ion[:]/temperature",
+    }
+    response = pytest.test_client.get("/data/plot_data", params=parameters)
+    response_body = response.json()
+    assert response.status_code == 200
+
+    assert response_body["data"]["name"] == "temperature"
+    assert response_body["data"]["unit"] == "eV"
+    assert response_body["data"]["shape"] == [5, 2, 3, 3]
+    assert response_body["data"]["path"] == "#core_profiles/profiles_2d[:]/ion[:]/temperature"
+
+    assert len(response_body["data"]["coordinates"]) == 4
+
+    time_coordinate = response_body["data"]["coordinates"][3]
+    assert time_coordinate["name"] == "time"
+    assert time_coordinate["target"] == "#core_profiles/profiles_2d[:]"
+    assert time_coordinate["unit"] == "s"
+    assert time_coordinate["shape"] == [5]
+    assert time_coordinate["path"] == "#core_profiles/time"
+    assert time_coordinate["description"] == "Generic time"
+
+    dim1_coordinate = response_body["data"]["coordinates"][0]
+    assert dim1_coordinate["name"] == "dim1"
+    assert dim1_coordinate["target"] == "#core_profiles/profiles_2d[:]/ion[:]/temperature"
+    assert dim1_coordinate["shape"] == [5, 3]
+    assert dim1_coordinate["path"] == "#core_profiles/profiles_2d[:]/grid/dim1"
+
+    dim2_coordinate = response_body["data"]["coordinates"][1]
+    assert dim2_coordinate["name"] == "dim2"
+    assert dim2_coordinate["target"] == "#core_profiles/profiles_2d[:]/ion[:]/temperature"
+    assert dim2_coordinate["shape"] == [5, 3]
+    assert dim2_coordinate["path"] == "#core_profiles/profiles_2d[:]/grid/dim2"
+
+
 def test_plot_data_1_N_coord(entry_path):
     parameters = {
         "uri": f"imas:mdsplus?path={entry_path}#core_profiles/profiles_1d[:]/ion[:]/z_ion",

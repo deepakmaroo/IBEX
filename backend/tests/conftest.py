@@ -34,6 +34,20 @@ def entry_path(tmp_path_factory):
     for profiles_1d in core_profiles.profiles_1d:
         profiles_1d.ion.resize(3)
 
+    # ===== for 2D data =====
+    core_profiles.profiles_2d.resize(5)
+
+    i = 0
+    for profiles_2d in core_profiles.profiles_2d:
+        profiles_2d.ion.resize(2)
+        for ion in profiles_2d.ion:
+            ion.name = f"random ion name {i}"
+
+            ion.temperature = np.array([[i, +1, i + 2], [i + 10, i + 11, i + 12], [i + 20, i + 21, i + 32]])
+        profiles_2d.grid.dim1 = np.array([0, 1, 2])
+        profiles_2d.grid.dim2 = np.array([0, 1, 2])
+        i += 10
+
     entry.put(core_profiles)
     entry.close()
 

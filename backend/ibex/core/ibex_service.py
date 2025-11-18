@@ -97,6 +97,8 @@ def uri_from_path(path: str) -> dict:
         uri = f"imas:mdsplus?path={path.parent}"
     elif path.suffix == ".ids":
         uri = f"imas:ascii?path={path.parent}"
+    elif path.suffix == ".nc":
+        uri = path
 
     if not uri:
         raise CannotGenerateUriException("Cannot convert path to URI. Make sure path points to imas data file.")
