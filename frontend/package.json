@@ -13,6 +13,7 @@
     "format": "prettier --write .",
     "debug": "DEBUG=electron-forge:* electron-forge start",
     "start:e2e": "cross-env E2E_TEST=true electron-forge start -- --remote-debugging-port=9222 --no-watch",
+    "start:e2e:visible": "cross-env E2E_TEST=visible electron-forge start -- --remote-debugging-port=9222 --no-watch",
     "test:e2e": "mocha -r ts-node/register src/tests/*.spec.ts"
   },
   "devDependencies": {
@@ -35,7 +36,7 @@
     "@types/react-plotly.js": "^2.6.3",
     "@types/selenium-webdriver": "^4.1.28",
     "@vercel/webpack-asset-relocator-loader": "1.7.3",
-    "chai": "^5.2.0",
+    "chai": "^4.3.10",
     "chromedriver": "^134.0.5",
     "cross-env": "^7.0.3",
     "css-loader": "^6.0.0",
