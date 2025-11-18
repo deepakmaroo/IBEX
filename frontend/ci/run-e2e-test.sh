@@ -14,7 +14,7 @@ cd ${FRONTEND_ROOT_DIR}
 
 # Start Electron app
 echo "Starting Electron app for E2E tests..."
-nohup npm run start:e2e > e2e-app.log 2>&1 &
+npm run start:e2e &
 
 # Allow app to cleanly start
 sleep 180
