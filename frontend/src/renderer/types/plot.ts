@@ -39,6 +39,7 @@ export type DataPlotly = BaseDataPlotly &
     x: (string | number)[];
     y: (string | number)[];
     yData: AxisData;
+    unit: string;
     error_y?: ErrorBar;
     error_bands?: ErrorBandData[];
     path?: string;

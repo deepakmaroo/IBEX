@@ -1,6 +1,6 @@
 import { Center, Grid, Group, Select, Text } from '@mantine/core';
 import { Layout } from 'plotly.js';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Plot from 'react-plotly.js';
 import { Configuration, Coordinates, DataGridPlot } from 'src/renderer/types';
 import { VerticalSlider } from '../verticalSlider';
@@ -9,6 +9,7 @@ import {
   compareByAxeIndex,
   getArrayValueFromDependance,
   isMatrixPlottable,
+  removeSuffix,
   swapAxis,
 } from '../../utils';
 import classes from './SimplePlotly.module.css';
@@ -75,6 +76,7 @@ export const SimplePlotly = ({
   });
   const [title, setTitle] = useState(itemDataGrid.title);
   const plotRef = useRef<Plot | null>(null);
+  const plotDivRef = useRef<HTMLDivElement>(null);
 
   const handleRelayout = (relayout: Partial<Layout>) => {
     setLayoutPlot((prevLayout) => ({
@@ -82,6 +84,56 @@ export const SimplePlotly = ({
       ...relayout, // update the layout with new values
     }));
   };
+
+  const isPlotInY2 = useCallback(
+    (plotName: string) => {
+      const y2Unit = itemDataGrid?.y2AxisData?.unit;
+      if (!y2Unit) return false;
+
+      const selectedPlot = itemDataGrid.plot.find(
+        (plot) => plot.name === plotName,
+      );
+      return selectedPlot?.unit === y2Unit;
+    },
+    [itemDataGrid?.y2AxisData?.unit, itemDataGrid?.plot],
+  );
+
+  useEffect(() => {
+    const plotDiv = plotDivRef.current;
+    if (!plotDiv) return;
+
+    const applyLegendStyles = () => {
+      const legendTexts =
+        plotDiv.querySelectorAll<SVGTextElement>('.legendtext');
+
+      legendTexts.forEach((el) => {
+        const name = el.textContent || '';
+
+        const isInY2 = isPlotInY2(name);
+        const newColor = isInY2 ? 'rgb(148, 103, 189)' : 'rgb(68, 68, 68)';
+
+        if (el.style.fill !== newColor) {
+          el.style.fill = newColor;
+        }
+      });
+    };
+
+    // Apply styles to the first render
+    applyLegendStyles();
+
+    // Observe changes in the DOM to keep style (Plotly rewrites everything)
+    const observer = new MutationObserver(() => {
+      applyLegendStyles();
+    });
+
+    observer.observe(plotDiv, {
+      childList: true,
+      subtree: true,
+    });
+
+    // cleanup
+    return () => observer.disconnect();
+  }, [isPlotInY2]);
 
   /**
    * Update the layout title & dataPlot configuration when editing title
@@ -139,8 +191,11 @@ export const SimplePlotly = ({
    * Update the layout yAxis
    */
   useEffect(() => {
+    const coordsYNames = itemDataGrid.plot
+      .filter((plot) => plot.yaxis !== 'y2')
+      ?.map((coord) => removeSuffix(coord.name, '_' + coord.labelUri));
     const YTitle = itemDataGrid.yAxisData?.name
-      ? `${itemDataGrid.yAxisData?.name} ${(itemDataGrid.yAxisData?.unit && '[' + itemDataGrid.yAxisData.unit + ']') || ''}`
+      ? `${coordsYNames.length > 1 ? coordsYNames[0] + ', ...' : coordsYNames[0]} ${(itemDataGrid.yAxisData?.unit && '[' + itemDataGrid.yAxisData.unit + ']') || ''}`
       : '';
     setLayoutPlot((prevLayout) => ({
       ...prevLayout,
@@ -177,8 +232,11 @@ export const SimplePlotly = ({
    * Update the layout y2Axis
    */
   useEffect(() => {
+    const coordsY2Names = itemDataGrid.plot
+      .filter((plot) => plot.yaxis === 'y2')
+      ?.map((coord) => removeSuffix(coord.name, '_' + coord.labelUri));
     const Y2Title = itemDataGrid.y2AxisData?.name
-      ? `${itemDataGrid.y2AxisData?.name} ${(itemDataGrid.y2AxisData?.unit && '[' + itemDataGrid.y2AxisData.unit + ']') || ''}`
+      ? `${coordsY2Names.length > 1 ? coordsY2Names[0] + ', ...' : coordsY2Names[0]} ${(itemDataGrid.y2AxisData?.unit && '[' + itemDataGrid.y2AxisData.unit + ']') || ''}`
       : '';
     setLayoutPlot((prevLayout) => ({
       ...prevLayout,
@@ -326,23 +384,25 @@ export const SimplePlotly = ({
               flexDirection: 'column',
             }}
           >
-            <Plot
-              ref={plotRef}
-              className={classes.simplePlot}
-              data={itemDataGrid.plot}
-              config={{
-                autosizable: false,
-                staticPlot: !itemDataGrid.static,
-                scrollZoom: true,
-                displayModeBar: true,
-                showTips: true,
-                displaylogo: false,
-                modeBarButtonsToRemove: ['lasso2d', 'select2d'],
-              }}
-              layout={layoutPlot}
-              onRelayout={handleRelayout}
-              useResizeHandler={false}
-            />
+            <div ref={plotDivRef}>
+              <Plot
+                ref={plotRef}
+                className={classes.simplePlot}
+                data={itemDataGrid.plot}
+                config={{
+                  autosizable: false,
+                  staticPlot: !itemDataGrid.static,
+                  scrollZoom: true,
+                  displayModeBar: true,
+                  showTips: true,
+                  displaylogo: false,
+                  modeBarButtonsToRemove: ['lasso2d', 'select2d'],
+                }}
+                layout={layoutPlot}
+                onRelayout={handleRelayout}
+                useResizeHandler={false}
+              />
+            </div>
           </Grid.Col>
         </>
       ) : itemDataGrid.plot.every(

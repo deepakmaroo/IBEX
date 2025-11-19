@@ -48,6 +48,7 @@ export const plotData = (
   path: string,
   shape: number[],
   labelUri: string,
+  unit: string,
   downsampled_method: string,
   description?: string,
   y2Axis?: boolean,
@@ -133,7 +134,8 @@ export const plotData = (
     dimensions: dimensions,
     shape: shape,
     labelUri: labelUri,
-    yaxis: y2Axis ? 'y2' : '',
+    unit: unit,
+    yaxis: y2Axis || dataPlot?.y2AxisData?.unit === unit ? 'y2' : '',
   };
   if (yValue.length === 0) {
     showNotification({
@@ -260,6 +262,7 @@ export const handleNewPlot = async (
     getDefaultUri(response.data.path),
     response.data.shape as number[],
     nodes[0].name,
+    response.data.unit,
     response.data.downsampled_method,
     response.data.description,
   );
@@ -493,8 +496,9 @@ export const handleExistingPlot = async (
       response.data.value,
     );
 
+    let updatedPlot: DataGridPlot;
     if (unitExists) {
-      const updatedPlot = await plotData(
+      updatedPlot = await plotData(
         findDataPlot,
         yAxis.name,
         defaultXValue,
@@ -505,22 +509,17 @@ export const handleExistingPlot = async (
         yDataResponsePath,
         response.data.shape as number[],
         node.name,
+        response.data.unit,
         response.data.downsampled_method,
         response.data.description,
       );
-      updatedActive.dataPlot = [
-        ...(updatedActive.dataPlot || []).filter(
-          (plot) => plot.i !== findDataPlot.i,
-        ),
-        updatedPlot,
-      ];
     } else if (!findDataPlot.y2AxisData) {
       findDataPlot.y2AxisData = {
         name: yAxis.name,
         unit: unit,
       };
 
-      const updatedPlot = await plotData(
+      updatedPlot = await plotData(
         findDataPlot,
         yAxis.name,
         defaultXValue,
@@ -531,16 +530,11 @@ export const handleExistingPlot = async (
         yDataResponsePath,
         response.data.shape as number[],
         node.name,
+        response.data.unit,
         response.data.downsampled_method,
         response.data.description,
         true,
       );
-      updatedActive.dataPlot = [
-        ...(updatedActive.dataPlot || []).filter(
-          (plot) => plot.i !== findDataPlot.i,
-        ),
-        updatedPlot,
-      ];
     } else {
       showNotification({
         title: 'Plot',
@@ -548,6 +542,15 @@ export const handleExistingPlot = async (
         color: 'yellow',
       });
       updatedActive.checkedNodeURI = nodes.filter((n) => n !== node);
+    }
+
+    if (updatedPlot) {
+      updatedActive.dataPlot = [
+        ...(updatedActive.dataPlot || []).filter(
+          (plot) => plot.i !== findDataPlot.i,
+        ),
+        updatedPlot,
+      ];
     }
   }
   return updatedActive;
@@ -640,6 +643,7 @@ export function formatConfigBeforeLoadingURIs(
           yData: [],
           x: [],
           y: [],
+          unit: '',
         };
       }),
     }),
@@ -750,6 +754,9 @@ export async function plotNodeUriLoaded(
             if (response.data.downsampled_method) {
               dataGrid.downsampled_method = response.data.downsampled_method;
             }
+
+            // Save plot unit
+            plot.unit = response.data.unit;
 
             let defaultXValue: number[] | string[] = [];
             if (response.data.coordinates.length > 0) {
