@@ -5,6 +5,7 @@ from typing import List
 from fastapi import APIRouter, Query  # type: ignore
 
 from ibex.core import ibex_service
+from ibex.endpoints.schemas.data_schemas import FieldValueResponse, PlotDataResponse
 
 router = APIRouter()
 
@@ -12,11 +13,13 @@ router = APIRouter()
 @router.get(
     "/data/field_value",
     status_code=200,
+    response_model=FieldValueResponse,
     responses={
         200: {"description": "Field value returned successfully"},
         404: {"description": "Data node not found"},
         464: {"description": "Given data node is empty"},
     },
+    description="Returns single (or tensorized) data node value",
 )
 @ibex_service.measure_execution_time
 async def field_value(
@@ -46,11 +49,13 @@ async def field_value(
 @router.get(
     "/data/plot_data",
     status_code=200,
+    response_model=PlotDataResponse,
     responses={
         200: {"description": "Plot data returned successfully"},
         404: {"description": "Data node not found"},
         464: {"description": "Given data node is empty"},
     },
+    description="Returns single (or tensorized) data node value with detailed parameters used to plot the data",
 )
 @ibex_service.measure_execution_time
 async def plot_data(uri: str, downsampling_method: str | None = Query(None), downsampled_size: int = 1000) -> dict:

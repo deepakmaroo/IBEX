@@ -5,6 +5,7 @@ from fastapi import APIRouter  # type: ignore
 from ibex.core import ibex_service
 from ibex.core.utils import DownsamplingMethods
 from ibex import __version__
+from ibex.endpoints.schemas.info_schemas import VersionResponse, DownsamplingMethodsResponse
 
 router = APIRouter()
 
@@ -12,9 +13,11 @@ router = APIRouter()
 @router.get(
     "/info/version/",
     status_code=200,
+    response_model=VersionResponse,
     responses={
         200: {"description": "IBEX version returned successfully"},
     },
+    description="Returns IBEX version",
 )
 @ibex_service.measure_execution_time
 async def version() -> dict:
@@ -37,9 +40,11 @@ async def version() -> dict:
 @router.get(
     "/info/downsampling_methods/",
     status_code=200,
+    response_model=DownsamplingMethodsResponse,
     responses={
         200: {"description": "Downsampling methods returned successfully"},
     },
+    description="Returns list of available downsampling methods provided by the server",
 )
 @ibex_service.measure_execution_time
 async def downsampling_methods() -> dict:

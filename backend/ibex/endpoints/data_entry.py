@@ -5,6 +5,12 @@ from typing import Optional
 from fastapi import APIRouter  # type: ignore
 
 from ibex.core import ibex_service
+from ibex.endpoints.schemas.data_entry_schemas import (
+    UriFromPathResponse,
+    ExistsResponse,
+    ListIdsesResponse,
+    AvailableEntriesResponse,
+)
 
 router = APIRouter()
 
@@ -12,7 +18,9 @@ router = APIRouter()
 @router.get(
     "/data_entry/uri_from_path",
     status_code=200,
+    response_model=UriFromPathResponse,
     responses={200: {"description": "Success"}, 465: {"description": "Cannot generate URI from path"}},
+    description="Takes path from query and converts it into URI",
 )
 @ibex_service.measure_execution_time
 async def uri_from_path(path: str) -> dict:
@@ -36,9 +44,11 @@ async def uri_from_path(path: str) -> dict:
 @router.get(
     "/data_entry/exists",
     status_code=200,
+    response_model=ExistsResponse,
     responses={
         200: {"description": "Success"},
     },
+    description="Checks if given pulsefile can be opened",
 )
 @ibex_service.measure_execution_time
 async def exists(uri: str) -> dict:
@@ -62,10 +72,12 @@ async def exists(uri: str) -> dict:
 @router.get(
     "/data_entry/list_idses",
     status_code=200,
+    response_model=ListIdsesResponse,
     responses={
         200: {"description": "Success"},
         404: {"description": "Could not open given pulsefile"},
     },
+    description="Lists all idses from given pulsefile",
 )
 @ibex_service.measure_execution_time
 async def list_idses(uri: str) -> dict:
@@ -93,10 +105,12 @@ async def list_idses(uri: str) -> dict:
 @router.get(
     "/data_entry/available_entries",
     status_code=200,
+    response_model=AvailableEntriesResponse,
     responses={
         200: {"description": "Success"},
         466: {"description": "Invalid parameters passed in query (e.g. non existing user)"},
     },
+    description="Lists known data entries found on server machine",
 )
 @ibex_service.measure_execution_time
 async def available_entries(
