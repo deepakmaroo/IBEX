@@ -171,11 +171,6 @@ describe('UI Tests for Header Component', function () {
     await driver.wait(until.elementIsVisible(saveButton), 5000);
     await saveButton.click();
 
-    await driver.wait(async () => {
-      const state = await getTestState();
-      return state.active?.saved === true;
-    }, 5000);
-
     const state = await getTestState();
     expect(state.active?.saved).to.be.true;
   });
