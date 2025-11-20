@@ -103,21 +103,23 @@ export const getTestState = async (): Promise<ConfigurationState> => {
 
 export const stubBackendFunction = async () => {
   await driver.executeScript(() => {
+    /* eslint-disable  @typescript-eslint/no-explicit-any */
     const w = window as any;
 
-    w.__stubWrittenContent = "";
+    w.__stubWrittenContent = '';
 
-    w.api.fs.writeFile = async (_path: string, data: string) => {
+    w.api.fs.writeFile = async (path: string, data: string) => {
       w.__stubWrittenContent = data;
-      console.log("writeFile stub:", data);
+      w.__stubWrittenPath = path;
     };
 
-    w.api.fs.readFile = async (_path: string) => {
-      console.log("readFile stub");
+    w.api.fs.readFile = async (path: string) => {
+      w.__stubReaddenPath = path;
       return w.__stubWrittenContent;
     };
 
-    w.api.fs.getFilePathDialog = async () => "/stub/path/for/configuration.json";
-    w.api.fs.saveAsDialog = async () => "/stub/path/for/configuration.json";
+    w.api.fs.getFilePathDialog = async () =>
+      '/stub/path/for/configuration.json';
+    w.api.fs.saveAsDialog = async () => '/stub/path/for/configuration.json';
   });
 };
