@@ -100,3 +100,24 @@ export const getTestState = async (): Promise<ConfigurationState> => {
     return (window as any).api.getTestState();
   });
 };
+
+export const stubBackendFunction = async () => {
+  await driver.executeScript(() => {
+    const w = window as any;
+
+    w.__stubWrittenContent = "";
+
+    w.api.fs.writeFile = async (_path: string, data: string) => {
+      w.__stubWrittenContent = data;
+      console.log("writeFile stub:", data);
+    };
+
+    w.api.fs.readFile = async (_path: string) => {
+      console.log("readFile stub");
+      return w.__stubWrittenContent;
+    };
+
+    w.api.fs.getFilePathDialog = async () => "/stub/path/for/configuration.json";
+    w.api.fs.saveAsDialog = async () => "/stub/path/for/configuration.json";
+  });
+};

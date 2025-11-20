@@ -13,7 +13,6 @@
     "format": "prettier --write .",
     "debug": "DEBUG=electron-forge:* electron-forge start",
     "start:e2e": "cross-env E2E_TEST=true electron-forge start -- --remote-debugging-port=9222 --no-watch",
-    "start:e2e:visible": "cross-env E2E_TEST=visible electron-forge start -- --remote-debugging-port=9222 --no-watch",
     "test:e2e": "mocha -r ts-node/register src/tests/*.spec.ts"
   },
   "devDependencies": {

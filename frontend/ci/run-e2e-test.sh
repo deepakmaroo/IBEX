@@ -17,7 +17,7 @@ echo "Starting Electron app for E2E tests..."
 npm run start:e2e &
 
 # Allow app to cleanly start
-sleep 180
+sleep 120
 
 # Find the real Electron app process using the debug port argument
 APP_PID=$(ps -aux | grep ". --remote-debugging-port=9222 --no-watch" | grep -v grep | awk '{print $2}')
