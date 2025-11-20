@@ -1,0 +1,329 @@
+{
+  "name": "PlotKineticProfiles",
+  "dataURI": [
+    {
+      "uri": "imas:mdsplus?user=public;pulse=100001;run=1;database=ITER;version=3",
+      "name": "URI-1",
+      "uriColor": "#78ea28",
+      "isSelected": true
+    }
+  ],
+  "dataPlot": [
+    {
+      "title": "temperature_URI-1 / t_i_average_URI-1",
+      "isTitleOverwritten": false,
+      "xAxisData": {
+        "name": "rho_tor_norm",
+        "unit": "-",
+        "path": "#core_profiles/profiles_1d[44]/grid/rho_tor_norm"
+      },
+      "yAxisData": {
+        "name": "temperature",
+        "unit": "eV"
+      },
+      "i": "b7e80d85-d73c-4bb0-9108-5681e4ee9e76",
+      "x": 6,
+      "y": 0,
+      "w": 6,
+      "h": 12,
+      "coordinates": [
+        {
+          "path": "#core_profiles/profiles_1d[44]/grid/rho_tor_norm",
+          "target": "#core_profiles/profiles_1d[44]/electrons/temperature[0]",
+          "valueIndex": 0
+        },
+        {
+          "path": "#core_profiles/time",
+          "target": "#core_profiles/profiles_1d[44]",
+          "valueIndex": 44
+        }
+      ],
+      "plot": [
+        {
+          "nodeUri": "URI-1#core_profiles:0/profiles_1d[44]/electrons/temperature",
+          "yaxis": "",
+          "labelUri": "URI-1"
+        },
+        {
+          "nodeUri": "URI-1#core_profiles:0/profiles_1d[44]/t_i_average",
+          "yaxis": "",
+          "labelUri": "URI-1"
+        }
+      ]
+    },
+    {
+      "title": "temperature_URI-1 / t_i_average_URI-1",
+      "isTitleOverwritten": false,
+      "xAxisData": {
+        "name": "time",
+        "unit": "s",
+        "path": "#core_profiles/time"
+      },
+      "yAxisData": {
+        "name": "temperature",
+        "unit": "eV"
+      },
+      "i": "319eb3b8-22d8-4e0b-a4be-1d68dbe9da17",
+      "x": 0,
+      "y": 0,
+      "w": 6,
+      "h": 12,
+      "coordinates": [
+        {
+          "path": "#core_profiles/profiles_1d[0]/grid/rho_tor_norm",
+          "target": "#core_profiles/profiles_1d[0]/electrons/temperature[0]",
+          "valueIndex": 0
+        },
+        {
+          "path": "#core_profiles/time",
+          "target": "#core_profiles/profiles_1d[0]",
+          "valueIndex": 0
+        }
+      ],
+      "plot": [
+        {
+          "nodeUri": "URI-1#core_profiles:0/profiles_1d[0]/electrons/temperature",
+          "yaxis": "",
+          "labelUri": "URI-1"
+        },
+        {
+          "nodeUri": "URI-1#core_profiles:0/profiles_1d[0]/t_i_average",
+          "yaxis": "",
+          "labelUri": "URI-1"
+        }
+      ]
+    },
+    {
+      "title": "density_URI-1",
+      "isTitleOverwritten": false,
+      "xAxisData": {
+        "name": "rho_tor_norm",
+        "unit": "-",
+        "path": "#core_profiles/profiles_1d[0]/grid/rho_tor_norm"
+      },
+      "yAxisData": {
+        "name": "density",
+        "unit": "m^-3"
+      },
+      "i": "6fe68edc-93c6-4073-bf09-9c70aa72a0ff",
+      "x": 6,
+      "y": 12,
+      "w": 6,
+      "h": 12,
+      "coordinates": [
+        {
+          "path": "#core_profiles/profiles_1d[0]/grid/rho_tor_norm",
+          "target": "#core_profiles/profiles_1d[0]/electrons/density[0]",
+          "valueIndex": 0
+        },
+        {
+          "path": "#core_profiles/time",
+          "target": "#core_profiles/profiles_1d[0]",
+          "valueIndex": 0
+        }
+      ],
+      "plot": [
+        {
+          "nodeUri": "URI-1#core_profiles:0/profiles_1d[0]/electrons/density",
+          "yaxis": "",
+          "labelUri": "URI-1"
+        }
+      ]
+    },
+    {
+      "title": "density_URI-1",
+      "isTitleOverwritten": false,
+      "xAxisData": {
+        "name": "time",
+        "unit": "s",
+        "path": "#core_profiles/time"
+      },
+      "yAxisData": {
+        "name": "density",
+        "unit": "m^-3"
+      },
+      "i": "ff55f38c-0afd-44c7-8134-05fe860eb523",
+      "x": 0,
+      "y": 12,
+      "w": 6,
+      "h": 12,
+      "coordinates": [
+        {
+          "path": "#core_profiles/profiles_1d[0]/grid/rho_tor_norm",
+          "target": "#core_profiles/profiles_1d[0]/electrons/density[0]",
+          "valueIndex": 0
+        },
+        {
+          "path": "#core_profiles/time",
+          "target": "#core_profiles/profiles_1d[0]",
+          "valueIndex": 0
+        }
+      ],
+      "plot": [
+        {
+          "nodeUri": "URI-1#core_profiles:0/profiles_1d[58]/electrons/density",
+          "yaxis": "",
+          "labelUri": "URI-1"
+        }
+      ]
+    },
+    {
+      "title": "zeff_URI-1",
+      "isTitleOverwritten": false,
+      "xAxisData": {
+        "name": "time",
+        "unit": "s",
+        "path": "#core_profiles/time"
+      },
+      "yAxisData": {
+        "name": "zeff",
+        "unit": "-"
+      },
+      "i": "29350283-1e15-48fe-a3a2-cf4e1d7f978b",
+      "x": 0,
+      "y": 24,
+      "w": 6,
+      "h": 12,
+      "coordinates": [
+        {
+          "path": "#core_profiles/profiles_1d[0]/grid/rho_tor_norm",
+          "target": "#core_profiles/profiles_1d[0]/zeff[0]",
+          "valueIndex": 0
+        },
+        {
+          "path": "#core_profiles/time",
+          "target": "#core_profiles/profiles_1d[0]",
+          "valueIndex": 0
+        }
+      ],
+      "plot": [
+        {
+          "nodeUri": "URI-1#core_profiles:0/profiles_1d[87]/zeff",
+          "yaxis": "",
+          "labelUri": "URI-1"
+        }
+      ]
+    },
+    {
+      "title": "zeff_URI-1",
+      "isTitleOverwritten": false,
+      "xAxisData": {
+        "name": "rho_tor_norm",
+        "unit": "-",
+        "path": "#core_profiles/profiles_1d[32]/grid/rho_tor_norm"
+      },
+      "yAxisData": {
+        "name": "zeff",
+        "unit": "-"
+      },
+      "i": "0650c347-02cf-41c9-a66c-c66c14c4e2fe",
+      "x": 6,
+      "y": 24,
+      "w": 6,
+      "h": 12,
+      "coordinates": [
+        {
+          "path": "#core_profiles/profiles_1d[32]/grid/rho_tor_norm",
+          "target": "#core_profiles/profiles_1d[32]/zeff[0]",
+          "valueIndex": 0
+        },
+        {
+          "path": "#core_profiles/time",
+          "target": "#core_profiles/profiles_1d[32]",
+          "valueIndex": 32
+        }
+      ],
+      "plot": [
+        {
+          "nodeUri": "URI-1#core_profiles:0/profiles_1d[32]/zeff",
+          "yaxis": "",
+          "labelUri": "URI-1"
+        }
+      ]
+    },
+    {
+      "title": "poloidal_URI-1",
+      "isTitleOverwritten": false,
+      "xAxisData": {
+        "name": "rho_tor_norm",
+        "unit": "-",
+        "path": "#core_profiles/profiles_1d[62]/grid/rho_tor_norm"
+      },
+      "yAxisData": {
+        "name": "poloidal",
+        "unit": "m.s^-1"
+      },
+      "i": "9fa915f1-7a47-4c60-ab9b-3409f1028fb4",
+      "x": 6,
+      "y": 36,
+      "w": 6,
+      "h": 12,
+      "coordinates": [
+        {
+          "path": "#core_profiles/profiles_1d[62]/grid/rho_tor_norm",
+          "target": "#core_profiles/profiles_1d[62]/ion[0]/velocity/poloidal[0]",
+          "valueIndex": 0
+        },
+        {
+          "path": "",
+          "target": "#core_profiles/profiles_1d[62]/ion[0]",
+          "valueIndex": 0
+        },
+        {
+          "path": "#core_profiles/time",
+          "target": "#core_profiles/profiles_1d[62]",
+          "valueIndex": 62
+        }
+      ],
+      "plot": [
+        {
+          "nodeUri": "URI-1#core_profiles:0/profiles_1d[62]/ion[0]/velocity/poloidal",
+          "yaxis": "",
+          "labelUri": "URI-1"
+        }
+      ]
+    },
+    {
+      "title": "toroidal_URI-1",
+      "isTitleOverwritten": false,
+      "xAxisData": {
+        "name": "rho_tor_norm",
+        "unit": "-",
+        "path": "#core_profiles/profiles_1d[62]/grid/rho_tor_norm"
+      },
+      "yAxisData": {
+        "name": "toroidal",
+        "unit": "m.s^-1"
+      },
+      "i": "a8fd8c63-0b80-4993-9ad7-073d71c167e9",
+      "x": 0,
+      "y": 36,
+      "w": 6,
+      "h": 12,
+      "coordinates": [
+        {
+          "path": "#core_profiles/profiles_1d[62]/grid/rho_tor_norm",
+          "target": "#core_profiles/profiles_1d[62]/ion[0]/velocity/toroidal[0]",
+          "valueIndex": 0
+        },
+        {
+          "path": "",
+          "target": "#core_profiles/profiles_1d[62]/ion[0]",
+          "valueIndex": 0
+        },
+        {
+          "path": "#core_profiles/time",
+          "target": "#core_profiles/profiles_1d[62]",
+          "valueIndex": 62
+        }
+      ],
+      "plot": [
+        {
+          "nodeUri": "URI-1#core_profiles:0/profiles_1d[62]/ion[0]/velocity/toroidal",
+          "yaxis": "",
+          "labelUri": "URI-1"
+        }
+      ]
+    }
+  ]
+}
