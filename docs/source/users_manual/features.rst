@@ -10,8 +10,8 @@ Description of features
 
    features/first_window
    features/add_configuration
-   features/load_configuration
    features/add_uri
+   features/load_configuration
    features/tree
    features/plot_data
    features/draggable_component
@@ -19,3 +19,4 @@ Description of features
    features/save_configuration
    features/configuration_file
    features/delete_configuration
+   features/preferences_menu

@@ -20,7 +20,7 @@ To add a URI, you can click the “Select URIs” button at the top right of the
 
 Thanks to this modal, you can retrieve URIs in different ways :
 
-**From a file (Upload local dataset) (This feature is currently under development):**
+**From a file (Upload local dataset):**
 
 Upload a file using the input from the file explorer, and then the list of URIs will appear in the table below.
 

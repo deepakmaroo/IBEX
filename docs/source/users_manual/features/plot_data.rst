@@ -18,6 +18,6 @@ For certain time-dependent data, one or more sliders will be available to visual
    :alt: Plot data with slider
    :align: center
 
-By default, the chart title is generated using the node's name, unit, and associated URI. Y-axes are labeled with the unit, and the X-axis is labeled with the name used to retrieve coordinates. Each data series is distinguished by a default color.
+By default, the chart title is generated using the node's name, unit, and associated URI. The Y-axes are labelled with the name of the first plotted plot and their unit. Finally, the X-axis is labeled with the name used to retrieve coordinates and his unit. Each data series is distinguished by a default color.
 
 
