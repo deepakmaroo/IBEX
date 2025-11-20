@@ -8,6 +8,7 @@ import {
   waitForApi,
   setTestState,
   getTestState,
+  stubBackendFunction,
 } from './setup';
 
 /**
@@ -21,6 +22,7 @@ describe('UI Tests for Header Component', function () {
     await startApp();
     driver = getDriver();
     await waitForApi();
+    await stubBackendFunction();
   });
 
   after(async () => {
@@ -159,25 +161,22 @@ describe('UI Tests for Header Component', function () {
     expect(state.configurations.length).to.equal(1);
   });
 
-  // THE SAVE FUNCTIONNALITY WILL NEED A STUB ON saveAsDialog FUNCTION
-  // it('Should save configuration from header', async () => {
-  //   await setTestState(mockConfigurationState);
+  it('Should save configuration from header', async () => {
+    await setTestState(mockConfigurationState);
 
-  //   await waitForOverlayToDisappear();
+    const saveButton = await driver.wait(
+      until.elementLocated(By.css('[data-testid="header-save-configuration"]')),
+      5000,
+    );
+    await driver.wait(until.elementIsVisible(saveButton), 5000);
+    await saveButton.click();
 
-  //   const saveButton = await driver.wait(
-  //     until.elementLocated(By.css('[data-testid="header-save-configuration"]')),
-  //     5000,
-  //   );
-  //   await driver.wait(until.elementIsVisible(saveButton), 5000);
-  //   await saveButton.click();
+    await driver.wait(async () => {
+      const state = await getTestState();
+      return state.active?.saved === true;
+    }, 5000);
 
-  //   await driver.wait(async () => {
-  //     const state = await getTestState();
-  //     return state.active?.saved === true;
-  //   }, 5000);
-
-  //   const state = await getTestState();
-  //   expect(state.active?.saved).to.be.true;
-  // });
+    const state = await getTestState();
+    expect(state.active?.saved).to.be.true;
+  });
 });
