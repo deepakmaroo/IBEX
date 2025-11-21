@@ -103,7 +103,7 @@ export function ConfigCreateModal({
     setLocalTemplate(localFilePath);
   };
 
-  const updateLocalTemplateFile = useCallback(
+  const saveLocalTemplateFile = useCallback(
     async (localTemplatePath: string) => {
       if (!localTemplatePath) {
         return;
@@ -121,31 +121,46 @@ export function ConfigCreateModal({
     [],
   );
 
+  /**
+   * Get template folders from preferences & the default one to populate the list of template paths
+   */
   const loadIbexConfig = useCallback(async () => {
+    // Get template folders
     const userPreferences = await readIbexConfig();
-    // Get default template folders
-    if (userPreferences?.templateFolders.length > 0) {
-      // Get templateFolders to show paths & update config file
-      const tempTemplateFilesData: SelectTemplateData = [];
-      for (const templateFolder of userPreferences.templateFolders) {
-        const listFiles: { name: string; isDirectory: boolean }[] =
-          await window.api.fs.listFiles(templateFolder);
-        const listFilesNames = listFiles
-          .filter((file) => !file.isDirectory && file.name.endsWith('.json'))
-          .map((file) => file.name);
+    const tempTemplateFilesData: SelectTemplateData = [];
+    const defaultTemplatePath = await window.api.fs.getDefaultTemplatesPath();
+    const templateFolderList = Array.from(
+      new Set([
+        defaultTemplatePath,
+        ...(userPreferences?.templateFolders ?? []),
+      ]),
+    );
 
-        const itemList: SelectDataItems = [];
-        for (const fileName of listFilesNames) {
-          itemList.push({
-            value: templateFolder + '/' + fileName,
-            label: fileName,
-          });
-        }
-        tempTemplateFilesData.push({ group: templateFolder, items: itemList });
+    for (const templateFolder of templateFolderList) {
+      // Get each template paths in folders
+      const listFiles: { name: string; isDirectory: boolean }[] =
+        await window.api.fs.listFiles(templateFolder);
+      const listFilesNames = listFiles
+        .filter((file) => !file.isDirectory && file.name.endsWith('.json'))
+        .map((file) => file.name);
+
+      const itemList: SelectDataItems = [];
+      for (const fileName of listFilesNames) {
+        itemList.push({
+          value: templateFolder + '/' + fileName,
+          label: fileName,
+        });
       }
-      // Used for discerning in Select labels from values
-      setTemplateFilesData(tempTemplateFilesData);
+      if (itemList.length) {
+        tempTemplateFilesData.push({
+          group: templateFolder,
+          items: itemList,
+        });
+      }
     }
+
+    // Populate the list
+    setTemplateFilesData(tempTemplateFilesData);
   }, []);
 
   const resetFields = () => {
@@ -186,7 +201,7 @@ export function ConfigCreateModal({
       setFolderTemplate('');
 
       // Get file to show in FileInput
-      updateLocalTemplateFile(localTemplate);
+      saveLocalTemplateFile(localTemplate);
     }
   }, [localTemplate]);
 
@@ -217,11 +232,12 @@ export function ConfigCreateModal({
             <Stack gap={0}>
               <Select
                 label="Template from folders"
-                placeholder="Select template from folders"
+                placeholder={`${!templateFilesData?.length ? 'No selected folder in preferences' : 'Select template from folders'}`}
                 value={folderTemplate}
                 data={templateFilesData}
                 mx="2rem"
                 onChange={handleSelectFolderTemplate}
+                disabled={!templateFilesData?.length}
               />
 
               <Center mt={8}>

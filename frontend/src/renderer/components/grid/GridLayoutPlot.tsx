@@ -12,6 +12,7 @@ import {
   DataGridPlot,
   DataPlotly,
   GridLayoutPlotProps,
+  URITreeNodeData,
 } from 'src/renderer/types';
 import { Center, Container, ScrollArea, Tabs, Text } from '@mantine/core';
 import { SimplePlotly, Surface2D } from '../plot';
@@ -19,6 +20,7 @@ import { useIbexStore } from '../../stores';
 import {
   fetchDataPlot,
   getArrayValueFromDependance,
+  getErrorYVectors,
   getLastIndexedField,
   getVectorData,
   limitSlidersToMaxLength,
@@ -125,14 +127,28 @@ export const GridLayoutPlot = ({
               plotItem.yData,
             );
 
-            return {
-              ...plotItem,
-              x: newXData,
-              y: newYData,
-              nodeUri: updatedNodeUri,
-
-              path: updatedPath,
-            };
+            if (plotItem?.error_bands?.length) {
+              const updated_error_y = getErrorYVectors(
+                plotItem,
+                updatedCoordinatesValue,
+              );
+              return {
+                ...plotItem,
+                x: newXData,
+                y: newYData,
+                error_y: updated_error_y,
+                nodeUri: updatedNodeUri,
+                path: updatedPath,
+              };
+            } else {
+              return {
+                ...plotItem,
+                x: newXData,
+                y: newYData,
+                nodeUri: updatedNodeUri,
+                path: updatedPath,
+              };
+            }
           });
 
           return {
@@ -286,16 +302,34 @@ export const GridLayoutPlot = ({
         : { ...item, isEditing: false, static: false },
     );
 
+    // Check from tree selected plots (all plots used in dataGrid)
+    const checkedNodeURI: URITreeNodeData[] = !findPlot.isEditing
+      ? findPlot.plot.map((item) => ({
+          uri: normalizeIndices(item.nodeUri),
+          name: item.labelUri,
+        }))
+      : [];
+
+    if (checkedNodeURI.length) {
+      for (const plot of findPlot.plot) {
+        if (!plot.error_bands) {
+          continue;
+        }
+        for (const error_band of plot.error_bands) {
+          // Check from tree selected error bands to plot
+          checkedNodeURI.push({
+            name: plot.labelUri,
+            uri: normalizeIndices(error_band.path),
+          });
+        }
+      }
+    }
+
     const updatedActive: Configuration = {
       ...active,
       saved: false,
       dataPlot: updatedDataPlot,
-      checkedNodeURI: !findPlot.isEditing
-        ? findPlot.plot.map((item) => ({
-            uri: normalizeIndices(item.nodeUri),
-            name: item.labelUri,
-          }))
-        : [],
+      checkedNodeURI: checkedNodeURI,
     };
 
     updatedConfiguration(updatedActive);

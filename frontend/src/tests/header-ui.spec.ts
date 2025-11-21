@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { By, until, WebDriver } from 'selenium-webdriver';
+import { By, until, WebDriver, WebElement } from 'selenium-webdriver';
 import { mockConfigurationState } from './utils';
 import {
   startApp,
@@ -8,6 +8,7 @@ import {
   waitForApi,
   setTestState,
   getTestState,
+  stubBackendFunction,
 } from './setup';
 
 /**
@@ -21,6 +22,7 @@ describe('UI Tests for Header Component', function () {
     await startApp();
     driver = getDriver();
     await waitForApi();
+    await stubBackendFunction();
   });
 
   after(async () => {
@@ -47,18 +49,22 @@ describe('UI Tests for Header Component', function () {
     }
   });
 
-  async function waitForOverlayToDisappear() {
+  async function waitForElementToDisappear(
+    element: WebElement,
+    timeout = 10000,
+  ) {
     try {
-      const overlay = await driver.findElement(
-        By.css('.mantine-Modal-overlay'),
-      );
-      if (await overlay.isDisplayed()) {
-        await driver.wait(until.stalenessOf(overlay), 10000);
+      if (await element.isDisplayed()) {
+        const start = Date.now();
+        await driver.wait(until.elementIsNotVisible(element), timeout);
+        const elapsed = Date.now() - start;
+        console.info(`Waited ${elapsed} ms for element to disappear`);
       }
     } catch {
-      console.warn('No overlay to wait for');
+      console.warn('Element did not disappear within timeout');
     }
   }
+
   it('Should create new configuration from header', async () => {
     const newConfigButton = await driver.wait(
       until.elementLocated(By.css('[data-testid="header-add-configuration"]')),
@@ -86,8 +92,7 @@ describe('UI Tests for Header Component', function () {
       5000,
     );
     await createButton.click();
-
-    await waitForOverlayToDisappear();
+    await waitForElementToDisappear(configCreateModal);
 
     //Add a retry mechanism to ensure the state is updated
     let state;
@@ -99,6 +104,26 @@ describe('UI Tests for Header Component', function () {
 
     const names = state.configurations.map((c) => c.name);
     expect(names).to.include('My New Config');
+
+    // The URI selection modal should apear, we should close it for the next test
+    const configUriSelectionModal = await driver.wait(
+      until.elementLocated(
+        By.css('[data-testid="config-uri-selection-modal"]'),
+      ),
+      5000,
+    );
+    expect(await configUriSelectionModal.isDisplayed()).to.be.true;
+
+    // Find the close button INSIDE the modal
+    const closeButton = await configUriSelectionModal.findElement(
+      By.css('button.mantine-Modal-close'),
+    );
+
+    // Click it to close
+    await closeButton.click();
+
+    // Wait for the modal to disappear
+    await waitForElementToDisappear(configUriSelectionModal);
   });
 
   it('Should delete configuration from header', async () => {
@@ -130,7 +155,7 @@ describe('UI Tests for Header Component', function () {
     );
     await confirmButton.click();
 
-    await waitForOverlayToDisappear();
+    await waitForElementToDisappear(confirmationModal);
 
     const state = await getTestState();
     expect(state.configurations.length).to.equal(1);
@@ -139,19 +164,12 @@ describe('UI Tests for Header Component', function () {
   it('Should save configuration from header', async () => {
     await setTestState(mockConfigurationState);
 
-    await waitForOverlayToDisappear();
-
     const saveButton = await driver.wait(
       until.elementLocated(By.css('[data-testid="header-save-configuration"]')),
       5000,
     );
     await driver.wait(until.elementIsVisible(saveButton), 5000);
     await saveButton.click();
-
-    await driver.wait(async () => {
-      const state = await getTestState();
-      return state.active?.saved === true;
-    }, 5000);
 
     const state = await getTestState();
     expect(state.active?.saved).to.be.true;

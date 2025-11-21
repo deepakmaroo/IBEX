@@ -1,50 +1,56 @@
 #!/bin/bash
-# In progress ...
-# We need to run start:e2e and test:e2e in the same terminal, 
-# but since start:e2e never stops, test:e2e doesn't run. 
-# Selenium needs the interface to run user-interface tests.
-echo "....SCRIPT IN PROGRESS...."
 
-set -euo pipefail
+# Bamboo CI script for checking syntax by building
 
-FRONTEND_ROOT_DIR=$(realpath "$(dirname "${BASH_SOURCE[0]}")/..")
-source "${FRONTEND_ROOT_DIR}/ci/configure-env.sh"
-cd "${FRONTEND_ROOT_DIR}"
+# Debuggging:
+set -e -o pipefail
 
-LOG_FILE="./logs/electron.log"
-READY_MESSAGE="App is ready"
+# Root directory of the frontend
+FRONTEND_ROOT_DIR=$(realpath "$(dirname "$(realpath "${BASH_SOURCE[0]}")")/..")
+source ${FRONTEND_ROOT_DIR}/ci/configure-env.sh
 
-mkdir -p ./logs
-> "$LOG_FILE"
+# Set up environment
+cd ${FRONTEND_ROOT_DIR}
 
-echo "Starting Electron in test mode..."
-npm run start:e2e > "$LOG_FILE" 2>&1 &
-ELECTRON_PID=$!
+# Start Electron app
+echo "Starting Electron app for E2E tests..."
+npm run start:e2e &
 
-cleanup() {
-  echo "Cleaning up..."
-  kill "$ELECTRON_PID" || true
-}
-trap cleanup EXIT
+# Allow app to cleanly start
+sleep 120
 
-echo "Waiting for Electron to be ready..."
+# Find the real Electron app process using the debug port argument
+APP_PID=$(ps -aux | grep ". --remote-debugging-port=9222 --no-watch" | grep -v grep | awk '{print $2}')
 
-# Lire le fichier de log en live, dans le même shell
-READY=0
-SECONDS=0
-while IFS= read -r line; do
-  echo "[electron log] $line"
-  if [[ "$line" == *"$READY_MESSAGE"* ]]; then
-    READY=1
-    break
-  fi
-  [[ $SECONDS -gt 30 ]] && break
-done < <(tail -n +1 -F "$LOG_FILE")
-
-if [[ $READY -ne 1 ]]; then
-  echo "Electron did not become ready in time."
+if [ -z "$APP_PID" ]; then
+  echo "Could not find Electron app process!"
+  ps -aux | grep electron || true
   exit 1
 fi
 
-echo "Electron is ready. Running Selenium tests..."
+# Run tests
+echo "Running E2E tests..."
 npm run test:e2e
+TEST_RESULT=$?
+
+# Stop Electron app
+echo "Stopping Electron app (PID $APP_PID)..."
+kill $APP_PID || echo "App already stopped"
+
+# Wait a bit and double-check
+sleep 2
+
+if ps -p "$APP_PID" > /dev/null; then
+  echo "App still running, forcing kill..."
+  kill -9 "$APP_PID" || true
+else
+  echo "App stopped successfully."
+fi
+
+if [ $TEST_RESULT -eq 0 ]; then
+  echo "✅ E2E tests passed!"
+else
+  echo "❌ E2E tests failed (exit code $TEST_RESULT)"
+fi
+
+exit $TEST_RESULT

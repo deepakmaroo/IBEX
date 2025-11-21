@@ -32,9 +32,11 @@ import {
   fetchDataIds,
   fetchFindPaths,
   fetchNodeInfos,
+  getDefaultUri,
   handleExistingPlot,
   handleNewPlot,
   hasUserSelectedText,
+  removeSuffix,
 } from '../../utils';
 
 interface VisualizationTreeProps {
@@ -440,7 +442,49 @@ export const VisualizationTree = ({
             (plot) => plot.isEditing,
           );
         } else {
-          if (nodes.length === 0) {
+          // Check presence of error bands nodes to remove dataGrid when main data is unchecked
+          const errorBandNode =
+            nodes.find((node) => node.uri.endsWith('_error_lower')) ||
+            nodes.find((node) => node.uri.endsWith('_error_upper'));
+          let isMainUriChecked = true;
+          let mainNodeUri = '';
+          if (errorBandNode) {
+            // In error band case we check if main data is checked to remove or not dataGrid plot
+            let error_suffix = '';
+            if (errorBandNode.uri.endsWith('_error_lower')) {
+              error_suffix = '_error_lower';
+            } else if (errorBandNode.uri.endsWith('_error_upper')) {
+              error_suffix = '_error_upper';
+            }
+            mainNodeUri = removeSuffix(errorBandNode.uri, error_suffix);
+            if (!nodes.map((node) => node.uri).includes(mainNodeUri)) {
+              // Set to false to remove main node when some error bands nodes are still checked
+              isMainUriChecked = false;
+            }
+          }
+
+          if (nodes.length === 0 || !isMainUriChecked) {
+            if (mainNodeUri) {
+              // Uncheck error bands nodes when main data is removed
+              updatedActive.checkedNodeURI = nodes.filter(
+                (node) =>
+                  node.uri !== mainNodeUri + '_error_lower' &&
+                  node.uri !== mainNodeUri + '_error_upper',
+              );
+              const dataPlotWithErrorBands = active.dataPlot.find(
+                (plot) => plot.isEditing,
+              );
+              for (const plot of dataPlotWithErrorBands.plot) {
+                // Uncheck all nodes from dataGrid plot when removing main data
+                updatedActive.checkedNodeURI =
+                  updatedActive.checkedNodeURI.filter(
+                    (node) =>
+                      getDefaultUri(node.uri) !== getDefaultUri(plot.nodeUri),
+                  );
+              }
+            }
+
+            // Remove dataGrid plot
             updatedActive.dataPlot = active.dataPlot.filter(
               (plot) => !plot.isEditing,
             );

@@ -26,6 +26,8 @@ import {
   getFirstArrayValueFromShape,
 } from './matrix';
 import * as tf from '@tensorflow/tfjs';
+import { removeSuffix } from './functions';
+import { ErrorBar } from 'plotly.js';
 
 /**
  * @description Generates a new DataGridPlot with the provided coordinates, xAxis, and yAxis.
@@ -46,10 +48,80 @@ export const plotData = (
   path: string,
   shape: number[],
   labelUri: string,
+  unit: string,
   downsampled_method: string,
   description?: string,
   y2Axis?: boolean,
 ): DataGridPlot => {
+  if (nodeUri.endsWith('_error_lower') || nodeUri.endsWith('_error_upper')) {
+    // Change the plot format to show error bands
+    let error_suffix = '';
+    if (nodeUri.endsWith('_error_lower')) {
+      error_suffix = '_error_lower';
+    } else if (nodeUri.endsWith('_error_upper')) {
+      error_suffix = '_error_upper';
+    }
+    const mainNodeUri = removeSuffix(nodeUri, error_suffix);
+    const foundedPlot = dataPlot.plot.find(
+      (plotItem) =>
+        normalizeIndices(plotItem.nodeUri) === normalizeIndices(mainNodeUri),
+    );
+
+    if (foundedPlot && !foundedPlot?.error_bands) {
+      // Init error_bands
+      foundedPlot.error_bands = [];
+    }
+
+    if (!foundedPlot?.error_y) {
+      // Init error_y
+      foundedPlot.error_y = {
+        type: 'data',
+        symmetric: true,
+        array: yValue,
+      };
+    }
+
+    if (foundedPlot?.error_bands?.length) {
+      // We are not in symectric case when there is more than one selected error band
+      foundedPlot.error_y.symmetric = false;
+    }
+
+    if (
+      error_suffix === '_error_lower' &&
+      foundedPlot?.error_bands.find(
+        (error_band) =>
+          error_band.path === normalizeIndices(mainNodeUri) + '_error_upper',
+      ) &&
+      foundedPlot?.error_y?.type === 'data'
+    ) {
+      // Set to arrayminus when lower & other error_band
+      foundedPlot.error_y.arrayminus = yValue;
+    } else if (
+      error_suffix === '_error_upper' &&
+      foundedPlot?.error_bands.find(
+        (error_band) =>
+          error_band.path === normalizeIndices(mainNodeUri) + '_error_lower',
+      ) &&
+      foundedPlot?.error_y?.type === 'data'
+    ) {
+      // Set lower as arrayminus when select upper & having lower
+      foundedPlot.error_y.arrayminus = foundedPlot.error_y.array;
+      foundedPlot.error_y.array = yValue;
+    }
+
+    // Update error_bands by adding the new selected one
+    foundedPlot.error_bands.push({
+      path: normalizeIndices(nodeUri),
+      yData: yData,
+    });
+
+    const currentPlot = Array.isArray(dataPlot.plot) ? dataPlot.plot : [];
+    return {
+      ...dataPlot,
+      plot: [...currentPlot],
+    };
+  }
+
   const trace: DataPlotly = {
     x: xValue,
     y: yValue,
@@ -62,7 +134,8 @@ export const plotData = (
     dimensions: dimensions,
     shape: shape,
     labelUri: labelUri,
-    yaxis: y2Axis ? 'y2' : '',
+    unit: unit,
+    yaxis: y2Axis || dataPlot?.y2AxisData?.unit === unit ? 'y2' : '',
   };
   if (yValue.length === 0) {
     showNotification({
@@ -102,6 +175,18 @@ export const handleNewPlot = async (
   //* By default we take index [:]
   //* : corresponds to all indices (matrix)
   let defaultUri = nodes[0].uri; //Use normalized URI to get all matrix
+
+  if (
+    nodes[0].uri.endsWith('_error_lower') ||
+    nodes[0].uri.endsWith('_error_upper')
+  ) {
+    showNotification({
+      title: 'Unable to plot error bands',
+      message: `Requires main data to plot error bands`,
+      color: 'yellow',
+    });
+    throw new Error('Unable to plot error bands');
+  }
 
   const response: PlotDataResponse = await fetchDataPlot(defaultUri);
   defaultUri = getDefaultUri(defaultUri); //Set defaultUri [0] by default
@@ -177,6 +262,7 @@ export const handleNewPlot = async (
     getDefaultUri(response.data.path),
     response.data.shape as number[],
     nodes[0].name,
+    response.data.unit,
     response.data.downsampled_method,
     response.data.description,
   );
@@ -197,7 +283,7 @@ export const handleExistingPlot = async (
   findDataPlot: DataGridPlot,
   updatedActive: Configuration,
 ): Promise<Configuration> => {
-  const dataToPlot = nodes.filter(
+  let dataToPlot = nodes.filter(
     (node) =>
       !findDataPlot.plot.some(
         (plot) =>
@@ -205,6 +291,49 @@ export const handleExistingPlot = async (
           plot.labelUri === node.name,
       ),
   );
+
+  // Add or remove error bands
+  for (const plot of findDataPlot.plot) {
+    if (!plot.error_bands) {
+      continue;
+    }
+    for (const error_band of plot.error_bands) {
+      if (
+        nodes
+          .map((node) => normalizeIndices(node.uri))
+          .includes(normalizeIndices(error_band.path))
+      ) {
+        // Triggered when we check error band => so we filter dataToPlot to load only the new selected one
+        dataToPlot = dataToPlot.filter(
+          (treeNode) =>
+            normalizeIndices(treeNode.uri) !==
+            normalizeIndices(error_band.path),
+        );
+      } else {
+        // Uncheck error_band so we update error_bands & error_y
+        plot.error_bands = plot.error_bands.filter(
+          (error) => error !== error_band,
+        );
+
+        if (plot.error_bands?.length === 0) {
+          // Delete error_y when no error bands are selected
+          delete plot.error_y;
+        } else if (plot.error_bands?.length === 1) {
+          // Set to symmetric case when only one error band checked
+          plot.error_y.symmetric = true;
+          if (plot.error_y.type === 'data') {
+            // Type is always data but we need to controle for type syntaxe
+            if (error_band.path.endsWith('_error_upper')) {
+              // Lower became alone so set to array
+              plot.error_y.array = plot.error_y.arrayminus;
+            }
+            // Remove arrayminus when deleting an error band (we come in symmetric case)
+            delete plot.error_y.arrayminus;
+          }
+        }
+      }
+    }
+  }
 
   if (dataToPlot.length === 0) {
     return updateExistingPlot(nodes, findDataPlot, updatedActive);
@@ -356,9 +485,9 @@ export const handleExistingPlot = async (
 
     let defaultXValue: number[] = [];
     if (response.data.coordinates.length > 0) {
-      defaultXValue = getFirstArrayValueFromShape(
+      defaultXValue = getVectorData(
+        findDataPlot.coordinates,
         response.data.coordinates[0].value,
-        response.data.coordinates[0].shape as number[],
       );
     }
 
@@ -367,8 +496,9 @@ export const handleExistingPlot = async (
       response.data.value,
     );
 
+    let updatedPlot: DataGridPlot;
     if (unitExists) {
-      const updatedPlot = await plotData(
+      updatedPlot = await plotData(
         findDataPlot,
         yAxis.name,
         defaultXValue,
@@ -379,22 +509,17 @@ export const handleExistingPlot = async (
         yDataResponsePath,
         response.data.shape as number[],
         node.name,
+        response.data.unit,
         response.data.downsampled_method,
         response.data.description,
       );
-      updatedActive.dataPlot = [
-        ...(updatedActive.dataPlot || []).filter(
-          (plot) => plot.i !== findDataPlot.i,
-        ),
-        updatedPlot,
-      ];
     } else if (!findDataPlot.y2AxisData) {
       findDataPlot.y2AxisData = {
-        name: response.data.name,
+        name: yAxis.name,
         unit: unit,
       };
 
-      const updatedPlot = await plotData(
+      updatedPlot = await plotData(
         findDataPlot,
         yAxis.name,
         defaultXValue,
@@ -405,16 +530,11 @@ export const handleExistingPlot = async (
         yDataResponsePath,
         response.data.shape as number[],
         node.name,
+        response.data.unit,
         response.data.downsampled_method,
         response.data.description,
         true,
       );
-      updatedActive.dataPlot = [
-        ...(updatedActive.dataPlot || []).filter(
-          (plot) => plot.i !== findDataPlot.i,
-        ),
-        updatedPlot,
-      ];
     } else {
       showNotification({
         title: 'Plot',
@@ -422,6 +542,15 @@ export const handleExistingPlot = async (
         color: 'yellow',
       });
       updatedActive.checkedNodeURI = nodes.filter((n) => n !== node);
+    }
+
+    if (updatedPlot) {
+      updatedActive.dataPlot = [
+        ...(updatedActive.dataPlot || []).filter(
+          (plot) => plot.i !== findDataPlot.i,
+        ),
+        updatedPlot,
+      ];
     }
   }
   return updatedActive;
@@ -514,6 +643,7 @@ export function formatConfigBeforeLoadingURIs(
           yData: [],
           x: [],
           y: [],
+          unit: '',
         };
       }),
     }),
@@ -625,6 +755,9 @@ export async function plotNodeUriLoaded(
               dataGrid.downsampled_method = response.data.downsampled_method;
             }
 
+            // Save plot unit
+            plot.unit = response.data.unit;
+
             let defaultXValue: number[] | string[] = [];
             if (response.data.coordinates.length > 0) {
               // Get x vector for each plot
@@ -695,7 +828,7 @@ export async function plotNodeUriLoaded(
 export function getVectorData(coordinates: Coordinates[], yData: AxisData) {
   const coordinatesLength: number = coordinates.length;
 
-  // Extract only matrix indexes without taking care of dimension coordinate
+  // Extract only matrix indexes
   const matrixIndexes = JSON.parse(JSON.stringify(coordinates))
     .sort(compareByAxeIndex)
     .reverse()
@@ -721,6 +854,29 @@ export function getVectorData(coordinates: Coordinates[], yData: AxisData) {
   }
   const vectorData: number[] = result;
   return vectorData;
+}
+
+export function getErrorYVectors(plot: DataPlotly, coordinates: Coordinates[]) {
+  // Get error bands vectors switch coordinates indexes
+  const updated_error_y: ErrorBar = JSON.parse(JSON.stringify(plot.error_y));
+
+  if (updated_error_y?.type === 'data') {
+    if (updated_error_y?.arrayminus) {
+      updated_error_y.arrayminus = getVectorData(
+        coordinates,
+        plot.error_bands.find((err_b) => err_b.path.endsWith('_error_lower'))
+          .yData,
+      );
+    }
+    const error_array_yData =
+      plot.error_bands.find((err_b) => err_b.path.endsWith('_error_upper'))
+        ?.yData ||
+      plot.error_bands.find((err_b) => err_b.path.endsWith('_error_lower'))
+        ?.yData;
+
+    updated_error_y.array = getVectorData(coordinates, error_array_yData);
+  }
+  return updated_error_y;
 }
 
 /**
@@ -912,6 +1068,15 @@ export const swapAxis = async (
     plot.y = vectorData;
     // Get x values switch x dependances
     plot.x = getArrayValueFromDependance(updatedDataPlot.coordinates, 0);
+
+    if (plot?.error_bands?.length) {
+      // Update error_y vectors after transpositions
+      const swapped_error_y = getErrorYVectors(
+        plot,
+        updatedDataPlot.coordinates,
+      );
+      plot.error_y = swapped_error_y;
+    }
   }
 
   // Limit coordinate sliders to the max of their new shape
@@ -997,6 +1162,25 @@ function removeNaNPadding(arr: any): any {
   return cleaned;
 }
 
+async function transposeMatrix(yData: AxisData, newPositions: number[]) {
+  // RESHAPE IRREGULAR MATRIX OF NaN TO ALLOW TO TRANSPOSE
+  const matrixWithNaN = replaceNullsWithNaN(yData); // Replace nulls by NaN to keep NaN instead of zeros after transposition
+  // Find maximal shape
+  const shape = getMaxShape(matrixWithNaN);
+  // Fill with NaN
+  const reshapedMatrix = reshapeMatrix(matrixWithNaN, shape);
+
+  // Transpose dataY
+  const tensor = tf.tensor(reshapedMatrix);
+  const dataTransposed = tensor.transpose(newPositions);
+  const newMatrix = (await dataTransposed.array()) as AxisData;
+
+  // Restored irregular shape (suppress all NaN)
+  const restoredMatrix = removeNaNPadding(newMatrix);
+
+  return restoredMatrix;
+}
+
 async function transposeAxis(
   updatedDataPlot: DataGridPlot,
   axeIndexToSwap: number,
@@ -1020,22 +1204,26 @@ async function transposeAxis(
     // Reverse for getting position => [0, 1, 3, 2]
     newPositions.reverse();
 
-    // RESHAPE IRREGULAR MATRIX OF NaN TO ALLOW TO TRANSPOSE
-    const matrixWithNaN = replaceNullsWithNaN(plotToTranspose.yData); // Replace nulls by NaN to keep NaN instead of zeros after transposition
-    // Find maximal shape
-    const shape = getMaxShape(matrixWithNaN);
-    // Fill with NaN
-    const reshapedMatrix = reshapeMatrix(matrixWithNaN, shape);
+    // Transpose dataY matrix
+    const transposedDataY = await transposeMatrix(
+      plotToTranspose.yData,
+      newPositions,
+    );
+    plotToTranspose.yData = transposedDataY;
 
-    // Transpose dataY
-    const tensor = tf.tensor(reshapedMatrix);
-    const dataTransposed = tensor.transpose(newPositions);
-    const newMatrix = (await dataTransposed.array()) as AxisData;
-
-    // Restored irregular shape (suppress all NaN)
-    const restoredMatrix = removeNaNPadding(newMatrix);
-
-    // Update yData & shape
-    plotToTranspose.yData = restoredMatrix;
+    if (
+      plotToTranspose?.error_bands &&
+      plotToTranspose?.error_y &&
+      plotToTranspose.error_y.type === 'data'
+    ) {
+      for (const error_band of plotToTranspose.error_bands) {
+        // Transpose each error band matrix
+        const transposedErrorBand = await transposeMatrix(
+          error_band.yData,
+          newPositions,
+        );
+        error_band.yData = transposedErrorBand;
+      }
+    }
   }
 }
