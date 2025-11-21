@@ -79,6 +79,7 @@ extensions = [
     "sphinx.ext.extlinks",  # For shortening internal links
     "sphinx.ext.mathjax",  # Render math as images
     "sphinx_immaterial",  # Sphinx immaterial theme
+    "sphinxcontrib.autodoc_pydantic",  # Sphinx autodoc for Pydantic models
     # "sphinx_click",  # Document CLI
 ]
 

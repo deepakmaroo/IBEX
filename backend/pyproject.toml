@@ -46,6 +46,8 @@ dependencies = [
     "packaging",
     "imas-python",
     "tsdownsample",
+    "orjson",
+    "autodoc_pydantic",
     #"IDStools",
     #"imas-core",
 ]
