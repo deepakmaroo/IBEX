@@ -288,6 +288,9 @@ intersphinx_timeout = 60  # Downloads time out after 1 minute
 # Configuration of sphinx.ext.mathjax
 # https://www.sphinx-doc.org/en/master/usage/extensions/math.html#module-sphinx.ext.mathjax
 
+autodoc_pydantic_model_show_json = True
+autodoc_pydantic_model_show_config_summary = True
+
 
 def escape_underscores(string):
     return string.replace("_", r"\_")

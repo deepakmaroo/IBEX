@@ -3,6 +3,7 @@
 from typing import List
 
 from fastapi import APIRouter, Query  # type: ignore
+from fastapi.responses import ORJSONResponse  # type: ignore
 
 from ibex.core import ibex_service
 from ibex.endpoints.schemas.data_schemas import FieldValueResponse, PlotDataResponse
@@ -14,6 +15,7 @@ router = APIRouter()
     "/data/field_value",
     status_code=200,
     response_model=FieldValueResponse,
+    response_class=ORJSONResponse,
     responses={
         200: {"description": "Field value returned successfully"},
         404: {"description": "Data node not found"},
@@ -43,13 +45,14 @@ def field_value(
     :return: JSON response
 
     """
-    return ibex_service.get_data(uri.strip(), downsampling_method, downsampled_size, range)
+    return ORJSONResponse(ibex_service.get_data(uri.strip(), downsampling_method, downsampled_size, range))
 
 
 @router.get(
     "/data/plot_data",
     status_code=200,
     response_model=PlotDataResponse,
+    response_class=ORJSONResponse,
     responses={
         200: {"description": "Plot data returned successfully"},
         404: {"description": "Data node not found"},
@@ -100,4 +103,4 @@ def plot_data(uri: str, downsampling_method: str | None = Query(None), downsampl
 
 
     """
-    return ibex_service.get_plot_data(uri.strip(), downsampling_method, downsampled_size)
+    return ORJSONResponse(ibex_service.get_plot_data(uri.strip(), downsampling_method, downsampled_size))
