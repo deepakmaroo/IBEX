@@ -73,7 +73,7 @@ def measure_execution_time(func: Callable[..., Any]) -> Callable[..., Any]:
     @wraps(func)
     async def wrapper(*args: Any, **kwargs: Any) -> Any:
         start_time = time.perf_counter()
-        response = await func(*args, **kwargs)
+        response = func(*args, **kwargs)
         end_time = time.perf_counter()
         execution_time = end_time - start_time
         print(f"==========> Endpoint '{func.__name__}' executed in {execution_time:.4f} seconds")

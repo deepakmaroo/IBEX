@@ -19,7 +19,7 @@ router = APIRouter()
     description="Returns given ids node parameters and description",
 )
 @ibex_service.measure_execution_time
-async def node_info(uri: str, show_error_bars: bool = False) -> dict:
+def node_info(uri: str, show_error_bars: bool = False) -> dict:
     """
     IBEX endpoint. Returns metadata of a node (leaf or intermediate).
 
@@ -51,7 +51,7 @@ async def node_info(uri: str, show_error_bars: bool = False) -> dict:
     description="Searches for given node path in the pulsefile",
 )
 @ibex_service.measure_execution_time
-async def find_field(uri: str, searched_node: str, show_error_bars: bool = False) -> dict:
+def find_field(uri: str, searched_node: str, show_error_bars: bool = False) -> dict:
     """
     IBEX endpoint. Returns list of nodes that have searched text within it's name.
 
@@ -88,7 +88,7 @@ async def find_field(uri: str, searched_node: str, show_error_bars: bool = False
     description="Returns summarized array node parameters",
 )
 @ibex_service.measure_execution_time
-async def array_summary(uri: str) -> dict:
+def array_summary(uri: str) -> dict:
     """
     IBEX endpoint. Returns summary of an array node.
 

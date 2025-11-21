@@ -23,7 +23,7 @@ router = APIRouter()
     description="Takes path from query and converts it into URI",
 )
 @ibex_service.measure_execution_time
-async def uri_from_path(path: str) -> dict:
+def uri_from_path(path: str) -> dict:
     """
     IBEX endpoint. Returns uri based on PATH passed as parameter.
 
@@ -51,7 +51,7 @@ async def uri_from_path(path: str) -> dict:
     description="Checks if given pulsefile can be opened",
 )
 @ibex_service.measure_execution_time
-async def exists(uri: str) -> dict:
+def exists(uri: str) -> dict:
     """
     IBEX endpoint. Checks if pulsefile exists and can be opened.
 
@@ -80,7 +80,7 @@ async def exists(uri: str) -> dict:
     description="Lists all idses from given pulsefile",
 )
 @ibex_service.measure_execution_time
-async def list_idses(uri: str) -> dict:
+def list_idses(uri: str) -> dict:
     """
     IBEX endpoint. Returns list of available IDSes and occurrences from pulsefile.
 
@@ -113,7 +113,7 @@ async def list_idses(uri: str) -> dict:
     description="Lists known data entries found on server machine",
 )
 @ibex_service.measure_execution_time
-async def available_entries(
+def available_entries(
     user: str = "public",
     backend: Optional[str] = "",
     database: Optional[str] = None,

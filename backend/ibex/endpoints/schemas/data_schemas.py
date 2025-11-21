@@ -21,8 +21,8 @@ class PlotDataCoordinateModel(BaseModel):
         description="Which node coordinate is it", examples=["#equilibrium/time_slice[0]/profiles_2d[0]/psi"]
     )
     unit: str = Field(description="Data units", examples=[""])
-    shape: list[int] = Field(description="Shape of the data", examples=[[129]])
-    downsampled_shape: list[int] = Field(description="Shape of the data after downsampling", examples=[[129]])
+    shape: list[int] | str = Field(description="Shape of the data", examples=[[129]])
+    downsampled_shape: list[int] | str = Field(description="Shape of the data after downsampling", examples=[[129]])
     ndim: int = Field(description="Number of data dimensions stored in node", examples=[1])
     path: str = Field(description="Path to the node", examples=["#equilibrium/time_slice[0]/profiles_2d[0]/grid/dim1"])
     description: str = Field(description="Description of the node", examples=["First dimension values"])
@@ -37,8 +37,8 @@ class PlotDataModel(BaseModel):
 
     name: str = Field(description="Node name", examples=["psi"])
     unit: str = Field(description="Data units", examples=["Wb"])
-    shape: list[int] = Field(description="Shape of the data", examples=[[129, 65]])
-    downsampled_shape: list[int] = Field(description="Shape of the data after downsampling", examples=[[129, 65]])
+    shape: list[int] | str = Field(description="Shape of the data", examples=[[129, 65]])
+    downsampled_shape: list[int] | str = Field(description="Shape of the data after downsampling", examples=[[129, 65]])
     ndim: int = Field(description="Number of data dimensions stored in node", examples=[2])
     path: str = Field(description="Path to the node", examples=["#equilibrium/time_slice[0]/profiles_2d[0]/psi"])
     description: str = Field(

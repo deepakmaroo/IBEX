@@ -1,4 +1,5 @@
 from pydantic import BaseModel, Field
+from pathlib import Path
 
 # ========== URI FROM PATH ==========
 
@@ -6,7 +7,7 @@ from pydantic import BaseModel, Field
 class UriFromPathResponse(BaseModel):
     """Response for /data_entry/uri_from_path endpoint"""
 
-    uri: str = Field(description="IMAS URI", examples=["imas:mdsplus?path=my_path", "imas:hdf5?path=my_path"])
+    uri: str | Path = Field(description="IMAS URI", examples=["imas:mdsplus?path=my_path", "imas:hdf5?path=my_path"])
 
 
 # ========== EXISTS ==========
