@@ -16,7 +16,6 @@ from .exception_handlers import general_exception_handler
 logger = logging.getLogger(__name__)
 
 app = FastAPI()
-# app.add_middleware(GZipMiddleware, minimum_size=1000, compresslevel=1)
 
 app.include_router(data_entry_router)
 app.include_router(ids_info_router)
