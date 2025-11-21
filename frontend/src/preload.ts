@@ -22,6 +22,9 @@ export const API = {
       ipcRenderer.invoke('saveAsDialog', name, ext),
 
     getHomePath: async () => await ipcRenderer.invoke('getHomePath'),
+
+    getDefaultTemplatesPath: async () =>
+      await ipcRenderer.invoke('getDefaultTemplatesPath'),
   },
 
   preferences: {

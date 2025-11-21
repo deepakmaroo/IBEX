@@ -3,14 +3,14 @@
   "dataURI": [
     {
       "uri": "imas:mdsplus?user=public;pulse=100001;run=1;database=ITER;version=3",
-      "name": "URI-1",
+      "name": "URI-0",
       "uriColor": "#78ea28",
       "isSelected": true
     }
   ],
   "dataPlot": [
     {
-      "title": "temperature_URI-1 / t_i_average_URI-1",
+      "title": "temperature_URI-0 / t_i_average_URI-0",
       "isTitleOverwritten": false,
       "xAxisData": {
         "name": "rho_tor_norm",
@@ -40,19 +40,19 @@
       ],
       "plot": [
         {
-          "nodeUri": "URI-1#core_profiles:0/profiles_1d[44]/electrons/temperature",
+          "nodeUri": "URI-0#core_profiles:0/profiles_1d[44]/electrons/temperature",
           "yaxis": "",
-          "labelUri": "URI-1"
+          "labelUri": "URI-0"
         },
         {
-          "nodeUri": "URI-1#core_profiles:0/profiles_1d[44]/t_i_average",
+          "nodeUri": "URI-0#core_profiles:0/profiles_1d[44]/t_i_average",
           "yaxis": "",
-          "labelUri": "URI-1"
+          "labelUri": "URI-0"
         }
       ]
     },
     {
-      "title": "temperature_URI-1 / t_i_average_URI-1",
+      "title": "temperature_URI-0 / t_i_average_URI-0",
       "isTitleOverwritten": false,
       "xAxisData": {
         "name": "time",
@@ -82,19 +82,19 @@
       ],
       "plot": [
         {
-          "nodeUri": "URI-1#core_profiles:0/profiles_1d[0]/electrons/temperature",
+          "nodeUri": "URI-0#core_profiles:0/profiles_1d[0]/electrons/temperature",
           "yaxis": "",
-          "labelUri": "URI-1"
+          "labelUri": "URI-0"
         },
         {
-          "nodeUri": "URI-1#core_profiles:0/profiles_1d[0]/t_i_average",
+          "nodeUri": "URI-0#core_profiles:0/profiles_1d[0]/t_i_average",
           "yaxis": "",
-          "labelUri": "URI-1"
+          "labelUri": "URI-0"
         }
       ]
     },
     {
-      "title": "density_URI-1",
+      "title": "density_URI-0",
       "isTitleOverwritten": false,
       "xAxisData": {
         "name": "rho_tor_norm",
@@ -124,14 +124,14 @@
       ],
       "plot": [
         {
-          "nodeUri": "URI-1#core_profiles:0/profiles_1d[0]/electrons/density",
+          "nodeUri": "URI-0#core_profiles:0/profiles_1d[0]/electrons/density",
           "yaxis": "",
-          "labelUri": "URI-1"
+          "labelUri": "URI-0"
         }
       ]
     },
     {
-      "title": "density_URI-1",
+      "title": "density_URI-0",
       "isTitleOverwritten": false,
       "xAxisData": {
         "name": "time",
@@ -161,14 +161,14 @@
       ],
       "plot": [
         {
-          "nodeUri": "URI-1#core_profiles:0/profiles_1d[58]/electrons/density",
+          "nodeUri": "URI-0#core_profiles:0/profiles_1d[58]/electrons/density",
           "yaxis": "",
-          "labelUri": "URI-1"
+          "labelUri": "URI-0"
         }
       ]
     },
     {
-      "title": "zeff_URI-1",
+      "title": "zeff_URI-0",
       "isTitleOverwritten": false,
       "xAxisData": {
         "name": "time",
@@ -198,14 +198,14 @@
       ],
       "plot": [
         {
-          "nodeUri": "URI-1#core_profiles:0/profiles_1d[87]/zeff",
+          "nodeUri": "URI-0#core_profiles:0/profiles_1d[87]/zeff",
           "yaxis": "",
-          "labelUri": "URI-1"
+          "labelUri": "URI-0"
         }
       ]
     },
     {
-      "title": "zeff_URI-1",
+      "title": "zeff_URI-0",
       "isTitleOverwritten": false,
       "xAxisData": {
         "name": "rho_tor_norm",
@@ -235,14 +235,14 @@
       ],
       "plot": [
         {
-          "nodeUri": "URI-1#core_profiles:0/profiles_1d[32]/zeff",
+          "nodeUri": "URI-0#core_profiles:0/profiles_1d[32]/zeff",
           "yaxis": "",
-          "labelUri": "URI-1"
+          "labelUri": "URI-0"
         }
       ]
     },
     {
-      "title": "poloidal_URI-1",
+      "title": "poloidal_URI-0",
       "isTitleOverwritten": false,
       "xAxisData": {
         "name": "rho_tor_norm",
@@ -277,14 +277,14 @@
       ],
       "plot": [
         {
-          "nodeUri": "URI-1#core_profiles:0/profiles_1d[62]/ion[0]/velocity/poloidal",
+          "nodeUri": "URI-0#core_profiles:0/profiles_1d[62]/ion[0]/velocity/poloidal",
           "yaxis": "",
-          "labelUri": "URI-1"
+          "labelUri": "URI-0"
         }
       ]
     },
     {
-      "title": "toroidal_URI-1",
+      "title": "toroidal_URI-0",
       "isTitleOverwritten": false,
       "xAxisData": {
         "name": "rho_tor_norm",
@@ -319,9 +319,9 @@
       ],
       "plot": [
         {
-          "nodeUri": "URI-1#core_profiles:0/profiles_1d[62]/ion[0]/velocity/toroidal",
+          "nodeUri": "URI-0#core_profiles:0/profiles_1d[62]/ion[0]/velocity/toroidal",
           "yaxis": "",
-          "labelUri": "URI-1"
+          "labelUri": "URI-0"
         }
       ]
     }

@@ -3,7 +3,7 @@
   "dataURI": [
     {
       "uri": "imas:mdsplus?user=public;pulse=100001;run=1;database=ITER;version=3",
-      "name": "URI-1",
+      "name": "URI-0",
       "uriColor": "#78ea28",
       "isSelected": true
     }
@@ -39,14 +39,14 @@
       ],
       "plot": [
         {
-          "nodeUri": "URI-1#summary:0/global_quantities/ip/value",
+          "nodeUri": "URI-0#summary:0/global_quantities/ip/value",
           "yaxis": "",
-          "labelUri": "URI-1"
+          "labelUri": "URI-0"
         },
         {
-          "nodeUri": "URI-1#summary:0/global_quantities/b0/value",
+          "nodeUri": "URI-0#summary:0/global_quantities/b0/value",
           "yaxis": "y2",
-          "labelUri": "URI-1"
+          "labelUri": "URI-0"
         }
       ]
     },
@@ -76,19 +76,19 @@
       ],
       "plot": [
         {
-          "nodeUri": "URI-1#summary:0/global_quantities/energy_total/value",
+          "nodeUri": "URI-0#summary:0/global_quantities/energy_total/value",
           "yaxis": "",
-          "labelUri": "URI-1"
+          "labelUri": "URI-0"
         },
         {
-          "nodeUri": "URI-1#summary:0/global_quantities/energy_diamagnetic/value",
+          "nodeUri": "URI-0#summary:0/global_quantities/energy_diamagnetic/value",
           "yaxis": "",
-          "labelUri": "URI-1"
+          "labelUri": "URI-0"
         },
         {
-          "nodeUri": "URI-1#summary:0/global_quantities/energy_thermal/value",
+          "nodeUri": "URI-0#summary:0/global_quantities/energy_thermal/value",
           "yaxis": "",
-          "labelUri": "URI-1"
+          "labelUri": "URI-0"
         }
       ]
     },
@@ -133,14 +133,14 @@
       ],
       "plot": [
         {
-          "nodeUri": "URI-1#equilibrium:0/time_slice[7]/profiles_2d[0]/psi",
+          "nodeUri": "URI-0#equilibrium:0/time_slice[7]/profiles_2d[0]/psi",
           "yaxis": "",
-          "labelUri": "URI-1"
+          "labelUri": "URI-0"
         }
       ]
     },
     {
-      "title": "q_URI-1 / magnetic_shear_URI-1",
+      "title": "q_URI-0 / magnetic_shear_URI-0",
       "isTitleOverwritten": false,
       "xAxisData": {
         "name": "psi",
@@ -170,14 +170,14 @@
       ],
       "plot": [
         {
-          "nodeUri": "URI-1#equilibrium:0/time_slice[100]/profiles_1d/q",
+          "nodeUri": "URI-0#equilibrium:0/time_slice[100]/profiles_1d/q",
           "yaxis": "",
-          "labelUri": "URI-1"
+          "labelUri": "URI-0"
         },
         {
-          "nodeUri": "URI-1#equilibrium:0/time_slice[100]/profiles_1d/magnetic_shear",
+          "nodeUri": "URI-0#equilibrium:0/time_slice[100]/profiles_1d/magnetic_shear",
           "yaxis": "",
-          "labelUri": "URI-1"
+          "labelUri": "URI-0"
         }
       ]
     },
@@ -212,24 +212,24 @@
       ],
       "plot": [
         {
-          "nodeUri": "URI-1#core_profiles:0/profiles_1d[94]/j_total",
+          "nodeUri": "URI-0#core_profiles:0/profiles_1d[94]/j_total",
           "yaxis": "",
-          "labelUri": "URI-1"
+          "labelUri": "URI-0"
         },
         {
-          "nodeUri": "URI-1#core_profiles:0/profiles_1d[94]/j_non_inductive",
+          "nodeUri": "URI-0#core_profiles:0/profiles_1d[94]/j_non_inductive",
           "yaxis": "",
-          "labelUri": "URI-1"
+          "labelUri": "URI-0"
         },
         {
-          "nodeUri": "URI-1#core_profiles:0/profiles_1d[94]/j_bootstrap",
+          "nodeUri": "URI-0#core_profiles:0/profiles_1d[94]/j_bootstrap",
           "yaxis": "",
-          "labelUri": "URI-1"
+          "labelUri": "URI-0"
         },
         {
-          "nodeUri": "URI-1#core_profiles:0/profiles_1d[94]/j_ohmic",
+          "nodeUri": "URI-0#core_profiles:0/profiles_1d[94]/j_ohmic",
           "yaxis": "",
-          "labelUri": "URI-1"
+          "labelUri": "URI-0"
         }
       ]
     }
