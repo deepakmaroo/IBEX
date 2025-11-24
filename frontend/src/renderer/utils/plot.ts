@@ -26,7 +26,6 @@ import {
   getFirstArrayValueFromShape,
 } from './matrix';
 import * as tf from '@tensorflow/tfjs';
-import { removeSuffix } from './functions';
 import { ErrorBar } from 'plotly.js';
 
 /**
@@ -53,75 +52,6 @@ export const plotData = (
   description?: string,
   y2Axis?: boolean,
 ): DataGridPlot => {
-  if (nodeUri.endsWith('_error_lower') || nodeUri.endsWith('_error_upper')) {
-    // Change the plot format to show error bands
-    let error_suffix = '';
-    if (nodeUri.endsWith('_error_lower')) {
-      error_suffix = '_error_lower';
-    } else if (nodeUri.endsWith('_error_upper')) {
-      error_suffix = '_error_upper';
-    }
-    const mainNodeUri = removeSuffix(nodeUri, error_suffix);
-    const foundedPlot = dataPlot.plot.find(
-      (plotItem) =>
-        normalizeIndices(plotItem.nodeUri) === normalizeIndices(mainNodeUri),
-    );
-
-    if (foundedPlot && !foundedPlot?.error_bands) {
-      // Init error_bands
-      foundedPlot.error_bands = [];
-    }
-
-    if (!foundedPlot?.error_y) {
-      // Init error_y
-      foundedPlot.error_y = {
-        type: 'data',
-        symmetric: true,
-        array: yValue,
-      };
-    }
-
-    if (foundedPlot?.error_bands?.length) {
-      // We are not in symectric case when there is more than one selected error band
-      foundedPlot.error_y.symmetric = false;
-    }
-
-    if (
-      error_suffix === '_error_lower' &&
-      foundedPlot?.error_bands.find(
-        (error_band) =>
-          error_band.path === normalizeIndices(mainNodeUri) + '_error_upper',
-      ) &&
-      foundedPlot?.error_y?.type === 'data'
-    ) {
-      // Set to arrayminus when lower & other error_band
-      foundedPlot.error_y.arrayminus = yValue;
-    } else if (
-      error_suffix === '_error_upper' &&
-      foundedPlot?.error_bands.find(
-        (error_band) =>
-          error_band.path === normalizeIndices(mainNodeUri) + '_error_lower',
-      ) &&
-      foundedPlot?.error_y?.type === 'data'
-    ) {
-      // Set lower as arrayminus when select upper & having lower
-      foundedPlot.error_y.arrayminus = foundedPlot.error_y.array;
-      foundedPlot.error_y.array = yValue;
-    }
-
-    // Update error_bands by adding the new selected one
-    foundedPlot.error_bands.push({
-      path: normalizeIndices(nodeUri),
-      yData: yData,
-    });
-
-    const currentPlot = Array.isArray(dataPlot.plot) ? dataPlot.plot : [];
-    return {
-      ...dataPlot,
-      plot: [...currentPlot],
-    };
-  }
-
   const trace: DataPlotly = {
     x: xValue,
     y: yValue,

@@ -185,6 +185,13 @@ function NodeIcon({
         if (hasUserSelectedText()) {
           return;
         }
+        if (
+          node.label.toString().endsWith('_error_lower') ||
+          node.label.toString().endsWith('_error_upper')
+        ) {
+          getCheckedNodes(checkedNodes);
+          return;
+        }
 
         if (checked) {
           tree.uncheckNode(node.value);
@@ -227,7 +234,14 @@ function NodeIcon({
       <Tooltip label={node.label} position="left" disabled={!isOverflowing}>
         <Group
           gap={2}
-          style={{ userSelect: 'text', cursor: 'pointer' }}
+          style={{
+            userSelect: 'text',
+            cursor:
+              node.label.toString().endsWith('_error_lower') ||
+              node.label.toString().endsWith('_error_upper')
+                ? 'not-allowed'
+                : 'pointer',
+          }}
           wrap="nowrap"
           onClick={handleCheckNode}
         >
@@ -240,6 +254,10 @@ function NodeIcon({
                 minHeight: 20,
               },
             }}
+            disabled={
+              node.label.toString().endsWith('_error_lower') ||
+              node.label.toString().endsWith('_error_upper')
+            }
           />
           {IconComponent}
           <Text truncate="end" ref={textRef} w="auto">
