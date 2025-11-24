@@ -8,7 +8,6 @@ import {
   waitForApi,
   setTestState,
   getTestState,
-  stubBackendFunction,
 } from './setup';
 
 /**
@@ -22,7 +21,6 @@ describe('UI Tests for Header Component', function () {
     await startApp();
     driver = getDriver();
     await waitForApi();
-    await stubBackendFunction();
   });
 
   after(async () => {
@@ -169,9 +167,29 @@ describe('UI Tests for Header Component', function () {
       5000,
     );
     await driver.wait(until.elementIsVisible(saveButton), 5000);
+
+    let state = await getTestState();
+    expect(state.active?.saved).to.be.undefined;
+
     await saveButton.click();
 
-    const state = await getTestState();
+    state = await getTestState();
     expect(state.active?.saved).to.be.true;
+  });
+
+  it('Should load the configuration from header', async () => {
+    const loadButton = await driver.wait(
+      until.elementLocated(By.css('[data-testid="header-load-configuration"]')),
+      5000,
+    );
+    await driver.wait(until.elementIsVisible(loadButton), 5000);
+
+    let state = await getTestState();
+    expect(state.configurations.length).to.equal(0);
+
+    await loadButton.click();
+
+    state = await getTestState();
+    expect(state.configurations.length).to.equal(1);
   });
 });
