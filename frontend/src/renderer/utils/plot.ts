@@ -415,9 +415,9 @@ export const handleExistingPlot = async (
 
     let defaultXValue: number[] = [];
     if (response.data.coordinates.length > 0) {
-      defaultXValue = getVectorData(
-        findDataPlot.coordinates,
+      defaultXValue = getFirstArrayValueFromShape(
         response.data.coordinates[0].value,
+        response.data.coordinates[0].shape as number[],
       );
     }
 
