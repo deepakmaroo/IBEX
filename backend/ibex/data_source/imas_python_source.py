@@ -7,7 +7,7 @@ import numpy as np  # type: ignore
 import re  # type: ignore
 from idstools.database import DBMaster  # type: ignore
 from imas.ids_metadata import IDSMetadata  # type: ignore
-from imas.ids_primitive import IDSNumericArray, IDSString0D, IDSString1D  # type: ignore
+from imas.ids_primitive import IDSNumericArray, IDSString0D, IDSString1D, IDSComplex0D, IDSFloat0D, IDSInt0D  # type: ignore
 from imas.ids_struct_array import IDSStructArray  # type: ignore
 from imas.ids_structure import IDSStructure  # type: ignore
 from imas.ids_data_type import IDSDataType  # type: ignore
@@ -557,8 +557,9 @@ class IMASPythonSource(DataSourceInterface):
             return data.tolist()
         elif isinstance(data.value, np.ndarray):  # data = IDSNumericArray
             return data.tolist()
-        else:
-            return data.value
+        elif not data.has_value:
+            return None
+        return data.value
 
     def get_plot_data(
         self,
@@ -588,7 +589,7 @@ class IMASPythonSource(DataSourceInterface):
 
             # function to check if list is essentially empty (contains only empty lists or empty strings)
             def is_empty(seq):
-                if isinstance(seq, (IDSNumericArray, IDSString0D, IDSString1D)):
+                if isinstance(seq, (IDSNumericArray, IDSString0D, IDSString1D, IDSComplex0D, IDSFloat0D, IDSInt0D)):
                     return not seq.has_value
                 if isinstance(seq, np.ndarray):
                     return seq.size == 0

@@ -23,8 +23,6 @@ def entry_path(tmp_path_factory):
     for aos_element, time_element in zip(core_profiles.profiles_1d, core_profiles.time):
         aos_element.time = time_element
 
-    core_profiles.profiles_1d[0].ion.resize(1)
-
     # ===== for error bars test =====
     core_profiles.vacuum_toroidal_field.r0 = 1.0
     core_profiles.vacuum_toroidal_field.r0_error_upper = 2.0
@@ -33,6 +31,8 @@ def entry_path(tmp_path_factory):
     # ===== for plot data 1...N coord test =====
     for profiles_1d in core_profiles.profiles_1d:
         profiles_1d.ion.resize(3)
+        for ion in profiles_1d.ion:
+            ion.z_ion = 1
 
     # ===== for 2D data =====
     core_profiles.profiles_2d.resize(5)
