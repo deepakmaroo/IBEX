@@ -137,18 +137,15 @@ describe('UI Tests for Header Component', function () {
   });
 
   it('Should load the configuration from header', async () => {
-    const loadButton = await getDriver().wait(
-      until.elementLocated(By.css('[data-testid="header-load-configuration"]')),
-      5000,
+    await ensureCssElementIsDisplayed('header-load-configuration');
+    await waitForValue(
+      async () => (await getTestState()).configurations.length,
+      0,
     );
-    await getDriver().wait(until.elementIsVisible(loadButton), 5000);
-
-    let state = await getTestState();
-    expect(state.configurations.length).to.equal(0);
-
-    await loadButton.click();
-
-    state = await getTestState();
-    expect(state.configurations.length).to.equal(1);
+    await findCssElementAndClickIt('header-load-configuration');
+    await waitForValue(
+      async () => (await getTestState()).configurations.length,
+      1,
+    );
   });
 });
