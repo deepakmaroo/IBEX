@@ -102,9 +102,8 @@ describe('UI Tests for Header Component', function () {
   it('Should delete configuration from header', async () => {
     await setTestState(mockConfigurationState);
     await findCssElementAndClickIt('header-delete-configuration');
-    const confirmationModal = await ensureCssElementIsDisplayed(
-      'confirm-modal',
-    );
+    const confirmationModal =
+      await ensureCssElementIsDisplayed('confirm-modal');
 
     const confirmationText = await getDriver()
       .findElement(By.css('[data-testid="config-delete-confirmation-text"]'))
@@ -130,10 +129,7 @@ describe('UI Tests for Header Component', function () {
       undefined,
     );
     await findCssElementAndClickIt('header-save-configuration');
-    await waitForValue(
-      async () => (await getTestState()).active.saved,
-      true,
-    );
+    await waitForValue(async () => (await getTestState()).active.saved, true);
   });
 
   it('Should load the configuration from header', async () => {
