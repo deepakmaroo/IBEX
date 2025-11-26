@@ -563,6 +563,7 @@ export const VisualizationURIModal = ({
           }}
         >
           <Autocomplete
+            data-testid="config-uri-selection-modal-uri-text-input"
             label="Write/Paste your URI"
             placeholder="Enter your uri"
             data={dataDbEntries.map((entry) => entry.uri)}
@@ -575,6 +576,7 @@ export const VisualizationURIModal = ({
                 disabled={isLoading || isLoadingDbEntries}
               >
                 <IconPlus
+                  data-testid="config-uri-selection-modal-add-uri-button"
                   style={{ width: '70%', height: '70%' }}
                   stroke={1.5}
                 />
@@ -691,6 +693,7 @@ export const VisualizationURIModal = ({
 
       <Group justify="flex-end" mt={20}>
         <Button
+          data-testid="config-uri-selection-modal-validate-button"
           disabled={!dataURIsSelected.length || isMissingURIs}
           onClick={updateDataURI}
         >
