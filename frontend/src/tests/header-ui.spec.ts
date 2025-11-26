@@ -101,20 +101,10 @@ describe('UI Tests for Header Component', function () {
 
   it('Should delete configuration from header', async () => {
     await setTestState(mockConfigurationState);
-
-    const deleteButton = await getDriver().wait(
-      until.elementLocated(
-        By.css('[data-testid="header-delete-configuration"]'),
-      ),
-      5000,
+    await findCssElementAndClickIt('header-delete-configuration');
+    const confirmationModal = await ensureCssElementIsDisplayed(
+      'confirm-modal',
     );
-    await deleteButton.click();
-
-    const confirmationModal = await getDriver().wait(
-      until.elementLocated(By.css('[data-testid="confirm-modal"]')),
-      10000,
-    );
-    expect(await confirmationModal.isDisplayed()).to.be.true;
 
     const confirmationText = await getDriver()
       .findElement(By.css('[data-testid="config-delete-confirmation-text"]'))
@@ -123,15 +113,13 @@ describe('UI Tests for Header Component', function () {
       'Are you sure you want to delete the configuration?',
     );
 
-    const confirmButton = await getDriver().findElement(
-      By.css('[data-testid="confirm-modal-confirm-button"]'),
-    );
-    await confirmButton.click();
-
+    await findCssElementAndClickIt('confirm-modal-confirm-button');
     await waitForElementToDisappear(confirmationModal);
 
-    const state = await getTestState();
-    expect(state.configurations.length).to.equal(1);
+    await waitForValue(
+      async () => (await getTestState()).configurations.length,
+      1,
+    );
   });
 
   it('Should save configuration from header', async () => {
