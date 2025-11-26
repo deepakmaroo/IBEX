@@ -124,20 +124,16 @@ describe('UI Tests for Header Component', function () {
 
   it('Should save configuration from header', async () => {
     await setTestState(mockConfigurationState);
-
-    const saveButton = await getDriver().wait(
-      until.elementLocated(By.css('[data-testid="header-save-configuration"]')),
-      5000,
+    await ensureCssElementIsDisplayed('header-save-configuration');
+    await waitForValue(
+      async () => (await getTestState()).active.saved,
+      undefined,
     );
-    await getDriver().wait(until.elementIsVisible(saveButton), 5000);
-
-    let state = await getTestState();
-    expect(state.active?.saved).to.be.undefined;
-
-    await saveButton.click();
-
-    state = await getTestState();
-    expect(state.active?.saved).to.be.true;
+    await findCssElementAndClickIt('header-save-configuration');
+    await waitForValue(
+      async () => (await getTestState()).active.saved,
+      true,
+    );
   });
 
   it('Should load the configuration from header', async () => {
