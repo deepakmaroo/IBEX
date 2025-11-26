@@ -1,6 +1,12 @@
 import { expect } from 'chai';
 import { By, until, WebElement } from 'selenium-webdriver';
-import { mockConfigurationState } from './utils';
+import {
+  ensureCssElementIsDisplayed,
+  findCssElementAndClickIt,
+  mockConfigurationState,
+  waitForValue,
+  writeTextInCssElement,
+} from './utils';
 import {
   startApp,
   getDriver,
@@ -62,62 +68,33 @@ describe('UI Tests for Header Component', function () {
   }
 
   it('Should create new configuration from header', async () => {
-    const newConfigButton = await getDriver().wait(
-      until.elementLocated(By.css('[data-testid="header-add-configuration"]')),
-      5000,
+    await findCssElementAndClickIt('header-add-configuration');
+    const configCreateModal = await ensureCssElementIsDisplayed(
+      'config-create-modal',
     );
-    await newConfigButton.click();
-
-    const configCreateModal = await getDriver().wait(
-      until.elementLocated(By.css('[data-testid="config-create-modal"]')),
-      5000,
-    );
-    expect(await configCreateModal.isDisplayed()).to.be.true;
-
-    const input = await getDriver().wait(
-      until.elementLocated(By.css('[data-testid="config-create-name-input"]')),
-      5000,
-    );
-    await input.clear();
-    await input.sendKeys('My New Config');
-
-    const createButton = await getDriver().wait(
-      until.elementLocated(
-        By.css('[data-testid="config-create-submit-button"]'),
-      ),
-      5000,
-    );
-    await createButton.click();
+    await writeTextInCssElement('config-create-name-input', 'My New Config');
+    await findCssElementAndClickIt('config-create-submit-button');
     await waitForElementToDisappear(configCreateModal);
 
-    //Add a retry mechanism to ensure the state is updated
-    let state;
-    for (let i = 0; i < 5; i++) {
-      state = await getTestState();
-      if (state.configurations.find((c) => c.name === 'My New Config')) break;
-      await new Promise((res) => setTimeout(res, 300)); // attendre 300 ms
-    }
-
-    const names = state.configurations.map((c) => c.name);
-    expect(names).to.include('My New Config');
+    await waitForValue(
+      async () => (await getTestState()).configurations.length,
+      1,
+    );
+    await waitForValue(
+      async () => (await getTestState()).configurations[0].name,
+      'My New Config',
+    );
 
     // The URI selection modal should apear, we should close it for the next test
-    const configUriSelectionModal = await getDriver().wait(
-      until.elementLocated(
-        By.css('[data-testid="config-uri-selection-modal"]'),
-      ),
-      5000,
+    const configUriSelectionModal = await ensureCssElementIsDisplayed(
+      'config-uri-selection-modal',
     );
-    expect(await configUriSelectionModal.isDisplayed()).to.be.true;
-
     // Find the close button INSIDE the modal
     const closeButton = await configUriSelectionModal.findElement(
       By.css('button.mantine-Modal-close'),
     );
-
     // Click it to close
     await closeButton.click();
-
     // Wait for the modal to disappear
     await waitForElementToDisappear(configUriSelectionModal);
   });
