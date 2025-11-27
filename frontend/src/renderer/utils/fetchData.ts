@@ -183,7 +183,7 @@ export const fetchDataPlot = async (
     const targetStringList = response.data.path.split('/');
     response.data.name =
       targetStringList.length >= 2
-        ? `${targetStringList.at(-2)}/${response.data.name}`
+        ? `${targetStringList.at(-2)}`
         : response.data.name;
   }
 
