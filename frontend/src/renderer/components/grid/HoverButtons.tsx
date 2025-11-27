@@ -14,6 +14,7 @@ interface HoverButtonsProps {
   data: DataGridPlot;
   downsamplingMethod: string;
   downsamplingList: string[];
+  shouldDisplayMetadata: boolean;
   setDownsamplingMethod: React.Dispatch<React.SetStateAction<string>>;
   handleEditGrid: (id: string) => void;
   handleInspectMetadata: (id: string) => void;
@@ -29,6 +30,7 @@ export const HoverButtons = React.memo(
     data,
     downsamplingMethod,
     downsamplingList,
+    shouldDisplayMetadata,
     setDownsamplingMethod,
     handleEditGrid,
     handleInspectMetadata,
@@ -78,7 +80,7 @@ export const HoverButtons = React.memo(
 
           {hovered || data.isEditing ? (
             <Group pos="absolute" right={'1rem'} top={5}>
-              {data.coordinates.length && (
+              {data.coordinates.length && !shouldDisplayMetadata && (
                 <Tooltip label="Select your downsampling method">
                   <Select
                     value={downsamplingMethod || 'None'}
@@ -92,7 +94,7 @@ export const HoverButtons = React.memo(
                 </Tooltip>
               )}
 
-              {data.coordinates.length >= 3 && (
+              {data.coordinates.length >= 3 && !shouldDisplayMetadata && (
                 <Tooltip label="Toggle 1D/Heatmap view">
                   <ActionIcon
                     variant="filled"
@@ -105,7 +107,7 @@ export const HoverButtons = React.memo(
                 </Tooltip>
               )}
 
-              {data.coordinates.length && (
+              {data.coordinates.length && !shouldDisplayMetadata && (
                 <Tooltip label="Inspect metadatas information">
                   <ActionIcon
                     variant="filled"
