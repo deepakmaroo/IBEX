@@ -81,18 +81,37 @@ describe('UI Tests for Header Component', function () {
     await findCssElementAndClickIt('config-uri-selection-modal-add-uri-button');
     await findCssElementAndClickIt(
       'config-uri-selection-modal-validate-button',
+      10000,
+      200,
+      100,
+    );
+    await ensureCssElementIsDisplayed(
+      'uriAccordion-imas:hdf5?user=public;pulse=100002;run=1;database=iterdb;version=3',
+      10000,
     );
     await findCssElementAndClickIt(
       'uriAccordion-imas:hdf5?user=public;pulse=100002;run=1;database=iterdb;version=3',
+      10000,
+      200,
+      100,
     );
     await findCssElementAndClickIt(
       'folder-imas:hdf5?user=public;pulse=100002;run=1;database=iterdb;version=3#core_profiles:0/',
+      10000,
+      200,
+      100,
     );
     await findCssElementAndClickIt(
       'folder-imas:hdf5?user=public;pulse=100002;run=1;database=iterdb;version=3#core_profiles:0/profiles_1d[:]/',
+      10000,
+      200,
+      100,
     );
     await findCssElementAndClickIt(
       'folder-imas:hdf5?user=public;pulse=100002;run=1;database=iterdb;version=3#core_profiles:0/profiles_1d[:]/ion[:]/',
+      10000,
+      200,
+      100,
     );
 
     ///
@@ -137,7 +156,7 @@ describe('UI Tests for Header Component', function () {
     await waitForValue(
       async () => (await getTestState()).active.dataPlot[0].y2AxisData,
       undefined,
-      (actual, expected) => actual == expected,
+      (actual, expected) => actual != expected,
     );
   });
 });

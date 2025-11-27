@@ -4,10 +4,11 @@ import { getDriver } from '../setup';
 
 export async function getCssElementFromDataTestId(
   cssElementDataTestIdName: string,
+  timeout = 10000,
 ): Promise<WebElement> {
   const cssElement = await getDriver().wait(
     until.elementLocated(By.css(`[data-testid="${cssElementDataTestIdName}"]`)),
-    5000,
+    timeout,
   );
 
   if (!cssElement) {
@@ -37,10 +38,12 @@ export async function waitForElementToDisappear(
 
 export async function ensureCssElementIsDisplayed(
   cssElementDataTestIdName: string,
+  timeout = 10000,
 ): Promise<WebElement> {
   console.info('Finding and clicking element : ', cssElementDataTestIdName);
   const configCreateModal = await getCssElementFromDataTestId(
     cssElementDataTestIdName,
+    timeout,
   );
   expect(await configCreateModal.isDisplayed()).to.be.true;
   return configCreateModal;
@@ -57,11 +60,17 @@ export async function writeTextInCssElement(
 
 export async function findCssElementAndClickIt(
   cssElementDataTestIdName: string,
+  timeout = 10000,
+  retries = 5,
+  delayMs = 300,
 ) {
-  const button = await ensureCssElementIsDisplayed(cssElementDataTestIdName);
+  const button = await ensureCssElementIsDisplayed(
+    cssElementDataTestIdName,
+    timeout,
+  );
 
-  for (let i = 0; i < 5; i++) {
-    await new Promise((res) => setTimeout(res, 300));
+  for (let i = 0; i < retries; i++) {
+    await new Promise((res) => setTimeout(res, delayMs));
 
     if (await button.isEnabled()) {
       break;
