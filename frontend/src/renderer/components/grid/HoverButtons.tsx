@@ -1,5 +1,5 @@
 import classes from './HoverButtons.module.css';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import {
   Group,
   Tooltip,
@@ -16,18 +16,8 @@ import {
   IconTrash,
 } from '@tabler/icons-react';
 import { useHover } from '@mantine/hooks';
-import {
-  AxisData,
-  DataGridPlot,
-  DataPlotly,
-  URITreeNodeData,
-} from '../../types';
-import {
-  fetchFieldValue,
-  getVectorData,
-  normalizeIndices,
-  removeSuffix,
-} from '../../utils';
+import { Configuration, DataGridPlot } from '../../types';
+import { fetchErrorBandsInConfig } from '../../utils';
 import { useIbexStore } from '../../stores';
 
 interface HoverButtonsProps {
@@ -60,8 +50,6 @@ export const HoverButtons = React.memo(
   }: HoverButtonsProps) => {
     const { active, updatedConfiguration } = useIbexStore();
     const { hovered, ref: hoverRef } = useHover();
-    const [shouldDisplayErrorBands, setShouldDisplayErrorBands] =
-      useState(true);
 
     const heatmapLogo = (
       <svg width="50" height="50" viewBox="0 0 50 50">
@@ -79,200 +67,63 @@ export const HoverButtons = React.memo(
       </svg>
     );
 
-    const formatErrorBands = (
-      foundedPlot: DataPlotly,
-      yValue: number[],
-      yData: AxisData,
-      nodeUri: string,
-    ) => {
-      if (
-        !(nodeUri.endsWith('_error_lower') || nodeUri.endsWith('_error_upper'))
-      ) {
-        return;
-      }
-
-      // Change the plot format to show error bands
-      let error_suffix = '';
-      if (nodeUri.endsWith('_error_lower')) {
-        error_suffix = '_error_lower';
-      } else if (nodeUri.endsWith('_error_upper')) {
-        error_suffix = '_error_upper';
-      }
-      const mainNodeUri = removeSuffix(nodeUri, error_suffix);
-
-      if (foundedPlot && !foundedPlot?.error_bands) {
-        // Init error_bands
-        foundedPlot.error_bands = [];
-      }
-
-      if (!foundedPlot?.error_y) {
-        // Init error_y
-        foundedPlot.error_y = {
-          type: 'data',
-          symmetric: true,
-          array: yValue,
-        };
-      }
-
-      if (foundedPlot?.error_bands?.length) {
-        // We are not in symectric case when there is more than one selected error band
-        foundedPlot.error_y.symmetric = false;
-      }
-
-      if (
-        error_suffix === '_error_lower' &&
-        foundedPlot?.error_bands.find(
-          (error_band) =>
-            error_band.path === normalizeIndices(mainNodeUri) + '_error_upper',
-        ) &&
-        foundedPlot?.error_y?.type === 'data'
-      ) {
-        // Set to arrayminus when lower & other error_band
-        foundedPlot.error_y.arrayminus = yValue;
-      } else if (
-        error_suffix === '_error_upper' &&
-        foundedPlot?.error_bands.find(
-          (error_band) =>
-            error_band.path === normalizeIndices(mainNodeUri) + '_error_lower',
-        ) &&
-        foundedPlot?.error_y?.type === 'data'
-      ) {
-        // Set lower as arrayminus when select upper & having lower
-        foundedPlot.error_y.arrayminus = foundedPlot.error_y.array;
-        foundedPlot.error_y.array = yValue;
-      }
-
-      foundedPlot.error_bands = foundedPlot.error_bands.filter(
-        (errors) => errors.path !== normalizeIndices(nodeUri),
-      );
-      // Update error_bands by adding the new selected one
-      foundedPlot.error_bands.push({
-        path: normalizeIndices(nodeUri),
-        yData: yData,
-      });
-
-      // const currentPlot = Array.isArray(dataPlot.plot) ? dataPlot.plot : [];
-      return foundedPlot;
-    };
-
-    const removeErrorBands = useCallback(() => {
-      const selectedDataPlot = active.dataPlot.find(
-        (dataPlot) => dataPlot.i === data.i,
-      );
-      for (const plot of selectedDataPlot.plot) {
-        active.checkedNodeURI = active.checkedNodeURI.filter(
-          (checkedNode) =>
-            !plot?.error_bands
-              ?.map((err) => err.path)
-              ?.includes(checkedNode.uri),
+    const updateDisplayErrorBands = useCallback(
+      (newValue: boolean) => {
+        const updatedActive = JSON.parse(
+          JSON.stringify(active),
+        ) as Configuration;
+        const selectedDataPlot = updatedActive.dataPlot.find(
+          (dataPlot) => dataPlot.i === data.i,
         );
-        delete plot?.error_bands;
-        delete plot?.error_y;
-      }
-      updatedConfiguration(active);
-    }, [active]);
+        selectedDataPlot.displayErrorBand = newValue;
+        updatedConfiguration(updatedActive);
+      },
+      [active],
+    );
 
-    const handleErrorBands = useCallback(
-      async (displayErrorBand: boolean) => {
-        let havingUpper,
-          havingLower = false;
-        if (!displayErrorBand) {
-          return;
-        }
-
+    const removeErrorBands = useCallback(
+      (active: Configuration) => {
         const selectedDataPlot = active.dataPlot.find(
           (dataPlot) => dataPlot.i === data.i,
         );
         for (const plot of selectedDataPlot.plot) {
-          try {
-            // Get error bands
-            const upperResponse = await fetchFieldValue(
-              normalizeIndices(plot.nodeUri) + '_error_upper',
-            );
-            // const upperResponse = await fetchDataPlot(normalizeIndices(plot.nodeUri) + "_error_upper");
-            havingUpper = true;
-            const defaultUpperYValue = getVectorData(
-              data.coordinates,
-              upperResponse.value,
-            );
-            await formatErrorBands(
-              plot,
-              defaultUpperYValue,
-              upperResponse.value,
-              plot.nodeUri + '_error_upper',
-            );
-
-            const lowerResponse = await fetchFieldValue(
-              normalizeIndices(plot.nodeUri) + '_error_lower',
-            );
-            havingLower = true;
-            const defaultLowerYValue = getVectorData(
-              data.coordinates,
-              lowerResponse.value,
-            );
-            await formatErrorBands(
-              plot,
-              defaultLowerYValue,
-              lowerResponse.value,
-              plot.nodeUri + '_error_lower',
-            );
-          } catch (error) {
-            console.error('Error handling error bands: ', error);
-
-            if (!havingUpper) {
-              // No error bands because upper doesn't exists
-              continue;
-            }
-
-            if (havingUpper) {
-              // Symmetric because lower doesn't exists
-              continue;
-            }
-          } finally {
-            if (havingUpper || havingLower) {
-              const updatedPlot = active.dataPlot
-                .find((dataPlot) => dataPlot.i === data.i)
-                .plot.find(
-                  (plotToUpdate) => plotToUpdate.nodeUri === plot.nodeUri,
-                );
-              const updatedCheckedNodeURI = JSON.parse(
-                JSON.stringify(active.checkedNodeURI),
-              ) as URITreeNodeData[];
-              if (data.isEditing) {
-                // Check error bands in tree
-                for (const error_band of updatedPlot.error_bands) {
-                  const newCheckedNode = {
-                    name: updatedPlot.labelUri,
-                    uri: normalizeIndices(error_band.path),
-                  };
-                  const exists = updatedCheckedNodeURI.some(
-                    (node) =>
-                      node.name === newCheckedNode.name &&
-                      node.uri === newCheckedNode.uri,
-                  );
-                  if (!exists) {
-                    updatedCheckedNodeURI.push(newCheckedNode);
-                  }
-                }
-              }
-              updatedConfiguration({
-                ...active,
-                checkedNodeURI: updatedCheckedNodeURI,
-              });
-            }
-          }
+          active.checkedNodeURI = active.checkedNodeURI.filter(
+            (checkedNode) =>
+              !plot?.error_bands
+                ?.map((err) => err.path)
+                ?.includes(checkedNode.uri),
+          );
+          delete plot?.error_bands;
+          delete plot?.error_y;
         }
       },
       [active],
     );
 
     useEffect(() => {
-      if (shouldDisplayErrorBands) {
-        handleErrorBands(shouldDisplayErrorBands);
-      } else {
-        removeErrorBands();
-      }
-    }, [shouldDisplayErrorBands]);
+      const updateErrorBands = async () => {
+        const updatedActive = JSON.parse(
+          JSON.stringify(active),
+        ) as Configuration;
+        if (data.displayErrorBand) {
+          // Get all error bands from selected dataPLot
+          const selectedDataPlot = updatedActive.dataPlot.find(
+            (dataPlot) => dataPlot.i === data.i,
+          );
+          for (const plot of selectedDataPlot.plot) {
+            await fetchErrorBandsInConfig(updatedActive, plot.nodeUri);
+          }
+        } else {
+          // Removes all error bands from selected dataPlot
+          removeErrorBands(updatedActive);
+        }
+        // Update config
+        updatedConfiguration(updatedActive);
+      };
+
+      // Triggerred when update "Error bands" switch
+      updateErrorBands();
+    }, [data.displayErrorBand]);
 
     return (
       <div ref={hoverRef} className={classes.containerButton}>
@@ -313,9 +164,9 @@ export const HoverButtons = React.memo(
               {!is3DView && data.isEditing && (
                 <Switch
                   label="Error bands"
-                  checked={shouldDisplayErrorBands}
+                  checked={data.displayErrorBand}
                   onChange={(event) =>
-                    setShouldDisplayErrorBands(event.currentTarget.checked)
+                    updateDisplayErrorBands(event.currentTarget.checked)
                   }
                 />
               )}

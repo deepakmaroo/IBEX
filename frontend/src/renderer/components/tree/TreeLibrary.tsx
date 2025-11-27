@@ -185,20 +185,29 @@ function NodeIcon({
         if (hasUserSelectedText()) {
           return;
         }
-        if (
-          node.label.toString().endsWith('_error_lower') ||
-          node.label.toString().endsWith('_error_upper')
-        ) {
-          getCheckedNodes(checkedNodes);
-          return;
-        }
 
         if (checked) {
-          tree.uncheckNode(node.value);
+          // Remove node & his error bands
+          const nodesToUncheck = checkedNodes.filter(
+            (checkedNode) =>
+              checkedNode.uri === node.value ||
+              checkedNode.uri === node.value + '_error_upper' ||
+              checkedNode.uri === node.value + '_error_lower',
+          );
+
+          // Uncheck node & his error bands
+          for (const nodeToUncheck of nodesToUncheck) {
+            tree.uncheckNode(nodeToUncheck.uri);
+          }
+
           checkedNodes = checkedNodes.filter(
-            (uncheckedNode) => uncheckedNode.uri !== node.value,
+            (uncheckedNode) =>
+              uncheckedNode.uri !== node.value &&
+              uncheckedNode.uri !== node.value + '_error_upper' &&
+              uncheckedNode.uri !== node.value + '_error_lower',
           );
         } else {
+          // Add node
           tree.checkNode(node.value);
           const newCheckedNode: URITreeNodeData = {
             name: uriLabel,

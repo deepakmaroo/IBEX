@@ -13,7 +13,7 @@ import {
   URIData,
   URITreeNodeData,
 } from '../types';
-import { fetchDataPlot } from './fetchData';
+import { fetchDataPlot, fetchFieldValue } from './fetchData';
 import { generateNewGridPlot } from './grid';
 import {
   getDefaultUri,
@@ -27,6 +27,7 @@ import {
 } from './matrix';
 import * as tf from '@tensorflow/tfjs';
 import { ErrorBar } from 'plotly.js';
+import { removeSuffix } from './functions';
 
 /**
  * @description Generates a new DataGridPlot with the provided coordinates, xAxis, and yAxis.
@@ -105,18 +106,6 @@ export const handleNewPlot = async (
   //* By default we take index [:]
   //* : corresponds to all indices (matrix)
   let defaultUri = nodes[0].uri; //Use normalized URI to get all matrix
-
-  if (
-    nodes[0].uri.endsWith('_error_lower') ||
-    nodes[0].uri.endsWith('_error_upper')
-  ) {
-    showNotification({
-      title: 'Unable to plot error bands',
-      message: `Requires main data to plot error bands`,
-      color: 'yellow',
-    });
-    throw new Error('Unable to plot error bands');
-  }
 
   const response: PlotDataResponse = await fetchDataPlot(defaultUri);
   defaultUri = getDefaultUri(defaultUri); //Set defaultUri [0] by default
@@ -213,57 +202,17 @@ export const handleExistingPlot = async (
   findDataPlot: DataGridPlot,
   updatedActive: Configuration,
 ): Promise<Configuration> => {
-  let dataToPlot = nodes.filter(
+  const dataToPlot = nodes.filter(
     (node) =>
       !findDataPlot.plot.some(
         (plot) =>
           normalizeIndices(plot.nodeUri) === node.uri &&
           plot.labelUri === node.name,
-      ),
+      ) &&
+      // Remove error bands to fetch only main data for each plots
+      !node.uri.endsWith('_error_upper') &&
+      !node.uri.endsWith('_error_lower'),
   );
-
-  // Add or remove error bands
-  for (const plot of findDataPlot.plot) {
-    if (!plot.error_bands) {
-      continue;
-    }
-    for (const error_band of plot.error_bands) {
-      if (
-        nodes
-          .map((node) => normalizeIndices(node.uri))
-          .includes(normalizeIndices(error_band.path))
-      ) {
-        // Triggered when we check error band => so we filter dataToPlot to load only the new selected one
-        dataToPlot = dataToPlot.filter(
-          (treeNode) =>
-            normalizeIndices(treeNode.uri) !==
-            normalizeIndices(error_band.path),
-        );
-      } else {
-        // Uncheck error_band so we update error_bands & error_y
-        plot.error_bands = plot.error_bands.filter(
-          (error) => error !== error_band,
-        );
-
-        if (plot.error_bands?.length === 0) {
-          // Delete error_y when no error bands are selected
-          delete plot.error_y;
-        } else if (plot.error_bands?.length === 1) {
-          // Set to symmetric case when only one error band checked
-          plot.error_y.symmetric = true;
-          if (plot.error_y.type === 'data') {
-            // Type is always data but we need to controle for type syntaxe
-            if (error_band.path.endsWith('_error_upper')) {
-              // Lower became alone so set to array
-              plot.error_y.array = plot.error_y.arrayminus;
-            }
-            // Remove arrayminus when deleting an error band (we come in symmetric case)
-            delete plot.error_y.arrayminus;
-          }
-        }
-      }
-    }
-  }
 
   if (dataToPlot.length === 0) {
     return updateExistingPlot(nodes, findDataPlot, updatedActive);
@@ -281,6 +230,7 @@ export const handleExistingPlot = async (
       continue;
     }
 
+    // For each dataPlot call fetchDataPlot to get data from BE
     const response = await fetchDataPlot(
       defaultUri,
       findDataPlot.downsampled_method,
@@ -482,6 +432,9 @@ export const handleExistingPlot = async (
         updatedPlot,
       ];
     }
+
+    // For each dataPlot get error bands
+    await fetchErrorBandsInConfig(updatedActive, node.uri);
   }
   return updatedActive;
 };
@@ -528,6 +481,208 @@ const updateExistingPlot = (
     findDataPlot,
   ];
   return updatedActive;
+};
+
+/**
+ * Get error bands of the provided uri and update configuration
+ * @param active
+ * @param uri
+ */
+export const fetchErrorBandsInConfig = async (
+  active: Configuration,
+  uri: string,
+) => {
+  let dataPlotWithErrBands: DataGridPlot[];
+  const data = active.dataPlot.find((d) => d.isEditing); // ? Init data pour l'utiliser
+  if (!data) {
+    // Don't get error bands when no editing dataPlot
+    return;
+  }
+
+  const selectedDataPlot = active.dataPlot.find(
+    (dataPlot) => dataPlot.i === data.i,
+  );
+  if (!selectedDataPlot.displayErrorBand) {
+    // Stop error bands when the dataPlot switch is off
+    return;
+  }
+
+  try {
+    dataPlotWithErrBands = await fetchErrorBands(active.dataPlot, data.i, uri);
+
+    if (dataPlotWithErrBands) {
+      const plot = selectedDataPlot.plot.find(
+        (p) => normalizeIndices(p.nodeUri) === normalizeIndices(uri),
+      );
+      const updatedPlot = dataPlotWithErrBands
+        .find((dataPlot) => dataPlot.i === data.i)
+        .plot.find((plotToUpdate) => plotToUpdate.nodeUri === plot.nodeUri);
+      const updatedCheckedNodeURI = active.checkedNodeURI;
+      if (data.isEditing && updatedPlot?.error_bands) {
+        // Check error bands in tree
+        for (const error_band of updatedPlot.error_bands) {
+          const newCheckedNode = {
+            name: updatedPlot.labelUri,
+            uri: normalizeIndices(error_band.path),
+          };
+          const exists = updatedCheckedNodeURI.some(
+            (node) =>
+              node.name === newCheckedNode.name &&
+              node.uri === newCheckedNode.uri,
+          );
+          if (!exists) {
+            updatedCheckedNodeURI.push(newCheckedNode);
+          }
+        }
+      }
+
+      // Return updated config
+      return {
+        ...active,
+        checkedNodeURI: updatedCheckedNodeURI,
+      };
+    }
+  } catch (error) {
+    console.error('Error in fetchErrorBandsInConfig: ', error);
+  }
+};
+
+/**
+ * Get & return error bands of provided uri & dataPlot id
+ * @param dataPlot
+ * @param dataPlotId
+ * @param uri
+ */
+export const fetchErrorBands = async (
+  dataPlot: DataGridPlot[],
+  dataPlotId: string,
+  uri: string,
+) => {
+  const data = dataPlot.find((d) => d.i === dataPlotId); // ? Init data pour l'utiliser
+
+  const selectedDataPlot = dataPlot.find((dataPlot) => dataPlot.i === data.i);
+
+  if (!selectedDataPlot.displayErrorBand) {
+    // Stop error bands when the dataPlot switch is off
+    return;
+  }
+
+  const plot = selectedDataPlot.plot.find(
+    (p) => normalizeIndices(p.nodeUri) === normalizeIndices(uri),
+  );
+  if (!plot) {
+    // No matching data: return dataPlot with no updates
+    return dataPlot;
+  }
+
+  try {
+    // Get error bands
+    const upperResponse = await fetchFieldValue(
+      normalizeIndices(plot.nodeUri) + '_error_upper',
+    );
+    const defaultUpperYValue = getVectorData(
+      data.coordinates,
+      upperResponse.value,
+    );
+    await formatErrorBands(
+      plot,
+      defaultUpperYValue,
+      upperResponse.value,
+      plot.nodeUri + '_error_upper',
+    );
+
+    const lowerResponse = await fetchFieldValue(
+      normalizeIndices(plot.nodeUri) + '_error_lower',
+    );
+    const defaultLowerYValue = getVectorData(
+      data.coordinates,
+      lowerResponse.value,
+    );
+    await formatErrorBands(
+      plot,
+      defaultLowerYValue,
+      lowerResponse.value,
+      plot.nodeUri + '_error_lower',
+    );
+
+    // Return dataPlot list with the plot which includes error bands
+    return dataPlot;
+  } catch (error) {
+    console.error('Error handling error bands: ', error);
+  }
+};
+
+const formatErrorBands = (
+  foundedPlot: DataPlotly,
+  yValue: number[],
+  yData: AxisData,
+  nodeUri: string,
+) => {
+  if (!(nodeUri.endsWith('_error_lower') || nodeUri.endsWith('_error_upper'))) {
+    return;
+  }
+
+  // Change the plot format to show error bands
+  let error_suffix = '';
+  if (nodeUri.endsWith('_error_lower')) {
+    error_suffix = '_error_lower';
+  } else if (nodeUri.endsWith('_error_upper')) {
+    error_suffix = '_error_upper';
+  }
+  const mainNodeUri = removeSuffix(nodeUri, error_suffix);
+
+  if (foundedPlot && !foundedPlot?.error_bands) {
+    // Init error_bands
+    foundedPlot.error_bands = [];
+  }
+
+  if (!foundedPlot?.error_y) {
+    // Init error_y
+    foundedPlot.error_y = {
+      type: 'data',
+      symmetric: true,
+      array: yValue,
+    };
+  }
+
+  if (foundedPlot?.error_bands?.length) {
+    // We are not in symectric case when there is more than one selected error band
+    foundedPlot.error_y.symmetric = false;
+  }
+
+  if (
+    error_suffix === '_error_lower' &&
+    foundedPlot?.error_bands.find(
+      (error_band) =>
+        error_band.path === normalizeIndices(mainNodeUri) + '_error_upper',
+    ) &&
+    foundedPlot?.error_y?.type === 'data'
+  ) {
+    // Set to arrayminus when lower & other error_band
+    foundedPlot.error_y.arrayminus = yValue;
+  } else if (
+    error_suffix === '_error_upper' &&
+    foundedPlot?.error_bands.find(
+      (error_band) =>
+        error_band.path === normalizeIndices(mainNodeUri) + '_error_lower',
+    ) &&
+    foundedPlot?.error_y?.type === 'data'
+  ) {
+    // Set lower as arrayminus when select upper & having lower
+    foundedPlot.error_y.arrayminus = foundedPlot.error_y.array;
+    foundedPlot.error_y.array = yValue;
+  }
+
+  foundedPlot.error_bands = foundedPlot.error_bands.filter(
+    (errors) => errors.path !== normalizeIndices(nodeUri),
+  );
+  // Update error_bands by adding the new selected one
+  foundedPlot.error_bands.push({
+    path: normalizeIndices(nodeUri),
+    yData: yData,
+  });
+
+  return foundedPlot;
 };
 
 /**
@@ -728,6 +883,23 @@ export async function plotNodeUriLoaded(
       }),
     );
 
+    if (updatedDataGridPlot?.length) {
+      // Get error bands for each plots of each dataPlots when loading a config
+      for (const dataPlot of updatedDataGridPlot) {
+        if (!dataPlot.displayErrorBand) {
+          // Don't get error bands when displayErrorBand is switch off (info from config)
+          continue;
+        }
+        for (const plot of dataPlot.plot) {
+          await fetchErrorBands(
+            updatedDataGridPlot, // dataPlot list is updated directly from fetchErrorBands to include error bands
+            dataPlot.i,
+            plot.nodeUri,
+          );
+        }
+      }
+    }
+
     if (errorHasOccurred) {
       showNotification({
         title: 'Plot',
@@ -735,6 +907,7 @@ export async function plotNodeUriLoaded(
         color: 'red',
       });
     }
+    // Return dataPlot list with error bands
     return updatedDataGridPlot;
   } catch (error) {
     console.error('Error in plotNodeUriLoaded:', error);
