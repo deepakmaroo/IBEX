@@ -279,7 +279,7 @@ export const GridLayoutPlot = ({
   }, [downsamplingMethod]);
 
   useLayoutEffect(() => {
-    setIs3DView(data.coordinates.length >= 3);
+    setIs3DView(data.coordinates.length >= 2);
   }, []);
 
   /**

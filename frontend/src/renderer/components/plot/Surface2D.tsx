@@ -1,5 +1,6 @@
 import Plot from 'react-plotly.js';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import * as tf from '@tensorflow/tfjs';
 import { Layout } from 'plotly.js';
 import {
   Axis,
@@ -218,8 +219,10 @@ export const Surface2D = ({
       // Get matrix [[]] needed for z in 3D
       let zData: AxisData | number | string =
         itemDataGrid.plot[parseInt(plotIndex)].yData;
-      const dimensions = itemDataGrid.plot[parseInt(plotIndex)].dimensions;
-      for (let index = 0; index < dimensions; index++) {
+
+      const tensor = tf.tensor(zData);
+      const depthToGoThrough = tensor.shape.length - 2; // shape length - 2 because z need a vector of depth 2 ([][])
+      for (let index = 0; index < depthToGoThrough; index++) {
         if (Array.isArray(zData)) {
           zData =
             zData[
