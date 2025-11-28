@@ -29,7 +29,7 @@ export type PlotDataResponse = {
 };
 
 export type FieldValueResponse = {
-  value: number | number[];
+  value: AxisData;
 };
 
 export type DownsamplingMethodsResponse = {

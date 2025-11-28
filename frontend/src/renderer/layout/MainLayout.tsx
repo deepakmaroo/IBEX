@@ -99,6 +99,7 @@ export function MainLayout() {
       (dataGrid: DataGridPlot): DataGridPlotToSave => ({
         title: dataGrid.title,
         isTitleOverwritten: dataGrid.isTitleOverwritten,
+        displayErrorBand: dataGrid.displayErrorBand,
         xAxisData: dataGrid.xAxisData,
         yAxisData: dataGrid.yAxisData,
         y2AxisData: dataGrid?.y2AxisData,

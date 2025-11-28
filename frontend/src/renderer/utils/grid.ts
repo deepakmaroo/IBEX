@@ -33,6 +33,7 @@ export const generateNewGrid = (
   return {
     title: '',
     isTitleOverwritten: false,
+    displayErrorBand: true,
     i: generateUuid(),
     isEditing: true,
     static: true,

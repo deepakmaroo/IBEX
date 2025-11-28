@@ -12,6 +12,7 @@
     {
       "title": "Ip, B0",
       "isTitleOverwritten": false,
+      "displayErrorBand": true,
       "xAxisData": {
         "name": "time",
         "unit": "s",
@@ -53,6 +54,7 @@
     {
       "title": "Energy content",
       "isTitleOverwritten": false,
+      "displayErrorBand": true,
       "xAxisData": {
         "name": "time",
         "unit": "s",
@@ -95,6 +97,7 @@
     {
       "title": "psi",
       "isTitleOverwritten": false,
+      "displayErrorBand": true,
       "xAxisData": {
         "name": "dim1",
         "unit": "mixed",
@@ -142,6 +145,7 @@
     {
       "title": "q_URI-0 / magnetic_shear_URI-0",
       "isTitleOverwritten": false,
+      "displayErrorBand": true,
       "xAxisData": {
         "name": "psi",
         "unit": "Wb",
@@ -184,6 +188,7 @@
     {
       "title": "Current density profiles",
       "isTitleOverwritten": false,
+      "displayErrorBand": true,
       "xAxisData": {
         "name": "rho_tor_norm",
         "unit": "-",
