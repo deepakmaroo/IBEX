@@ -1,6 +1,14 @@
 import classes from './HoverButtons.module.css';
-import React from 'react';
-import { Group, Tooltip, ActionIcon, Select, Text, Tabs } from '@mantine/core';
+import React, { useCallback, useEffect } from 'react';
+import {
+  Group,
+  Tooltip,
+  ActionIcon,
+  Select,
+  Text,
+  Tabs,
+  Switch,
+} from '@mantine/core';
 import {
   IconBrandDatabricks,
   IconCheck,
@@ -8,12 +16,15 @@ import {
   IconTrash,
 } from '@tabler/icons-react';
 import { useHover } from '@mantine/hooks';
-import { DataGridPlot } from '../../types';
+import { Configuration, DataGridPlot } from '../../types';
+import { fetchErrorBandsInConfig } from '../../utils';
+import { useIbexStore } from '../../stores';
 
 interface HoverButtonsProps {
   data: DataGridPlot;
   downsamplingMethod: string;
   downsamplingList: string[];
+  shouldDisplayMetadata: boolean;
   setDownsamplingMethod: React.Dispatch<React.SetStateAction<string>>;
   handleEditGrid: (id: string) => void;
   handleInspectMetadata: (id: string) => void;
@@ -29,6 +40,7 @@ export const HoverButtons = React.memo(
     data,
     downsamplingMethod,
     downsamplingList,
+    shouldDisplayMetadata,
     setDownsamplingMethod,
     handleEditGrid,
     handleInspectMetadata,
@@ -38,6 +50,7 @@ export const HoverButtons = React.memo(
     active3DTab,
     setActive3DTab,
   }: HoverButtonsProps) => {
+    const { active, updatedConfiguration } = useIbexStore();
     const { hovered, ref: hoverRef } = useHover();
 
     const heatmapLogo = (
@@ -55,6 +68,64 @@ export const HoverButtons = React.memo(
         <rect x="34" y="34" width="15" height="15" fill="#440154" />
       </svg>
     );
+
+    const updateDisplayErrorBands = useCallback(
+      (newValue: boolean) => {
+        const updatedActive = JSON.parse(
+          JSON.stringify(active),
+        ) as Configuration;
+        const selectedDataPlot = updatedActive.dataPlot.find(
+          (dataPlot) => dataPlot.i === data.i,
+        );
+        selectedDataPlot.displayErrorBand = newValue;
+        updatedConfiguration(updatedActive);
+      },
+      [active],
+    );
+
+    const removeErrorBands = useCallback(
+      (active: Configuration) => {
+        const selectedDataPlot = active.dataPlot.find(
+          (dataPlot) => dataPlot.i === data.i,
+        );
+        for (const plot of selectedDataPlot.plot) {
+          active.checkedNodeURI = active.checkedNodeURI.filter(
+            (checkedNode) =>
+              !plot?.error_bands
+                ?.map((err) => err.path)
+                ?.includes(checkedNode.uri),
+          );
+          delete plot?.error_bands;
+          delete plot?.error_y;
+        }
+      },
+      [active],
+    );
+
+    useEffect(() => {
+      const updateErrorBands = async () => {
+        const updatedActive = JSON.parse(
+          JSON.stringify(active),
+        ) as Configuration;
+        if (data.displayErrorBand) {
+          // Get all error bands from selected dataPLot
+          const selectedDataPlot = updatedActive.dataPlot.find(
+            (dataPlot) => dataPlot.i === data.i,
+          );
+          for (const plot of selectedDataPlot.plot) {
+            await fetchErrorBandsInConfig(updatedActive, plot.nodeUri);
+          }
+        } else {
+          // Removes all error bands from selected dataPlot
+          removeErrorBands(updatedActive);
+        }
+        // Update config
+        updatedConfiguration(updatedActive);
+      };
+
+      // Triggerred when update "Error bands" switch
+      updateErrorBands();
+    }, [data.displayErrorBand]);
 
     return (
       <div ref={hoverRef} className={classes.containerButton}>
@@ -78,7 +149,7 @@ export const HoverButtons = React.memo(
 
           {hovered || data.isEditing ? (
             <Group pos="absolute" right={'1rem'} top={5}>
-              {data.coordinates.length && (
+              {data.coordinates.length && !shouldDisplayMetadata && (
                 <Tooltip label="Select your downsampling method">
                   <Select
                     value={downsamplingMethod || 'None'}
@@ -92,7 +163,17 @@ export const HoverButtons = React.memo(
                 </Tooltip>
               )}
 
-              {data.coordinates.length >= 3 && (
+              {!is3DView && data.isEditing && !shouldDisplayMetadata && (
+                <Switch
+                  label="Error bands"
+                  checked={data.displayErrorBand}
+                  onChange={(event) =>
+                    updateDisplayErrorBands(event.currentTarget.checked)
+                  }
+                />
+              )}
+
+              {data.coordinates.length >= 3 && !shouldDisplayMetadata && (
                 <Tooltip label="Toggle 1D/Heatmap view">
                   <ActionIcon
                     variant="filled"
@@ -105,7 +186,7 @@ export const HoverButtons = React.memo(
                 </Tooltip>
               )}
 
-              {data.coordinates.length && (
+              {data.coordinates.length && !shouldDisplayMetadata && (
                 <Tooltip label="Inspect metadatas information">
                   <ActionIcon
                     variant="filled"

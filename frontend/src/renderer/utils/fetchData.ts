@@ -34,6 +34,16 @@ const getConfig = async () => {
  */
 const handleError = (error: unknown, context: string, code?: number) => {
   if (error instanceof Error) {
+    if (
+      code === 404 &&
+      error.toString().includes('has no attribute') &&
+      (error.toString().includes('_error_upper') ||
+        error.toString().includes('_error_lower'))
+    ) {
+      // Prevent from showing notification when no error band founded (error 404)
+      throw error;
+    }
+
     // Notify the user in case of an error including an error message if it is not a 500 error.
     showNotification({
       title: !code ? 'Unable to contact the server' : `Error ${code}`,
@@ -43,7 +53,7 @@ const handleError = (error: unknown, context: string, code?: number) => {
     });
   }
   console.error(`Error in ${context}:`, error);
-  throw error; // Optional: You could return null/undefined instead
+  throw error;
 };
 
 async function fetchWithTimeout(
@@ -183,7 +193,7 @@ export const fetchDataPlot = async (
     const targetStringList = response.data.path.split('/');
     response.data.name =
       targetStringList.length >= 2
-        ? `${targetStringList.at(-2)}/${response.data.name}`
+        ? `${targetStringList.at(-2)}`
         : response.data.name;
   }
 
