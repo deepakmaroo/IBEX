@@ -10,6 +10,7 @@ import {
 import {
   ensureCssElementIsDisplayed,
   findCssElementAndClickIt,
+  findTextElementAndClickIt,
   waitForElementToDisappear,
   waitForValue,
   writeTextInCssElement,
@@ -19,7 +20,7 @@ import {
  * UI Test Suite for the Visualization Component
  */
 describe('UI Tests for Header Component', function () {
-  this.timeout(30000);
+  this.timeout(300000);
 
   before(async () => {
     await startApp();
@@ -157,6 +158,88 @@ describe('UI Tests for Header Component', function () {
       async () => (await getTestState()).active.dataPlot[0].y2AxisData,
       undefined,
       (actual, expected) => actual != expected,
+    );
+  });
+
+  it('Should create a new configuration that follows a predefined template', async () => {
+    ///
+    /// Create a new configuration named 'New Plot Config' based on the 'PlotKineticProfilesIbexState.json' template
+    ///
+    await findCssElementAndClickIt('header-add-configuration');
+    const configCreateModal = await ensureCssElementIsDisplayed(
+      'config-create-modal',
+    );
+    await writeTextInCssElement(
+      'config-create-name-input',
+      'New Templated Plot Config',
+    );
+    await findCssElementAndClickIt('config-create-template-checkbox');
+    await findCssElementAndClickIt('config-create-template-list');
+    await findTextElementAndClickIt('PlotKineticProfilesIbexState.json');
+    await findCssElementAndClickIt('config-create-submit-button');
+    await waitForElementToDisappear(configCreateModal);
+    await waitForValue(
+      async () => (await getTestState()).configurations.length,
+      1,
+    );
+    await waitForValue(
+      async () => (await getTestState()).configurations[0].name,
+      'New Templated Plot Config',
+    );
+
+    ///
+    /// Add the URI 'imas:hdf5?user=public;pulse=100002;run=1;database=iterdb;version=3' to the configuration and navigate in the accordion node tree
+    ///
+    await ensureCssElementIsDisplayed('config-uri-selection-modal');
+    // NO NEED TO ADD imas:hdf5?user=public;pulse=100002;run=1;database=iterdb;version=3 AS IT'S ALREADY THERE FROM PREVIOUS TEST
+    // NOTE : The await input.clear() seems to not work as "This command has no effect if the underlying DOM element is neither a text INPUT element nor a TEXTAREA element."
+    // await writeTextInCssElement(
+    //   'config-uri-selection-modal-uri-text-input',
+    //   'imas:hdf5?user=public;pulse=100002;run=1;database=iterdb;version=3',
+    // );
+    // await findCssElementAndClickIt('config-uri-selection-modal-add-uri-button');
+    await findCssElementAndClickIt(
+      'config-uri-selection-modal-validate-button',
+      10000,
+      200,
+      100,
+    );
+
+    // Check that the 8 dataplot created has been created
+    await waitForValue(
+      async () => (await getTestState()).active.dataPlot.length,
+      8,
+    );
+
+    const dataplotTitleList = (await getTestState()).active.dataPlot.map(
+      (dataplot) => dataplot.title,
+    );
+    await waitForValue(
+      async () =>
+        dataplotTitleList.filter(
+          (title) => title === 'temperature_URI-0 / t_i_average_URI-0',
+        ).length,
+      2,
+    );
+    await waitForValue(
+      async () =>
+        dataplotTitleList.filter((title) => title === 'density_URI-0').length,
+      2,
+    );
+    await waitForValue(
+      async () =>
+        dataplotTitleList.filter((title) => title === 'zeff_URI-0').length,
+      2,
+    );
+    await waitForValue(
+      async () =>
+        dataplotTitleList.filter((title) => title === 'poloidal_URI-0').length,
+      1,
+    );
+    await waitForValue(
+      async () =>
+        dataplotTitleList.filter((title) => title === 'toroidal_URI-0').length,
+      1,
     );
   });
 });

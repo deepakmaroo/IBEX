@@ -222,6 +222,7 @@ export function ConfigCreateModal({
             data-testid="config-create-name-input"
           />
           <Checkbox
+            data-testid="config-create-template-checkbox"
             label="Use template"
             radius="sm"
             size="sm"
@@ -231,6 +232,7 @@ export function ConfigCreateModal({
           {useTemplate && (
             <Stack gap={0}>
               <Select
+                data-testid="config-create-template-list"
                 label="Template from folders"
                 placeholder={`${!templateFilesData?.length ? 'No selected folder in preferences' : 'Select template from folders'}`}
                 value={folderTemplate}

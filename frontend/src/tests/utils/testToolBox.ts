@@ -20,6 +20,26 @@ export async function getCssElementFromDataTestId(
   return cssElement;
 }
 
+export async function getCssElementByText(
+  text: string,
+  timeout = 10000,
+): Promise<WebElement> {
+  const driver = getDriver();
+
+  const element = await driver.wait(
+    until.elementLocated(
+      By.xpath(`//*[contains(normalize-space(text()), "${text}")]`),
+    ),
+    timeout,
+  );
+
+  if (!element) {
+    throw new Error(`No element found with text "${text}", abort`);
+  }
+
+  return element;
+}
+
 export async function waitForElementToDisappear(
   element: WebElement,
   timeout = 10000,
@@ -81,6 +101,26 @@ export async function findCssElementAndClickIt(
   await button.click();
 }
 
+export async function findTextElementAndClickIt(
+  text: string,
+  timeout = 10000,
+  retries = 5,
+  delayMs = 300,
+) {
+  const button = await getCssElementByText(text, timeout);
+
+  for (let i = 0; i < retries; i++) {
+    await new Promise((res) => setTimeout(res, delayMs));
+
+    if (await button.isEnabled()) {
+      break;
+    }
+  }
+
+  expect(await button.isEnabled()).to.be.true;
+  await button.click();
+}
+
 export async function waitForValue<T>(
   callback: () => Promise<T>,
   expected: T,
@@ -98,5 +138,10 @@ export async function waitForValue<T>(
 
   // final assertion
   const final = await callback();
-  expect(comparator(final, expected)).to.be.true;
+  expect(
+    comparator(final, expected),
+    `waitForValue failed:
+    Expected: ${JSON.stringify(expected)}
+    Received: ${JSON.stringify(final)}`,
+  ).to.be.true;
 }

@@ -18,6 +18,10 @@ export const API = {
     readFile: STUB_BACKEND_FUNCTIONS
       ? // Stub function for E2E tests
         async (filePath: string): Promise<string> => {
+          if (filePath.includes('PlotKineticProfilesIbexState.json')) {
+            // We are in the template E2E test, so we return the real template content
+            return ipcRenderer.invoke('readFile', filePath);
+          }
           stubDataStorage.lastReaddenFilePath = filePath;
           return stubDataStorage.lastWrittenFileContent;
         }
