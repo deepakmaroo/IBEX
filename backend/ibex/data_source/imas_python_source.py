@@ -26,13 +26,14 @@ from ibex.data_source.exception import (
     NotAnArrayException,
     EntryNotFoundException,
     NoDataException,
+    InvalidParametersException,
 )
 from ibex.core.utils import downsample_data, transform_2D_data, find_first_value_in_list
 
 
 class IMASPythonSource(DataSourceInterface):
     """
-    Default data source for IBEX
+    Default data_source for IBEX
     """
 
     def __init__(self):
@@ -50,8 +51,9 @@ class IMASPythonSource(DataSourceInterface):
         """
         try:
             return imas.DBEntry(uri, mode="r")
-        except ImasCoreBackendException as e:
-            raise EntryNotFoundException(e) from None
+        except ImasCoreBackendException:
+            message = f"Could not open pulsefile: {uri}"
+            raise EntryNotFoundException(message) from None
 
     def _get_ids_from_entry(self, entry: imas.DBEntry, ids: str, occurrence: int = 0):
         """
@@ -454,6 +456,9 @@ class IMASPythonSource(DataSourceInterface):
         :param occurrence: ids occurrence number
         :return: dictionary {'shape': [<dim1>,<dim2>, ...], 'min':<min_value>, 'max':<max_value>, 'mean':<mean>, 'standard_deviation':<s_d>}
         """
+        if "[:]" in node_path:
+            message = "Array summary supports only single leaf node, not tensorized AoS (path with ':')"
+            raise InvalidParametersException(message)
 
         ids_path = IDSPath(node_path)
         path_elements = list(ids_path.items())
@@ -501,7 +506,7 @@ class IMASPythonSource(DataSourceInterface):
         try:
             dbs = DBMaster.get_database_files(user, database, version, backends)
         except FileNotFoundError as e:
-            raise e  # TODO: return HTTP error to client
+            raise InvalidParametersException(e)
 
         # Part of IDStools dblist script
         for dbname, dvs in dbs:

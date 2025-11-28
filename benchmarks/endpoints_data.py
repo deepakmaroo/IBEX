@@ -3,9 +3,10 @@ from ibex.main import app
 from . import uris, uris_label
 
 
-class TimeIdsInfoEndpointsSuite:
+class TimeDataEndpointsSuite:
     param_names = uris_label
     params = uris
+    timeout = 240
 
     def setup(self, *args):
         self.test_client = TestClient(app)
@@ -19,8 +20,9 @@ class TimeIdsInfoEndpointsSuite:
         uris,
         [
             "#core_profiles:0/time",  # LEAF
-            "#core_profiles:0/profiles_1d[0]/t_i_average"  # LEAF IN AoS,
+            "#core_profiles:0/profiles_1d[0]/t_i_average",  # LEAF IN AoS,
             "#core_profiles:0/profiles_1d[0:100]/t_i_average",  # LEAF IN AoS SLICE,
+            "#equilibrium:0/time_slice[:]/profiles_2d[:]/psi",  # 2D QUANTITY,
         ],
     )
 
@@ -33,7 +35,8 @@ class TimeIdsInfoEndpointsSuite:
         uris,
         [
             "#core_profiles:0/time",  # LEAF
-            "#core_profiles:0/profiles_1d[0]/t_i_average"  # LEAF IN AoS,
+            "#core_profiles:0/profiles_1d[0]/t_i_average",  # LEAF IN AoS,
             "#core_profiles:0/profiles_1d[0:100]/t_i_average",  # LEAF IN AoS SLICE,
+            "#equilibrium:0/time_slice[:]/profiles_2d[:]/psi",  # 2D QUANTITY,
         ],
     )

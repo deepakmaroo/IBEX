@@ -229,7 +229,12 @@ function NodeIcon({
     );
 
     const getFolderIcon = () => (
-      <Group gap={2} style={{ userSelect: 'text' }} wrap="nowrap">
+      <Group
+        gap={2}
+        style={{ userSelect: 'text' }}
+        wrap="nowrap"
+        data-testid={`folder-${node.value}`}
+      >
         {expanded ? (
           <IconFolderOpen {...commonProps} className={classes.forcedWidth} />
         ) : (
@@ -253,6 +258,7 @@ function NodeIcon({
           }}
           wrap="nowrap"
           onClick={handleCheckNode}
+          data-testid={`checkbox-${node.value}`}
         >
           <Checkbox
             checked={checked}

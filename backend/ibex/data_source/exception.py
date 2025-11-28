@@ -33,7 +33,7 @@ class EntryNotFoundException(IbexException):
         super().__init__(message, code)
 
 
-class ResultTooLong(IbexException):
+class ResultTooLongException(IbexException):
     "Raised when generated result is too long be useful"
 
     def __init__(self, message: str, code: int = 460):
@@ -77,5 +77,13 @@ class CannotGenerateUriException(IbexException):
     "Raised when IBEX cannot convert path to URI"
 
     def __init__(self, message: str, code: int = 465):
+        self.code = code
+        super().__init__(message, code)
+
+
+class InvalidParametersException(IbexException):
+    "Raised when parameters passed to endpoint are invalid. Multiple use-cases"
+
+    def __init__(self, message: str, code: int = 466):
         self.code = code
         super().__init__(message, code)

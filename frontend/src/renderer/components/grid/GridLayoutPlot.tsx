@@ -51,6 +51,7 @@ export const GridLayoutPlot = ({
   const [metadataTabsValue, setMetadataTabsValue] = useState<string>(
     data.plot[0]?.path || '',
   );
+  const [shouldDisplayMetadata, setShouldDisplayMetadata] = useState(false);
 
   /**
    * updateslider coordinate value
@@ -165,6 +166,18 @@ export const GridLayoutPlot = ({
 
     updatedConfiguration(updatedActive);
   };
+
+  useEffect(() => {
+    // Rule to force to show metadata when y data is of type string
+    let isYDataString = false;
+    for (const plot of data.plot) {
+      const typeOfYData = typeof plot.y[0];
+      if (typeOfYData === 'string') {
+        isYDataString = true;
+      }
+    }
+    setShouldDisplayMetadata(isYDataString);
+  }, [data.plot.length]);
 
   /**
    * Handle resize the grid
@@ -374,6 +387,7 @@ export const GridLayoutPlot = ({
           data={data}
           downsamplingMethod={downsamplingMethod}
           downsamplingList={downsamplingList}
+          shouldDisplayMetadata={shouldDisplayMetadata}
           setDownsamplingMethod={setDownsamplingMethod}
           handleEditGrid={handleEditGrid}
           handleInspectMetadata={handleInspectMetadata}
@@ -390,7 +404,7 @@ export const GridLayoutPlot = ({
         <Center h={heightGrid}>
           <Text>Current configuration has no data. Please, select URIs.</Text>
         </Center>
-      ) : !data.coordinates.length ? (
+      ) : !data.coordinates.length || shouldDisplayMetadata ? (
         // Show metadata when not enough coordinates to plot
         <Container pt="40px" p="1rem">
           <Tabs
