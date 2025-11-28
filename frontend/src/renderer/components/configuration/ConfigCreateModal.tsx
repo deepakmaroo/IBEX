@@ -121,38 +121,46 @@ export function ConfigCreateModal({
     [],
   );
 
+  /**
+   * Get template folders from preferences & the default one to populate the list of template paths
+   */
   const loadIbexConfig = useCallback(async () => {
+    // Get template folders
     const userPreferences = await readIbexConfig();
-    // Get default template folders
-    if (userPreferences?.templateFolders?.length > 0) {
-      // Get templateFolders to show paths & update config file
-      const tempTemplateFilesData: SelectTemplateData = [];
-      for (const templateFolder of userPreferences.templateFolders) {
-        const listFiles: { name: string; isDirectory: boolean }[] =
-          await window.api.fs.listFiles(templateFolder);
-        const listFilesNames = listFiles
-          .filter((file) => !file.isDirectory && file.name.endsWith('.json'))
-          .map((file) => file.name);
+    const tempTemplateFilesData: SelectTemplateData = [];
+    const defaultTemplatePath = await window.api.fs.getDefaultTemplatesPath();
+    const templateFolderList = Array.from(
+      new Set([
+        defaultTemplatePath,
+        ...(userPreferences?.templateFolders ?? []),
+      ]),
+    );
 
-        const itemList: SelectDataItems = [];
-        for (const fileName of listFilesNames) {
-          itemList.push({
-            value: templateFolder + '/' + fileName,
-            label: fileName,
-          });
-        }
-        if (itemList.length) {
-          tempTemplateFilesData.push({
-            group: templateFolder,
-            items: itemList,
-          });
-        }
+    for (const templateFolder of templateFolderList) {
+      // Get each template paths in folders
+      const listFiles: { name: string; isDirectory: boolean }[] =
+        await window.api.fs.listFiles(templateFolder);
+      const listFilesNames = listFiles
+        .filter((file) => !file.isDirectory && file.name.endsWith('.json'))
+        .map((file) => file.name);
+
+      const itemList: SelectDataItems = [];
+      for (const fileName of listFilesNames) {
+        itemList.push({
+          value: templateFolder + '/' + fileName,
+          label: fileName,
+        });
       }
-      // Used for discerning in Select labels from values
-      setTemplateFilesData(tempTemplateFilesData);
-    } else {
-      setTemplateFilesData([]);
+      if (itemList.length) {
+        tempTemplateFilesData.push({
+          group: templateFolder,
+          items: itemList,
+        });
+      }
     }
+
+    // Populate the list
+    setTemplateFilesData(tempTemplateFilesData);
   }, []);
 
   const resetFields = () => {

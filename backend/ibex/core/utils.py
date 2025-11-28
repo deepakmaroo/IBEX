@@ -149,12 +149,17 @@ def downsample_data(data: List, target_size: int, method: str | None = None, x=N
     :param data: data to be down-sampled
     :param target_size: desired size of data (in elements per dimension)
     :param method: Downsampling method. One of DownsamplingMethods (Enum) possible values or None
-    :param x: x-axis values to be downsampled
+    :param x: x-axis values (coordinate) to be downsampled
+
+    Returns tuple (downsapled_coordinate, downsampled_data)
     """
     method = DownsamplingMethods(method)
 
     if method is None or method == DownsamplingMethods.NONE:
         return x, data
+
+    # ====== handle multidimensional list of data (list of np.ndarrays) ======
+    # this section just goes deeper and deeper into multidimensional list of data and calls downsample_data() recursively
 
     if isinstance(data, List):
         downsampled_x = []
@@ -174,6 +179,8 @@ def downsample_data(data: List, target_size: int, method: str | None = None, x=N
 
     if not isinstance(data, IDSNumericArray) and not isinstance(data, np.ndarray):
         raise TypeError("Cannot downsample not-IDSNumericArray data")
+
+    # ====== handle actual data (np.ndarray or IDSNumericArray) ======
 
     if DownsamplingMethods(method).value["name"] == "Step average":
         # Step average performs computation on data instead of just choosing indices, so we have to handle it separately

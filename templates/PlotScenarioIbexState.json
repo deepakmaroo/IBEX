@@ -1,0 +1,242 @@
+{
+  "name": "PlotScenario2",
+  "dataURI": [
+    {
+      "uri": "imas:mdsplus?user=public;pulse=100001;run=1;database=ITER;version=3",
+      "name": "URI-0",
+      "uriColor": "#78ea28",
+      "isSelected": true
+    }
+  ],
+  "dataPlot": [
+    {
+      "title": "Ip, B0",
+      "isTitleOverwritten": false,
+      "displayErrorBand": true,
+      "xAxisData": {
+        "name": "time",
+        "unit": "s",
+        "path": "#summary/time"
+      },
+      "yAxisData": {
+        "name": "value",
+        "unit": "A"
+      },
+      "y2AxisData": {
+        "name": "value",
+        "unit": "T"
+      },
+      "i": "6ba30031-8727-4723-81b7-8523a0449db9",
+      "x": 0,
+      "y": 0,
+      "w": 6,
+      "h": 12,
+      "coordinates": [
+        {
+          "path": "#summary/time",
+          "target": "#summary/global_quantities/ip/value[0]",
+          "valueIndex": 0
+        }
+      ],
+      "plot": [
+        {
+          "nodeUri": "URI-0#summary:0/global_quantities/ip/value",
+          "yaxis": "",
+          "labelUri": "URI-0"
+        },
+        {
+          "nodeUri": "URI-0#summary:0/global_quantities/b0/value",
+          "yaxis": "y2",
+          "labelUri": "URI-0"
+        }
+      ]
+    },
+    {
+      "title": "Energy content",
+      "isTitleOverwritten": false,
+      "displayErrorBand": true,
+      "xAxisData": {
+        "name": "time",
+        "unit": "s",
+        "path": "#summary/time"
+      },
+      "yAxisData": {
+        "name": "value",
+        "unit": "J"
+      },
+      "i": "3d3b59c6-6d64-4a59-9e9e-b10ab0e2efa9",
+      "x": 0,
+      "y": 12,
+      "w": 6,
+      "h": 12,
+      "coordinates": [
+        {
+          "path": "#summary/time",
+          "target": "#summary/global_quantities/energy_total/value[0]",
+          "valueIndex": 0
+        }
+      ],
+      "plot": [
+        {
+          "nodeUri": "URI-0#summary:0/global_quantities/energy_total/value",
+          "yaxis": "",
+          "labelUri": "URI-0"
+        },
+        {
+          "nodeUri": "URI-0#summary:0/global_quantities/energy_diamagnetic/value",
+          "yaxis": "",
+          "labelUri": "URI-0"
+        },
+        {
+          "nodeUri": "URI-0#summary:0/global_quantities/energy_thermal/value",
+          "yaxis": "",
+          "labelUri": "URI-0"
+        }
+      ]
+    },
+    {
+      "title": "psi",
+      "isTitleOverwritten": false,
+      "displayErrorBand": true,
+      "xAxisData": {
+        "name": "dim1",
+        "unit": "mixed",
+        "path": "#equilibrium/time_slice[7]/profiles_2d[0]/grid/dim1"
+      },
+      "yAxisData": {
+        "name": "psi",
+        "unit": "Wb"
+      },
+      "i": "bf727ea8-b569-4157-a699-be3609293850",
+      "x": 6,
+      "y": 0,
+      "w": 6,
+      "h": 12,
+      "coordinates": [
+        {
+          "path": "#equilibrium/time_slice[7]/profiles_2d[0]/grid/dim1",
+          "target": "#equilibrium/time_slice[7]/profiles_2d[0]/psi[0]",
+          "valueIndex": 0
+        },
+        {
+          "path": "#equilibrium/time_slice[7]/profiles_2d[0]/grid/dim2",
+          "target": "#equilibrium/time_slice[7]/profiles_2d[0]/psi[0]",
+          "valueIndex": 0
+        },
+        {
+          "path": "",
+          "target": "#equilibrium/time_slice[7]/profiles_2d[0]",
+          "valueIndex": 0
+        },
+        {
+          "path": "#equilibrium/time",
+          "target": "#equilibrium/time_slice[7]",
+          "valueIndex": 7
+        }
+      ],
+      "plot": [
+        {
+          "nodeUri": "URI-0#equilibrium:0/time_slice[7]/profiles_2d[0]/psi",
+          "yaxis": "",
+          "labelUri": "URI-0"
+        }
+      ]
+    },
+    {
+      "title": "q_URI-0 / magnetic_shear_URI-0",
+      "isTitleOverwritten": false,
+      "displayErrorBand": true,
+      "xAxisData": {
+        "name": "psi",
+        "unit": "Wb",
+        "path": "#equilibrium/time_slice[100]/profiles_1d/psi"
+      },
+      "yAxisData": {
+        "name": "q",
+        "unit": "-"
+      },
+      "i": "2ca2a875-f5e7-4ba4-869f-6f61853fd70c",
+      "x": 6,
+      "y": 12,
+      "w": 6,
+      "h": 12,
+      "coordinates": [
+        {
+          "path": "#equilibrium/time_slice[100]/profiles_1d/psi",
+          "target": "#equilibrium/time_slice[100]/profiles_1d/q[0]",
+          "valueIndex": 0
+        },
+        {
+          "path": "#equilibrium/time",
+          "target": "#equilibrium/time_slice[100]",
+          "valueIndex": 100
+        }
+      ],
+      "plot": [
+        {
+          "nodeUri": "URI-0#equilibrium:0/time_slice[100]/profiles_1d/q",
+          "yaxis": "",
+          "labelUri": "URI-0"
+        },
+        {
+          "nodeUri": "URI-0#equilibrium:0/time_slice[100]/profiles_1d/magnetic_shear",
+          "yaxis": "",
+          "labelUri": "URI-0"
+        }
+      ]
+    },
+    {
+      "title": "Current density profiles",
+      "isTitleOverwritten": false,
+      "displayErrorBand": true,
+      "xAxisData": {
+        "name": "rho_tor_norm",
+        "unit": "-",
+        "path": "#core_profiles/profiles_1d[94]/grid/rho_tor_norm"
+      },
+      "yAxisData": {
+        "name": "j_total",
+        "unit": "A/m^2"
+      },
+      "i": "1ab0ed24-d6ea-44d2-aa8d-dca9f2ab2690",
+      "x": 6,
+      "y": 24,
+      "w": 6,
+      "h": 12,
+      "coordinates": [
+        {
+          "path": "#core_profiles/profiles_1d[94]/grid/rho_tor_norm",
+          "target": "#core_profiles/profiles_1d[94]/j_total[0]",
+          "valueIndex": 0
+        },
+        {
+          "path": "#core_profiles/time",
+          "target": "#core_profiles/profiles_1d[94]",
+          "valueIndex": 94
+        }
+      ],
+      "plot": [
+        {
+          "nodeUri": "URI-0#core_profiles:0/profiles_1d[94]/j_total",
+          "yaxis": "",
+          "labelUri": "URI-0"
+        },
+        {
+          "nodeUri": "URI-0#core_profiles:0/profiles_1d[94]/j_non_inductive",
+          "yaxis": "",
+          "labelUri": "URI-0"
+        },
+        {
+          "nodeUri": "URI-0#core_profiles:0/profiles_1d[94]/j_bootstrap",
+          "yaxis": "",
+          "labelUri": "URI-0"
+        },
+        {
+          "nodeUri": "URI-0#core_profiles:0/profiles_1d[94]/j_ohmic",
+          "yaxis": "",
+          "labelUri": "URI-0"
+        }
+      ]
+    }
+  ]
+}

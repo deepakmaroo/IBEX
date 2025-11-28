@@ -2,26 +2,66 @@
 // https://www.electronjs.org/docs/latest/tutorial/process-model#preload-scripts
 
 import { ConfigurationState } from './renderer/types';
-
 import { contextBridge, ipcRenderer } from 'electron';
+
+const STUB_BACKEND_FUNCTIONS = process.env.E2E_TEST;
+
+export const stubDataStorage: {
+  lastReaddenFilePath?: string;
+  lastWrittenFilePath?: string;
+  lastWrittenFileContent?: string;
+  trashStringValue?: string;
+} = {};
+
 export const API = {
   fs: {
-    readFile: (filePath: string) => ipcRenderer.invoke('readFile', filePath),
+    readFile: STUB_BACKEND_FUNCTIONS
+      ? // Stub function for E2E tests
+        async (filePath: string): Promise<string> => {
+          stubDataStorage.lastReaddenFilePath = filePath;
+          return stubDataStorage.lastWrittenFileContent;
+        }
+      : // Real function
+        (filePath: string) => ipcRenderer.invoke('readFile', filePath),
 
-    writeFile: (path: string, data: string) =>
-      ipcRenderer.invoke('writeFile', path, data),
+    writeFile: STUB_BACKEND_FUNCTIONS
+      ? // Stub function for E2E tests
+        async (path: string, data: string) => {
+          stubDataStorage.lastWrittenFileContent = data;
+          stubDataStorage.lastWrittenFilePath = path;
+        }
+      : // Real function
+        (path: string, data: string) =>
+          ipcRenderer.invoke('writeFile', path, data),
 
-    getFilePathDialog: (type: string) =>
-      ipcRenderer.invoke('getFilePathDialog', type),
+    getFilePathDialog: STUB_BACKEND_FUNCTIONS
+      ? // Stub function for E2E tests
+        async (type: string) => {
+          stubDataStorage.trashStringValue = type;
+          return '/stub/path/for/configuration.json';
+        }
+      : // Real function
+        (type: string) => ipcRenderer.invoke('getFilePathDialog', type),
 
     selectFolder: () => ipcRenderer.invoke('selectFolder'),
 
     listFiles: (dirPath: string) => ipcRenderer.invoke('listFiles', dirPath),
 
-    saveAsDialog: (name: string, ext: string) =>
-      ipcRenderer.invoke('saveAsDialog', name, ext),
+    saveAsDialog: STUB_BACKEND_FUNCTIONS
+      ? // Stub function for E2E tests
+        async (name: string, ext: string) => {
+          stubDataStorage.trashStringValue = name;
+          stubDataStorage.trashStringValue = ext;
+          return '/stub/path/for/configuration.json';
+        }
+      : // Real function
+        (name: string, ext: string) =>
+          ipcRenderer.invoke('saveAsDialog', name, ext),
 
     getHomePath: async () => await ipcRenderer.invoke('getHomePath'),
+
+    getDefaultTemplatesPath: async () =>
+      await ipcRenderer.invoke('getDefaultTemplatesPath'),
   },
 
   preferences: {
@@ -62,3 +102,4 @@ export const API = {
 // Use `contextBridge` APIs to expose the API to the renderer process
 
 contextBridge.exposeInMainWorld('api', API);
+contextBridge.exposeInMainWorld('stubDataStorage', stubDataStorage);

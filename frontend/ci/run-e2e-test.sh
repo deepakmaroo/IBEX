@@ -1,9 +1,6 @@
 #!/bin/bash
 
-# Bamboo CI script for checking syntax by building
-
-# Debuggging:
-set -e -o pipefail
+# Script to run E2E tests
 
 # Root directory of the frontend
 FRONTEND_ROOT_DIR=$(realpath "$(dirname "$(realpath "${BASH_SOURCE[0]}")")/..")

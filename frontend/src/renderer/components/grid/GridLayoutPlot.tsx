@@ -51,6 +51,7 @@ export const GridLayoutPlot = ({
   const [metadataTabsValue, setMetadataTabsValue] = useState<string>(
     data.plot[0]?.path || '',
   );
+  const [shouldDisplayMetadata, setShouldDisplayMetadata] = useState(false);
 
   /**
    * updateslider coordinate value
@@ -165,6 +166,18 @@ export const GridLayoutPlot = ({
 
     updatedConfiguration(updatedActive);
   };
+
+  useEffect(() => {
+    // Rule to force to show metadata when y data is of type string
+    let isYDataString = false;
+    for (const plot of data.plot) {
+      const typeOfYData = typeof plot.y[0];
+      if (typeOfYData === 'string') {
+        isYDataString = true;
+      }
+    }
+    setShouldDisplayMetadata(isYDataString);
+  }, [data.plot.length]);
 
   /**
    * Handle resize the grid
@@ -290,50 +303,62 @@ export const GridLayoutPlot = ({
   /**
    * Handle edit grid event
    */
-  const handleEditGrid = useCallback((id: string) => {
-    const { active, updatedConfiguration } = useIbexStore.getState();
+  const handleEditGrid = useCallback(
+    (id: string) => {
+      const { active, updatedConfiguration } = useIbexStore.getState();
 
-    const findPlot = active.dataPlot.find((item) => item.i === id);
-    if (!findPlot) return;
+      const findPlot = active.dataPlot.find((item) => item.i === id);
+      if (!findPlot) return;
 
-    const updatedDataPlot = active.dataPlot.map((item) =>
-      item.i === id
-        ? { ...item, isEditing: !item.isEditing, static: !item.isEditing }
-        : { ...item, isEditing: false, static: false },
-    );
+      const updatedDataPlot = active.dataPlot.map((item) =>
+        item.i === id
+          ? { ...item, isEditing: !item.isEditing, static: !item.isEditing }
+          : { ...item, isEditing: false, static: false },
+      );
 
-    // Check from tree selected plots (all plots used in dataGrid)
-    const checkedNodeURI: URITreeNodeData[] = !findPlot.isEditing
-      ? findPlot.plot.map((item) => ({
-          uri: normalizeIndices(item.nodeUri),
-          name: item.labelUri,
-        }))
-      : [];
+      // Check from tree selected plots (all plots used in dataGrid)
+      const checkedNodeURI: URITreeNodeData[] = !findPlot.isEditing
+        ? findPlot.plot.map((item) => ({
+            uri: normalizeIndices(item.nodeUri),
+            name: item.labelUri,
+          }))
+        : [];
 
-    if (checkedNodeURI.length) {
-      for (const plot of findPlot.plot) {
-        if (!plot.error_bands) {
-          continue;
-        }
-        for (const error_band of plot.error_bands) {
-          // Check from tree selected error bands to plot
-          checkedNodeURI.push({
-            name: plot.labelUri,
-            uri: normalizeIndices(error_band.path),
-          });
+      if (checkedNodeURI.length) {
+        for (const plot of findPlot.plot) {
+          if (!plot.error_bands) {
+            continue;
+          }
+
+          for (const error_band of plot.error_bands) {
+            const newCheckedNode = {
+              name: plot.labelUri,
+              uri: normalizeIndices(error_band.path),
+            };
+            const exists = checkedNodeURI.some(
+              (node) =>
+                node.name === newCheckedNode.name &&
+                node.uri === newCheckedNode.uri,
+            );
+            if (!exists) {
+              // Check from tree selected error bands to plot
+              checkedNodeURI.push(newCheckedNode);
+            }
+          }
         }
       }
-    }
 
-    const updatedActive: Configuration = {
-      ...active,
-      saved: false,
-      dataPlot: updatedDataPlot,
-      checkedNodeURI: checkedNodeURI,
-    };
+      const updatedActive: Configuration = {
+        ...active,
+        saved: false,
+        dataPlot: updatedDataPlot,
+        checkedNodeURI: checkedNodeURI,
+      };
 
-    updatedConfiguration(updatedActive);
-  }, []);
+      updatedConfiguration(updatedActive);
+    },
+    [active],
+  );
 
   /**
    * Inspect metadata of plot
@@ -362,6 +387,7 @@ export const GridLayoutPlot = ({
           data={data}
           downsamplingMethod={downsamplingMethod}
           downsamplingList={downsamplingList}
+          shouldDisplayMetadata={shouldDisplayMetadata}
           setDownsamplingMethod={setDownsamplingMethod}
           handleEditGrid={handleEditGrid}
           handleInspectMetadata={handleInspectMetadata}
@@ -378,7 +404,7 @@ export const GridLayoutPlot = ({
         <Center h={heightGrid}>
           <Text>Current configuration has no data. Please, select URIs.</Text>
         </Center>
-      ) : !data.coordinates.length ? (
+      ) : !data.coordinates.length || shouldDisplayMetadata ? (
         // Show metadata when not enough coordinates to plot
         <Container pt="40px" p="1rem">
           <Tabs

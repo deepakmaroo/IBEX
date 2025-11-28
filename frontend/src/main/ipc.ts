@@ -146,5 +146,11 @@ export default {
     ipcMain.handle('getHomePath', () => {
       return app.getPath('home');
     });
+
+    ipcMain.handle('getDefaultTemplatesPath', () => {
+      const appPath = app.getAppPath();
+      const templatesPath = path.join(appPath, '..', 'templates');
+      return templatesPath;
+    });
   },
 };
