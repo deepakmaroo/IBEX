@@ -171,9 +171,11 @@ export const GridLayoutPlot = ({
     // Rule to force to show metadata when y data is of type string
     let isYDataString = false;
     for (const plot of data.plot) {
-      const typeOfYData = typeof plot.y[0];
-      if (typeOfYData === 'string') {
-        isYDataString = true;
+      if (plot.y) {
+        const typeOfYData = typeof plot.y[0];
+        if (typeOfYData === 'string') {
+          isYDataString = true;
+        }
       }
     }
     setShouldDisplayMetadata(isYDataString);
