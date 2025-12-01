@@ -292,13 +292,15 @@ export const GridLayoutPlot = ({
     const newDataPlot: DataGridPlot[] = active.dataPlot.filter(
       (item: DataGridPlot) => item.i !== id,
     );
+    const checkedNodeURI = newDataPlot.find((dataPlot) => dataPlot.isEditing)
+      ? active.checkedNodeURI
+      : [];
     const newActive: Configuration = {
       ...active,
       saved: false,
       dataPlot: newDataPlot,
-      checkedNodeURI: [],
+      checkedNodeURI: checkedNodeURI,
     };
-
     updatedConfiguration(newActive);
   }, []);
 
