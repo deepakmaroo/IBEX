@@ -18,5 +18,6 @@ Description of features
    features/metadatas
    features/save_configuration
    features/configuration_file
+   features/default_configuration
    features/delete_configuration
    features/preferences_menu

@@ -11,7 +11,7 @@ In each URI, at the first level, you will find the IDS of each occurrence. For e
 In this tree, there are different types of data (Structure, Table, Float, Integer, Text), and each type will have its corresponding icon, except for Structures and Tables, which will share the same icon.
 
 .. image:: images/tree.png
-   :alt: Tree uri
+   :alt: Tree uri to select data to plot
    :align: center
 
 You can collapse the tree view to allow other components to use the full available space.

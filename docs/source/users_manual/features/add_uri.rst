@@ -9,7 +9,7 @@ On the left, you will find the different hierarchies of the selected URIs.
 On the right, there will be a draggable canvas displaying the various charts that have been generated based on the data from the hierarchy.
 
 .. image:: images/empty_configuration.png
-   :alt: Configuration is empty
+   :alt: Empty configuration
    :align: center
 
 To add a URI, you can click the “Select URIs” button at the top right of the window, It will open a modal with fields to fill in.

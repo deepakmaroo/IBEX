@@ -7,7 +7,7 @@ Metadatas
 You can view all the data related to this chart.
 
 .. image:: images/metadatas.png
-   :alt: Metadatas
+   :alt: Metadatas window
    :align: center
 
 The metadata includes all available information related to the various nodes displayed on the chart.
@@ -43,7 +43,7 @@ The following data fields are available:
 The coordinates contain all data that can be used on the X-axis or with sliders. 
 
 .. image:: images/coordinates.png
-   :alt: Coordinates
+   :alt: Coordinates list
    :align: center
 
 These include:
