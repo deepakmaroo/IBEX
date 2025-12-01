@@ -1,8 +1,8 @@
-.. _`Preferences menu`:
+.. _`Default configuration`:
 
-===================
+=======================
 Default configuration
-===================
+=======================
 
 It is possible to set a default configuration. This allows the desired configuration to open automatically when the application starts up.
 

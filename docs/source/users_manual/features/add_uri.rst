@@ -31,3 +31,11 @@ Write or copy-paste an existing URI and add it to the table below. A request wil
 **From configurable inputs (Legacy parameters):**
 
 This component can receive several parameters (User, Backend, Database, Version). You must provide at least two parameters (User and Version).
+
+UDA Support
+-------------
+
+.. important::
+
+   The default mode for the UDA backend in IMAS Core is to download the complete IDS. With the IBEX architecture, it means that the full IDS is downloaded by UDA (by default) with every call from the frontend to the backend.
+   Users need to provide the UDA backend option cache_mode=none or fetch=1 (depending on the desired behaviour) in the UDA URI provided to IBEX to allow for a performant visualization.
