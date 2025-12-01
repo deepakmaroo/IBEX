@@ -376,6 +376,7 @@ export const GridLayoutPlot = ({
         ...active,
         gridLayoutSelected: id,
         dataPlot: updatedDataPlot,
+        checkedNodeURI: [],
       };
       updatedConfiguration(updatedActive);
     },
