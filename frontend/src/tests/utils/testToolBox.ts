@@ -1,4 +1,4 @@
-import { By, until, WebElement } from 'selenium-webdriver';
+import { By, Key, until, WebElement } from 'selenium-webdriver';
 import { expect } from 'chai';
 import { getDriver } from '../setup';
 
@@ -58,35 +58,58 @@ export async function waitForElementToDisappear(
 
 export async function ensureCssElementIsDisplayed(
   cssElementDataTestIdName: string,
-  timeout = 10000,
+  retries = 100,
+  delayMs = 100,
 ): Promise<WebElement> {
-  console.info('Finding and clicking element : ', cssElementDataTestIdName);
-  const configCreateModal = await getCssElementFromDataTestId(
+  console.info('Ensuring element is displayed : ', cssElementDataTestIdName);
+  const cssElement = await getCssElementFromDataTestId(
     cssElementDataTestIdName,
-    timeout,
+    retries * delayMs,
   );
-  expect(await configCreateModal.isDisplayed()).to.be.true;
-  return configCreateModal;
+
+  for (let i = 0; i < retries; i++) {
+    await new Promise((res) => setTimeout(res, delayMs));
+
+    if (await cssElement.isDisplayed()) {
+      break;
+    }
+  }
+
+  expect(
+    await cssElement.isDisplayed(),
+    `Element "${cssElementDataTestIdName}" was found but isDisplayed() returned false.`,
+  ).to.be.true;
+  return cssElement;
 }
 
 export async function writeTextInCssElement(
   cssElementDataTestIdName: string,
   text: string,
+  clearText: boolean = false,
 ) {
   const input = await getCssElementFromDataTestId(cssElementDataTestIdName);
-  await input.clear();
+  if (clearText) {
+    if (
+      (await input.getAttribute('value')) != undefined &&
+      (await input.getAttribute('value')).length > 0
+    ) {
+      while ((await input.getAttribute('value')).length > 0) {
+        await input.sendKeys(Key.BACK_SPACE);
+      }
+    }
+  }
   await input.sendKeys(text);
 }
 
 export async function findCssElementAndClickIt(
   cssElementDataTestIdName: string,
-  timeout = 10000,
-  retries = 5,
-  delayMs = 300,
+  retries = 100,
+  delayMs = 100,
 ) {
   const button = await ensureCssElementIsDisplayed(
     cssElementDataTestIdName,
-    timeout,
+    retries,
+    delayMs,
   );
 
   for (let i = 0; i < retries; i++) {
@@ -97,16 +120,19 @@ export async function findCssElementAndClickIt(
     }
   }
 
-  expect(await button.isEnabled()).to.be.true;
+  expect(
+    await button.isEnabled(),
+    `Button "${cssElementDataTestIdName}" was found but isEnabled() returned false.`,
+  ).to.be.true;
   await button.click();
 }
 
 export async function findTextElementAndClickIt(
   text: string,
-  timeout = 10000,
   retries = 5,
   delayMs = 300,
 ) {
+  const timeout = retries * delayMs;
   const button = await getCssElementByText(text, timeout);
 
   for (let i = 0; i < retries; i++) {

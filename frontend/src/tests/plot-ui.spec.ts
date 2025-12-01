@@ -15,6 +15,7 @@ import {
   waitForValue,
   writeTextInCssElement,
 } from './utils';
+import { expect } from 'chai';
 
 /**
  * UI Test Suite for the Visualization Component
@@ -82,35 +83,31 @@ describe('UI Tests for Header Component', function () {
     await findCssElementAndClickIt('config-uri-selection-modal-add-uri-button');
     await findCssElementAndClickIt(
       'config-uri-selection-modal-validate-button',
-      30000,
       100,
       300,
     );
     await ensureCssElementIsDisplayed(
       'uriAccordion-imas:hdf5?user=public;pulse=100002;run=1;database=iterdb;version=3',
-      10000,
+      200,
+      100,
     );
     await findCssElementAndClickIt(
       'uriAccordion-imas:hdf5?user=public;pulse=100002;run=1;database=iterdb;version=3',
-      10000,
       200,
       100,
     );
     await findCssElementAndClickIt(
       'folder-imas:hdf5?user=public;pulse=100002;run=1;database=iterdb;version=3#core_profiles:0/',
-      10000,
       200,
       100,
     );
     await findCssElementAndClickIt(
       'folder-imas:hdf5?user=public;pulse=100002;run=1;database=iterdb;version=3#core_profiles:0/profiles_1d[:]/',
-      10000,
       200,
       100,
     );
     await findCssElementAndClickIt(
       'folder-imas:hdf5?user=public;pulse=100002;run=1;database=iterdb;version=3#core_profiles:0/profiles_1d[:]/ion[:]/',
-      10000,
       200,
       100,
     );
@@ -190,7 +187,9 @@ describe('UI Tests for Header Component', function () {
     ///
     /// Add the URI 'imas:hdf5?user=public;pulse=100002;run=1;database=iterdb;version=3' to the configuration and navigate in the accordion node tree
     ///
-    await ensureCssElementIsDisplayed('config-uri-selection-modal');
+    const uriModal = await ensureCssElementIsDisplayed(
+      'config-uri-selection-modal',
+    );
     // NO NEED TO ADD imas:hdf5?user=public;pulse=100002;run=1;database=iterdb;version=3 AS IT'S ALREADY THERE FROM PREVIOUS TEST
     // NOTE : The await input.clear() seems to not work as "This command has no effect if the underlying DOM element is neither a text INPUT element nor a TEXTAREA element."
     // await writeTextInCssElement(
@@ -200,7 +199,6 @@ describe('UI Tests for Header Component', function () {
     // await findCssElementAndClickIt('config-uri-selection-modal-add-uri-button');
     await findCssElementAndClickIt(
       'config-uri-selection-modal-validate-button',
-      30000,
       100,
       300,
     );
@@ -241,5 +239,122 @@ describe('UI Tests for Header Component', function () {
         dataplotTitleList.filter((title) => title === 'toroidal_URI-0').length,
       1,
     );
+    await waitForValue(
+      async () =>
+        (await getTestState()).active.dataPlot.filter(
+          (dataPlot) => dataPlot.plot.length === 0,
+        ).length,
+      0,
+      (actual, expected) => actual == expected,
+      100,
+      300,
+    );
+    await waitForElementToDisappear(uriModal, 30000);
+  });
+
+  it('Should create a new configuration containing error bands, and plot error band data', async () => {
+    ///
+    /// Create a new configuration named 'New Plot Config'
+    ///
+    await findCssElementAndClickIt('header-add-configuration');
+    const configCreateModal = await ensureCssElementIsDisplayed(
+      'config-create-modal',
+    );
+    await writeTextInCssElement('config-create-name-input', 'New Plot Config');
+    await findCssElementAndClickIt('config-create-submit-button');
+    await waitForElementToDisappear(configCreateModal);
+    await waitForValue(
+      async () => (await getTestState()).configurations.length,
+      1,
+    );
+    await waitForValue(
+      async () => (await getTestState()).configurations[0].name,
+      'New Plot Config',
+    );
+
+    ///
+    /// Add the URI 'imas:hdf5?user=imbeauf;pulse=58089;run=4;database=west;version=3' to the configuration and navigate in the accordion node tree
+    ///
+    const uriModal = await ensureCssElementIsDisplayed(
+      'config-uri-selection-modal',
+    );
+    await writeTextInCssElement(
+      'config-uri-selection-modal-uri-text-input',
+      'imas:hdf5?user=imbeauf;pulse=58089;run=4;database=west;version=3',
+      true,
+    );
+    await findCssElementAndClickIt('config-uri-selection-modal-add-uri-button');
+    await findCssElementAndClickIt(
+      'config-uri-selection-modal-validate-button',
+      100,
+      300,
+    );
+    await waitForElementToDisappear(uriModal, 30000);
+    await ensureCssElementIsDisplayed(
+      'uriAccordion-imas:hdf5?user=imbeauf;pulse=58089;run=4;database=west;version=3',
+      200,
+      100,
+    );
+    await findCssElementAndClickIt(
+      'uriAccordion-imas:hdf5?user=imbeauf;pulse=58089;run=4;database=west;version=3',
+      200,
+      100,
+    );
+    await findCssElementAndClickIt(
+      'folder-imas:hdf5?user=imbeauf;pulse=58089;run=4;database=west;version=3#ece:0/',
+      200,
+      100,
+    );
+    await findCssElementAndClickIt(
+      'folder-imas:hdf5?user=imbeauf;pulse=58089;run=4;database=west;version=3#ece:0/channel[:]/',
+      200,
+      100,
+    );
+    await findCssElementAndClickIt(
+      'folder-imas:hdf5?user=imbeauf;pulse=58089;run=4;database=west;version=3#ece:0/channel[:]/t_e/',
+      200,
+      100,
+    );
+
+    ///
+    /// The accordion node tree is now unfold, check that the plot are correctly added into the active configuration
+    ///
+    await waitForValue(
+      async () => (await getTestState()).active.dataPlot.length,
+      0,
+    );
+    // Click on temperature checkbox to start a new plot
+    await findCssElementAndClickIt(
+      'checkbox-imas:hdf5?user=imbeauf;pulse=58089;run=4;database=west;version=3#ece:0/channel[:]/t_e/data',
+    );
+    // Ensure that the plot is created
+    await waitForValue(
+      async () => (await getTestState()).active.dataPlot.length,
+      1,
+    );
+    // Ensure that there is one plot in the dataplot
+    await waitForValue(
+      async () => (await getTestState()).active.dataPlot[0].plot.length,
+      1,
+    );
+    // Ensure that error_y isn't undefined
+    await waitForValue(
+      async () => (await getTestState()).active.dataPlot[0].plot[0].error_y,
+      undefined,
+      (actual, expected) => actual != expected,
+    );
+    // Ensure that error_y isn't undefined
+    await waitForValue(
+      async () =>
+        (await getTestState()).active.dataPlot[0].plot[0].error_y.type,
+      'data',
+    );
+
+    const plotWithErrorBand = (await getTestState()).active.dataPlot[0].plot[0]
+      .error_y;
+    if (plotWithErrorBand.type === 'data') {
+      expect(plotWithErrorBand.array.length > 0);
+      expect(plotWithErrorBand.arrayminus.length > 0);
+    }
   });
 });
