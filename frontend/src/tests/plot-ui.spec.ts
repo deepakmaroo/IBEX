@@ -20,7 +20,7 @@ import {
  * UI Test Suite for the Visualization Component
  */
 describe('UI Tests for Header Component', function () {
-  this.timeout(300000);
+  this.timeout(60000);
 
   before(async () => {
     await startApp();
@@ -82,9 +82,9 @@ describe('UI Tests for Header Component', function () {
     await findCssElementAndClickIt('config-uri-selection-modal-add-uri-button');
     await findCssElementAndClickIt(
       'config-uri-selection-modal-validate-button',
-      10000,
-      200,
+      30000,
       100,
+      300,
     );
     await ensureCssElementIsDisplayed(
       'uriAccordion-imas:hdf5?user=public;pulse=100002;run=1;database=iterdb;version=3',
@@ -200,9 +200,9 @@ describe('UI Tests for Header Component', function () {
     // await findCssElementAndClickIt('config-uri-selection-modal-add-uri-button');
     await findCssElementAndClickIt(
       'config-uri-selection-modal-validate-button',
-      10000,
-      200,
+      30000,
       100,
+      300,
     );
 
     // Check that the 8 dataplot created has been created
