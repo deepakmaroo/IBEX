@@ -1009,9 +1009,7 @@ export function compareByAxeIndex(a: Coordinates, b: Coordinates) {
  * hasAtLeastOneValidValue(['ok', NaN]);     // true
  * hasAtLeastOneValidValue([[NaN, ''], ['hello', NaN]]); // true
  */
-export function hasAtLeastOneValidValue(
-  arr: (string | number)[] | (string | number)[][],
-): boolean {
+export function hasAtLeastOneValidValue(arr: AxisData): boolean {
   if (Array.isArray(arr[0])) {
     // 2D table
     return (arr as (string | number)[][]).some(
@@ -1040,9 +1038,7 @@ export function hasAtLeastOneValidValue(
  * isMatrixPlottable([NaN, NaN]);       // false
  * isMatrixPlottable(undefined);        // false
  */
-export function isMatrixPlottable(
-  value: (string | number)[] | (string | number)[][],
-): boolean {
+export function isMatrixPlottable(value: AxisData): boolean {
   if (value === undefined) return false;
 
   try {
@@ -1320,6 +1316,10 @@ async function transposeAxis(
       plotToTranspose.error_y.type === 'data'
     ) {
       for (const error_band of plotToTranspose.error_bands) {
+        if (!isMatrixPlottable(error_band.yData)) {
+          // Control to prevent from transposing error y axis when unplottable data
+          continue;
+        }
         // Transpose each error band matrix
         const transposedErrorBand = await transposeMatrix(
           error_band.yData,
