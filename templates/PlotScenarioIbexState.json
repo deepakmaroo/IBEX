@@ -1,5 +1,5 @@
 {
-  "name": "PlotScenario2",
+  "name": "PlotScenario",
   "dataURI": [
     {
       "uri": "imas:mdsplus?user=public;pulse=100001;run=1;database=ITER;version=3",
@@ -114,12 +114,12 @@
       "h": 12,
       "coordinates": [
         {
-          "path": "#equilibrium/time_slice[7]/profiles_2d[0]/grid/dim1",
+          "path": "#equilibrium/time_slice[0]/profiles_2d[0]/grid/dim1",
           "target": "#equilibrium/time_slice[7]/profiles_2d[0]/psi[0]",
           "valueIndex": 0
         },
         {
-          "path": "#equilibrium/time_slice[7]/profiles_2d[0]/grid/dim2",
+          "path": "#equilibrium/time_slice[0]/profiles_2d[0]/grid/dim2",
           "target": "#equilibrium/time_slice[7]/profiles_2d[0]/psi[0]",
           "valueIndex": 0
         },
@@ -143,8 +143,8 @@
       ]
     },
     {
-      "title": "q_URI-0 / magnetic_shear_URI-0",
-      "isTitleOverwritten": false,
+      "title": "q / magnetic_shear",
+      "isTitleOverwritten": true,
       "displayErrorBand": true,
       "xAxisData": {
         "name": "psi",
@@ -162,7 +162,7 @@
       "h": 12,
       "coordinates": [
         {
-          "path": "#equilibrium/time_slice[100]/profiles_1d/psi",
+          "path": "#equilibrium/time_slice[0]/profiles_1d/psi",
           "target": "#equilibrium/time_slice[100]/profiles_1d/q[0]",
           "valueIndex": 0
         },
@@ -205,7 +205,7 @@
       "h": 12,
       "coordinates": [
         {
-          "path": "#core_profiles/profiles_1d[94]/grid/rho_tor_norm",
+          "path": "#core_profiles/profiles_1d[0]/grid/rho_tor_norm",
           "target": "#core_profiles/profiles_1d[94]/j_total[0]",
           "valueIndex": 0
         },

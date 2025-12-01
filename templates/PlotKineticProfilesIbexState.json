@@ -10,8 +10,8 @@
   ],
   "dataPlot": [
     {
-      "title": "temperature_URI-0 / t_i_average_URI-0",
-      "isTitleOverwritten": false,
+      "title": "Temperature profiles",
+      "isTitleOverwritten": true,
       "displayErrorBand": true,
       "xAxisData": {
         "name": "rho_tor_norm",
@@ -29,7 +29,7 @@
       "h": 12,
       "coordinates": [
         {
-          "path": "#core_profiles/profiles_1d[44]/grid/rho_tor_norm",
+          "path": "#core_profiles/profiles_1d[0]/grid/rho_tor_norm",
           "target": "#core_profiles/profiles_1d[44]/electrons/temperature[0]",
           "valueIndex": 0
         },
@@ -53,7 +53,7 @@
       ]
     },
     {
-      "title": "temperature_URI-0 / t_i_average_URI-0",
+      "title": "Temperatures evolution",
       "isTitleOverwritten": false,
       "displayErrorBand": true,
       "xAxisData": {
@@ -96,7 +96,7 @@
       ]
     },
     {
-      "title": "density_URI-0",
+      "title": "Density profile",
       "isTitleOverwritten": false,
       "displayErrorBand": true,
       "xAxisData": {
@@ -134,7 +134,7 @@
       ]
     },
     {
-      "title": "density_URI-0",
+      "title": "Density evolution",
       "isTitleOverwritten": false,
       "displayErrorBand": true,
       "xAxisData": {
@@ -172,8 +172,8 @@
       ]
     },
     {
-      "title": "zeff_URI-0",
-      "isTitleOverwritten": false,
+      "title": "Zeff evolution",
+      "isTitleOverwritten": true,
       "displayErrorBand": true,
       "xAxisData": {
         "name": "time",
@@ -210,8 +210,8 @@
       ]
     },
     {
-      "title": "zeff_URI-0",
-      "isTitleOverwritten": false,
+      "title": "Zeff profile",
+      "isTitleOverwritten": true,
       "displayErrorBand": true,
       "xAxisData": {
         "name": "rho_tor_norm",
@@ -229,7 +229,7 @@
       "h": 12,
       "coordinates": [
         {
-          "path": "#core_profiles/profiles_1d[32]/grid/rho_tor_norm",
+          "path": "#core_profiles/profiles_1d[0]/grid/rho_tor_norm",
           "target": "#core_profiles/profiles_1d[32]/zeff[0]",
           "valueIndex": 0
         },
@@ -248,8 +248,8 @@
       ]
     },
     {
-      "title": "poloidal_URI-0",
-      "isTitleOverwritten": false,
+      "title": "Poloidal velocity",
+      "isTitleOverwritten": true,
       "displayErrorBand": true,
       "xAxisData": {
         "name": "rho_tor_norm",
@@ -267,7 +267,7 @@
       "h": 12,
       "coordinates": [
         {
-          "path": "#core_profiles/profiles_1d[62]/grid/rho_tor_norm",
+          "path": "#core_profiles/profiles_1d[0]/grid/rho_tor_norm",
           "target": "#core_profiles/profiles_1d[62]/ion[0]/velocity/poloidal[0]",
           "valueIndex": 0
         },
@@ -291,8 +291,8 @@
       ]
     },
     {
-      "title": "toroidal_URI-0",
-      "isTitleOverwritten": false,
+      "title": "Toroidal velocity",
+      "isTitleOverwritten": true,
       "displayErrorBand": true,
       "xAxisData": {
         "name": "rho_tor_norm",
@@ -310,7 +310,7 @@
       "h": 12,
       "coordinates": [
         {
-          "path": "#core_profiles/profiles_1d[62]/grid/rho_tor_norm",
+          "path": "#core_profiles/profiles_1d[0]/grid/rho_tor_norm",
           "target": "#core_profiles/profiles_1d[62]/ion[0]/velocity/toroidal[0]",
           "valueIndex": 0
         },
