@@ -134,16 +134,20 @@ export const VisualizationURIModal = ({
   }
 
   useEffect(() => {
-    if (active?.dataURI && !opened) {
+    if (!opened) {
       const oldUriDb = dataDbEntries.map((entry) => ({
         ...entry,
         isSelected: false,
       }));
 
-      const newUriDb: URISelectionData[] = active.dataURI.map((dataUri) => ({
-        ...dataUri,
-        isSelected: true,
-      }));
+      let newUriDb: URISelectionData[] = [];
+
+      if (active?.dataURI) {
+        newUriDb = active.dataURI.map((dataUri) => ({
+          ...dataUri,
+          isSelected: true,
+        }));
+      }
 
       for (const uri of oldUriDb) {
         properlyAddUriToUriList(newUriDb, uri);
@@ -364,13 +368,23 @@ export const VisualizationURIModal = ({
       }
     };
 
-    if (dataDbEntries.some((value) => value.uri === uriToCheck)) {
-      setter('URI already added');
-      showNotification({
-        title: 'Error',
-        message: 'URI already added',
-        color: 'red',
-      });
+    const uri: URISelectionData = dataDbEntries.find(
+      (value) => value.uri === uriToCheck,
+    );
+
+    if (uri) {
+      // The uri is already present in the list, if it is unselected, select it, otherwise send an error notification to the user
+      if (uri.isSelected) {
+        setter('URI already added');
+        showNotification({
+          title: 'Error',
+          message: 'URI already added',
+          color: 'red',
+        });
+      } else {
+        uri.isSelected = true;
+        setDataDbEntries(JSON.parse(JSON.stringify(dataDbEntries)));
+      }
       return;
     }
 
