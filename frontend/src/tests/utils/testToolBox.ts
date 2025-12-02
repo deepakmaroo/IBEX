@@ -148,6 +148,7 @@ export async function findTextElementAndClickIt(
 }
 
 export async function waitForValue<T>(
+  checkDescription: string,
   callback: () => Promise<T>,
   expected: T,
   comparator: (actual: T, expected: T) => boolean = (a, b) => a === b,
@@ -166,7 +167,7 @@ export async function waitForValue<T>(
   const final = await callback();
   expect(
     comparator(final, expected),
-    `waitForValue failed:
+    `${checkDescription} failed :
     Expected: ${JSON.stringify(expected)}
     Received: ${JSON.stringify(final)}`,
   ).to.be.true;

@@ -64,10 +64,12 @@ describe('UI Tests for Header Component', function () {
     await findCssElementAndClickIt('config-create-submit-button');
     await waitForElementToDisappear(configCreateModal);
     await waitForValue(
+      "Plot configuration length",
       async () => (await getTestState()).configurations.length,
       1,
     );
     await waitForValue(
+      "Plot configuration name",
       async () => (await getTestState()).configurations[0].name,
       'New Plot Config',
     );
@@ -116,6 +118,7 @@ describe('UI Tests for Header Component', function () {
     /// The accordion node tree is now unfold, check that the plot are correctly added into the active configuration
     ///
     await waitForValue(
+      "DataPlot configuration length",
       async () => (await getTestState()).active.dataPlot.length,
       0,
     );
@@ -125,17 +128,20 @@ describe('UI Tests for Header Component', function () {
     );
     // Check that there is one dataplot created
     await waitForValue(
+      "DataPlot configuration length",
       async () => (await getTestState()).active.dataPlot.length,
       1,
     );
     // Check that the Y plot is defined
     await waitForValue(
+      "yAxis absence",
       async () => (await getTestState()).active.dataPlot[0].yAxisData,
       undefined,
       (actual, expected) => actual != expected,
     );
     // Check that the Y2 plot is undefined
     await waitForValue(
+      "yAxis presence",
       async () => (await getTestState()).active.dataPlot[0].y2AxisData,
       undefined,
       (actual, expected) => actual == expected,
@@ -146,12 +152,14 @@ describe('UI Tests for Header Component', function () {
     );
     // Check that the Y plot is defined
     await waitForValue(
+      "yAxis presence 2",
       async () => (await getTestState()).active.dataPlot[0].yAxisData,
       undefined,
       (actual, expected) => actual != expected,
     );
     // Check that the Y2 plot is defined too
     await waitForValue(
+      "y2Axis presence",
       async () => (await getTestState()).active.dataPlot[0].y2AxisData,
       undefined,
       (actual, expected) => actual != expected,
@@ -176,10 +184,12 @@ describe('UI Tests for Header Component', function () {
     await findCssElementAndClickIt('config-create-submit-button');
     await waitForElementToDisappear(configCreateModal);
     await waitForValue(
+      "Template configuration length",
       async () => (await getTestState()).configurations.length,
       1,
     );
     await waitForValue(
+      "Template configuration name",
       async () => (await getTestState()).configurations[0].name,
       'New Templated Plot Config',
     );
@@ -190,21 +200,22 @@ describe('UI Tests for Header Component', function () {
     const uriModal = await ensureCssElementIsDisplayed(
       'config-uri-selection-modal',
     );
-    // NO NEED TO ADD imas:hdf5?user=public;pulse=100002;run=1;database=iterdb;version=3 AS IT'S ALREADY THERE FROM PREVIOUS TEST
-    // NOTE : The await input.clear() seems to not work as "This command has no effect if the underlying DOM element is neither a text INPUT element nor a TEXTAREA element."
-    // await writeTextInCssElement(
-    //   'config-uri-selection-modal-uri-text-input',
-    //   'imas:hdf5?user=public;pulse=100002;run=1;database=iterdb;version=3',
-    // );
-    // await findCssElementAndClickIt('config-uri-selection-modal-add-uri-button');
+    await writeTextInCssElement(
+      'config-uri-selection-modal-uri-text-input',
+      'imas:hdf5?user=public;pulse=100002;run=1;database=iterdb;version=3',
+      true,
+    );
+    await findCssElementAndClickIt('config-uri-selection-modal-add-uri-button');
     await findCssElementAndClickIt(
       'config-uri-selection-modal-validate-button',
       100,
       300,
     );
+    await waitForElementToDisappear(uriModal, 30000);
 
     // Check that the 8 dataplot created has been created
     await waitForValue(
+      "Dataplot length",
       async () => (await getTestState()).active.dataPlot.length,
       8,
     );
@@ -213,33 +224,59 @@ describe('UI Tests for Header Component', function () {
       (dataplot) => dataplot.title,
     );
     await waitForValue(
+      "Dataplot title temperature profiles",
       async () =>
         dataplotTitleList.filter(
-          (title) => title === 'temperature_URI-0 / t_i_average_URI-0',
+          (title) => title === 'Temperature profiles',
         ).length,
-      2,
-    );
-    await waitForValue(
-      async () =>
-        dataplotTitleList.filter((title) => title === 'density_URI-0').length,
-      2,
-    );
-    await waitForValue(
-      async () =>
-        dataplotTitleList.filter((title) => title === 'zeff_URI-0').length,
-      2,
-    );
-    await waitForValue(
-      async () =>
-        dataplotTitleList.filter((title) => title === 'poloidal_URI-0').length,
       1,
     );
     await waitForValue(
+      "Dataplot title temperatures evolution",
       async () =>
-        dataplotTitleList.filter((title) => title === 'toroidal_URI-0').length,
+        dataplotTitleList.filter((title) => title === 'Temperatures evolution').length,
       1,
     );
     await waitForValue(
+      "Dataplot title density profile",
+      async () =>
+        dataplotTitleList.filter(
+          (title) => title === 'Density profile',
+        ).length,
+      1,
+    );
+    await waitForValue(
+      "Dataplot title density evolution",
+      async () =>
+        dataplotTitleList.filter((title) => title === 'Density evolution').length,
+      1,
+    );
+    await waitForValue(
+      "Dataplot title zeff evolution",
+      async () =>
+        dataplotTitleList.filter((title) => title === 'Zeff evolution').length,
+      1,
+    );
+    await waitForValue(
+      "Dataplot title zeff profile",
+      async () =>
+        dataplotTitleList.filter((title) => title === 'Zeff profile').length,
+      1,
+    );
+    await waitForValue(
+      "Dataplot title poloidal velocity",
+      async () =>
+        dataplotTitleList.filter((title) => title === 'Poloidal velocity').length,
+      1,
+    );
+    await waitForValue(
+      "Dataplot title toroidal velocity",
+      async () =>
+        dataplotTitleList.filter((title) => title === 'Toroidal velocity').length,
+      1,
+    );
+    await waitForValue(
+      "Dataplot fullfil test",
       async () =>
         (await getTestState()).active.dataPlot.filter(
           (dataPlot) => dataPlot.plot.length === 0,
@@ -249,7 +286,6 @@ describe('UI Tests for Header Component', function () {
       100,
       300,
     );
-    await waitForElementToDisappear(uriModal, 30000);
   });
 
   it('Should create a new configuration containing error bands, and plot error band data', async () => {
@@ -264,10 +300,12 @@ describe('UI Tests for Header Component', function () {
     await findCssElementAndClickIt('config-create-submit-button');
     await waitForElementToDisappear(configCreateModal);
     await waitForValue(
+      "Error band configuration length",
       async () => (await getTestState()).configurations.length,
       1,
     );
     await waitForValue(
+      "Error band configuration name",
       async () => (await getTestState()).configurations[0].name,
       'New Plot Config',
     );
@@ -320,6 +358,7 @@ describe('UI Tests for Header Component', function () {
     /// The accordion node tree is now unfold, check that the plot are correctly added into the active configuration
     ///
     await waitForValue(
+      "Dataplot length",
       async () => (await getTestState()).active.dataPlot.length,
       0,
     );
@@ -329,22 +368,26 @@ describe('UI Tests for Header Component', function () {
     );
     // Ensure that the plot is created
     await waitForValue(
+      "Dataplot length",
       async () => (await getTestState()).active.dataPlot.length,
       1,
     );
     // Ensure that there is one plot in the dataplot
     await waitForValue(
+      "Dataplot plot length",
       async () => (await getTestState()).active.dataPlot[0].plot.length,
       1,
     );
     // Ensure that error_y isn't undefined
     await waitForValue(
+      "Dataplot plot error y presence",
       async () => (await getTestState()).active.dataPlot[0].plot[0].error_y,
       undefined,
       (actual, expected) => actual != expected,
     );
     // Ensure that error_y isn't undefined
     await waitForValue(
+      "Dataplot plot error y type",
       async () =>
         (await getTestState()).active.dataPlot[0].plot[0].error_y.type,
       'data',
@@ -353,7 +396,9 @@ describe('UI Tests for Header Component', function () {
     const plotWithErrorBand = (await getTestState()).active.dataPlot[0].plot[0]
       .error_y;
     if (plotWithErrorBand.type === 'data') {
+      console.info("Checking Dataplot plot error y array length > 0");
       expect(plotWithErrorBand.array.length > 0);
+      console.info("Checking Dataplot plot error y arrayminus length > 0");
       expect(plotWithErrorBand.arrayminus.length > 0);
     }
   });

@@ -77,10 +77,12 @@ describe('UI Tests for Header Component', function () {
     await waitForElementToDisappear(configCreateModal);
 
     await waitForValue(
+      "Add configuration length",
       async () => (await getTestState()).configurations.length,
       1,
     );
     await waitForValue(
+      "Add configuration name",
       async () => (await getTestState()).configurations[0].name,
       'My New Config',
     );
@@ -116,6 +118,7 @@ describe('UI Tests for Header Component', function () {
     await waitForElementToDisappear(confirmationModal);
 
     await waitForValue(
+      "Delete configuration length",
       async () => (await getTestState()).configurations.length,
       1,
     );
@@ -125,21 +128,25 @@ describe('UI Tests for Header Component', function () {
     await setTestState(mockConfigurationState);
     await ensureCssElementIsDisplayed('header-save-configuration');
     await waitForValue(
+      "Save configuration saved",
       async () => (await getTestState()).active.saved,
       undefined,
     );
     await findCssElementAndClickIt('header-save-configuration');
-    await waitForValue(async () => (await getTestState()).active.saved, true);
+    await waitForValue(
+      "Save configuration saved", async () => (await getTestState()).active.saved, true);
   });
 
   it('Should load the configuration from header', async () => {
     await ensureCssElementIsDisplayed('header-load-configuration');
     await waitForValue(
+      "Load configuration length",
       async () => (await getTestState()).configurations.length,
       0,
     );
     await findCssElementAndClickIt('header-load-configuration');
     await waitForValue(
+      "Load configuration length",
       async () => (await getTestState()).configurations.length,
       1,
     );
