@@ -180,14 +180,12 @@ export const VisualizationURIModal = ({
 
   useEffect(() => {
     const checkIfMissingURIs = () => {
-      console.log("Data URI ", dataURIsSelected);
       if (dataURIsSelected.length) {
         // Check if all required URIs are selected
         const missingURIs = nodeURIsRequiredByTemplate.filter(
           (uri) =>
             !dataURIsSelected.map((selected) => selected.name).includes(uri),
         );
-        console.log("Missing uri ", missingURIs);
         setIsMissingURIs(missingURIs?.length > 0 || false);
       } else {
         // No URI selected so missing if some URIs are required
@@ -385,7 +383,9 @@ export const VisualizationURIModal = ({
         });
       } else {
         uri.isSelected = true;
-        uri.name = getNextAvailableUriName(dataDbEntries.map((value) => value.name)),
+        uri.name = getNextAvailableUriName(
+          dataDbEntries.map((value) => value.name),
+        );
         setDataDbEntries(JSON.parse(JSON.stringify(dataDbEntries)));
       }
       return;

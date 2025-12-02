@@ -77,12 +77,12 @@ describe('UI Tests for Header Component', function () {
     await waitForElementToDisappear(configCreateModal);
 
     await waitForValue(
-      "Add configuration length",
+      'Add configuration length',
       async () => (await getTestState()).configurations.length,
       1,
     );
     await waitForValue(
-      "Add configuration name",
+      'Add configuration name',
       async () => (await getTestState()).configurations[0].name,
       'My New Config',
     );
@@ -118,7 +118,7 @@ describe('UI Tests for Header Component', function () {
     await waitForElementToDisappear(confirmationModal);
 
     await waitForValue(
-      "Delete configuration length",
+      'Delete configuration length',
       async () => (await getTestState()).configurations.length,
       1,
     );
@@ -128,25 +128,28 @@ describe('UI Tests for Header Component', function () {
     await setTestState(mockConfigurationState);
     await ensureCssElementIsDisplayed('header-save-configuration');
     await waitForValue(
-      "Save configuration saved",
+      'Save configuration saved',
       async () => (await getTestState()).active.saved,
       undefined,
     );
     await findCssElementAndClickIt('header-save-configuration');
     await waitForValue(
-      "Save configuration saved", async () => (await getTestState()).active.saved, true);
+      'Save configuration saved',
+      async () => (await getTestState()).active.saved,
+      true,
+    );
   });
 
   it('Should load the configuration from header', async () => {
     await ensureCssElementIsDisplayed('header-load-configuration');
     await waitForValue(
-      "Load configuration length",
+      'Load configuration length',
       async () => (await getTestState()).configurations.length,
       0,
     );
     await findCssElementAndClickIt('header-load-configuration');
     await waitForValue(
-      "Load configuration length",
+      'Load configuration length',
       async () => (await getTestState()).configurations.length,
       1,
     );

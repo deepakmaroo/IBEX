@@ -64,12 +64,12 @@ describe('UI Tests for Header Component', function () {
     await findCssElementAndClickIt('config-create-submit-button');
     await waitForElementToDisappear(configCreateModal);
     await waitForValue(
-      "Plot configuration length",
+      'Plot configuration length',
       async () => (await getTestState()).configurations.length,
       1,
     );
     await waitForValue(
-      "Plot configuration name",
+      'Plot configuration name',
       async () => (await getTestState()).configurations[0].name,
       'New Plot Config',
     );
@@ -118,7 +118,7 @@ describe('UI Tests for Header Component', function () {
     /// The accordion node tree is now unfold, check that the plot are correctly added into the active configuration
     ///
     await waitForValue(
-      "DataPlot configuration length",
+      'DataPlot configuration length',
       async () => (await getTestState()).active.dataPlot.length,
       0,
     );
@@ -128,20 +128,20 @@ describe('UI Tests for Header Component', function () {
     );
     // Check that there is one dataplot created
     await waitForValue(
-      "DataPlot configuration length",
+      'DataPlot configuration length',
       async () => (await getTestState()).active.dataPlot.length,
       1,
     );
     // Check that the Y plot is defined
     await waitForValue(
-      "yAxis absence",
+      'yAxis absence',
       async () => (await getTestState()).active.dataPlot[0].yAxisData,
       undefined,
       (actual, expected) => actual != expected,
     );
     // Check that the Y2 plot is undefined
     await waitForValue(
-      "yAxis presence",
+      'yAxis presence',
       async () => (await getTestState()).active.dataPlot[0].y2AxisData,
       undefined,
       (actual, expected) => actual == expected,
@@ -152,14 +152,14 @@ describe('UI Tests for Header Component', function () {
     );
     // Check that the Y plot is defined
     await waitForValue(
-      "yAxis presence 2",
+      'yAxis presence 2',
       async () => (await getTestState()).active.dataPlot[0].yAxisData,
       undefined,
       (actual, expected) => actual != expected,
     );
     // Check that the Y2 plot is defined too
     await waitForValue(
-      "y2Axis presence",
+      'y2Axis presence',
       async () => (await getTestState()).active.dataPlot[0].y2AxisData,
       undefined,
       (actual, expected) => actual != expected,
@@ -184,12 +184,12 @@ describe('UI Tests for Header Component', function () {
     await findCssElementAndClickIt('config-create-submit-button');
     await waitForElementToDisappear(configCreateModal);
     await waitForValue(
-      "Template configuration length",
+      'Template configuration length',
       async () => (await getTestState()).configurations.length,
       1,
     );
     await waitForValue(
-      "Template configuration name",
+      'Template configuration name',
       async () => (await getTestState()).configurations[0].name,
       'New Templated Plot Config',
     );
@@ -215,7 +215,7 @@ describe('UI Tests for Header Component', function () {
 
     // Check that the 8 dataplot created has been created
     await waitForValue(
-      "Dataplot length",
+      'Dataplot length',
       async () => (await getTestState()).active.dataPlot.length,
       8,
     );
@@ -224,59 +224,60 @@ describe('UI Tests for Header Component', function () {
       (dataplot) => dataplot.title,
     );
     await waitForValue(
-      "Dataplot title temperature profiles",
+      'Dataplot title temperature profiles',
       async () =>
-        dataplotTitleList.filter(
-          (title) => title === 'Temperature profiles',
-        ).length,
+        dataplotTitleList.filter((title) => title === 'Temperature profiles')
+          .length,
       1,
     );
     await waitForValue(
-      "Dataplot title temperatures evolution",
+      'Dataplot title temperatures evolution',
       async () =>
-        dataplotTitleList.filter((title) => title === 'Temperatures evolution').length,
+        dataplotTitleList.filter((title) => title === 'Temperatures evolution')
+          .length,
       1,
     );
     await waitForValue(
-      "Dataplot title density profile",
+      'Dataplot title density profile',
       async () =>
-        dataplotTitleList.filter(
-          (title) => title === 'Density profile',
-        ).length,
+        dataplotTitleList.filter((title) => title === 'Density profile').length,
       1,
     );
     await waitForValue(
-      "Dataplot title density evolution",
+      'Dataplot title density evolution',
       async () =>
-        dataplotTitleList.filter((title) => title === 'Density evolution').length,
+        dataplotTitleList.filter((title) => title === 'Density evolution')
+          .length,
       1,
     );
     await waitForValue(
-      "Dataplot title zeff evolution",
+      'Dataplot title zeff evolution',
       async () =>
         dataplotTitleList.filter((title) => title === 'Zeff evolution').length,
       1,
     );
     await waitForValue(
-      "Dataplot title zeff profile",
+      'Dataplot title zeff profile',
       async () =>
         dataplotTitleList.filter((title) => title === 'Zeff profile').length,
       1,
     );
     await waitForValue(
-      "Dataplot title poloidal velocity",
+      'Dataplot title poloidal velocity',
       async () =>
-        dataplotTitleList.filter((title) => title === 'Poloidal velocity').length,
+        dataplotTitleList.filter((title) => title === 'Poloidal velocity')
+          .length,
       1,
     );
     await waitForValue(
-      "Dataplot title toroidal velocity",
+      'Dataplot title toroidal velocity',
       async () =>
-        dataplotTitleList.filter((title) => title === 'Toroidal velocity').length,
+        dataplotTitleList.filter((title) => title === 'Toroidal velocity')
+          .length,
       1,
     );
     await waitForValue(
-      "Dataplot fullfil test",
+      'Dataplot fullfil test',
       async () =>
         (await getTestState()).active.dataPlot.filter(
           (dataPlot) => dataPlot.plot.length === 0,
@@ -300,12 +301,12 @@ describe('UI Tests for Header Component', function () {
     await findCssElementAndClickIt('config-create-submit-button');
     await waitForElementToDisappear(configCreateModal);
     await waitForValue(
-      "Error band configuration length",
+      'Error band configuration length',
       async () => (await getTestState()).configurations.length,
       1,
     );
     await waitForValue(
-      "Error band configuration name",
+      'Error band configuration name',
       async () => (await getTestState()).configurations[0].name,
       'New Plot Config',
     );
@@ -358,7 +359,7 @@ describe('UI Tests for Header Component', function () {
     /// The accordion node tree is now unfold, check that the plot are correctly added into the active configuration
     ///
     await waitForValue(
-      "Dataplot length",
+      'Dataplot length',
       async () => (await getTestState()).active.dataPlot.length,
       0,
     );
@@ -368,26 +369,26 @@ describe('UI Tests for Header Component', function () {
     );
     // Ensure that the plot is created
     await waitForValue(
-      "Dataplot length",
+      'Dataplot length',
       async () => (await getTestState()).active.dataPlot.length,
       1,
     );
     // Ensure that there is one plot in the dataplot
     await waitForValue(
-      "Dataplot plot length",
+      'Dataplot plot length',
       async () => (await getTestState()).active.dataPlot[0].plot.length,
       1,
     );
     // Ensure that error_y isn't undefined
     await waitForValue(
-      "Dataplot plot error y presence",
+      'Dataplot plot error y presence',
       async () => (await getTestState()).active.dataPlot[0].plot[0].error_y,
       undefined,
       (actual, expected) => actual != expected,
     );
     // Ensure that error_y isn't undefined
     await waitForValue(
-      "Dataplot plot error y type",
+      'Dataplot plot error y type',
       async () =>
         (await getTestState()).active.dataPlot[0].plot[0].error_y.type,
       'data',
@@ -396,9 +397,9 @@ describe('UI Tests for Header Component', function () {
     const plotWithErrorBand = (await getTestState()).active.dataPlot[0].plot[0]
       .error_y;
     if (plotWithErrorBand.type === 'data') {
-      console.info("Checking Dataplot plot error y array length > 0");
+      console.info('Checking Dataplot plot error y array length > 0');
       expect(plotWithErrorBand.array.length > 0);
-      console.info("Checking Dataplot plot error y arrayminus length > 0");
+      console.info('Checking Dataplot plot error y arrayminus length > 0');
       expect(plotWithErrorBand.arrayminus.length > 0);
     }
   });
