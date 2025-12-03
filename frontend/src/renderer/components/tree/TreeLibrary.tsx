@@ -175,6 +175,10 @@ function NodeIcon({
     };
 
     const handleCheckNode = useCallback(() => {
+      if (node.label.toString().endsWith('_error_lower') ||
+          node.label.toString().endsWith('_error_upper')) {
+            return;
+          }
       if (
         [
           NodeInfoTypeEnum.INTEGER,
