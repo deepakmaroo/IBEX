@@ -1,12 +1,11 @@
 """Endpoints extracting data from data source"""
 
-from typing import List
+from typing import List, Any
 
 from fastapi import APIRouter, Query  # type: ignore
 from fastapi.responses import ORJSONResponse  # type: ignore
 
 from ibex.core import ibex_service
-from ibex.endpoints.schemas.data_schemas import FieldValueResponse, PlotDataResponse
 
 router = APIRouter()
 
@@ -14,7 +13,7 @@ router = APIRouter()
 @router.get(
     "/data/field_value",
     status_code=200,
-    response_model=FieldValueResponse,
+    # response_model=FieldValueResponse, - disabled due to validation errors caused by PyDantic
     response_class=ORJSONResponse,
     responses={
         200: {"description": "Field value returned successfully"},
@@ -29,7 +28,7 @@ def field_value(
     downsampling_method: str | None = Query(None),
     downsampled_size: int = 1000,
     range: List[int] = Query(None),
-) -> dict:
+) -> Any:
     """
     IBEX endpoint. Returns value extracted from pulsefile's leaf node.
 
@@ -51,7 +50,7 @@ def field_value(
 @router.get(
     "/data/plot_data",
     status_code=200,
-    response_model=PlotDataResponse,
+    # response_model=PlotDataResponse, - disabled due to validation errors caused by PyDantic
     response_class=ORJSONResponse,
     responses={
         200: {"description": "Plot data returned successfully"},
@@ -61,7 +60,7 @@ def field_value(
     description="Returns single (or tensorized) data node value with detailed parameters used to plot the data",
 )
 @ibex_service.measure_execution_time
-def plot_data(uri: str, downsampling_method: str | None = Query(None), downsampled_size: int = 1000) -> dict:
+def plot_data(uri: str, downsampling_method: str | None = Query(None), downsampled_size: int = 1000) -> Any:
     """
     IBEX endpoint. Prepares and returns full information about data node and it's coordinates.
 
