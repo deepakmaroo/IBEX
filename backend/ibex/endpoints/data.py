@@ -6,6 +6,7 @@ from fastapi import APIRouter, Query  # type: ignore
 from fastapi.responses import ORJSONResponse  # type: ignore
 
 from ibex.core import ibex_service
+from ibex.endpoints.schemas.data_schemas import FieldValueResponse, PlotDataResponse
 
 router = APIRouter()
 
@@ -13,7 +14,7 @@ router = APIRouter()
 @router.get(
     "/data/field_value",
     status_code=200,
-    # response_model=FieldValueResponse, - disabled due to validation errors caused by PyDantic
+    response_model=FieldValueResponse,
     response_class=ORJSONResponse,
     responses={
         200: {"description": "Field value returned successfully"},
@@ -50,7 +51,7 @@ def field_value(
 @router.get(
     "/data/plot_data",
     status_code=200,
-    # response_model=PlotDataResponse, - disabled due to validation errors caused by PyDantic
+    response_model=PlotDataResponse,
     response_class=ORJSONResponse,
     responses={
         200: {"description": "Plot data returned successfully"},
