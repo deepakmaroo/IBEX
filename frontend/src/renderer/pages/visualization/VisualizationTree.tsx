@@ -115,39 +115,6 @@ export const VisualizationTree = ({
 
     try {
       /**
-       * Fetch children node infos
-       * @param uri
-       * @returns
-       */
-
-      const fetchChildrenNodeInfos = async (
-        nodeInfoschildren: NodeInfoChildrenResponse[],
-      ): Promise<CustomTreeNodeData[]> => {
-        if (nodeInfoschildren.length === 0) return;
-
-        const newChildren: CustomTreeNodeData[] = nodeInfoschildren.map(
-          (child: NodeInfoChildrenResponse) => {
-            const newValue =
-              child.type === NodeInfoTypeEnum.ARRAY
-                ? `${nodeUri}${child.name}[:]/`
-                : child.type === NodeInfoTypeEnum.STRUCTURE
-                  ? `${nodeUri}${child.name}/`
-                  : `${nodeUri}${child.name}`;
-            return {
-              label: child.name,
-              value: newValue,
-              seeErrorBars: showErrorBars,
-              type: child.type,
-              children: [] as CustomTreeNodeData[],
-              uriLabel: uriSelectedRef.current.name,
-            };
-          },
-        );
-
-        return newChildren;
-      };
-
-      /**
        * Update the children of the node
        * @param nodes
        * @param nodeValueToUpdate
@@ -164,7 +131,7 @@ export const VisualizationTree = ({
           );
           const nodeInfoschildren = nodeInfos.children || [];
 
-          return await fetchChildrenNodeInfos(nodeInfoschildren);
+          return await fetchChildrenNodeInfos(nodeInfoschildren, nodeUri);
         }
 
         return Promise.all(
@@ -185,8 +152,10 @@ export const VisualizationTree = ({
                 );
                 const nodeInfoschildren = nodeInfos.children || [];
 
-                const newChildren =
-                  await fetchChildrenNodeInfos(nodeInfoschildren);
+                const newChildren = await fetchChildrenNodeInfos(
+                  nodeInfoschildren,
+                  nodeUri,
+                );
 
                 return {
                   ...node,
@@ -372,18 +341,121 @@ export const VisualizationTree = ({
   }
 
   /**
+   * Fetch children node infos
+   * @param nodeInfoschildren
+   * @param nodeUri
+   */
+  const fetchChildrenNodeInfos = async (
+    nodeInfoschildren: NodeInfoChildrenResponse[],
+    nodeUri: string,
+  ): Promise<CustomTreeNodeData[]> => {
+    if (nodeInfoschildren.length === 0) return;
+
+    const newChildren: CustomTreeNodeData[] = nodeInfoschildren.map(
+      (child: NodeInfoChildrenResponse) => {
+        const newValue =
+          child.type === NodeInfoTypeEnum.ARRAY
+            ? `${nodeUri}${child.name}[:]/`
+            : child.type === NodeInfoTypeEnum.STRUCTURE
+              ? `${nodeUri}${child.name}/`
+              : `${nodeUri}${child.name}`;
+        return {
+          label: child.name,
+          value: newValue,
+          seeErrorBars: showErrorBars,
+          type: child.type,
+          children: [] as CustomTreeNodeData[],
+          uriLabel: uriSelectedRef.current.name,
+        };
+      },
+    );
+
+    return newChildren;
+  };
+
+  // Update recursively each node
+  async function updateTreeNode(
+    trees: CustomTreeData[],
+    seeErrorBars: boolean,
+  ): Promise<void> {
+    for (const tree of trees) {
+      if (!tree.data) continue;
+
+      // Recursive call
+      for (const node of tree.data) {
+        await updateNodeRecursive(node, seeErrorBars);
+      }
+    }
+  }
+
+  async function updateNodeRecursive(
+    node: CustomTreeNodeData,
+    seeErrorBars: boolean,
+  ): Promise<void> {
+    // Go trhough nodes recursively (deep-first)
+    if (node.children && node.children.length > 0) {
+      for (const child of node.children) {
+        await updateNodeRecursive(child, seeErrorBars);
+      }
+
+      // Update node
+      await fetchTreeNodeToUpdate(node, seeErrorBars);
+    }
+  }
+
+  const fetchTreeNodeToUpdate = async (
+    node: CustomTreeNodeData,
+    seeErrorBars: boolean,
+  ) => {
+    const oldChildren = JSON.parse(
+      JSON.stringify(node.children),
+    ) as CustomTreeNodeData[];
+    const cleanedNodeValue = node.value.endsWith('/')
+      ? node.value.slice(0, -1)
+      : node.value;
+
+    // Fetch node info with updated param seeErrorBars
+    const nodeInfos: NodeInfoResponse = await fetchNodeInfos(
+      cleanedNodeValue,
+      seeErrorBars,
+    );
+    const childrenInfos = nodeInfos.children;
+
+    // Fetch updated children to include/remove error bands
+    const newChildren = await fetchChildrenNodeInfos(childrenInfos, node.value);
+
+    // Add related childrens from config to each new children
+    for (const newChild of newChildren) {
+      const oldChild = oldChildren.find((old) => old.label === newChild.label);
+      if (oldChild) {
+        newChild.children = oldChild.children;
+        newChild.seeErrorBars = seeErrorBars;
+      }
+    }
+
+    // Update node
+    node.children = newChildren;
+    node.seeErrorBars = seeErrorBars;
+  };
+
+  /**
    * Handles see error bars
    */
   const handleSeeErrorBars = useCallback(
-    (value: boolean) => {
+    async (value: boolean) => {
+      const updatedCustomDataTree: CustomTreeData[] = JSON.parse(
+        JSON.stringify(active.customDataTree),
+      );
+
       setShowErrorBars(value);
-      if (formSearchNode.values.node) {
-        handleSearchNode(value);
-      } else {
-        fetchNodeTree(nodeSelected, value, false);
-      }
+      // Update customDataTree with see errors param
+      await updateTreeNode(updatedCustomDataTree, value);
+      updatedConfiguration({
+        ...active,
+        customDataTree: updatedCustomDataTree,
+      });
     },
-    [active, formSearchNode.values.node, uriSelected, nodeSelected],
+    [active, uriSelected, nodeSelected],
   );
 
   useEffect(() => {
