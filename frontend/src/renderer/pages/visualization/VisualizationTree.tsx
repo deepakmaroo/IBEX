@@ -448,12 +448,16 @@ export const VisualizationTree = ({
       );
 
       setShowErrorBars(value);
-      // Update customDataTree with see errors param
-      await updateTreeNode(updatedCustomDataTree, value);
-      updatedConfiguration({
-        ...active,
-        customDataTree: updatedCustomDataTree,
-      });
+      if (formSearchNode.values.node) {
+        handleSearchNode(value);
+      } else {
+        // Update customDataTree with see errors param
+        await updateTreeNode(updatedCustomDataTree, value);
+        updatedConfiguration({
+          ...active,
+          customDataTree: updatedCustomDataTree,
+        });
+      }
     },
     [active, uriSelected, nodeSelected],
   );
