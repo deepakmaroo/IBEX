@@ -13,6 +13,7 @@ import {
   IconBrandDatabricks,
   IconCheck,
   IconEdit,
+  IconPalette,
   IconTrash,
 } from '@tabler/icons-react';
 import { useHover } from '@mantine/hooks';
@@ -28,6 +29,7 @@ interface HoverButtonsProps {
   setDownsamplingMethod: React.Dispatch<React.SetStateAction<string>>;
   handleEditGrid: (id: string) => void;
   handleInspectMetadata: (id: string) => void;
+  handleCustomization: (id: string) => void;
   handleDeleteGrid: (id: string) => void;
   is3DView: boolean;
   setIs3DView: React.Dispatch<React.SetStateAction<boolean>>;
@@ -44,6 +46,7 @@ export const HoverButtons = React.memo(
     setDownsamplingMethod,
     handleEditGrid,
     handleInspectMetadata,
+    handleCustomization,
     handleDeleteGrid,
     is3DView,
     setIs3DView,
@@ -233,6 +236,24 @@ export const HoverButtons = React.memo(
                   )}
                 </ActionIcon>
               </Tooltip>
+
+              {data.coordinates.length && !shouldDisplayMetadata && (
+                // Show customization button only if plottable
+                <Tooltip label="Customize the grid">
+                  <ActionIcon
+                    variant="filled"
+                    aria-label="Metadatas"
+                    onClick={() => handleCustomization(data.i)}
+                    className={classes.actionButton}
+                    color="violet"
+                  >
+                    <IconPalette
+                      style={{ width: '70%', height: '70%' }}
+                      stroke={1.5}
+                    />
+                  </ActionIcon>
+                </Tooltip>
+              )}
 
               {handleDeleteGrid && (
                 <Tooltip label="Delete the grid">

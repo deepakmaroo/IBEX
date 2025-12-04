@@ -220,7 +220,7 @@ export const MetaDataInfos = ({
   );
 };
 
-export const VisualizationMetaData = () => {
+export const DataplotCustomization = () => {
   const HEIGHT = '79vh';
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(0);
@@ -237,9 +237,9 @@ export const VisualizationMetaData = () => {
    * Handle find grid layout corresponding to the selected tab
    */
   useEffect(() => {
-    if (active?.metadataGridLayout) {
+    if (active?.customizedGridLayout) {
       const data = active.dataPlot.find(
-        (item: DataGridPlot) => item.i === active.metadataGridLayout,
+        (item: DataGridPlot) => item.i === active.customizedGridLayout,
       );
       if (data) {
         setDataGridLayout(data);
@@ -279,7 +279,7 @@ export const VisualizationMetaData = () => {
   const handleSwitchGrid = useCallback(() => {
     const updatedActive: Configuration = {
       ...active,
-      metadataGridLayout: null,
+      customizedGridLayout: null,
     };
     updatedConfiguration(updatedActive);
   }, [active]);
