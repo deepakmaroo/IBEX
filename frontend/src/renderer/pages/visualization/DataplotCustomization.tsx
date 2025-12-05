@@ -1,222 +1,140 @@
 import {
   Accordion,
-  AccordionControl,
+  ActionIcon,
   Container,
   Grid,
   ScrollArea,
-  Spoiler,
   Stack,
-  Table,
   Tabs,
+  Text,
+  TextInput,
+  Title,
+  Tooltip,
 } from '@mantine/core';
 import { useIbexStore } from '../../stores';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { SimplePlotly, TabsListCustom } from '../../components';
 import {
-  ArraySummaryResponse,
   Configuration,
   DataGridPlot,
   DataPlotly,
-  PlotCoordinatesResponse,
   Axis,
-  PlotDataResponse,
 } from 'src/renderer/types';
-import { fetchArraySummary, fetchDataPlot } from '../../utils';
 
-interface MetaDataInfosProps {
+interface CustomizationProps {
   gridLayoutKey: string;
+  itemDataGrid: DataGridPlot;
   data: DataPlotly;
   yAxis: Axis;
   tabsSelected: string | null;
   height?: string;
 }
 
-interface RenderMetaDataCoordinatesProps {
-  coordinates: PlotCoordinatesResponse[];
-}
-
-const renderField = (label: string, value?: string | number) => (
-  <Table.Tr>
-    <Table.Td
-      fw="bold"
-      styles={{
-        td: {
-          wordBreak: 'break-all',
-        },
-      }}
-    >
-      {label}
-    </Table.Td>
-    <Table.Td>{value ? value : 'N/A'}</Table.Td>
-  </Table.Tr>
-);
-
-const renderSpoiler = (
-  label: string,
-  value?: string | number | (string | number)[],
-) => (
-  <Table.Tr>
-    <Table.Td fw="bold">{label}</Table.Td>
-    <Table.Td>
-      {value === undefined || value === null ? (
-        'N/A'
-      ) : Array.isArray(value) ? (
-        value.length === 0 ? (
-          'N/A'
-        ) : (
-          <ScrollArea h={value.length > 5 ? 150 : 'auto'}>
-            <Spoiler
-              maxHeight={value.length > 5 ? 150 : 50}
-              showLabel="Show more"
-              hideLabel="Hide"
-            >
-              <Stack align="flex-start" gap={1}>
-                {value.map((v, i) => (
-                  <div key={i}>
-                    {v}
-                    {value.length - 1 !== i ? ',' : ''}
-                  </div>
-                ))}
-              </Stack>
-            </Spoiler>
-          </ScrollArea>
-        )
-      ) : String(value).trim() === '' ? (
-        'N/A'
-      ) : (
-        value
-      )}
-    </Table.Td>
-  </Table.Tr>
-);
-
-const RenderMetaDataCoordinates = ({
-  coordinates,
-}: RenderMetaDataCoordinatesProps) => {
-  const renderCoordinates = (coordinate: PlotCoordinatesResponse) => (
-    <Table
-      withRowBorders={false}
-      styles={{
-        td: {
-          wordBreak: 'keep-all',
-        },
-      }}
-    >
-      <Table.Tbody>
-        {renderField('name', coordinate.name)}
-        {renderField('path', coordinate.path)}
-        {renderField('unit', coordinate.unit)}
-        {renderSpoiler('shape', coordinate.shape as number[])}
-        {renderField('ndim', coordinate.ndim.toString())}
-
-        {renderSpoiler('value', coordinate.value as number[])}
-
-        {renderField('description', coordinate.description)}
-        {renderField('target', coordinate.target)}
-      </Table.Tbody>
-    </Table>
-  );
-
-  return (
-    <Table.Tr>
-      <Table.Td fw="bold">Coordinates</Table.Td>
-      <Table.Td>
-        {coordinates.length === 0 ? (
-          'N/A'
-        ) : (
-          <Accordion chevronPosition="left" variant="filled">
-            {coordinates.map((coordinate, index) => (
-              <Accordion.Item key={index} value={coordinate.name}>
-                <AccordionControl>{coordinate.name}</AccordionControl>
-                <Accordion.Panel>
-                  {renderCoordinates(coordinate)}
-                </Accordion.Panel>
-              </Accordion.Item>
-            ))}
-          </Accordion>
-        )}
-      </Table.Td>
-    </Table.Tr>
-  );
-};
-
-export const MetaDataInfos = ({
+const Customization = ({
   gridLayoutKey,
+  itemDataGrid,
   data,
   yAxis,
   height,
   tabsSelected,
-}: MetaDataInfosProps) => {
-  const { active } = useIbexStore();
-  const [coordinates, setCoordinates] = useState<PlotCoordinatesResponse[]>([]);
-  const [summary, setSummary] = useState<ArraySummaryResponse>(null);
-
+}: CustomizationProps) => {
   useEffect(() => {
-    const fetchCoordinates = async () => {
-      try {
-        if (tabsSelected === data.name) {
-          // Force with downsampled method if selected by user
-          const downsampled_method = active.dataPlot.find(
-            (gridLayout) => gridLayout.i === gridLayoutKey,
-          )?.downsampled_method;
+    console.log("data : ", data);
+  }, [data]);
+  
+  type accordionItemsType = {
+    value: string;
+    description: JSX.Element;
+    icon?: JSX.Element;
+    disabled?: boolean;
+  };
+  const accordionItems: accordionItemsType[] = [
+    {
+      value: 'Title',
+      description: (
+        <TextInput
+          label="Plot title"
+          description="Customised the title"
+          placeholder="Enter the title"
+          defaultValue={itemDataGrid.title}
+        />
+      ),
+      disabled: true,
+    },
+    {
+      value: '1D plots',
+      description: <></>,
+      icon: (
+        <ActionIcon variant="filled" component="span">
+          <Text fw="bold">1D</Text>
+        </ActionIcon>
+      ),
+      disabled: true,
+    },
+    {
+      value: 'Heatmap',
+      description: <></>,
+      icon: (
+        <ActionIcon variant="filled" component="span">
+          <svg width="50" height="50" viewBox="0 0 50 50">
+            <rect x="0" y="0" width="15" height="15" fill="#440154" />
+            <rect x="17" y="0" width="15" height="15" fill="#31688e" />
+            <rect x="34" y="0" width="15" height="15" fill="#35b779" />
 
-          const response: PlotDataResponse = await fetchDataPlot(
-            data.nodeUri,
-            downsampled_method,
-          );
+            <rect x="0" y="17" width="15" height="15" fill="#fde725" />
+            <rect x="17" y="17" width="15" height="15" fill="#440154" />
+            <rect x="34" y="17" width="15" height="15" fill="#31688e" />
 
-          setCoordinates(response.data.coordinates);
-        }
-      } catch (error) {
-        console.error('Error fetching coordinates:', error);
-      }
-    };
+            <rect x="0" y="34" width="15" height="15" fill="#35b779" />
+            <rect x="17" y="34" width="15" height="15" fill="#fde725" />
+            <rect x="34" y="34" width="15" height="15" fill="#440154" />
+          </svg>
+        </ActionIcon>
+      ),
+      disabled: true,
+    },
+    {
+      value: 'Data range',
+      description: <></>,
+      disabled: true,
+    },
+    {
+      value: 'Downsampling',
+      description: <></>,
+      disabled: true,
+    },
+    {
+      value: 'Dataplots synchronization',
+      description: <></>,
+      disabled: true,
+    },
+  ];
 
-    fetchCoordinates();
-  }, [data.nodeUri, tabsSelected]);
-
-  useEffect(() => {
-    const fetchSummary = async () => {
-      try {
-        if (tabsSelected === data.name) {
-          const response: ArraySummaryResponse = await fetchArraySummary(
-            data.nodeUri,
-          );
-          setSummary(response);
-        }
-      } catch (error) {
-        console.error('Error fetching array summary:', error);
-      }
-    };
-
-    fetchSummary();
-  }, [tabsSelected]);
+  const items = accordionItems.map((item) => (
+    <Tooltip
+      key={item.value}
+      label={item?.disabled ? 'This feature will be available soon' : ''}
+      position="bottom-start"
+      opened={item?.disabled ? null : false}
+    >
+      <Accordion.Item value={item.value}>
+        <Accordion.Control icon={item.icon} disabled={item?.disabled || false}>
+          {item.value}
+        </Accordion.Control>
+        <Accordion.Panel>{item.description}</Accordion.Panel>
+      </Accordion.Item>
+    </Tooltip>
+  ));
 
   return (
-    <ScrollArea h={height || '79vh'}>
-      <Table py="md">
-        <Table.Tbody>
-          {renderField('uri', data?.nodeUri)}
-          {renderField('name', data?.name)}
-          {renderField('path', data?.path)}
-          {renderField('unit', yAxis.unit)}
-          {renderSpoiler('shape', data.shape as (string | number)[])}
-          {renderField('dimension', data?.dimensions.toString())}
-          {renderSpoiler(
-            'value',
-            data.y.length
-              ? data.y
-              : (data.yData as string | number | (string | number)[]),
-          )}
-          {renderField('min', summary?.min)}
-          {renderField('max', summary?.max)}
-          {renderField('mean', summary?.mean)}
-          {renderField('standard_deviation', summary?.standard_deviation)}
-          {renderField('description', data?.description)}
-          <RenderMetaDataCoordinates coordinates={coordinates} />
-        </Table.Tbody>
-      </Table>
-    </ScrollArea>
+    <Stack gap={0}>
+      <Title ta={'center'} order={3} pt={10}>
+        Personalisation
+      </Title>
+      <ScrollArea h={height || '79vh'}>
+        <Accordion>{items}</Accordion>
+      </ScrollArea>
+    </Stack>
   );
 };
 
@@ -224,7 +142,7 @@ export const DataplotCustomization = () => {
   const HEIGHT = '79vh';
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(0);
-  const WIDTH_PLOT = Math.floor(containerWidth * (5 / 12));
+  const WIDTH_PLOT = Math.floor(containerWidth * (6 / 12));
   const HEIGHT_PLOT = 390;
   const { active, updatedConfiguration } = useIbexStore();
   const [tabsValue, setTabsValue] = useState<string | null>();
@@ -333,16 +251,18 @@ export const DataplotCustomization = () => {
                 <Tabs.Panel key={index} value={item.name}>
                   {tabsValue === item.name && (
                     <Grid type="container" ref={containerRef}>
-                      <Grid.Col span={5}>
+                      <Grid.Col span={6}>
                         <SimplePlotly
                           itemDataGrid={itemDataGrid}
                           width={WIDTH_PLOT}
                           height={HEIGHT_PLOT}
+                          showSliders={false}
                         />
                       </Grid.Col>
-                      <Grid.Col span={7}>
-                        <MetaDataInfos
+                      <Grid.Col span={6}>
+                        <Customization
                           gridLayoutKey={dataGridLayout.i}
+                          itemDataGrid={itemDataGrid}
                           data={item}
                           yAxis={
                             item.yaxis !== ''

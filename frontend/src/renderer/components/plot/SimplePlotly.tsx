@@ -18,7 +18,7 @@ interface SimplePlotlyProps {
   itemDataGrid: DataGridPlot;
   width: number;
   height: number;
-  sliderRef?: React.RefObject<HTMLDivElement>;
+  showSliders: boolean;
   is3DView?: boolean;
   handleUpdateCoordinate?: (
     coordinate: Coordinates,
@@ -30,7 +30,7 @@ export const SimplePlotly = ({
   itemDataGrid,
   height,
   width,
-  sliderRef,
+  showSliders,
   is3DView,
   handleUpdateCoordinate,
 }: SimplePlotlyProps) => {
@@ -77,6 +77,9 @@ export const SimplePlotly = ({
   const [title, setTitle] = useState(itemDataGrid.title);
   const plotRef = useRef<Plot | null>(null);
   const plotDivRef = useRef<HTMLDivElement>(null);
+  const layoutPlotWidth = showSliders
+    ? width * (itemDataGrid.coordinates?.length > 1 ? 0.8 : 1)
+    : width;
 
   const handleRelayout = (relayout: Partial<Layout>) => {
     setLayoutPlot((prevLayout) => ({
@@ -183,7 +186,7 @@ export const SimplePlotly = ({
   useEffect(() => {
     setLayoutPlot((prevLayout) => ({
       ...prevLayout,
-      width: width * (itemDataGrid.coordinates?.length > 1 ? 0.8 : 1) - 75,
+      width: layoutPlotWidth - 75,
     }));
   }, [width]);
 
@@ -282,11 +285,10 @@ export const SimplePlotly = ({
       {/* Coordinates sliders */}
       {itemDataGrid.coordinates.filter((coord) => coord.name !== '')?.length >
         1 &&
-        sliderRef && (
+        showSliders && (
           <Grid.Col
             className={classes.handlePlotExplorationContainer}
             span="content"
-            ref={sliderRef ? sliderRef : undefined}
             mt={10}
           >
             <Group gap={5}>
@@ -376,8 +378,8 @@ export const SimplePlotly = ({
           <Grid.Col
             span="auto"
             pos="relative"
-            w={`${width * (itemDataGrid.coordinates?.length > 1 ? 0.8 : 1) - 32}px`}
-            maw={`${width * (itemDataGrid.coordinates?.length > 1 ? 0.8 : 1) - 32}px`}
+            w={`${layoutPlotWidth - 32}px`}
+            maw={`${layoutPlotWidth - 32}px`}
             h={`${height}px`}
             style={{
               display: 'flex',

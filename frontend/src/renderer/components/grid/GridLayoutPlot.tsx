@@ -2,7 +2,6 @@ import {
   useCallback,
   useEffect,
   useLayoutEffect,
-  useRef,
   useState,
 } from 'react';
 import {
@@ -38,7 +37,6 @@ export const GridLayoutPlot = ({
   downsamplingList,
 }: GridLayoutPlotProps) => {
   const { active, updatedConfiguration } = useIbexStore();
-  const gridSliderRef = useRef<HTMLDivElement>(null);
   const [heightGrid, setHeightGrid] = useState(
     data.h * rowHeight + (23 * (data.h * rowHeight)) / 100,
   );
@@ -503,7 +501,7 @@ export const GridLayoutPlot = ({
           itemDataGrid={data}
           width={widthGrid}
           height={heightGrid}
-          sliderRef={gridSliderRef}
+          showSliders={true}
           is3DView={is3DView}
           handleUpdateCoordinate={handleUpdateCoordinate}
         />
