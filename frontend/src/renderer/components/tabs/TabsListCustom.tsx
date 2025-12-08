@@ -1,18 +1,28 @@
 import { useState } from 'react';
-import { ActionIcon, FloatingIndicator, Group, Tabs } from '@mantine/core';
+import {
+  ActionIcon,
+  FloatingIndicator,
+  Group,
+  Tabs,
+  Tooltip,
+} from '@mantine/core';
 import classes from './TabsListCustom.module.css';
-import { IconArrowLeft } from '@tabler/icons-react';
+import { IconArrowLeft, IconCheck, IconX } from '@tabler/icons-react';
 
 interface TabsListCustomProps {
   data: string[];
   value: string | null;
-  handleSwitchGrid: () => void;
+  usedFor: 'metadatas' | 'personalization';
+  closeWithoutSaving: () => void;
+  saveAndClose?: () => void;
 }
 
 export const TabsListCustom = ({
   data,
   value,
-  handleSwitchGrid,
+  usedFor,
+  closeWithoutSaving,
+  saveAndClose,
 }: TabsListCustomProps) => {
   const [rootRef, setRootRef] = useState<HTMLDivElement | null>(null);
   const [controlsRefs, setControlsRefs] = useState<
@@ -25,19 +35,49 @@ export const TabsListCustom = ({
 
   return (
     <Group mt={2}>
-      <ActionIcon
-        variant="filled"
-        aria-label="Metadatas"
-        onClick={() => handleSwitchGrid()}
-      >
-        <IconArrowLeft style={{ width: '70%', height: '70%' }} stroke={1.5} />
-      </ActionIcon>
+      {usedFor === 'metadatas' ? (
+        <ActionIcon
+          variant="filled"
+          aria-label="Metadatas"
+          onClick={() => closeWithoutSaving()}
+        >
+          <IconArrowLeft style={{ width: '70%', height: '70%' }} stroke={1.5} />
+        </ActionIcon>
+      ) : (
+        <>
+          {saveAndClose && (
+            <Tooltip label="Save customization and close">
+              <ActionIcon
+                variant="filled"
+                aria-label="Metadatas"
+                color="green"
+                onClick={() => saveAndClose()}
+              >
+                <IconCheck
+                  style={{ width: '70%', height: '70%' }}
+                  stroke={1.5}
+                />
+              </ActionIcon>
+            </Tooltip>
+          )}
+          <Tooltip label="Cancel customization">
+            <ActionIcon
+              variant="filled"
+              aria-label="Metadatas"
+              color="red"
+              onClick={() => closeWithoutSaving()}
+            >
+              <IconX style={{ width: '70%', height: '70%' }} />
+            </ActionIcon>
+          </Tooltip>
+        </>
+      )}
       <Tabs.List
         ref={setRootRef}
         className={classes.list}
         styles={{
           list: {
-            width: '95%',
+            width: usedFor === 'metadatas' ? '95%' : '90%',
           },
         }}
       >

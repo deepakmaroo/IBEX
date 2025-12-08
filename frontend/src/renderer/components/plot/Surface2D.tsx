@@ -20,7 +20,7 @@ import {
 } from '../../utils';
 import classes from './Surface2D.module.css';
 import { useIbexStore } from '../../stores';
-import { NoDataForURI, PlotTitle } from '../plot';
+import { NoDataForURI } from '../plot';
 
 interface Surface2DProps {
   itemDataGrid: DataGridPlot;
@@ -342,58 +342,50 @@ export const Surface2D = ({
       )}
 
       {are3DAxisInit && [x, y, z].every(isMatrixPlottable) ? (
-        <>
-          <PlotTitle
-            itemDataGrid={itemDataGrid}
-            title={title}
-            setTitle={setTitle}
-          />
-
-          <Grid.Col
-            span="auto"
-            pos="relative"
-            w={`${width * 0.8 - 32}px`}
-            maw={`${width * 0.8 - 32}px`}
-            h={`${height}px`}
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-            }}
-          >
-            <Plot
-              ref={plotRef}
-              data={[
-                {
-                  type: 'heatmap',
-                  colorscale: 'Viridis',
-                  colorbar: {
-                    title: {
-                      text: zAxis?.name
-                        ? `${zAxis?.name} ${(zAxis?.unit && '[' + zAxis.unit + ']') || ''}`
-                        : '',
-                    },
+        <Grid.Col
+          span="auto"
+          pos="relative"
+          w={`${width * 0.8 - 32}px`}
+          maw={`${width * 0.8 - 32}px`}
+          h={`${height}px`}
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
+          <Plot
+            ref={plotRef}
+            data={[
+              {
+                type: 'heatmap',
+                colorscale: 'Viridis',
+                colorbar: {
+                  title: {
+                    text: zAxis?.name
+                      ? `${zAxis?.name} ${(zAxis?.unit && '[' + zAxis.unit + ']') || ''}`
+                      : '',
                   },
-                  x: x,
-                  y: y,
-                  z: z,
                 },
-              ]}
-              config={{
-                autosizable: false,
-                staticPlot: !itemDataGrid.static,
-                scrollZoom: true,
-                displayModeBar: true,
-                showTips: true,
-                displaylogo: false,
-                modeBarButtonsToRemove: ['lasso2d', 'select2d'],
-              }}
-              layout={layoutPlot}
-              onRelayout={handleRelayout}
-              useResizeHandler={false}
-              className={classe.plot2D}
-            />
-          </Grid.Col>
-        </>
+                x: x,
+                y: y,
+                z: z,
+              },
+            ]}
+            config={{
+              autosizable: false,
+              staticPlot: !itemDataGrid.static,
+              scrollZoom: true,
+              displayModeBar: true,
+              showTips: true,
+              displaylogo: false,
+              modeBarButtonsToRemove: ['lasso2d', 'select2d'],
+            }}
+            layout={layoutPlot}
+            onRelayout={handleRelayout}
+            useResizeHandler={false}
+            className={classe.plot2D}
+          />
+        </Grid.Col>
       ) : are3DAxisInit && ![x, y, z].some(isMatrixPlottable) ? (
         <Grid.Col
           span="auto"

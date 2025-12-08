@@ -282,7 +282,7 @@ export const VisualizationMetaData = () => {
   /**
    * Handle the switch grid event
    */
-  const handleSwitchGrid = useCallback(() => {
+  const closeWithoutSaving = useCallback(() => {
     const updatedActive: Configuration = {
       ...active,
       metadataGridLayout: null,
@@ -323,7 +323,8 @@ export const VisualizationMetaData = () => {
               : []
           }
           value={tabsValue}
-          handleSwitchGrid={handleSwitchGrid}
+          usedFor="metadatas"
+          closeWithoutSaving={closeWithoutSaving}
         />
 
         {dataGridLayout &&

@@ -1,9 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import {
   Axis,
   Configuration,
@@ -491,7 +486,7 @@ export const GridLayoutPlot = ({
         <Surface2D
           itemDataGrid={data}
           width={widthGrid}
-          height={heightGrid - 10}
+          height={heightGrid}
           plotIndex={active3DTab}
           handleUpdateCoordinate={handleUpdateCoordinate}
         />

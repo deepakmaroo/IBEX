@@ -13,7 +13,7 @@ import {
   swapAxis,
 } from '../../utils';
 import classes from './SimplePlotly.module.css';
-import { NoDataForURI, PlotTitle } from '../plot';
+import { NoDataForURI } from '../plot';
 interface SimplePlotlyProps {
   itemDataGrid: DataGridPlot;
   width: number;
@@ -368,45 +368,37 @@ export const SimplePlotly = ({
       {itemDataGrid.plot.every((plot) =>
         [plot.x, plot.y].every(isMatrixPlottable),
       ) ? (
-        <>
-          <PlotTitle
-            itemDataGrid={itemDataGrid}
-            title={title}
-            setTitle={setTitle}
-          />
-
-          <Grid.Col
-            span="auto"
-            pos="relative"
-            w={`${layoutPlotWidth - 32}px`}
-            maw={`${layoutPlotWidth - 32}px`}
-            h={`${height}px`}
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-            }}
-          >
-            <div ref={plotDivRef}>
-              <Plot
-                ref={plotRef}
-                className={classes.simplePlot}
-                data={itemDataGrid.plot}
-                config={{
-                  autosizable: false,
-                  staticPlot: !itemDataGrid.static,
-                  scrollZoom: true,
-                  displayModeBar: true,
-                  showTips: true,
-                  displaylogo: false,
-                  modeBarButtonsToRemove: ['lasso2d', 'select2d'],
-                }}
-                layout={layoutPlot}
-                onRelayout={handleRelayout}
-                useResizeHandler={false}
-              />
-            </div>
-          </Grid.Col>
-        </>
+        <Grid.Col
+          span="auto"
+          pos="relative"
+          w={`${layoutPlotWidth - 32}px`}
+          maw={`${layoutPlotWidth - 32}px`}
+          h={`${height}px`}
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
+          <div ref={plotDivRef}>
+            <Plot
+              ref={plotRef}
+              className={classes.simplePlot}
+              data={itemDataGrid.plot}
+              config={{
+                autosizable: false,
+                staticPlot: !itemDataGrid.static,
+                scrollZoom: true,
+                displayModeBar: true,
+                showTips: true,
+                displaylogo: false,
+                modeBarButtonsToRemove: ['lasso2d', 'select2d'],
+              }}
+              layout={layoutPlot}
+              onRelayout={handleRelayout}
+              useResizeHandler={false}
+            />
+          </div>
+        </Grid.Col>
       ) : itemDataGrid.plot.every(
           (plot) => ![plot.x, plot.y, plot.yData].some(isMatrixPlottable),
         ) ? (

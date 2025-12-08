@@ -14,34 +14,41 @@ import {
 import { useIbexStore } from '../../stores';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { SimplePlotly, TabsListCustom } from '../../components';
-import {
-  Configuration,
-  DataGridPlot,
-  DataPlotly,
-  Axis,
-} from 'src/renderer/types';
+import { Configuration, DataGridPlot, DataPlotly } from 'src/renderer/types';
+
+interface CustomizeTitleProps {
+  customizedDataGrid: DataGridPlot;
+  setCustomizedDataGrid: React.Dispatch<React.SetStateAction<DataGridPlot>>;
+}
+const CustomizeTitle = ({
+  customizedDataGrid,
+  setCustomizedDataGrid,
+}: CustomizeTitleProps) => {
+  return (
+    <TextInput
+      label="Plot title"
+      description="Customised the title"
+      placeholder="Enter the title"
+      value={customizedDataGrid?.title || ''}
+      onChange={(form) =>
+        setCustomizedDataGrid({
+          ...customizedDataGrid,
+          title: form.currentTarget.value,
+        })
+      }
+    />
+  );
+};
 
 interface CustomizationProps {
-  gridLayoutKey: string;
-  itemDataGrid: DataGridPlot;
-  data: DataPlotly;
-  yAxis: Axis;
-  tabsSelected: string | null;
-  height?: string;
+  customizedDataGrid: DataGridPlot;
+  setCustomizedDataGrid: React.Dispatch<React.SetStateAction<DataGridPlot>>;
 }
 
 const Customization = ({
-  gridLayoutKey,
-  itemDataGrid,
-  data,
-  yAxis,
-  height,
-  tabsSelected,
+  customizedDataGrid,
+  setCustomizedDataGrid,
 }: CustomizationProps) => {
-  useEffect(() => {
-    console.log("data : ", data);
-  }, [data]);
-  
   type accordionItemsType = {
     value: string;
     description: JSX.Element;
@@ -52,14 +59,11 @@ const Customization = ({
     {
       value: 'Title',
       description: (
-        <TextInput
-          label="Plot title"
-          description="Customised the title"
-          placeholder="Enter the title"
-          defaultValue={itemDataGrid.title}
+        <CustomizeTitle
+          customizedDataGrid={customizedDataGrid}
+          setCustomizedDataGrid={setCustomizedDataGrid}
         />
       ),
-      disabled: true,
     },
     {
       value: '1D plots',
@@ -131,7 +135,7 @@ const Customization = ({
       <Title ta={'center'} order={3} pt={10}>
         Personalisation
       </Title>
-      <ScrollArea h={height || '79vh'}>
+      <ScrollArea h="79vh">
         <Accordion>{items}</Accordion>
       </ScrollArea>
     </Stack>
@@ -139,17 +143,27 @@ const Customization = ({
 };
 
 export const DataplotCustomization = () => {
-  const HEIGHT = '79vh';
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(0);
   const WIDTH_PLOT = Math.floor(containerWidth * (6 / 12));
   const HEIGHT_PLOT = 390;
   const { active, updatedConfiguration } = useIbexStore();
   const [tabsValue, setTabsValue] = useState<string | null>();
-  const [itemDataGrid, setItemDataGrid] = useState<DataGridPlot | null>(null);
+  const [customizedDataGrid, setCustomizedDataGrid] =
+    useState<DataGridPlot | null>(null);
   const [dataGridLayout, setDataGridLayout] = useState<DataGridPlot | null>(
     null,
   );
+
+  useEffect(() => {
+    if (customizedDataGrid?.title) {
+      // Update dataPlot title
+      setDataGridLayout({
+        ...dataGridLayout,
+        title: customizedDataGrid?.title,
+      });
+    }
+  }, [customizedDataGrid]);
 
   /**
    * Handle find grid layout corresponding to the selected tab
@@ -162,15 +176,7 @@ export const DataplotCustomization = () => {
       if (data) {
         setDataGridLayout(data);
         setTabsValue(data.plot[0]?.name || null);
-        const findPlot = data.plot.find(
-          (item) => item.name === data.plot[0]?.name,
-        );
-        if (findPlot) {
-          setItemDataGrid({
-            ...data,
-            plot: [findPlot],
-          });
-        }
+        setCustomizedDataGrid(data);
       }
     }
   }, [active]);
@@ -192,15 +198,33 @@ export const DataplotCustomization = () => {
   }, [tabsValue]);
 
   /**
-   * Handle the switch grid event
+   * Handle close of customization
    */
-  const handleSwitchGrid = useCallback(() => {
+  const closeWithoutSaving = useCallback(() => {
     const updatedActive: Configuration = {
       ...active,
       customizedGridLayout: null,
     };
     updatedConfiguration(updatedActive);
   }, [active]);
+
+  /**
+   * Handle save & close of customization
+   */
+  const saveAndClose = useCallback(() => {
+    const updatedActive: Configuration = {
+      ...active,
+      customizedGridLayout: null,
+    };
+    const updatedDataPlot: DataGridPlot[] = [
+      ...updatedActive.dataPlot.filter(
+        (dp) => dp.i !== active.customizedGridLayout,
+      ),
+      customizedDataGrid,
+    ];
+
+    updatedConfiguration({ ...updatedActive, dataPlot: updatedDataPlot });
+  }, [active, customizedDataGrid]);
 
   /**
    * Handle selected tab change
@@ -213,14 +237,11 @@ export const DataplotCustomization = () => {
           (item) => item.name === value,
         );
         if (selectedPlot) {
-          setItemDataGrid({
-            ...dataGridLayout,
-            plot: [selectedPlot],
-          });
+          setCustomizedDataGrid(dataGridLayout);
         }
       }
     },
-    [dataGridLayout, setItemDataGrid],
+    [dataGridLayout, setCustomizedDataGrid],
   );
 
   return (
@@ -235,7 +256,9 @@ export const DataplotCustomization = () => {
               : []
           }
           value={tabsValue}
-          handleSwitchGrid={handleSwitchGrid}
+          usedFor="personalization"
+          closeWithoutSaving={closeWithoutSaving}
+          saveAndClose={saveAndClose}
         />
 
         {dataGridLayout &&
@@ -253,7 +276,7 @@ export const DataplotCustomization = () => {
                     <Grid type="container" ref={containerRef}>
                       <Grid.Col span={6}>
                         <SimplePlotly
-                          itemDataGrid={itemDataGrid}
+                          itemDataGrid={customizedDataGrid}
                           width={WIDTH_PLOT}
                           height={HEIGHT_PLOT}
                           showSliders={false}
@@ -261,16 +284,8 @@ export const DataplotCustomization = () => {
                       </Grid.Col>
                       <Grid.Col span={6}>
                         <Customization
-                          gridLayoutKey={dataGridLayout.i}
-                          itemDataGrid={itemDataGrid}
-                          data={item}
-                          yAxis={
-                            item.yaxis !== ''
-                              ? dataGridLayout.y2AxisData
-                              : dataGridLayout.yAxisData
-                          }
-                          height={HEIGHT}
-                          tabsSelected={tabsValue}
+                          customizedDataGrid={customizedDataGrid}
+                          setCustomizedDataGrid={setCustomizedDataGrid}
                         />
                       </Grid.Col>
                     </Grid>
