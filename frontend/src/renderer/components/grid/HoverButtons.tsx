@@ -209,6 +209,23 @@ export const HoverButtons = React.memo(
                 </Tooltip>
               )}
 
+              {data.coordinates.length && !shouldDisplayMetadata && (
+                // Show customization button only if plottable
+                <Tooltip label="Customize the grid">
+                  <ActionIcon
+                    variant="filled"
+                    aria-label="Metadatas"
+                    onClick={() => handleCustomization(data.i)}
+                    className={classes.actionButton}
+                  >
+                    <IconPalette
+                      style={{ width: '70%', height: '70%' }}
+                      stroke={1.5}
+                    />
+                  </ActionIcon>
+                </Tooltip>
+              )}
+
               <Tooltip
                 label={
                   data.isEditing
@@ -236,24 +253,6 @@ export const HoverButtons = React.memo(
                   )}
                 </ActionIcon>
               </Tooltip>
-
-              {data.coordinates.length && !shouldDisplayMetadata && (
-                // Show customization button only if plottable
-                <Tooltip label="Customize the grid">
-                  <ActionIcon
-                    variant="filled"
-                    aria-label="Metadatas"
-                    onClick={() => handleCustomization(data.i)}
-                    className={classes.actionButton}
-                    color="violet"
-                  >
-                    <IconPalette
-                      style={{ width: '70%', height: '70%' }}
-                      stroke={1.5}
-                    />
-                  </ActionIcon>
-                </Tooltip>
-              )}
 
               {handleDeleteGrid && (
                 <Tooltip label="Delete the grid">

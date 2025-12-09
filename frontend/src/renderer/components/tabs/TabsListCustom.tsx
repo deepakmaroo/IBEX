@@ -50,7 +50,7 @@ export const TabsListCustom = ({
               <ActionIcon
                 variant="filled"
                 aria-label="Metadatas"
-                color="green"
+                color="yellow"
                 onClick={() => saveAndClose()}
               >
                 <IconCheck
