@@ -21,11 +21,13 @@ export const NoDataForURI = ({
           )
         : // Each plots
           itemDataGrid.plot.map(
-            (unplottablePlot) =>
+            (unplottablePlot, index) =>
               !unplottablePlot.x.length &&
               !unplottablePlot.y.length &&
               !unplottablePlot.yData.length && (
-                <Text>{`- '${unplottablePlot.labelUri}' with path '${unplottablePlot.nodeUri.split('#')[1]}'`}</Text>
+                <Text
+                  key={`no_data_line_${index}`}
+                >{`- '${unplottablePlot.labelUri}' with path '${unplottablePlot.nodeUri.split('#')[1]}'`}</Text>
               ),
           )}
     </Stack>

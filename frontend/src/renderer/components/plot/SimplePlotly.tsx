@@ -75,8 +75,19 @@ export const SimplePlotly = ({
     dragmode: 'zoom',
   });
   const [title, setTitle] = useState(itemDataGrid.title);
+  const [dataEntries, setDataEntries] = useState<string[]>([]);
   const plotRef = useRef<Plot | null>(null);
   const plotDivRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Check data entries to update axes titles when needed
+    const newDataEntries = [
+      ...new Set(itemDataGrid.plot.map((plot) => plot.nodeUri.split('#')[0])),
+    ];
+    if (JSON.stringify(newDataEntries) !== JSON.stringify(dataEntries)) {
+      setDataEntries(newDataEntries);
+    }
+  }, [itemDataGrid.plot]);
 
   const handleRelayout = (relayout: Partial<Layout>) => {
     setLayoutPlot((prevLayout) => ({
@@ -207,7 +218,7 @@ export const SimplePlotly = ({
         },
       },
     }));
-  }, [itemDataGrid.yAxisData]);
+  }, [itemDataGrid.yAxisData, dataEntries]);
 
   /**
    * Update the layout xAxis
@@ -226,7 +237,7 @@ export const SimplePlotly = ({
         },
       },
     }));
-  }, [itemDataGrid.xAxisData]);
+  }, [itemDataGrid.xAxisData, dataEntries]);
 
   /**
    * Update the layout y2Axis
@@ -261,7 +272,7 @@ export const SimplePlotly = ({
             }
           : {},
     }));
-  }, [itemDataGrid.y2AxisData]);
+  }, [itemDataGrid.y2AxisData, dataEntries]);
 
   useEffect(() => {
     // Update title when itemDataGrid.title change (when selecting a plot with original plot title)
@@ -405,7 +416,7 @@ export const SimplePlotly = ({
             </div>
           </Grid.Col>
         </>
-      ) : itemDataGrid.plot.every(
+      ) : itemDataGrid.plot.some(
           (plot) => ![plot.x, plot.y, plot.yData].some(isMatrixPlottable),
         ) ? (
         <Grid.Col
