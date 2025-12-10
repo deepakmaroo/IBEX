@@ -1,14 +1,6 @@
 import classes from './HoverButtons.module.css';
 import React, { useCallback, useEffect } from 'react';
-import {
-  Group,
-  Tooltip,
-  ActionIcon,
-  Select,
-  Text,
-  Tabs,
-  Switch,
-} from '@mantine/core';
+import { Group, Tooltip, ActionIcon, Text, Tabs, Switch } from '@mantine/core';
 import {
   IconBrandDatabricks,
   IconCheck,
@@ -23,10 +15,7 @@ import { useIbexStore } from '../../stores';
 
 interface HoverButtonsProps {
   data: DataGridPlot;
-  downsamplingMethod: string;
-  downsamplingList: string[];
   shouldDisplayMetadata: boolean;
-  setDownsamplingMethod: React.Dispatch<React.SetStateAction<string>>;
   handleEditGrid: (id: string) => void;
   handleInspectMetadata: (id: string) => void;
   handleCustomization: (id: string) => void;
@@ -40,10 +29,7 @@ interface HoverButtonsProps {
 export const HoverButtons = React.memo(
   ({
     data,
-    downsamplingMethod,
-    downsamplingList,
     shouldDisplayMetadata,
-    setDownsamplingMethod,
     handleEditGrid,
     handleInspectMetadata,
     handleCustomization,
@@ -152,20 +138,6 @@ export const HoverButtons = React.memo(
 
           {hovered || data.isEditing ? (
             <Group pos="absolute" right={'1rem'} top={5}>
-              {data.coordinates.length && !shouldDisplayMetadata && (
-                <Tooltip label="Select your downsampling method">
-                  <Select
-                    value={downsamplingMethod || 'None'}
-                    w="7rem"
-                    size="xs"
-                    disabled={!data.isEditing}
-                    data={downsamplingList}
-                    onChange={setDownsamplingMethod}
-                    placeholder="Downsampling"
-                  />
-                </Tooltip>
-              )}
-
               {!is3DView && data.isEditing && !shouldDisplayMetadata && (
                 <Switch
                   label="Error bands"

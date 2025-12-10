@@ -7,7 +7,6 @@ import {
   Stack,
   Tabs,
   Text,
-  TextInput,
   Title,
   Tooltip,
 } from '@mantine/core';
@@ -15,36 +14,11 @@ import { useIbexStore } from '../../stores';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { SimplePlotly, TabsListCustom } from '../../components';
 import { Configuration, DataGridPlot, DataPlotly } from 'src/renderer/types';
-
-interface CustomizeTitleProps {
-  customizedDataGrid: DataGridPlot;
-  setCustomizedDataGrid: React.Dispatch<React.SetStateAction<DataGridPlot>>;
-}
-const CustomizeTitle = ({
-  customizedDataGrid,
-  setCustomizedDataGrid,
-}: CustomizeTitleProps) => {
-  return (
-    <TextInput
-      label="Plot title"
-      description="Customised the title"
-      placeholder="Enter the title"
-      value={customizedDataGrid?.title || ''}
-      onChange={(form) =>
-        setCustomizedDataGrid({
-          ...customizedDataGrid,
-          title: form.currentTarget.value,
-        })
-      }
-    />
-  );
-};
-
+import { CustomizeDownsampling, CustomizeTitle } from './customizableElements';
 interface CustomizationProps {
   customizedDataGrid: DataGridPlot;
   setCustomizedDataGrid: React.Dispatch<React.SetStateAction<DataGridPlot>>;
 }
-
 const Customization = ({
   customizedDataGrid,
   setCustomizedDataGrid,
@@ -104,8 +78,12 @@ const Customization = ({
     },
     {
       value: 'Downsampling',
-      description: <></>,
-      disabled: true,
+      description: (
+        <CustomizeDownsampling
+          customizedDataGrid={customizedDataGrid}
+          setCustomizedDataGrid={setCustomizedDataGrid}
+        />
+      ),
     },
     {
       value: 'Dataplots synchronization',
@@ -156,13 +134,13 @@ export const DataplotCustomization = () => {
   );
 
   useEffect(() => {
-    if (customizedDataGrid?.title) {
-      // Update dataPlot title
-      setDataGridLayout({
-        ...dataGridLayout,
-        title: customizedDataGrid?.title,
-      });
-    }
+    // Update dataGridLayout when customizedDataGrid changes
+    setDataGridLayout({
+      ...dataGridLayout,
+      title: customizedDataGrid?.title,
+      downsampled_method: customizedDataGrid?.downsampled_method,
+      plot: customizedDataGrid?.plot,
+    });
   }, [customizedDataGrid]);
 
   /**

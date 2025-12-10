@@ -12,7 +12,6 @@ import { Center, Container, ScrollArea, Tabs, Text } from '@mantine/core';
 import { SimplePlotly, Surface2D } from '../plot';
 import { useIbexStore } from '../../stores';
 import {
-  fetchDataPlot,
   getArrayValueFromDependance,
   getErrorYVectors,
   getLastIndexedField,
@@ -21,7 +20,6 @@ import {
   normalizeIndices,
   updateIndexFieldName,
 } from '../../utils';
-import { showNotification } from '@mantine/notifications';
 import { MetaDataInfos } from '../../pages/visualization/VisualizationMetaData';
 import { HoverButtons } from './HoverButtons';
 
@@ -29,7 +27,6 @@ export const GridLayoutPlot = ({
   data,
   colWidth,
   rowHeight,
-  downsamplingList,
 }: GridLayoutPlotProps) => {
   const { active, updatedConfiguration } = useIbexStore();
   const [heightGrid, setHeightGrid] = useState(
@@ -38,9 +35,6 @@ export const GridLayoutPlot = ({
   const [widthGrid, setWidthGrid] = useState(Math.floor(data.w * colWidth));
   const [is3DView, setIs3DView] = useState<boolean>(false);
   const [active3DTab, setActive3DTab] = useState<string>('0');
-  const [downsamplingMethod, setDownsamplingMethod] = useState<string | null>(
-    null,
-  );
   const [metadataTabsValue, setMetadataTabsValue] = useState<string>(
     data.plot[0]?.path || '',
   );
@@ -195,84 +189,6 @@ export const GridLayoutPlot = ({
     }
   }, [data.plot]);
 
-  useEffect(() => {
-    // Update downsampled method after a timeout
-    if (data.downsampled_method) {
-      setDownsamplingMethod(data.downsampled_method);
-    }
-  }, [data.downsampled_method]);
-
-  useEffect(() => {
-    const getDataPlotDownsampled = async () => {
-      try {
-        const updatedDataPlotList: DataGridPlot[] = JSON.parse(
-          JSON.stringify(active.dataPlot),
-        );
-        const updatedDataPlot = updatedDataPlotList.find(
-          (dataPlotToUpdate) => dataPlotToUpdate.i === data.i,
-        );
-
-        let plotIndex = 0;
-        for (const plot of updatedDataPlot.plot) {
-          const dataPlotDownsampled = await fetchDataPlot(
-            plot.nodeUri.replace(/\[\d+\]/g, '[:]'),
-            downsamplingMethod,
-          );
-
-          // Update coordinates with downsampled data only once because each plots have same coordinates
-          if (plotIndex === 0) {
-            let coordinateIndex = 0;
-            for (const coordinate of updatedDataPlot.coordinates) {
-              coordinate.downsampled_shape =
-                dataPlotDownsampled.data.coordinates[
-                  coordinateIndex
-                ].downsampled_shape;
-              coordinate.data =
-                dataPlotDownsampled.data.coordinates[coordinateIndex].value;
-              coordinateIndex++;
-            }
-
-            // Update downsampled method
-            updatedDataPlot.downsampled_method =
-              dataPlotDownsampled.data.downsampled_method;
-          }
-
-          // Update plot with downsampled data
-          plot.shape = dataPlotDownsampled.data.downsampled_shape;
-          // Get x axis switch coordinates dependances
-          plot.x = getArrayValueFromDependance(updatedDataPlot.coordinates, 0);
-          plot.yData = dataPlotDownsampled.data.value;
-          // Get y axis
-          const vectorData = getVectorData(
-            updatedDataPlot.coordinates,
-            plot.yData,
-          );
-          plot.y = vectorData;
-
-          plotIndex++;
-        }
-
-        // Save new configuration with sampled data
-        const updatedActive = {
-          ...active,
-          dataPlot: updatedDataPlotList,
-        };
-        updatedConfiguration(updatedActive);
-      } catch (error) {
-        console.error('Error getting downsampled data: ', error);
-        showNotification({
-          title: 'Error',
-          message: `Unable to get downsampled data.`,
-          color: 'red',
-        });
-      }
-    };
-
-    if (downsamplingMethod) {
-      getDataPlotDownsampled();
-    }
-  }, [downsamplingMethod]);
-
   useLayoutEffect(() => {
     setIs3DView(data.coordinates.length >= 2);
   }, []);
@@ -407,10 +323,7 @@ export const GridLayoutPlot = ({
       {active.dataURI.length > 0 && (
         <HoverButtons
           data={data}
-          downsamplingMethod={downsamplingMethod}
-          downsamplingList={downsamplingList}
           shouldDisplayMetadata={shouldDisplayMetadata}
-          setDownsamplingMethod={setDownsamplingMethod}
           handleEditGrid={handleEditGrid}
           handleInspectMetadata={handleInspectMetadata}
           handleCustomization={handleCustomization}
