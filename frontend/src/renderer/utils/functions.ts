@@ -1,3 +1,3 @@
 export function removeSuffix(str: string, suffix: string): string {
-  return str.endsWith(suffix) ? str.slice(0, -suffix.length) : str;
+  return str?.endsWith(suffix) ? str.slice(0, -suffix.length) : str;
 }

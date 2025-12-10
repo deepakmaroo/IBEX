@@ -148,8 +148,10 @@ export default {
     });
 
     ipcMain.handle('getDefaultTemplatesPath', () => {
-      const appPath = app.getAppPath();
-      const templatesPath = path.join(appPath, '..', 'templates');
+      const templatesPath =
+        process.env.NODE_ENV === 'development'
+          ? path.join(app.getAppPath(), '..', 'templates') // root in dev
+          : path.join(process.resourcesPath, 'templates'); // resources/ in prod
       return templatesPath;
     });
   },
