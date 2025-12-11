@@ -8,7 +8,7 @@ import {
   GridLayoutPlotProps,
   URITreeNodeData,
 } from 'src/renderer/types';
-import { Center, Container, ScrollArea, Tabs, Text } from '@mantine/core';
+import { Center, Container, Text } from '@mantine/core';
 import { SimplePlotly, Surface2D } from '../plot';
 import { useIbexStore } from '../../stores';
 import {
@@ -341,58 +341,20 @@ export const GridLayoutPlot = ({
           <Text>Current configuration has no data. Please, select URIs.</Text>
         </Center>
       ) : !data.coordinates.length || shouldDisplayMetadata ? (
-        // Show metadata when not enough coordinates to plot
         <Container pt="40px" p="1rem">
-          <Tabs
-            value={metadataTabsValue}
-            onChange={(value) => setMetadataTabsValue(value)}
-          >
-            <ScrollArea
-              key={`tabScrollBar_${active.checkedNodeURI.length}`}
-              type="hover"
-              scrollHideDelay={0} // keep visible scrollbar only during hover
-              scrollbarSize={6}
-              offsetScrollbars
-              style={{ maxWidth: '100%' }}
-            >
-              <Tabs.List
-                style={{
-                  flexWrap: 'nowrap',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {data.plot.length > 0 &&
-                  data.plot.map((item: DataPlotly, index) => (
-                    <Tabs.Tab
-                      key={`metadata_${index}`}
-                      value={item.path}
-                      disabled={
-                        !data.isEditing && metadataTabsValue !== item.path
-                      }
-                    >
-                      {item.name}
-                    </Tabs.Tab>
-                  ))}
-              </Tabs.List>
-            </ScrollArea>
-
-            {data &&
-              data.plot.map((plot: DataPlotly, index) => {
-                return (
-                  <Tabs.Panel key={`metadata_${index}`} value={plot.path}>
-                    <MetaDataInfos
-                      gridLayoutKey={data.i}
-                      data={plot}
-                      yAxis={
-                        plot.yaxis !== '' ? data.y2AxisData : data.yAxisData
-                      }
-                      height={(heightGrid - 56).toString()} // 56px is equivalent to paddings (40px from top + 1rem from bottom)
-                      tabsSelected={plot.path}
-                    />
-                  </Tabs.Panel>
-                );
-              })}
-          </Tabs>
+          {data.plot.map((plot: DataPlotly, index) => {
+            return (
+              index.toString() === active3DTab && (
+                <MetaDataInfos
+                  gridLayoutKey={data.i}
+                  data={plot}
+                  yAxis={plot.yaxis !== '' ? data.y2AxisData : data.yAxisData}
+                  height={(heightGrid - 72).toString()} // 72px is equivalent to paddings (40px from top + 2rem for y padding)
+                  tabsSelected={plot.path}
+                />
+              )
+            );
+          })}
         </Container>
       ) : is3DView ? (
         // Show heatmap

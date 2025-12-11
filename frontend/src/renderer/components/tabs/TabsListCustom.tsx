@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   ActionIcon,
   FloatingIndicator,
   Group,
+  ScrollArea,
   Tabs,
   Tooltip,
 } from '@mantine/core';
@@ -32,9 +33,10 @@ export const TabsListCustom = ({
     controlsRefs[val] = node;
     setControlsRefs(controlsRefs);
   };
+  const barRef = useRef<HTMLDivElement>(null);
 
   return (
-    <Group mt={2}>
+    <Group mt={2} ref={barRef}>
       {usedFor === 'metadatas' ? (
         <ActionIcon
           variant="filled"
@@ -72,33 +74,44 @@ export const TabsListCustom = ({
           </Tooltip>
         </>
       )}
-      <Tabs.List
-        ref={setRootRef}
-        className={classes.list}
-        styles={{
-          list: {
-            width: usedFor === 'metadatas' ? '95%' : '90%',
-          },
-        }}
+      <ScrollArea
+        type="hover"
+        scrollHideDelay={0}
+        scrollbarSize={6}
+        offsetScrollbars
+        maw={
+          usedFor === 'metadatas'
+            ? barRef.current?.offsetWidth - 50
+            : barRef.current?.offsetWidth - 100
+        }
       >
-        {data.length > 0 &&
-          data.map((item, index) => (
-            <Tabs.Tab
-              key={index}
-              value={item}
-              ref={setControlRef(item)}
-              className={classes.tab}
-            >
-              {item}
-            </Tabs.Tab>
-          ))}
+        <Tabs.List
+          ref={setRootRef}
+          className={classes.list}
+          style={{
+            flexWrap: 'nowrap',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {data.length > 0 &&
+            data.map((item, index) => (
+              <Tabs.Tab
+                key={index}
+                value={item}
+                ref={setControlRef(item)}
+                className={classes.tab}
+              >
+                {item}
+              </Tabs.Tab>
+            ))}
 
-        <FloatingIndicator
-          target={value ? controlsRefs[value] : null}
-          parent={rootRef}
-          className={classes.indicator}
-        />
-      </Tabs.List>
+          <FloatingIndicator
+            target={value ? controlsRefs[value] : null}
+            parent={rootRef}
+            className={classes.indicator}
+          />
+        </Tabs.List>
+      </ScrollArea>
     </Group>
   );
 };

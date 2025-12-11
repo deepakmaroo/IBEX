@@ -1,6 +1,14 @@
 import classes from './HoverButtons.module.css';
 import React, { useCallback, useEffect } from 'react';
-import { Group, Tooltip, ActionIcon, Text, Tabs, Switch } from '@mantine/core';
+import {
+  Group,
+  Tooltip,
+  ActionIcon,
+  Text,
+  Tabs,
+  Switch,
+  ScrollArea,
+} from '@mantine/core';
 import {
   IconBrandDatabricks,
   IconCheck,
@@ -119,18 +127,37 @@ export const HoverButtons = React.memo(
     return (
       <div ref={hoverRef} className={classes.containerButton}>
         <Group justify="space-between" h={'100%'}>
-          {is3DView ? (
+          {is3DView || !data.coordinates.length || shouldDisplayMetadata ? (
             <Tabs
               value={active3DTab}
               onChange={(value) => setActive3DTab(value)}
             >
-              <Tabs.List>
-                {data.plot.map((plot, index) => (
-                  <Tabs.Tab key={`3D_tab_${index}`} value={index.toString()}>
-                    {plot.name}
-                  </Tabs.Tab>
-                ))}
-              </Tabs.List>
+              <ScrollArea
+                type="hover"
+                scrollHideDelay={0} // keep visible scrollbar only during hover
+                scrollbarSize={6}
+                offsetScrollbars
+                maw={
+                  hoverRef?.current?.offsetWidth
+                    ? !data.coordinates.length || shouldDisplayMetadata
+                      ? hoverRef.current.offsetWidth - 110
+                      : hoverRef.current.offsetWidth - 230
+                    : '100%'
+                }
+              >
+                <Tabs.List
+                  style={{
+                    flexWrap: 'nowrap',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {data.plot.map((plot, index) => (
+                    <Tabs.Tab key={`3D_tab_${index}`} value={index.toString()}>
+                      {plot.name}
+                    </Tabs.Tab>
+                  ))}
+                </Tabs.List>
+              </ScrollArea>
             </Tabs>
           ) : (
             <div></div>
