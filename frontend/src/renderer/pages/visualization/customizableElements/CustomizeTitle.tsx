@@ -12,7 +12,7 @@ export const CustomizeTitle = ({
   return (
     <TextInput
       label="Plot title"
-      description="Customised the title"
+      description="Customize the title"
       placeholder="Enter the title"
       value={customizedDataGrid?.title || ''}
       onChange={(form) =>

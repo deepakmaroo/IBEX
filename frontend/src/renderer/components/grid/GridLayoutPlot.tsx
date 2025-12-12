@@ -363,6 +363,7 @@ export const GridLayoutPlot = ({
           width={widthGrid}
           height={heightGrid}
           plotIndex={active3DTab}
+          showSliders={true}
           handleUpdateCoordinate={handleUpdateCoordinate}
         />
       ) : (

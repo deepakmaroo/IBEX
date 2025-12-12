@@ -46,11 +46,17 @@ export type DataPlotly = BaseDataPlotly &
     dimensions?: number;
     shape?: number[];
     description?: string;
+    customPreferences?: CustomPreferences;
   };
 
 export type ErrorBandData = {
   path: string;
   yData: AxisData;
+};
+
+export type CustomPreferences = {
+  colorscale?: string;
+  color?: string;
 };
 
 export interface BaseDataGridPlot {

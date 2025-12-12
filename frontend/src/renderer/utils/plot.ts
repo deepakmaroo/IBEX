@@ -493,7 +493,7 @@ export const fetchErrorBandsInConfig = async (
   uri: string,
 ) => {
   let dataPlotWithErrBands: DataGridPlot[];
-  const data = active.dataPlot.find((d) => d.isEditing); // ? Init data pour l'utiliser
+  const data = active.dataPlot.find((d) => d.isEditing);
   if (!data) {
     // Don't get error bands when no editing dataPlot
     return;
@@ -558,7 +558,7 @@ export const fetchErrorBands = async (
   dataPlotId: string,
   uri: string,
 ) => {
-  const data = dataPlot.find((d) => d.i === dataPlotId); // ? Init data pour l'utiliser
+  const data = dataPlot.find((d) => d.i === dataPlotId);
 
   const selectedDataPlot = dataPlot.find((dataPlot) => dataPlot.i === data.i);
 

@@ -12,27 +12,38 @@ import {
 } from '@mantine/core';
 import { useIbexStore } from '../../stores';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { SimplePlotly, TabsListCustom } from '../../components';
+import { SimplePlotly, Surface2D, TabsListCustom } from '../../components';
 import { Configuration, DataGridPlot, DataPlotly } from 'src/renderer/types';
 import { CustomizeDownsampling, CustomizeTitle } from './customizableElements';
+import { CustomizeHeatmap } from './customizableElements/CustomizeHeatmap';
 interface CustomizationProps {
   customizedDataGrid: DataGridPlot;
+  selectedAccordion: string | null;
+  selectedPlot: DataPlotly | null;
+  applyToAllHeatmap: boolean;
   setCustomizedDataGrid: React.Dispatch<React.SetStateAction<DataGridPlot>>;
+  setSelectedAccordion: React.Dispatch<React.SetStateAction<string | null>>;
+  setApplyToAllHeatmap: React.Dispatch<React.SetStateAction<boolean>>;
 }
 const Customization = ({
   customizedDataGrid,
+  selectedAccordion,
+  selectedPlot,
+  applyToAllHeatmap,
   setCustomizedDataGrid,
+  setSelectedAccordion,
+  setApplyToAllHeatmap,
 }: CustomizationProps) => {
   type accordionItemsType = {
     value: string;
-    description: JSX.Element;
+    component: JSX.Element;
     icon?: JSX.Element;
     disabled?: boolean;
   };
   const accordionItems: accordionItemsType[] = [
     {
       value: 'Title',
-      description: (
+      component: (
         <CustomizeTitle
           customizedDataGrid={customizedDataGrid}
           setCustomizedDataGrid={setCustomizedDataGrid}
@@ -41,7 +52,7 @@ const Customization = ({
     },
     {
       value: '1D plots',
-      description: <></>,
+      component: <></>,
       icon: (
         <ActionIcon variant="filled" component="span">
           <Text fw="bold">1D</Text>
@@ -51,7 +62,15 @@ const Customization = ({
     },
     {
       value: 'Heatmap',
-      description: <></>,
+      component: (
+        <CustomizeHeatmap
+          customizedDataGrid={customizedDataGrid}
+          selectedPlot={selectedPlot}
+          applyToAllHeatmap={applyToAllHeatmap}
+          setCustomizedDataGrid={setCustomizedDataGrid}
+          setApplyToAllHeatmap={setApplyToAllHeatmap}
+        />
+      ),
       icon: (
         <ActionIcon variant="filled" component="span">
           <svg width="50" height="50" viewBox="0 0 50 50">
@@ -69,16 +88,15 @@ const Customization = ({
           </svg>
         </ActionIcon>
       ),
-      disabled: true,
     },
     {
       value: 'Data range',
-      description: <></>,
+      component: <></>,
       disabled: true,
     },
     {
       value: 'Downsampling',
-      description: (
+      component: (
         <CustomizeDownsampling
           customizedDataGrid={customizedDataGrid}
           setCustomizedDataGrid={setCustomizedDataGrid}
@@ -87,7 +105,7 @@ const Customization = ({
     },
     {
       value: 'Dataplots synchronization',
-      description: <></>,
+      component: <></>,
       disabled: true,
     },
   ];
@@ -103,7 +121,7 @@ const Customization = ({
         <Accordion.Control icon={item.icon} disabled={item?.disabled || false}>
           {item.value}
         </Accordion.Control>
-        <Accordion.Panel>{item.description}</Accordion.Panel>
+        <Accordion.Panel>{item.component}</Accordion.Panel>
       </Accordion.Item>
     </Tooltip>
   ));
@@ -114,7 +132,9 @@ const Customization = ({
         Personalisation
       </Title>
       <ScrollArea h="79vh">
-        <Accordion>{items}</Accordion>
+        <Accordion value={selectedAccordion} onChange={setSelectedAccordion}>
+          {items}
+        </Accordion>
       </ScrollArea>
     </Stack>
   );
@@ -132,15 +152,26 @@ export const DataplotCustomization = () => {
   const [dataGridLayout, setDataGridLayout] = useState<DataGridPlot | null>(
     null,
   );
+  const [selectedAccordion, setSelectedAccordion] = useState<string | null>(
+    null,
+  );
+  const [selectedPlot, setSelectedPlot] = useState<DataPlotly | null>(null);
+  const [applyToAllHeatmap, setApplyToAllHeatmap] = useState(true);
 
   useEffect(() => {
-    // Update dataGridLayout when customizedDataGrid changes
-    setDataGridLayout({
-      ...dataGridLayout,
-      title: customizedDataGrid?.title,
-      downsampled_method: customizedDataGrid?.downsampled_method,
-      plot: customizedDataGrid?.plot,
-    });
+    if (customizedDataGrid) {
+      // Update dataGridLayout when customizedDataGrid changes
+      const updatedDataGridLayout = {
+        ...dataGridLayout,
+        title: customizedDataGrid?.title,
+        downsampled_method: customizedDataGrid?.downsampled_method,
+        plot: customizedDataGrid?.plot,
+      } as DataGridPlot;
+      setDataGridLayout(updatedDataGridLayout);
+      setSelectedPlot(
+        updatedDataGridLayout.plot.find((data) => data.name === tabsValue),
+      );
+    }
   }, [customizedDataGrid]);
 
   /**
@@ -153,11 +184,11 @@ export const DataplotCustomization = () => {
       );
       if (data) {
         setDataGridLayout(data);
-        setTabsValue(data.plot[0]?.name || null);
         setCustomizedDataGrid(data);
+        setTabsValue(data.plot[0]?.name || null);
       }
     }
-  }, [active]);
+  }, []);
 
   /**
    * Handle the resizing of the width
@@ -211,11 +242,9 @@ export const DataplotCustomization = () => {
     (value: string | null) => {
       setTabsValue(value);
       if (dataGridLayout) {
-        const selectedPlot = dataGridLayout.plot.find(
-          (item) => item.name === value,
-        );
-        if (selectedPlot) {
-          setCustomizedDataGrid(dataGridLayout);
+        const plotTab = dataGridLayout.plot.find((item) => item.name === value);
+        if (plotTab) {
+          setSelectedPlot(plotTab);
         }
       }
     },
@@ -253,17 +282,34 @@ export const DataplotCustomization = () => {
                   {tabsValue === item.name && (
                     <Grid type="container" ref={containerRef}>
                       <Grid.Col span={6}>
-                        <SimplePlotly
-                          itemDataGrid={customizedDataGrid}
-                          width={WIDTH_PLOT}
-                          height={HEIGHT_PLOT}
-                          showSliders={false}
-                        />
+                        {selectedAccordion === 'Heatmap' ? (
+                          <Surface2D
+                            itemDataGrid={customizedDataGrid}
+                            width={WIDTH_PLOT}
+                            height={HEIGHT_PLOT}
+                            plotIndex={customizedDataGrid.plot
+                              .findIndex((data) => data.name === item.name)
+                              .toString()}
+                            showSliders={false}
+                          />
+                        ) : (
+                          <SimplePlotly
+                            itemDataGrid={customizedDataGrid}
+                            width={WIDTH_PLOT}
+                            height={HEIGHT_PLOT}
+                            showSliders={false}
+                          />
+                        )}
                       </Grid.Col>
                       <Grid.Col span={6}>
                         <Customization
                           customizedDataGrid={customizedDataGrid}
+                          selectedAccordion={selectedAccordion}
+                          selectedPlot={selectedPlot}
+                          applyToAllHeatmap={applyToAllHeatmap}
                           setCustomizedDataGrid={setCustomizedDataGrid}
+                          setSelectedAccordion={setSelectedAccordion}
+                          setApplyToAllHeatmap={setApplyToAllHeatmap}
                         />
                       </Grid.Col>
                     </Grid>
