@@ -30,6 +30,7 @@ interface CustomizationProps {
   setCustomizedDataGrid: React.Dispatch<React.SetStateAction<DataGridPlot>>;
   setSelectedAccordion: React.Dispatch<React.SetStateAction<string | null>>;
   setApplyToAllHeatmap: React.Dispatch<React.SetStateAction<boolean>>;
+  initPlotColors: () => void;
 }
 const Customization = ({
   customizedDataGrid,
@@ -39,6 +40,7 @@ const Customization = ({
   setCustomizedDataGrid,
   setSelectedAccordion,
   setApplyToAllHeatmap,
+  initPlotColors,
 }: CustomizationProps) => {
   type accordionItemsType = {
     value: string;
@@ -63,6 +65,7 @@ const Customization = ({
           customizedDataGrid={customizedDataGrid}
           selectedPlot={selectedPlot}
           setCustomizedDataGrid={setCustomizedDataGrid}
+          initPlotColors={initPlotColors}
         />
       ),
       icon: (
@@ -140,7 +143,7 @@ const Customization = ({
   return (
     <Stack gap={0}>
       <Title ta={'center'} order={3} pt={10}>
-        Personalisation
+        Customize plot parameters
       </Title>
       <ScrollArea h="79vh">
         <Accordion value={selectedAccordion} onChange={setSelectedAccordion}>
@@ -245,10 +248,8 @@ export const DataplotCustomization = () => {
   };
 
   useEffect(() => {
-    if (selectedAccordion === '1D plots') {
-      initPlotColors();
-    }
-  }, [selectedAccordion]);
+    initPlotColors();
+  }, [customContainerRef.current]);
 
   /**
    * Handle the resizing of the width
@@ -284,6 +285,7 @@ export const DataplotCustomization = () => {
     const updatedActive: Configuration = {
       ...active,
       customizedGridLayout: null,
+      saved: false,
     };
     const updatedDataPlot: DataGridPlot[] = [
       ...updatedActive.dataPlot.filter(
@@ -370,6 +372,7 @@ export const DataplotCustomization = () => {
                           setCustomizedDataGrid={setCustomizedDataGrid}
                           setSelectedAccordion={setSelectedAccordion}
                           setApplyToAllHeatmap={setApplyToAllHeatmap}
+                          initPlotColors={initPlotColors}
                         />
                       </Grid.Col>
                     </Grid>

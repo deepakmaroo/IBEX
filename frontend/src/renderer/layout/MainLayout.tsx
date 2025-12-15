@@ -125,6 +125,8 @@ export function MainLayout() {
             nodeUri: newNodeUri,
             yaxis: plot?.yaxis || '',
             labelUri: plot.labelUri,
+            line: plot?.line || {},
+            customPreferences: plot?.customPreferences || {},
           };
         }),
       }),
