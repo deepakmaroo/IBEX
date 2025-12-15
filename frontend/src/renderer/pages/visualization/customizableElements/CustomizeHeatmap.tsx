@@ -49,6 +49,7 @@ export const CustomizeHeatmap = ({
         data={['Viridis', 'Cividis', 'RdBu', 'YlGnBu', 'YlOrRd']}
         value={selectedPlot?.customPreferences?.colorscale || 'Viridis'}
         onChange={(value) => updateColorscale(value)}
+        maw={200}
       />
       <Checkbox
         checked={applyToAllHeatmap}
