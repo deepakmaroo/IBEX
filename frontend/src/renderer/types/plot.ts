@@ -47,6 +47,7 @@ export type DataPlotly = BaseDataPlotly &
     shape?: number[];
     description?: string;
     customPreferences?: CustomPreferences;
+    line?: PlotLine;
   };
 
 export type ErrorBandData = {
@@ -56,6 +57,10 @@ export type ErrorBandData = {
 
 export type CustomPreferences = {
   colorscale?: string;
+  color?: string;
+};
+
+export type PlotLine = {
   color?: string;
 };
 

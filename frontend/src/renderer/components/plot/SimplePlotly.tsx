@@ -76,7 +76,6 @@ export const SimplePlotly = ({
   });
   const [title, setTitle] = useState(itemDataGrid.title);
   const [dataEntries, setDataEntries] = useState<string[]>([]);
-  const plotRef = useRef<Plot | null>(null);
   const plotDivRef = useRef<HTMLDivElement>(null);
   const layoutPlotWidth = showSliders
     ? width * (itemDataGrid.coordinates?.length > 1 ? 0.8 : 1)
@@ -392,7 +391,6 @@ export const SimplePlotly = ({
         >
           <div ref={plotDivRef}>
             <Plot
-              ref={plotRef}
               className={classes.simplePlot}
               data={itemDataGrid.plot}
               config={{

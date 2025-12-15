@@ -13,9 +13,15 @@ import {
 import { useIbexStore } from '../../stores';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { SimplePlotly, Surface2D, TabsListCustom } from '../../components';
-import { Configuration, DataGridPlot, DataPlotly } from 'src/renderer/types';
+import {
+  Configuration,
+  DataGridPlot,
+  DataPlotly,
+  PlotLine,
+} from 'src/renderer/types';
 import { CustomizeDownsampling, CustomizeTitle } from './customizableElements';
 import { CustomizeHeatmap } from './customizableElements/CustomizeHeatmap';
+import { Customize1DPlot } from './customizableElements/Customize1DPlot';
 interface CustomizationProps {
   customizedDataGrid: DataGridPlot;
   selectedAccordion: string | null;
@@ -52,13 +58,18 @@ const Customization = ({
     },
     {
       value: '1D plots',
-      component: <></>,
+      component: (
+        <Customize1DPlot
+          customizedDataGrid={customizedDataGrid}
+          selectedPlot={selectedPlot}
+          setCustomizedDataGrid={setCustomizedDataGrid}
+        />
+      ),
       icon: (
         <ActionIcon variant="filled" component="span">
           <Text fw="bold">1D</Text>
         </ActionIcon>
       ),
-      disabled: true,
     },
     {
       value: 'Heatmap',
@@ -141,7 +152,7 @@ const Customization = ({
 };
 
 export const DataplotCustomization = () => {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const customContainerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(0);
   const WIDTH_PLOT = Math.floor(containerWidth * (6 / 12));
   const HEIGHT_PLOT = 390;
@@ -179,8 +190,12 @@ export const DataplotCustomization = () => {
    */
   useEffect(() => {
     if (active?.customizedGridLayout) {
-      const data = active.dataPlot.find(
-        (item: DataGridPlot) => item.i === active.customizedGridLayout,
+      const data = JSON.parse(
+        JSON.stringify(
+          active.dataPlot.find(
+            (item: DataGridPlot) => item.i === active.customizedGridLayout,
+          ),
+        ),
       );
       if (data) {
         setDataGridLayout(data);
@@ -191,10 +206,55 @@ export const DataplotCustomization = () => {
   }, []);
 
   /**
+   * Init plots color by adding color in plot.line for each plot
+   */
+  const initPlotColors = () => {
+    // Get plot colors when select 1D plots accordion
+    const customContainer = customContainerRef.current;
+    if (!customContainer) return;
+    // Get child elements from the legend
+    const legends = customContainer.querySelectorAll<SVGGElement>(
+      'g.legendlines > path',
+    );
+
+    if (legends?.length) {
+      let plotIndex = 0;
+      const updatedPlotColors = JSON.parse(
+        JSON.stringify(customizedDataGrid),
+      ) as DataGridPlot;
+
+      let shouldUpdateColors = false;
+      for (const plot of updatedPlotColors.plot) {
+        // Get from DOM & set color in plot.line for each plots
+        if (!plot?.line?.color) {
+          shouldUpdateColors = true;
+        }
+        if (!plot?.line) {
+          plot.line = { color: legends[plotIndex].style.stroke } as PlotLine;
+        } else {
+          plot.line.color = legends[plotIndex].style.stroke;
+        }
+        plotIndex++;
+      }
+      if (!shouldUpdateColors) {
+        return;
+      }
+
+      setCustomizedDataGrid(updatedPlotColors);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedAccordion === '1D plots') {
+      initPlotColors();
+    }
+  }, [selectedAccordion]);
+
+  /**
    * Handle the resizing of the width
    */
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!customContainerRef.current) return;
 
     const observer = new ResizeObserver((entries) => {
       for (const entry of entries) {
@@ -202,7 +262,7 @@ export const DataplotCustomization = () => {
       }
     });
 
-    observer.observe(containerRef.current);
+    observer.observe(customContainerRef.current);
     return () => observer.disconnect();
   }, [tabsValue]);
 
@@ -210,10 +270,10 @@ export const DataplotCustomization = () => {
    * Handle close of customization
    */
   const closeWithoutSaving = useCallback(() => {
-    const updatedActive: Configuration = {
-      ...active,
-      customizedGridLayout: null,
-    };
+    const updatedActive: Configuration = JSON.parse(
+      JSON.stringify(active),
+    ) as Configuration;
+    updatedActive.customizedGridLayout = null;
     updatedConfiguration(updatedActive);
   }, [active]);
 
@@ -280,7 +340,7 @@ export const DataplotCustomization = () => {
               item?.name && (
                 <Tabs.Panel key={index} value={item.name}>
                   {tabsValue === item.name && (
-                    <Grid type="container" ref={containerRef}>
+                    <Grid type="container" ref={customContainerRef}>
                       <Grid.Col span={6}>
                         {selectedAccordion === 'Heatmap' ? (
                           <Surface2D

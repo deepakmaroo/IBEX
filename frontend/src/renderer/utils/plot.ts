@@ -729,7 +729,7 @@ export function formatConfigBeforeLoadingURIs(
           x: [],
           y: [],
           unit: '',
-        };
+        } as DataPlotly;
       }),
     }),
   );
