@@ -19,7 +19,7 @@ import {
   DataPlotly,
   PlotLine,
 } from 'src/renderer/types';
-import { CustomizeDownsampling, CustomizeTitle } from './customizableElements';
+import { CustomizeDownsampling, CustomizeGlobal } from './customizableElements';
 import { CustomizeHeatmap } from './customizableElements/CustomizeHeatmap';
 import { Customize1DPlot } from './customizableElements/Customize1DPlot';
 interface CustomizationProps {
@@ -50,9 +50,9 @@ const Customization = ({
   };
   const accordionItems: accordionItemsType[] = [
     {
-      value: 'Title',
+      value: 'Global',
       component: (
-        <CustomizeTitle
+        <CustomizeGlobal
           customizedDataGrid={customizedDataGrid}
           setCustomizedDataGrid={setCustomizedDataGrid}
         />

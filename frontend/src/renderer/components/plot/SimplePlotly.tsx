@@ -1,5 +1,5 @@
 import { Center, Grid, Group, Select, Text } from '@mantine/core';
-import { Layout } from 'plotly.js';
+import { Layout, AxisType } from 'plotly.js';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Plot from 'react-plotly.js';
 import { Configuration, Coordinates, DataGridPlot } from 'src/renderer/types';
@@ -14,6 +14,7 @@ import {
 } from '../../utils';
 import classes from './SimplePlotly.module.css';
 import { NoDataForURI } from '../plot';
+import { usePlotLayout } from './hooks/usePlotLayout';
 interface SimplePlotlyProps {
   itemDataGrid: DataGridPlot;
   width: number;
@@ -49,6 +50,7 @@ export const SimplePlotly = ({
       rangemode: 'normal',
       showline: true,
       zeroline: false,
+      type: (itemDataGrid?.xAxisData?.type as AxisType) || 'linear',
     },
     yaxis: {
       title: {
@@ -61,7 +63,7 @@ export const SimplePlotly = ({
       rangemode: 'normal',
       showline: true,
       zeroline: false,
-      showgrid: true,
+      type: (itemDataGrid?.yAxisData?.type as AxisType) || 'linear',
     },
     modebar: {
       orientation: 'v',
@@ -73,6 +75,11 @@ export const SimplePlotly = ({
     },
     plot_bgcolor: '#c7c7c7',
     dragmode: 'zoom',
+  });
+  // Custom hook used for trigger some useEffects to update the layout
+  usePlotLayout({
+    itemDataGrid,
+    setLayoutPlot,
   });
   const [title, setTitle] = useState(itemDataGrid.title);
   const [dataEntries, setDataEntries] = useState<string[]>([]);
@@ -256,6 +263,7 @@ export const SimplePlotly = ({
       yaxis2:
         itemDataGrid.y2AxisData && itemDataGrid.y2AxisData !== undefined
           ? {
+              ...prevLayout.yaxis2,
               title: {
                 text: Y2Title,
                 font: {

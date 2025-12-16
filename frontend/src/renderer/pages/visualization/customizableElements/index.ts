@@ -1,2 +1,2 @@
-export * from './CustomizeTitle';
+export * from './CustomizeGlobal';
 export * from './CustomizeDownsampling';

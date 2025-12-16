@@ -21,6 +21,7 @@ import {
 import classes from './Surface2D.module.css';
 import { useIbexStore } from '../../stores';
 import { NoDataForURI } from '../plot';
+import { usePlotLayout } from './hooks/usePlotLayout';
 
 interface Surface2DProps {
   itemDataGrid: DataGridPlot;
@@ -64,6 +65,11 @@ export const Surface2D = ({
     modebar: {
       orientation: 'v',
     },
+  });
+  // Custom hook used for trigger some useEffects to update the layout
+  usePlotLayout({
+    itemDataGrid,
+    setLayoutPlot,
   });
   const [title, setTitle] = useState(itemDataGrid.title);
   const layoutPlotWidth = showSliders ? width * 0.8 : width;

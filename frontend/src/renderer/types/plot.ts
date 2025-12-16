@@ -5,6 +5,7 @@ export interface Axis {
   name: string;
   unit: string;
   path?: string;
+  type?: string;
 }
 
 export type AxisData =
@@ -74,6 +75,7 @@ export interface BaseDataGridPlot {
   title: string;
   isTitleOverwritten: boolean;
   displayErrorBand: boolean;
+  displayGrid: boolean;
   xAxisData?: Axis;
   yAxisData?: Axis;
   y2AxisData?: Axis;
