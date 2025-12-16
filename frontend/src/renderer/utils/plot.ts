@@ -58,7 +58,7 @@ export const plotData = (
     y: yValue,
     yData: yData,
     name: name ? `${name}_${labelUri}` : '',
-    mode: yValue.length > 1 ? 'lines' : 'lines+markers',
+    mode: 'lines',
     nodeUri: nodeUri,
     description: description,
     path: path,
@@ -863,7 +863,6 @@ export async function plotNodeUriLoaded(
               yData: response.data.value,
               x: defaultXValue,
               y: defaultYValue,
-              mode: defaultYValue.length > 1 ? 'lines' : 'lines+markers',
             } as DataPlotly;
             updatedPlot.push(plotToPush);
           } catch (error) {

@@ -1,4 +1,11 @@
-import { ColorInput, Group, Stack, Button, Tooltip } from '@mantine/core';
+import {
+  ColorInput,
+  Group,
+  Stack,
+  Button,
+  Tooltip,
+  Select,
+} from '@mantine/core';
 import { DataGridPlot, DataPlotly } from '../../../types';
 import { useEffect, useState } from 'react';
 
@@ -45,6 +52,35 @@ export const Customize1DPlot = ({
     setCustomizedDataGrid({ ...customizedDataGrid, plot: updatedPlots });
   };
 
+  const updatePlotMode = (newMode: string) => {
+    const updatedDataPlot = JSON.parse(
+      JSON.stringify(customizedDataGrid),
+    ) as DataGridPlot;
+
+    updatedDataPlot.plot.find((plot) => plot.name === selectedPlot.name).mode =
+      newMode;
+
+    setCustomizedDataGrid({
+      ...customizedDataGrid,
+      plot: updatedDataPlot.plot,
+    });
+  };
+
+  const updatePlotShape = (newShape: string) => {
+    const updatedDataPlot = JSON.parse(
+      JSON.stringify(customizedDataGrid),
+    ) as DataGridPlot;
+
+    updatedDataPlot.plot.find(
+      (plot) => plot.name === selectedPlot.name,
+    ).line.shape = newShape;
+
+    setCustomizedDataGrid({
+      ...customizedDataGrid,
+      plot: updatedDataPlot.plot,
+    });
+  };
+
   useEffect(() => {
     if (selectedPlot?.line?.color) {
       // Init color plot in component
@@ -71,6 +107,26 @@ export const Customize1DPlot = ({
           </Button>
         </Tooltip>
       </Group>
+
+      <Select
+        label="Plot mode"
+        description="Customize the mode"
+        placeholder="Customize the mode"
+        data={['lines', 'lines+markers', 'markers']}
+        value={selectedPlot?.mode || 'lines'}
+        onChange={(value) => updatePlotMode(value)}
+        maw={200}
+      />
+
+      <Select
+        label="Plot shape"
+        description="Customize the shape"
+        placeholder="Customize the shape"
+        data={['linear', 'hv']}
+        value={selectedPlot?.line?.shape || 'linear'}
+        onChange={(value) => updatePlotShape(value)}
+        maw={200}
+      />
     </Stack>
   );
 };

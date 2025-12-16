@@ -127,6 +127,7 @@ export function MainLayout() {
             labelUri: plot.labelUri,
             line: plot?.line || {},
             customPreferences: plot?.customPreferences || {},
+            mode: plot?.mode || 'line',
           };
         }),
       }),

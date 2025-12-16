@@ -34,6 +34,7 @@ export interface BaseDataPlotly {
   yaxis?: string;
   customPreferences?: CustomPreferences;
   line?: PlotLine;
+  mode?: string;
 }
 
 export type DataPlotly = BaseDataPlotly &
@@ -61,6 +62,7 @@ export type CustomPreferences = {
 
 export type PlotLine = {
   color?: string;
+  shape?: string;
 };
 
 export interface BaseDataGridPlot {

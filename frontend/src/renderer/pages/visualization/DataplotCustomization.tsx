@@ -216,9 +216,7 @@ export const DataplotCustomization = () => {
     const customContainer = customContainerRef.current;
     if (!customContainer) return;
     // Get child elements from the legend
-    const legends = customContainer.querySelectorAll<SVGGElement>(
-      'g.legendlines > path',
-    );
+    const legends = customContainer.querySelectorAll<SVGGElement>('g.layers');
 
     if (legends?.length) {
       let plotIndex = 0;
@@ -232,10 +230,20 @@ export const DataplotCustomization = () => {
         if (!plot?.line?.color) {
           shouldUpdateColors = true;
         }
+
+        const line = legends[plotIndex].querySelector<SVGGElement>(
+          'g.legendlines > path',
+        );
+        // We get color from point when plot.mode === "markers"
+        const point = legends[plotIndex].querySelector<SVGGElement>(
+          'g.legendpoints > path',
+        );
+        const colorFromDOM = line?.style?.stroke || point?.style?.fill;
+
         if (!plot?.line) {
-          plot.line = { color: legends[plotIndex].style.stroke } as PlotLine;
+          plot.line = { color: colorFromDOM } as PlotLine;
         } else {
-          plot.line.color = legends[plotIndex].style.stroke;
+          plot.line.color = colorFromDOM;
         }
         plotIndex++;
       }
