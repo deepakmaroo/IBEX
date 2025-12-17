@@ -773,6 +773,7 @@ class IMASPythonSource(DataSourceInterface):
                         target_size=downsampled_size,
                         method=downsampling_method,
                         x=coordinates_to_be_returned[0]["value"],
+                        single_x_axis=(coordinates_to_be_returned[0]["path"] == f"#{ids}/time"),
                     )
 
                 else:
