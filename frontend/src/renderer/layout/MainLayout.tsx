@@ -115,6 +115,7 @@ export function MainLayout() {
               path: coord.path,
               target: coord.target,
               valueIndex: coord.valueIndex,
+              range: coord?.range,
             };
           },
         ),

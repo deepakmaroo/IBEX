@@ -22,6 +22,7 @@ import {
 import { CustomizeDownsampling, CustomizeGlobal } from './customizableElements';
 import { CustomizeHeatmap } from './customizableElements/CustomizeHeatmap';
 import { Customize1DPlot } from './customizableElements/Customize1DPlot';
+import { CustomizeDataRange } from './customizableElements/CustomizeDataRange';
 interface CustomizationProps {
   customizedDataGrid: DataGridPlot;
   selectedAccordion: string | null;
@@ -105,8 +106,12 @@ const Customization = ({
     },
     {
       value: 'Data range',
-      component: <></>,
-      disabled: true,
+      component: (
+        <CustomizeDataRange
+          customizedDataGrid={customizedDataGrid}
+          setCustomizedDataGrid={setCustomizedDataGrid}
+        />
+      ),
     },
     {
       value: 'Downsampling',
