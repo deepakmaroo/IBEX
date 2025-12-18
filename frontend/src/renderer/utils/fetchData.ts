@@ -174,13 +174,16 @@ export const fetchDataPlot = async (
       // Try to fetch data without downsampling in according timeout
       response = await fetchFromApi<PlotDataResponse>(
         `/data/plot_data/?uri=${encodeURIComponent(uri)}`,
-        30000,
+        5000,
       );
     } catch (error) {
-      if (error.name === 'AbortError') {
+      if (error.name === 'AbortError' || error.name === 'SyntaxError') {
+        // "SyntaxError" can be triggered when too heavy (eof error)
         // Use first downsampling method by default to fetch data
         const methods = await fetchDownsamplingMethods();
-        firstMethod = methods?.downsampling_methods.slice(0)[1].name;
+        firstMethod =
+          methods?.downsampling_methods.find((meth) => meth.name === 'M4')
+            ?.name || methods?.downsampling_methods.slice(0)[1].name;
         response = await fetchFromApi<PlotDataResponse>(
           `/data/plot_data/?uri=${encodeURIComponent(uri)}&downsampling_method=${encodeURIComponent(firstMethod)}&downsampled_size=${encodeURIComponent(downsampled_size)}`,
         );
