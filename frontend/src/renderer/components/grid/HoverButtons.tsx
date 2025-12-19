@@ -4,15 +4,16 @@ import {
   Group,
   Tooltip,
   ActionIcon,
-  Select,
   Text,
   Tabs,
   Switch,
+  ScrollArea,
 } from '@mantine/core';
 import {
   IconBrandDatabricks,
   IconCheck,
   IconEdit,
+  IconPalette,
   IconTrash,
 } from '@tabler/icons-react';
 import { useHover } from '@mantine/hooks';
@@ -22,12 +23,10 @@ import { useIbexStore } from '../../stores';
 
 interface HoverButtonsProps {
   data: DataGridPlot;
-  downsamplingMethod: string;
-  downsamplingList: string[];
   shouldDisplayMetadata: boolean;
-  setDownsamplingMethod: React.Dispatch<React.SetStateAction<string>>;
   handleEditGrid: (id: string) => void;
   handleInspectMetadata: (id: string) => void;
+  handleCustomization: (id: string) => void;
   handleDeleteGrid: (id: string) => void;
   is3DView: boolean;
   setIs3DView: React.Dispatch<React.SetStateAction<boolean>>;
@@ -38,12 +37,10 @@ interface HoverButtonsProps {
 export const HoverButtons = React.memo(
   ({
     data,
-    downsamplingMethod,
-    downsamplingList,
     shouldDisplayMetadata,
-    setDownsamplingMethod,
     handleEditGrid,
     handleInspectMetadata,
+    handleCustomization,
     handleDeleteGrid,
     is3DView,
     setIs3DView,
@@ -130,18 +127,37 @@ export const HoverButtons = React.memo(
     return (
       <div ref={hoverRef} className={classes.containerButton}>
         <Group justify="space-between" h={'100%'}>
-          {is3DView ? (
+          {is3DView || !data.coordinates.length || shouldDisplayMetadata ? (
             <Tabs
               value={active3DTab}
               onChange={(value) => setActive3DTab(value)}
             >
-              <Tabs.List>
-                {data.plot.map((plot, index) => (
-                  <Tabs.Tab key={`3D_tab_${index}`} value={index.toString()}>
-                    {plot.name}
-                  </Tabs.Tab>
-                ))}
-              </Tabs.List>
+              <ScrollArea
+                type="hover"
+                scrollHideDelay={0} // keep visible scrollbar only during hover
+                scrollbarSize={6}
+                offsetScrollbars
+                maw={
+                  hoverRef?.current?.offsetWidth
+                    ? !data.coordinates.length || shouldDisplayMetadata
+                      ? hoverRef.current.offsetWidth - 110
+                      : hoverRef.current.offsetWidth - 230
+                    : '100%'
+                }
+              >
+                <Tabs.List
+                  style={{
+                    flexWrap: 'nowrap',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {data.plot.map((plot, index) => (
+                    <Tabs.Tab key={`3D_tab_${index}`} value={index.toString()}>
+                      {plot.name}
+                    </Tabs.Tab>
+                  ))}
+                </Tabs.List>
+              </ScrollArea>
             </Tabs>
           ) : (
             <div></div>
@@ -149,20 +165,6 @@ export const HoverButtons = React.memo(
 
           {hovered || data.isEditing ? (
             <Group pos="absolute" right={'1rem'} top={5}>
-              {data.coordinates.length && !shouldDisplayMetadata && (
-                <Tooltip label="Select your downsampling method">
-                  <Select
-                    value={downsamplingMethod || 'None'}
-                    w="7rem"
-                    size="xs"
-                    disabled={!data.isEditing}
-                    data={downsamplingList}
-                    onChange={setDownsamplingMethod}
-                    placeholder="Downsampling"
-                  />
-                </Tooltip>
-              )}
-
               {!is3DView && data.isEditing && !shouldDisplayMetadata && (
                 <Switch
                   label="Error bands"
@@ -199,6 +201,23 @@ export const HoverButtons = React.memo(
                     }
                   >
                     <IconBrandDatabricks
+                      style={{ width: '70%', height: '70%' }}
+                      stroke={1.5}
+                    />
+                  </ActionIcon>
+                </Tooltip>
+              )}
+
+              {data.coordinates.length && !shouldDisplayMetadata && (
+                // Show customization button only if plottable
+                <Tooltip label="Customize the grid">
+                  <ActionIcon
+                    variant="filled"
+                    aria-label="Metadatas"
+                    onClick={() => handleCustomization(data.i)}
+                    className={classes.actionButton}
+                  >
+                    <IconPalette
                       style={{ width: '70%', height: '70%' }}
                       stroke={1.5}
                     />

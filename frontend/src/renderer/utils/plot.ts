@@ -58,7 +58,7 @@ export const plotData = (
     y: yValue,
     yData: yData,
     name: name ? `${name}_${labelUri}` : '',
-    mode: yValue.length > 1 ? 'lines' : 'lines+markers',
+    mode: 'lines',
     nodeUri: nodeUri,
     description: description,
     path: path,
@@ -493,7 +493,7 @@ export const fetchErrorBandsInConfig = async (
   uri: string,
 ) => {
   let dataPlotWithErrBands: DataGridPlot[];
-  const data = active.dataPlot.find((d) => d.isEditing); // ? Init data pour l'utiliser
+  const data = active.dataPlot.find((d) => d.isEditing);
   if (!data) {
     // Don't get error bands when no editing dataPlot
     return;
@@ -558,7 +558,7 @@ export const fetchErrorBands = async (
   dataPlotId: string,
   uri: string,
 ) => {
-  const data = dataPlot.find((d) => d.i === dataPlotId); // ? Init data pour l'utiliser
+  const data = dataPlot.find((d) => d.i === dataPlotId);
 
   const selectedDataPlot = dataPlot.find((dataPlot) => dataPlot.i === data.i);
 
@@ -729,7 +729,7 @@ export function formatConfigBeforeLoadingURIs(
           x: [],
           y: [],
           unit: '',
-        };
+        } as DataPlotly;
       }),
     }),
   );
@@ -863,7 +863,6 @@ export async function plotNodeUriLoaded(
               yData: response.data.value,
               x: defaultXValue,
               y: defaultYValue,
-              mode: defaultYValue.length > 1 ? 'lines' : 'lines+markers',
             } as DataPlotly;
             updatedPlot.push(plotToPush);
           } catch (error) {

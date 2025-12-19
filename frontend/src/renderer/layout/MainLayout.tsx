@@ -100,6 +100,7 @@ export function MainLayout() {
         title: dataGrid.title,
         isTitleOverwritten: dataGrid.isTitleOverwritten,
         displayErrorBand: dataGrid.displayErrorBand,
+        displayGrid: dataGrid.displayGrid,
         xAxisData: dataGrid.xAxisData,
         yAxisData: dataGrid.yAxisData,
         y2AxisData: dataGrid?.y2AxisData,
@@ -125,6 +126,9 @@ export function MainLayout() {
             nodeUri: newNodeUri,
             yaxis: plot?.yaxis || '',
             labelUri: plot.labelUri,
+            line: plot?.line || {},
+            customPreferences: plot?.customPreferences || {},
+            mode: plot?.mode || 'line',
           };
         }),
       }),

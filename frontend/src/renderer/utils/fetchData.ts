@@ -159,8 +159,9 @@ export const fetchFindPaths = async (
 export const fetchDataPlot = async (
   uri: string,
   downsamplingMethod?: string,
+  downsamplingSize?: number,
 ) => {
-  const downsampled_size = 1000;
+  const downsampled_size = downsamplingSize || 1000;
   let response: PlotDataResponse;
   let firstMethod: string;
 

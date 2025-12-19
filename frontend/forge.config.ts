@@ -10,7 +10,7 @@ import { FuseV1Options, FuseVersion } from '@electron/fuses';
 import { getConfigSync } from './src/config';
 import { mainConfig } from './webpack.main.config';
 import { rendererConfig } from './webpack.renderer.config';
-
+import path from 'path';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -19,6 +19,7 @@ const configVaribles = getConfigSync();
 const config: ForgeConfig = {
   packagerConfig: {
     asar: true,
+    extraResource: [path.resolve(__dirname, '..', 'templates')],
   },
   rebuildConfig: {},
   makers: [
