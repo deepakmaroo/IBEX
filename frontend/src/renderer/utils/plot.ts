@@ -1329,3 +1329,134 @@ async function transposeAxis(
     }
   }
 }
+
+/**
+ * Reduce size of a data by slicing to the range provided
+ * @param coordinates
+ * @param coordNameToUpdate
+ * @param dataRangeMin
+ * @param dataRangeMax
+ * @param dependencyIndex optional: used for updating dependencies
+ * @returns
+ */
+const trimData = async (
+  coordinates: Coordinates[],
+  coordNameToUpdate: string,
+  dataRangeMin: number,
+  dataRangeMax: number,
+  dependencyIndex?: number,
+) => {
+  const updatedCoord = coordinates.find(
+    (coord) => coord.name === coordNameToUpdate,
+  );
+  const dataTensorized = tf.tensor(updatedCoord.data);
+  const shapeIndex = dependencyIndex ?? dataTensorized.shape.length - 1;
+  const dependencyName =
+    updatedCoord.coordinates[dependencyIndex ?? -1] ?? null;
+  const dependencyRange = dependencyName
+    ? coordinates.find((coord) => coord?.name === dependencyName)?.range
+    : null;
+  const minRangeOrigin = dependencyName
+    ? dependencyRange
+      ? dependencyRange[0]
+      : 0
+    : updatedCoord?.range
+      ? updatedCoord.range[0]
+      : 0;
+  const originShape = dataTensorized.shape.map((el, index) =>
+    index === shapeIndex ? dataRangeMin - minRangeOrigin : 0,
+  );
+  const shapeSize = dataTensorized.shape.map((el, index) =>
+    index === shapeIndex ? dataRangeMax + 1 - dataRangeMin : el,
+  );
+  return tf.slice(dataTensorized, originShape, shapeSize);
+};
+
+/**
+ * Format trimmed coordinate by updating all concerned data (data, shape, downsampled_shape, valueIndex, target, path)
+ * @param updatedCoord
+ * @param trimmed
+ * @param coordinateAffectingDependency
+ */
+const formatTrimmedCoordinate = async (
+  updatedCoord: Coordinates,
+  trimmed: tf.Tensor<tf.Rank>,
+  coordinateAffectingDependency?: Coordinates,
+) => {
+  const depValues = (await trimmed.array()) as AxisData;
+  // Update data
+  updatedCoord.data = depValues;
+
+  // Update shapes
+  updatedCoord.shape = trimmed.shape;
+  updatedCoord.downsampled_shape = trimmed.shape;
+
+  // Update valueIndex, target & path
+  updatedCoord.valueIndex = 0;
+  const lastTargetLastName = getLastIndexedField(
+    coordinateAffectingDependency?.target ?? updatedCoord.target,
+  );
+  const updatedPath = updateIndexFieldName(
+    updatedCoord.path,
+    lastTargetLastName,
+    0,
+  );
+  const updatedTarget = updateIndexFieldName(
+    updatedCoord.target,
+    lastTargetLastName,
+    0,
+  );
+  updatedCoord.path = updatedPath;
+  updatedCoord.target = updatedTarget;
+};
+
+export async function trimCoordData(
+  updatedCoords: Coordinates[],
+  coordNameToUpdate: string,
+  newRange: [number, number],
+) {
+  // * coordinate?.range[minIndex, maxIndex] (si range restorable)
+  const updatedCoord = updatedCoords.find(
+    (coord) => coord.name === coordNameToUpdate,
+  );
+  const coordinate = JSON.parse(JSON.stringify(updatedCoord));
+  const dataRangeMin = newRange[0];
+  const dataRangeMax = newRange[1];
+
+  updatedCoord.range = newRange;
+
+  // * range coordinate.data
+  const trimmed = await trimData(
+    updatedCoords,
+    updatedCoord.name,
+    dataRangeMin,
+    dataRangeMax,
+  );
+  formatTrimmedCoordinate(updatedCoord, trimmed);
+
+  // * Update his dependencies
+  for (const coordDependencie of updatedCoords) {
+    if (coordDependencie.name === coordinate.name) {
+      // Don't check dependencies of updated coordinate
+      continue;
+    }
+
+    const dependencyIndex = coordDependencie.coordinates.findIndex(
+      (dep) => dep === coordinate.name,
+    );
+    if (dependencyIndex === -1) {
+      // No dependencies with updated coordinate
+      continue;
+    }
+
+    // Update coordinates having dependency
+    const trimmedDep = await trimData(
+      updatedCoords,
+      coordDependencie.name,
+      dataRangeMin,
+      dataRangeMax,
+      dependencyIndex,
+    );
+    formatTrimmedCoordinate(coordDependencie, trimmedDep, updatedCoord);
+  }
+}

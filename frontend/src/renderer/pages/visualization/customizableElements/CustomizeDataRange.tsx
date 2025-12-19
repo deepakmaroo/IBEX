@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Coordinates, DataGridPlot } from '../../../types';
 import {
+  trimCoordData,
   fetchDataPlot,
   getArrayValueFromDependance,
   getFirstArrayValueFromShape,
@@ -8,7 +9,13 @@ import {
   normalizeIndices,
 } from '../../../utils';
 import { showNotification } from '@mantine/notifications';
-import { Button, Divider, Group, NumberInput, Stack, Text } from '@mantine/core';
+import {
+  Button,
+  Divider,
+  Group,
+  NumberInput,
+  Stack,
+} from '@mantine/core';
 import { IconCheck, IconRestore } from '@tabler/icons-react';
 
 interface CustomizeDataRangeProps {
@@ -91,44 +98,44 @@ export const CustomizeDataRange = ({
 
   interface CoordinateRangeProps {
     coordinate: Coordinates;
-  };
-  
-  const CoordinateRange = ({
-    coordinate,
-  }: CoordinateRangeProps) => {
+  }
+
+  const CoordinateRange = ({ coordinate }: CoordinateRangeProps) => {
     const minRange = coordinate?.range ? coordinate.range[0] : 0;
-    const maxRange = coordinate?.range ? coordinate.range[1]
-        :
-      (
-        typeof coordinate.shape !== "string" ? 
-          coordinate.shape[coordinate.shape.length - 1] - 1
-          :
-          getFirstArrayValueFromShape(coordinate.data, coordinate.shape).length - 1
-      )
+    const maxRange = coordinate?.range
+      ? coordinate.range[1]
+      : typeof coordinate.shape !== 'string'
+        ? coordinate.shape[coordinate.shape.length - 1] - 1
+        : getFirstArrayValueFromShape(coordinate.data, coordinate.shape)
+            .length - 1;
     const [dataRangeMin, setDataRangeMin] = useState<number>(minRange);
     const [dataRangeMax, setDataRangeMax] = useState<number>(maxRange);
     const [isLoadingApply, setIsLoadingApply] = useState(false);
     const [isLoadingRestore, setIsLoadingRestore] = useState(false);
 
-    const applyRange = () => {
-      console.log("call applyRange");
-      console.log("dataRangeMin : ", dataRangeMin);
-      console.log("dataRangeMax : ", dataRangeMax);
+    const applyRange = async () => {
+      console.log('call applyRange');
+      console.log('dataRangeMin : ', dataRangeMin);
+      console.log('dataRangeMax : ', dataRangeMax);
       try {
         setIsLoadingApply(true);
-        const updatedDataPlot = JSON.parse(JSON.stringify(customizedDataGrid)) as DataGridPlot;
-        const updatedCoord = updatedDataPlot.coordinates.find((coord) => coord.axeIndex === coordinate.axeIndex)
-        // ? Step 1 => range coordinate.data ; coordinate.valueIndex = 0 ; MAJ coordinate.shape ; coordinate?.range[minIndex, maxIndex] (si range restorable)
-        // * coordinate?.range[minIndex, maxIndex] (si range restorable)
-        updatedCoord.range = [dataRangeMin, dataRangeMax];
+        const updatedDataPlot = JSON.parse(
+          JSON.stringify(customizedDataGrid),
+        ) as DataGridPlot;
+        const newRange = [dataRangeMin, dataRangeMax] as [number, number];
+        // Trim coordinate
+        trimCoordData(updatedDataPlot.coordinates, coordinate.name, newRange);
+        console.log('AFTER trimCoordData =>');
+        console.log(
+          'updatedDataPlot.coordinates : ',
+          updatedDataPlot.coordinates,
+        );
 
         // ? Step 2 => PLOTDATA POUR :: range plot.yData ; MAJ plot.x && plot.y ; MAJ plot.shape
 
-
         // ? Step 3 => PLOTDATA POUR :: range plot.error_bands.yData ; range plot.error_y.array && plot.error_y.arrayminus ; MAJ plot.shape
 
-
-        console.log("customizedDataGrid applies : ", {
+        console.log('customizedDataGrid applies : ', {
           ...customizedDataGrid,
           coordinates: updatedDataPlot.coordinates,
           // plot: updatedDataPlot.plot,
@@ -139,31 +146,31 @@ export const CustomizeDataRange = ({
           // plot: updatedDataPlot.plot,
         });
       } catch (error) {
-        console.log("Error applying the range: ", error);
-        
+        console.log('Error applying the range: ', error);
       } finally {
         setIsLoadingApply(false);
       }
-      
-    }
+    };
 
     const restoreRange = () => {
-      console.log("call restoreRange");
+      console.log('call restoreRange');
       try {
         setIsLoadingRestore(true);
-        const updatedDataPlot = JSON.parse(JSON.stringify(customizedDataGrid)) as DataGridPlot;
-        const updatedCoord = updatedDataPlot.coordinates.find((coord) => coord.axeIndex === coordinate.axeIndex)
+        const updatedDataPlot = JSON.parse(
+          JSON.stringify(customizedDataGrid),
+        ) as DataGridPlot;
+        const updatedCoord = updatedDataPlot.coordinates.find(
+          (coord) => coord.axeIndex === coordinate.axeIndex,
+        );
         // ? Step 1 => range coordinate.data ; coordinate.valueIndex = 0 ; MAJ coordinate.shape ; coordinate?.range[minIndex, maxIndex] (si range restorable)
         // * coordinate?.range[minIndex, maxIndex] (si range restorable)
         delete updatedCoord.range;
 
         // ? Step 2 => PLOTDATA POUR :: range plot.yData ; MAJ plot.x && plot.y ; MAJ plot.shape
 
-
         // ? Step 3 => PLOTDATA POUR :: range plot.error_bands.yData ; range plot.error_y.array && plot.error_y.arrayminus ; MAJ plot.shape
 
-
-        console.log("customizedDataGrid restore : ", {
+        console.log('customizedDataGrid restore : ', {
           ...customizedDataGrid,
           coordinates: updatedDataPlot.coordinates,
         });
@@ -172,38 +179,39 @@ export const CustomizeDataRange = ({
           coordinates: updatedDataPlot.coordinates,
         });
       } catch (error) {
-        console.log("Error restoring the range: ", error);
-        
+        console.log('Error restoring the range: ', error);
       } finally {
         setIsLoadingRestore(false);
       }
-      
-    }
+    };
 
-    const setInDataRange = useCallback((
-      rangePosition: "min" | "max",
-      value: number,
-      setter: React.Dispatch<React.SetStateAction<number>>
-    ) => {
+    const setInDataRange = useCallback(
+      (
+        rangePosition: 'min' | 'max',
+        value: number,
+        setter: React.Dispatch<React.SetStateAction<number>>,
+      ) => {
         let checkedValue = value;
-        if(checkedValue < minRange){
+        if (checkedValue < minRange) {
           checkedValue = minRange;
-        } else if(checkedValue > maxRange){
+        } else if (checkedValue > maxRange) {
           checkedValue = maxRange;
         }
 
-        if(rangePosition === "min") {
-          if(checkedValue > dataRangeMax){
+        if (rangePosition === 'min') {
+          if (checkedValue > dataRangeMax) {
             checkedValue = dataRangeMax;
           }
         } else {
-          if(checkedValue < dataRangeMin){
+          if (checkedValue < dataRangeMin) {
             checkedValue = dataRangeMin;
           }
         }
-        console.log("checkedValue : ",checkedValue);
+        console.log('checkedValue : ', checkedValue);
         setter(checkedValue);
-    }, [minRange, maxRange, dataRangeMin, dataRangeMax])
+      },
+      [minRange, maxRange, dataRangeMin, dataRangeMax],
+    );
 
     return (
       <Group align="flex-end">
@@ -215,7 +223,9 @@ export const CustomizeDataRange = ({
             value={dataRangeMin}
             min={coordinate?.range ? coordinate.range[0] : 0}
             max={maxRange}
-            onChange={(value: number) => setInDataRange("min", value, setDataRangeMin)}
+            onChange={(value: number) =>
+              setInDataRange('min', value, setDataRangeMin)
+            }
             w={150}
           />
           <NumberInput
@@ -225,13 +235,15 @@ export const CustomizeDataRange = ({
             value={dataRangeMax}
             min={coordinate?.range ? coordinate.range[0] : 0}
             max={maxRange}
-            onChange={(value: number) => setInDataRange("max", value, setDataRangeMax)}
+            onChange={(value: number) =>
+              setInDataRange('max', value, setDataRangeMax)
+            }
             w={150}
           />
         </Group>
         <Group align="flex-end" justify="space-between">
-          <Button 
-            onClick={applyRange} 
+          <Button
+            onClick={applyRange}
             loading={isLoadingApply}
             leftSection={<IconCheck size={20} />}
           >
@@ -241,26 +253,21 @@ export const CustomizeDataRange = ({
             onClick={restoreRange}
             disabled={!coordinate?.range}
             loading={isLoadingRestore}
-            variant='outline'
+            variant="outline"
             leftSection={<IconRestore size={20} />}
           >
             Restore
           </Button>
         </Group>
       </Group>
-    )
-  }
-
-  useEffect(() => {
-    console.log("customizedDataGrid : ", customizedDataGrid);
-    
-  }, [customizedDataGrid])
+    );
+  };
 
   return (
     <Stack>
       {customizedDataGrid.coordinates.map((coord, index) => (
         <Stack key={`coord_data_range_${index}`}>
-          <Divider label={coord.name} labelPosition="center"/>
+          <Divider label={coord.name} labelPosition="center" />
           <CoordinateRange coordinate={coord} />
         </Stack>
       ))}
