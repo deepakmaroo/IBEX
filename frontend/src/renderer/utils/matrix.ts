@@ -22,6 +22,11 @@ export const getFirstArrayValueFromShape = (
   return firstArrayValue as number[];
 };
 
+/**
+ * Get vector from coordinates dependencies
+ * @param coordinates
+ * @param axeIndexWanted
+ */
 export const getArrayValueFromDependance = (
   coordinates: Coordinates[],
   axeIndexWanted: number,

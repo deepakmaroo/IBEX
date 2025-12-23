@@ -1,21 +1,16 @@
 import { useCallback, useState } from 'react';
 import { Coordinates, DataGridPlot } from '../../../types';
 import {
-  trimCoordData,
   fetchDataPlot,
   getArrayValueFromDependance,
   getFirstArrayValueFromShape,
   getVectorData,
   normalizeIndices,
+  applyRangeInPlot,
+  applyRangeInCoord,
 } from '../../../utils';
 import { showNotification } from '@mantine/notifications';
-import {
-  Button,
-  Divider,
-  Group,
-  NumberInput,
-  Stack,
-} from '@mantine/core';
+import { Button, Divider, Group, NumberInput, Stack } from '@mantine/core';
 import { IconCheck, IconRestore } from '@tabler/icons-react';
 
 interface CustomizeDataRangeProps {
@@ -119,34 +114,43 @@ export const CustomizeDataRange = ({
       console.log('dataRangeMax : ', dataRangeMax);
       try {
         setIsLoadingApply(true);
-        const updatedDataPlot = JSON.parse(
-          JSON.stringify(customizedDataGrid),
-        ) as DataGridPlot;
+        const updatedDataPlot = customizedDataGrid;
         const newRange = [dataRangeMin, dataRangeMax] as [number, number];
+        const coordinates = JSON.parse(
+          JSON.stringify(updatedDataPlot.coordinates),
+        ) as Coordinates[];
+        const oldRange = coordinates.find(
+          (coord) => coord.axeIndex === coordinate.axeIndex,
+        )?.range;
+
         // Trim coordinate
-        trimCoordData(updatedDataPlot.coordinates, coordinate.name, newRange);
-        console.log('AFTER trimCoordData =>');
-        console.log(
-          'updatedDataPlot.coordinates : ',
+        await applyRangeInCoord(
           updatedDataPlot.coordinates,
+          coordinate.name,
+          newRange,
         );
 
-        // ? Step 2 => PLOTDATA POUR :: range plot.yData ; MAJ plot.x && plot.y ; MAJ plot.shape
+        // Trim plots
+        await applyRangeInPlot(
+          updatedDataPlot.coordinates,
+          updatedDataPlot.plot,
+          coordinate.axeIndex,
+          newRange,
+          oldRange,
+        );
 
-        // ? Step 3 => PLOTDATA POUR :: range plot.error_bands.yData ; range plot.error_y.array && plot.error_y.arrayminus ; MAJ plot.shape
-
-        console.log('customizedDataGrid applies : ', {
+        console.log('customizedDataGrid applied : ', {
           ...customizedDataGrid,
           coordinates: updatedDataPlot.coordinates,
-          // plot: updatedDataPlot.plot,
+          plot: updatedDataPlot.plot,
         });
         setCustomizedDataGrid({
           ...customizedDataGrid,
           coordinates: updatedDataPlot.coordinates,
-          // plot: updatedDataPlot.plot,
+          plot: updatedDataPlot.plot,
         });
       } catch (error) {
-        console.log('Error applying the range: ', error);
+        console.error('Error applying the range: ', error);
       } finally {
         setIsLoadingApply(false);
       }
@@ -179,7 +183,7 @@ export const CustomizeDataRange = ({
           coordinates: updatedDataPlot.coordinates,
         });
       } catch (error) {
-        console.log('Error restoring the range: ', error);
+        console.error('Error restoring the range: ', error);
       } finally {
         setIsLoadingRestore(false);
       }
