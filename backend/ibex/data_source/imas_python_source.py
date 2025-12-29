@@ -7,7 +7,15 @@ import numpy as np  # type: ignore
 import re  # type: ignore
 from idstools.database import DBMaster  # type: ignore
 from imas.ids_metadata import IDSMetadata  # type: ignore
-from imas.ids_primitive import IDSNumericArray, IDSString0D, IDSString1D, IDSComplex0D, IDSFloat0D, IDSInt0D  # type: ignore
+from imas.ids_primitive import (
+    IDSNumericArray,
+    IDSString0D,
+    IDSString1D,
+    IDSComplex0D,
+    IDSFloat0D,
+    IDSInt0D,
+    IDSPrimitive,
+)  # type: ignore
 from imas.ids_struct_array import IDSStructArray  # type: ignore
 from imas.ids_structure import IDSStructure  # type: ignore
 from imas.ids_data_type import IDSDataType  # type: ignore
@@ -41,6 +49,14 @@ class IMASPythonSource(DataSourceInterface):
         Default constructor
         """
         ...
+
+    def data_serializer_custom(self, obj):
+        """
+        Custom data sub-serializer. Replaces arbitrary objects with ones supported by ORJSON serializer (IDSNumericArray -> np.array).
+        """
+        if isinstance(obj, IDSPrimitive):
+            return obj.value
+        raise TypeError
 
     def _open_entry(self, uri: str) -> imas.DBEntry:
         """
@@ -375,8 +391,9 @@ class IMASPythonSource(DataSourceInterface):
             ids_path = IDSPath(node_path)
             path_elements = list(ids_path.items())
             ids_data = self._get_raw_data(ids_root, path_elements)
+        self._check_data_is_leaf_node(ids_data)
 
-        data_to_be_returned = self._serialize_data(ids_data)
+        data_to_be_returned = ids_data
 
         first_value = ids_data
         while isinstance(first_value, list):
@@ -466,6 +483,7 @@ class IMASPythonSource(DataSourceInterface):
         with self._open_entry(uri) as entry:
             ids_obj = self._get_ids_from_entry(entry, ids, occurrence)
             ids_data = self._get_raw_data(ids_obj, path_elements)
+        self._check_data_is_leaf_node(ids_data)
 
         if isinstance(ids_data, IDSStructure) or isinstance(ids_data, IDSStructArray):
             raise NotALeafNodeException(f"Path {node_path} does not point to a leaf node")
@@ -538,28 +556,16 @@ class IMASPythonSource(DataSourceInterface):
         else:
             return data.coordinates[0]
 
-    def _serialize_data(self, data):
+    def _check_data_is_leaf_node(self, data) -> None:
         """
-        Converts data IDS data into serializable values e.g. imas.int64 -> int
-
-        :param data:
-        :return: Serializable data value
+        Helper function. Helps determine if data could be returned (e.g. is not IDSStructure).
+        It has to be done before data is returned to serializer.
         """
-        if isinstance(data, IDSStructure):
+        if isinstance(data, list):
+            for x in data:
+                self._check_data_is_leaf_node(x)
+        elif isinstance(data, IDSStructure):
             raise NotALeafNodeException("Cannot serialize non-leaf node")
-        if isinstance(data, (str, int, float)):
-            return data
-        elif isinstance(data, IDSNumericArray):
-            return data.value.tolist()
-        elif isinstance(data, list):
-            return [self._serialize_data(x) for x in data]
-        elif isinstance(data, np.ndarray):  # data = np.ndarray
-            return data.tolist()
-        elif isinstance(data.value, np.ndarray):  # data = IDSNumericArray
-            return data.tolist()
-        elif not data.has_value:
-            return None
-        return data.value
 
     def get_plot_data(
         self,
@@ -586,6 +592,7 @@ class IMASPythonSource(DataSourceInterface):
             ids_path = IDSPath(node_path)
             path_elements = list(ids_path.items())
             ids_data = self._get_raw_data(ids_obj, path_elements)
+            self._check_data_is_leaf_node(ids_data)
 
             # function to check if list is essentially empty (contains only empty lists or empty strings)
             def is_empty(seq):
@@ -654,6 +661,7 @@ class IMASPythonSource(DataSourceInterface):
                         ids_path = IDSPath(str(target_str))
                         path_elements = list(ids_path.items())
                         coord_target_objects = self._get_raw_data(ids_obj, path_elements)
+                        self._check_data_is_leaf_node(coord_target_objects)
 
                         # collect labels for 1...N coordinates
                         labels = []
@@ -720,6 +728,7 @@ class IMASPythonSource(DataSourceInterface):
                         coord_path = IDSPath(coord)
                         coord_real_paths = list(coord_path.items())
                         coord_data = self._get_raw_data(ids_obj, coord_real_paths)
+                        self._check_data_is_leaf_node(coord_data)
 
                         first_value = find_first_value_in_list(coord_data)
 
@@ -786,7 +795,6 @@ class IMASPythonSource(DataSourceInterface):
                     c["downsampled_shape"] = np.asarray(c["value"]).shape
                 except ValueError:
                     c["downsampled_shape"] = "irregular"
-                c["value"] = self._serialize_data(c["value"])
             try:
                 downsampled_shape = np.asarray(data_to_be_returned).shape
             except ValueError:
@@ -801,7 +809,7 @@ class IMASPythonSource(DataSourceInterface):
                     "path": f"#{ids}/{node_path}",
                     "description": first_value.metadata.documentation,
                     "coordinates": coordinates_to_be_returned,
-                    "value": self._serialize_data(data_to_be_returned),
+                    "value": data_to_be_returned,
                 }
             }
 
