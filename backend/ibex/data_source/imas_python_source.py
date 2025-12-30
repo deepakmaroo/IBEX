@@ -56,6 +56,8 @@ class IMASPythonSource(DataSourceInterface):
         """
         if isinstance(obj, IDSPrimitive):
             return obj.value
+        if isinstance(obj, np.ndarray) and not obj.flags.c_contiguous:
+            return np.ascontiguousarray(obj)
         raise TypeError
 
     def _open_entry(self, uri: str) -> imas.DBEntry:
