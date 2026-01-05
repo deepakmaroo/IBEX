@@ -1073,6 +1073,19 @@ function replaceNullsWithNaN(arr: AxisData): AxisData {
   return arr ?? NaN;
 }
 
+/**
+ * Return a tensorized matrix using tensorflow
+ * @param matrix 
+ * @returns 
+ */
+export const getTensorizedMatrix = async (matrix: AxisData) => {
+  const matrixWithNaN = replaceNullsWithNaN(matrix);
+  const shape = getMaxShape(matrixWithNaN);
+  const reshapedMatrix = reshapeMatrix(matrixWithNaN, shape);
+  const dataTensorized = tf.tensor(reshapedMatrix);
+  return dataTensorized;
+};
+
 export const swapAxis = async (
   itemDataGrid: DataGridPlot,
   active: Configuration,
@@ -1262,15 +1275,8 @@ function removeNaNPadding(arr: any): any {
 }
 
 async function transposeMatrix(yData: AxisData, newPositions: number[]) {
-  // RESHAPE IRREGULAR MATRIX OF NaN TO ALLOW TO TRANSPOSE
-  const matrixWithNaN = replaceNullsWithNaN(yData); // Replace nulls by NaN to keep NaN instead of zeros after transposition
-  // Find maximal shape
-  const shape = getMaxShape(matrixWithNaN);
-  // Fill with NaN
-  const reshapedMatrix = reshapeMatrix(matrixWithNaN, shape);
-
   // Transpose dataY
-  const tensor = tf.tensor(reshapedMatrix);
+  const tensor = await getTensorizedMatrix(yData);
   const dataTransposed = tensor.transpose(newPositions);
   const newMatrix = (await dataTransposed.array()) as AxisData;
 
@@ -1352,11 +1358,7 @@ const trimCoordData = async (
   const dataRangeMin = newRange[0];
   const dataRangeMax = newRange[1];
 
-  // Reshape matrix with NaN instead of null (to prevent from replacing them by 0)
-  const matrixWithNaN = replaceNullsWithNaN(updatedCoord.data);
-  const shape = getMaxShape(matrixWithNaN);
-  const reshapedMatrix = reshapeMatrix(matrixWithNaN, shape);
-  const dataTensorized = tf.tensor(reshapedMatrix);
+  const dataTensorized = await getTensorizedMatrix(updatedCoord.data);
 
   // Get new shape to apply
   const shapeIndex = dependencyIndex ?? dataTensorized.shape.length - 1;
@@ -1379,7 +1381,7 @@ const trimCoordData = async (
     index === shapeIndex ? dataRangeMax + 1 - dataRangeMin : el,
   );
 
-  if (!dependencyIndex) {
+  if (dependencyIndex === undefined) {
     // Update the new range when updating the main coordinate
     updatedCoord.range = newRange;
   }
@@ -1398,13 +1400,12 @@ const trimPlotData = async (
   const dataRangeMax = newRange[1];
 
   // Reshape matrix with NaN instead of null (to prevent from replacing them by 0)
-  const matrixWithNaN = replaceNullsWithNaN(updatedPlot.yData);
-  const shape = getMaxShape(matrixWithNaN);
-  const reshapedMatrix = reshapeMatrix(matrixWithNaN, shape);
-  const dataTensorized = tf.tensor(reshapedMatrix);
+  const dataTensorized = await getTensorizedMatrix(updatedPlot.yData);
 
   // Get new shape to apply
-  const reversedCoords = coordinates.sort(compareByAxeIndex).reverse();
+  const reversedCoords = JSON.parse(JSON.stringify(coordinates))
+    .sort(compareByAxeIndex)
+    .reverse() as Coordinates[];
   const shapeIndex = reversedCoords.findIndex(
     (coord) => coord.axeIndex === axeIndexToUpdate,
   );

@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { Coordinates, DataGridPlot } from '../../../types';
+import { AxisData, Coordinates, DataGridPlot } from '../../../types';
 import {
   fetchDataPlot,
   getArrayValueFromDependance,
@@ -8,8 +8,8 @@ import {
   normalizeIndices,
   applyRangeInPlot,
   applyRangeInCoord,
+  getTensorizedMatrix,
 } from '../../../utils';
-import { showNotification } from '@mantine/notifications';
 import { Button, Divider, Group, NumberInput, Stack } from '@mantine/core';
 import { IconCheck, IconRestore } from '@tabler/icons-react';
 
@@ -21,80 +21,9 @@ export const CustomizeDataRange = ({
   customizedDataGrid,
   setCustomizedDataGrid,
 }: CustomizeDataRangeProps) => {
-  // TODO : modifier cette fonction pour qu'elle reset les ranges en appelant le BE
-  const getDownSampledData = async () => {
-    try {
-      //setIsLoadingRestore(true) // ? A remettre
-      open();
-      const updatedDataPlot = JSON.parse(
-        JSON.stringify(customizedDataGrid),
-      ) as DataGridPlot;
-
-      let plotIndex = 0;
-      for (const plot of updatedDataPlot.plot) {
-        const dataPlotDownsampled = await fetchDataPlot(
-          normalizeIndices(plot.nodeUri),
-          // TODO : Appeler avec downsampling params SI présents
-          // DataRangeMethod,
-          // parseInt(dataRangeMax),
-        );
-
-        // Update coordinates with downsampled data only once because each plots have same coordinates
-        if (plotIndex === 0) {
-          let coordinateIndex = 0;
-          for (const coordinate of updatedDataPlot.coordinates) {
-            coordinate.downsampled_shape =
-              dataPlotDownsampled.data.coordinates[
-                coordinateIndex
-              ].downsampled_shape;
-            coordinate.data =
-              dataPlotDownsampled.data.coordinates[coordinateIndex].value;
-            coordinateIndex++;
-          }
-
-          // Update downsampled method
-          updatedDataPlot.downsampled_method =
-            dataPlotDownsampled.data.downsampled_method;
-        }
-
-        // Update plot with downsampled data
-        plot.shape = dataPlotDownsampled.data.downsampled_shape;
-        // Get x axis switch coordinates dependances
-        plot.x = getArrayValueFromDependance(updatedDataPlot.coordinates, 0);
-        plot.yData = dataPlotDownsampled.data.value;
-        // Get y axis
-        const vectorData = getVectorData(
-          updatedDataPlot.coordinates,
-          plot.yData,
-        );
-        plot.y = vectorData;
-
-        plotIndex++;
-      }
-
-      // Save new configuration with sampled data
-      setCustomizedDataGrid({
-        ...customizedDataGrid,
-        downsampled_method: updatedDataPlot.downsampled_method,
-        plot: updatedDataPlot.plot,
-      });
-    } catch (error) {
-      console.error('Error getting downsampled data: ', error);
-      showNotification({
-        title: 'Error',
-        message: `Unable to get downsampled data.`,
-        color: 'red',
-      });
-    } finally {
-      //setIsLoadingRestore(false) // ? A remettre
-      close();
-    }
-  };
-
   interface CoordinateRangeProps {
     coordinate: Coordinates;
   }
-
   const CoordinateRange = ({ coordinate }: CoordinateRangeProps) => {
     const minRange = coordinate?.range ? coordinate.range[0] : 0;
     const maxRange = coordinate?.range
@@ -108,14 +37,14 @@ export const CustomizeDataRange = ({
     const [isLoadingApply, setIsLoadingApply] = useState(false);
     const [isLoadingRestore, setIsLoadingRestore] = useState(false);
 
-    const applyRange = async () => {
-      console.log('call applyRange');
-      console.log('dataRangeMin : ', dataRangeMin);
-      console.log('dataRangeMax : ', dataRangeMax);
+    const applyRange = async (
+      coordinate: Coordinates,
+      newRange: [number, number],
+      customizedDataGrid: DataGridPlot,
+    ) => {
       try {
         setIsLoadingApply(true);
         const updatedDataPlot = customizedDataGrid;
-        const newRange = [dataRangeMin, dataRangeMax] as [number, number];
         const coordinates = JSON.parse(
           JSON.stringify(updatedDataPlot.coordinates),
         ) as Coordinates[];
@@ -139,16 +68,16 @@ export const CustomizeDataRange = ({
           oldRange,
         );
 
-        console.log('customizedDataGrid applied : ', {
-          ...customizedDataGrid,
-          coordinates: updatedDataPlot.coordinates,
-          plot: updatedDataPlot.plot,
-        });
         setCustomizedDataGrid({
           ...customizedDataGrid,
           coordinates: updatedDataPlot.coordinates,
           plot: updatedDataPlot.plot,
         });
+        return {
+          ...customizedDataGrid,
+          coordinates: updatedDataPlot.coordinates,
+          plot: updatedDataPlot.plot,
+        };
       } catch (error) {
         console.error('Error applying the range: ', error);
       } finally {
@@ -156,8 +85,7 @@ export const CustomizeDataRange = ({
       }
     };
 
-    const restoreRange = () => {
-      console.log('call restoreRange');
+    const restoreRange = async () => {
       try {
         setIsLoadingRestore(true);
         const updatedDataPlot = JSON.parse(
@@ -166,21 +94,93 @@ export const CustomizeDataRange = ({
         const updatedCoord = updatedDataPlot.coordinates.find(
           (coord) => coord.axeIndex === coordinate.axeIndex,
         );
-        // ? Step 1 => range coordinate.data ; coordinate.valueIndex = 0 ; MAJ coordinate.shape ; coordinate?.range[minIndex, maxIndex] (si range restorable)
-        // * coordinate?.range[minIndex, maxIndex] (si range restorable)
+        // Step 1 => get full original data (coordinates + plots) && applyRange in coordinates having range (not main range since we'll delete it)
+        let plotIndex = 0;
+        for (const plot of updatedDataPlot.plot) {
+          // Get original data for each plot
+          console.log("plot resetted : ", JSON.parse(JSON.stringify(plot)));
+          
+          const dataPlotDownsampled = await fetchDataPlot(
+            normalizeIndices(plot.nodeUri),
+            // TODO : Appeler avec downsampling params SI présents + refacto downsampling names
+            // DataRangeMethod,
+            // parseInt(dataRangeMax),
+          );
+
+          console.log('RESPONSE dataPlotDownsampled : ', dataPlotDownsampled);
+
+          // Update coordinates with data only once because each plots have same coordinates
+          if (plotIndex === 0) {
+            let coordinateIndex = 0;
+            for (const coordinate of updatedDataPlot.coordinates) {
+              // Reset coordinates
+              coordinate.downsampled_shape =
+                dataPlotDownsampled.data.coordinates[
+                  coordinateIndex
+                ].downsampled_shape;
+              coordinate.data =
+                dataPlotDownsampled.data.coordinates[coordinateIndex].value;
+              coordinateIndex++;
+            }
+
+            // Update downsampled method
+            updatedDataPlot.downsampled_method =
+              dataPlotDownsampled.data.downsampled_method;
+          }
+
+          // Update plot with downsampled data
+          plot.shape = dataPlotDownsampled.data.downsampled_shape;
+          // Get x axis switch coordinates dependances
+          plot.x = getArrayValueFromDependance(updatedDataPlot.coordinates, 0);
+          plot.yData = dataPlotDownsampled.data.value;
+          // Get y axis
+          const vectorData = getVectorData(
+            updatedDataPlot.coordinates,
+            plot.yData,
+          );
+          plot.y = vectorData;
+
+          plotIndex++;
+        }
+
+        // Apply ranges
+        for (const coord of updatedDataPlot.coordinates) {
+          // Get full range
+          const dataTensorized = await getTensorizedMatrix(coord.data);
+          coord.shape = dataTensorized.shape;
+          coord.data = (await dataTensorized.array()) as AxisData;
+        }
+
         delete updatedCoord.range;
 
-        // ? Step 2 => PLOTDATA POUR :: range plot.yData ; MAJ plot.x && plot.y ; MAJ plot.shape
+        const newRange = [
+          0,
+          (updatedCoord.shape[updatedCoord.shape.length - 1] as number) - 1,
+        ] as [number, number];
 
-        // ? Step 3 => PLOTDATA POUR :: range plot.error_bands.yData ; range plot.error_y.array && plot.error_y.arrayminus ; MAJ plot.shape
+        await applyRange(coordinate, newRange, updatedDataPlot);
 
-        console.log('customizedDataGrid restore : ', {
-          ...customizedDataGrid,
-          coordinates: updatedDataPlot.coordinates,
-        });
+        for (const coord of updatedDataPlot.coordinates) {
+          if (coordinate.name !== coord.name) {
+            const tensorizedMatrix = await getTensorizedMatrix(coord.data);
+            const forcedRange = coord?.range || [
+              0,
+              tensorizedMatrix.shape[tensorizedMatrix.shape.length - 1] - 1,
+            ];
+            console.log('apply range for coord.name : ', coord.name);
+            console.log('forcedRange : ', forcedRange);
+            await applyRange(coord, forcedRange, updatedDataPlot);
+            console.log(
+              'updatedDataPlot : ',
+              JSON.parse(JSON.stringify(updatedDataPlot)),
+            );
+          }
+        }
+
         setCustomizedDataGrid({
           ...customizedDataGrid,
           coordinates: updatedDataPlot.coordinates,
+          plot: updatedDataPlot.plot,
         });
       } catch (error) {
         console.error('Error restoring the range: ', error);
@@ -247,7 +247,13 @@ export const CustomizeDataRange = ({
         </Group>
         <Group align="flex-end" justify="space-between">
           <Button
-            onClick={applyRange}
+            onClick={() =>
+              applyRange(
+                coordinate,
+                [dataRangeMin, dataRangeMax],
+                customizedDataGrid,
+              )
+            }
             loading={isLoadingApply}
             leftSection={<IconCheck size={20} />}
           >
