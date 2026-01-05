@@ -17,6 +17,7 @@ export interface BaseCoordinates {
   path: string;
   target: string;
   valueIndex: number;
+  range?: [number, number];
 }
 
 export interface Coordinates extends BaseCoordinates {

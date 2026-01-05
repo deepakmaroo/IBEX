@@ -8,6 +8,7 @@ import {
   Coordinates,
   DataGridPlot,
   DataPlotly,
+  ErrorBandData,
   PlotCoordinatesResponse,
   PlotDataResponse,
   URIData,
@@ -1072,6 +1073,19 @@ function replaceNullsWithNaN(arr: AxisData): AxisData {
   return arr ?? NaN;
 }
 
+/**
+ * Return a tensorized matrix using tensorflow
+ * @param matrix
+ * @returns
+ */
+export const getTensorizedMatrix = async (matrix: AxisData) => {
+  const matrixWithNaN = replaceNullsWithNaN(matrix);
+  const shape = getMaxShape(matrixWithNaN);
+  const reshapedMatrix = reshapeMatrix(matrixWithNaN, shape);
+  const dataTensorized = tf.tensor(reshapedMatrix);
+  return dataTensorized;
+};
+
 export const swapAxis = async (
   itemDataGrid: DataGridPlot,
   active: Configuration,
@@ -1261,15 +1275,8 @@ function removeNaNPadding(arr: any): any {
 }
 
 async function transposeMatrix(yData: AxisData, newPositions: number[]) {
-  // RESHAPE IRREGULAR MATRIX OF NaN TO ALLOW TO TRANSPOSE
-  const matrixWithNaN = replaceNullsWithNaN(yData); // Replace nulls by NaN to keep NaN instead of zeros after transposition
-  // Find maximal shape
-  const shape = getMaxShape(matrixWithNaN);
-  // Fill with NaN
-  const reshapedMatrix = reshapeMatrix(matrixWithNaN, shape);
-
   // Transpose dataY
-  const tensor = tf.tensor(reshapedMatrix);
+  const tensor = await getTensorizedMatrix(yData);
   const dataTransposed = tensor.transpose(newPositions);
   const newMatrix = (await dataTransposed.array()) as AxisData;
 
@@ -1326,6 +1333,227 @@ async function transposeAxis(
         );
         error_band.yData = transposedErrorBand;
       }
+    }
+  }
+}
+
+/**
+ * Reduce size of a coordinate data by slicing to the range provided
+ * @param coordinates
+ * @param coordNameToUpdate
+ * @param dataRangeMin
+ * @param dataRangeMax
+ * @param dependencyIndex optional: used for updating dependencies
+ * @returns
+ */
+const trimCoordData = async (
+  coordinates: Coordinates[],
+  coordNameToUpdate: string,
+  newRange: [number, number],
+  dependencyIndex?: number,
+) => {
+  const updatedCoord = coordinates.find(
+    (coord) => coord.name === coordNameToUpdate,
+  );
+  const dataRangeMin = newRange[0];
+  const dataRangeMax = newRange[1];
+
+  const dataTensorized = await getTensorizedMatrix(updatedCoord.data);
+
+  // Get new shape to apply
+  const shapeIndex = dependencyIndex ?? dataTensorized.shape.length - 1;
+  const dependencyName =
+    updatedCoord.coordinates[dependencyIndex ?? -1] ?? null;
+  const dependencyRange = dependencyName
+    ? coordinates.find((coord) => coord?.name === dependencyName)?.range
+    : null;
+  const minRangeOrigin = dependencyName
+    ? dependencyRange
+      ? dependencyRange[0]
+      : 0
+    : updatedCoord?.range
+      ? updatedCoord.range[0]
+      : 0;
+  const originShape = dataTensorized.shape.map((el, index) =>
+    index === shapeIndex ? dataRangeMin - minRangeOrigin : 0,
+  );
+  const shapeSize = dataTensorized.shape.map((el, index) =>
+    index === shapeIndex ? dataRangeMax + 1 - dataRangeMin : el,
+  );
+
+  if (dependencyIndex === undefined) {
+    // Update the new range when updating the main coordinate
+    updatedCoord.range = newRange;
+  }
+
+  return tf.slice(dataTensorized, originShape, shapeSize);
+};
+
+const trimPlotData = async (
+  updatedPlot: DataPlotly | ErrorBandData,
+  coordinates: Coordinates[],
+  axeIndexToUpdate: number,
+  newRange: [number, number],
+  oldRange?: [number, number],
+) => {
+  const dataRangeMin = newRange[0];
+  const dataRangeMax = newRange[1];
+
+  // Reshape matrix with NaN instead of null (to prevent from replacing them by 0)
+  const dataTensorized = await getTensorizedMatrix(updatedPlot.yData);
+
+  // Get new shape to apply
+  const reversedCoords = JSON.parse(JSON.stringify(coordinates))
+    .sort(compareByAxeIndex)
+    .reverse() as Coordinates[];
+  const shapeIndex = reversedCoords.findIndex(
+    (coord) => coord.axeIndex === axeIndexToUpdate,
+  );
+  const minRangeOrigin = oldRange ? oldRange[0] : 0;
+  const originShape: number[] = dataTensorized.shape.map((el, index) =>
+    index === shapeIndex ? dataRangeMin - minRangeOrigin : 0,
+  );
+  const shapeSize = dataTensorized.shape.map((el, index) =>
+    index === shapeIndex ? dataRangeMax + 1 - dataRangeMin : el,
+  );
+
+  return tf.slice(dataTensorized, originShape, shapeSize);
+};
+
+/**
+ * Format trimmed coordinate by updating all concerned data (data, shape, downsampled_shape, valueIndex, target, path)
+ * @param updatedCoord
+ * @param trimmed
+ * @param coordinateAffectingDependency
+ */
+const formatTrimmedCoordinate = async (
+  updatedCoord: Coordinates,
+  trimmed: tf.Tensor<tf.Rank>,
+  coordinateAffectingDependency?: Coordinates,
+) => {
+  const depValues = (await trimmed.array()) as AxisData;
+  // Update data
+  updatedCoord.data = depValues;
+
+  // Update shapes
+  updatedCoord.shape = trimmed.shape;
+  updatedCoord.downsampled_shape = trimmed.shape;
+
+  // Update valueIndex, target & path
+  updatedCoord.valueIndex = 0;
+  const lastTargetLastName = getLastIndexedField(
+    coordinateAffectingDependency?.target ?? updatedCoord.target,
+  );
+  const updatedPath = updateIndexFieldName(
+    updatedCoord.path,
+    lastTargetLastName,
+    0,
+  );
+  const updatedTarget = updateIndexFieldName(
+    updatedCoord.target,
+    lastTargetLastName,
+    0,
+  );
+  updatedCoord.path = updatedPath;
+  updatedCoord.target = updatedTarget;
+};
+
+export async function applyRangeInCoord(
+  updatedCoords: Coordinates[],
+  coordNameToUpdate: string,
+  newRange: [number, number],
+) {
+  const updatedCoord = updatedCoords.find(
+    (coord) => coord.name === coordNameToUpdate,
+  );
+  const coordinate = JSON.parse(JSON.stringify(updatedCoord));
+
+  // Trim coordinate.data
+  const trimmed = await trimCoordData(
+    updatedCoords,
+    updatedCoord.name,
+    newRange,
+  );
+  // Format coordinate with trimmed data
+  await formatTrimmedCoordinate(updatedCoord, trimmed);
+
+  // Trim coordinates having dependencies
+  for (const coordDependencie of updatedCoords) {
+    if (coordDependencie.name === coordinate.name) {
+      // Don't check dependencies of updated coordinate
+      continue;
+    }
+
+    const dependencyIndex = coordDependencie.coordinates.findIndex(
+      (dep) => dep === coordinate.name,
+    );
+    if (dependencyIndex === -1) {
+      // No dependencies with updated coordinate
+      continue;
+    }
+
+    const trimmedDep = await trimCoordData(
+      updatedCoords,
+      coordDependencie.name,
+      newRange,
+      dependencyIndex,
+    );
+    await formatTrimmedCoordinate(coordDependencie, trimmedDep, updatedCoord);
+  }
+}
+
+export async function applyRangeInPlot(
+  coordinates: Coordinates[],
+  updatedPlots: DataPlotly[],
+  axeIndexToUpdate: number,
+  newRange: [number, number],
+  oldRange?: [number, number],
+) {
+  for (const updatedPlot of updatedPlots) {
+    // Update plot.x with trimmed coordinates
+    const newX = getArrayValueFromDependance(coordinates, 0);
+    updatedPlot.x = newX;
+
+    // Trim plot.yData
+    const trimmed = await trimPlotData(
+      updatedPlot,
+      JSON.parse(JSON.stringify(coordinates)),
+      axeIndexToUpdate,
+      newRange,
+      oldRange,
+    );
+    const newYData = (await trimmed.array()) as AxisData;
+    updatedPlot.yData = newYData;
+    updatedPlot.shape = trimmed.shape;
+
+    // Update plot.y with trimmed plot.yData
+    const newY = getVectorData(coordinates, updatedPlot.yData);
+    updatedPlot.y = newY;
+
+    // Trim error bands if existing
+    if (updatedPlot?.error_bands) {
+      for (const error_bands of updatedPlot.error_bands) {
+        if (
+          updatedPlot.error_y.type === 'data' &&
+          ((error_bands.path.endsWith('error_upper') &&
+            updatedPlot.error_y.array.length === 0) ||
+            (error_bands.path.endsWith('error_lower') &&
+              updatedPlot.error_y.arrayminus.length === 0))
+        ) {
+          continue;
+        }
+        const trimmed = await trimPlotData(
+          error_bands,
+          JSON.parse(JSON.stringify(coordinates)),
+          axeIndexToUpdate,
+          newRange,
+          oldRange,
+        );
+        const newYData = (await trimmed.array()) as AxisData;
+        error_bands.yData = newYData;
+      }
+      const swapped_error_y = getErrorYVectors(updatedPlot, coordinates);
+      updatedPlot.error_y = swapped_error_y;
     }
   }
 }
