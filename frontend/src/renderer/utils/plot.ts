@@ -1043,7 +1043,7 @@ export function isMatrixPlottable(value: AxisData): boolean {
 
   try {
     const tensor = tf.tensor(value);
-    const shape = tensor.shape; // TODO => checker pk shape[50, 50] vaut []
+    const shape = tensor.shape;
     const lastDim = shape[shape.length - 1];
 
     // Check if matrix is not empty & get at least one valide value
@@ -1075,8 +1075,8 @@ function replaceNullsWithNaN(arr: AxisData): AxisData {
 
 /**
  * Return a tensorized matrix using tensorflow
- * @param matrix 
- * @returns 
+ * @param matrix
+ * @returns
  */
 export const getTensorizedMatrix = async (matrix: AxisData) => {
   const matrixWithNaN = replaceNullsWithNaN(matrix);
@@ -1531,27 +1531,29 @@ export async function applyRangeInPlot(
     updatedPlot.y = newY;
 
     // Trim error bands if existing
-    for (const error_bands of updatedPlot.error_bands) {
-      if (
-        updatedPlot.error_y.type === 'data' &&
-        ((error_bands.path.endsWith('error_upper') &&
-          updatedPlot.error_y.array.length === 0) ||
-          (error_bands.path.endsWith('error_lower') &&
-            updatedPlot.error_y.arrayminus.length === 0))
-      ) {
-        continue;
+    if (updatedPlot?.error_bands) {
+      for (const error_bands of updatedPlot.error_bands) {
+        if (
+          updatedPlot.error_y.type === 'data' &&
+          ((error_bands.path.endsWith('error_upper') &&
+            updatedPlot.error_y.array.length === 0) ||
+            (error_bands.path.endsWith('error_lower') &&
+              updatedPlot.error_y.arrayminus.length === 0))
+        ) {
+          continue;
+        }
+        const trimmed = await trimPlotData(
+          error_bands,
+          JSON.parse(JSON.stringify(coordinates)),
+          axeIndexToUpdate,
+          newRange,
+          oldRange,
+        );
+        const newYData = (await trimmed.array()) as AxisData;
+        error_bands.yData = newYData;
       }
-      const trimmed = await trimPlotData(
-        error_bands,
-        JSON.parse(JSON.stringify(coordinates)),
-        axeIndexToUpdate,
-        newRange,
-        oldRange,
-      );
-      const newYData = (await trimmed.array()) as AxisData;
-      error_bands.yData = newYData;
+      const swapped_error_y = getErrorYVectors(updatedPlot, coordinates);
+      updatedPlot.error_y = swapped_error_y;
     }
-    const swapped_error_y = getErrorYVectors(updatedPlot, coordinates);
-    updatedPlot.error_y = swapped_error_y;
   }
 }

@@ -51,18 +51,21 @@ export const getArrayValueFromDependance = (
     // get shape when irregular data
     tensor = tf.tensor(wantedCoordinate.data);
   }
-
+  let shapeIndex = 0;
   for (const shapeElement of wantedCoordinate.shape === 'irregular'
     ? tensor.shape
     : wantedCoordinate.shape) {
     const coordDep = coordinates.find(
       (coord_dep) =>
         dependances.includes(coord_dep.name) &&
-        coord_dep.shape[coord_dep.shape.length - 1] === shapeElement,
+        coord_dep.shape[coord_dep.shape.length - 1] === shapeElement &&
+        dependances.findIndex((depName) => depName === coord_dep.name) ===
+          shapeIndex,
     );
     if (coordDep) {
       sortedIndexValueDependances.push(coordDep.valueIndex);
     }
+    shapeIndex++;
   }
 
   // Get wanted coordinate data from dependencies not linked to the dimension

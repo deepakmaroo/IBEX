@@ -98,16 +98,12 @@ export const CustomizeDataRange = ({
         let plotIndex = 0;
         for (const plot of updatedDataPlot.plot) {
           // Get original data for each plot
-          console.log("plot resetted : ", JSON.parse(JSON.stringify(plot)));
-          
           const dataPlotDownsampled = await fetchDataPlot(
             normalizeIndices(plot.nodeUri),
             // TODO : Appeler avec downsampling params SI présents + refacto downsampling names
             // DataRangeMethod,
             // parseInt(dataRangeMax),
           );
-
-          console.log('RESPONSE dataPlotDownsampled : ', dataPlotDownsampled);
 
           // Update coordinates with data only once because each plots have same coordinates
           if (plotIndex === 0) {
@@ -167,13 +163,7 @@ export const CustomizeDataRange = ({
               0,
               tensorizedMatrix.shape[tensorizedMatrix.shape.length - 1] - 1,
             ];
-            console.log('apply range for coord.name : ', coord.name);
-            console.log('forcedRange : ', forcedRange);
             await applyRange(coord, forcedRange, updatedDataPlot);
-            console.log(
-              'updatedDataPlot : ',
-              JSON.parse(JSON.stringify(updatedDataPlot)),
-            );
           }
         }
 
@@ -211,7 +201,6 @@ export const CustomizeDataRange = ({
             checkedValue = dataRangeMin;
           }
         }
-        console.log('checkedValue : ', checkedValue);
         setter(checkedValue);
       },
       [minRange, maxRange, dataRangeMin, dataRangeMax],

@@ -160,7 +160,8 @@ export const fetchDataPlot = async (
   uri: string,
   downsamplingMethod?: string,
   downsamplingSize?: number,
-) => { // TODO récupérer les coordinates.range si existant pour mettre en forme avec les ranges
+) => {
+  // TODO récupérer les coordinates.range si existant pour mettre en forme avec les ranges (load newplot, existingplot)
   const downsampled_size = downsamplingSize || 1000;
   let response: PlotDataResponse;
   let firstMethod: string;
