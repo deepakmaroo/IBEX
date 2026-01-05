@@ -1,4 +1,10 @@
-# Ibex
+# IBEX
+
+IBEX (IMAS variaBles EXplorer) is a general purpose graphical tool for exploring the content of IMAS structured data. It can display quantities as 1D or 2D plots (possibly slicing through higher dimensionality datasets). It is expected to replace [IMASViz](https://github.com/IRFM/IMASViz) (which is not maintained anymore) and go beyond.
+
+> [!NOTE]
+> This project is under active development, important changes may occur including in the backend endpoint API. 
+
 
 [Frontend readme](frontend/README.md)
 
