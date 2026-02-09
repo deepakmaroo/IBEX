@@ -43,6 +43,7 @@ dynamic = ["version"]
 dependencies = [
     "imas-python",
     "imas-idstools",
+    "click",
     "uvicorn",
     "fastapi[standard]==0.115.14",
     "packaging",
@@ -106,3 +107,6 @@ exclude = ["venv", "_version.py", "versioneer.py"]
 omit = [
     "ibex/_version.py",
     ]
+
+[project.scripts]
+run_ibex_service = "ibex.cli:main"
