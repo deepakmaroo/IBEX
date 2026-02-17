@@ -76,7 +76,7 @@ Documentation:
 // Show version
 if (options.version) {
   const packageJson = require(path.join(__dirname, '..', 'package.json'));
-  console.log(\`@ibex/frontend version \${packageJson.version}\`);
+  console.log(`@ibex/frontend version ${packageJson.version}`);
   process.exit(0);
 }
 
@@ -104,7 +104,7 @@ function setupConfig() {
       const existingConfig = JSON.parse(fs.readFileSync(configPath, 'utf8'));
       config = { ...defaultConfig, ...existingConfig };
     } catch (error) {
-      console.warn(\`Warning: Could not read config from \${configPath}, using defaults\`);
+      console.warn(`Warning: Could not read config from ${configPath}, using defaults`);
     }
   }
   
@@ -119,10 +119,10 @@ function setupConfig() {
   // Write config back
   try {
     fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
-    console.log(\`Configuration saved to \${configPath}\`);
-    console.log(\`API URL: \${config.API_URL}\`);
+    console.log(`Configuration saved to ${configPath}`);
+    console.log(`API URL: ${config.API_URL}`);
   } catch (error) {
-    console.error(\`Error writing config: \${error.message}\`);
+    console.error(`Error writing config: ${error.message}`);
   }
   
   return config;
@@ -137,7 +137,7 @@ async function checkBackend(apiUrl) {
     const url = new URL(apiUrl);
     const client = url.protocol === 'https:' ? https : http;
     
-    const req = client.get(\`\${apiUrl}/info\`, { timeout: 5000 }, (res) => {
+    const req = client.get(`${apiUrl}/info`, { timeout: 5000 }, (res) => {
       resolve(res.statusCode === 200);
     });
     
@@ -154,12 +154,12 @@ async function launchElectron(config) {
   console.log('Starting IBEX Frontend...');
   
   // Check backend availability
-  console.log(\`Checking backend at \${config.API_URL}...\`);
+  console.log(`Checking backend at ${config.API_URL}...`);
   const backendAvailable = await checkBackend(config.API_URL);
   
   if (!backendAvailable) {
     console.warn('Warning: Backend is not available. Please ensure the backend is running.');
-    console.warn(\`Expected backend at: \${config.API_URL}\`);
+    console.warn(`Expected backend at: ${config.API_URL}`);
     console.warn('You can start the backend with: run_ibex_service -p 8000');
     console.warn('');
   } else {
@@ -176,7 +176,7 @@ async function launchElectron(config) {
   if (isPackaged) {
     // Use packaged application
     const execPath = path.join(__dirname, '..', 'out', 'ibex-linux-x64', 'ibex');
-    console.log(\`Launching packaged application from: \${execPath}\`);
+    console.log(`Launching packaged application from: ${execPath}`);
     
     const child = spawn(execPath, [], {
       stdio: 'inherit',
@@ -184,7 +184,7 @@ async function launchElectron(config) {
     });
     
     child.on('error', (error) => {
-      console.error(\`Failed to start application: \${error.message}\`);
+      console.error(`Failed to start application: ${error.message}`);
       process.exit(1);
     });
     
@@ -202,7 +202,7 @@ async function launchElectron(config) {
     });
     
     child.on('error', (error) => {
-      console.error(\`Failed to start application: \${error.message}\`);
+      console.error(`Failed to start application: ${error.message}`);
       process.exit(1);
     });
     
@@ -218,7 +218,7 @@ async function launchElectron(config) {
     const config = setupConfig();
     await launchElectron(config);
   } catch (error) {
-    console.error(\`Error: \${error.message}\`);
+    console.error(`Error: ${error.message}`);
     process.exit(1);
   }
 })();
