@@ -171,7 +171,7 @@ jobs:
 ```
 
 To use this workflow:
-1. Generate an npm access token from https://www.npmjs.com/settings/YOUR_USERNAME/tokens
+1. Generate an npm access token from https://www.npmjs.com/settings/YOUR_USERNAME/tokens (replace YOUR_USERNAME with your actual npm username)
 2. Add it as a secret named `NPM_TOKEN` in your GitHub repository settings
 
 ## Updating the Package
