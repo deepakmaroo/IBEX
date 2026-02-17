@@ -2,7 +2,8 @@ name: Publish to npm
 
 # This workflow publishes the IBEX frontend package to npm when a release is created
 # To use this workflow:
-# 1. Generate an npm access token from https://www.npmjs.com/settings/YOUR_USERNAME/tokens
+# 1. Generate an npm access token from https://www.npmjs.com/settings/<your-username>/tokens
+#    (replace <your-username> with your actual npm username)
 # 2. Add it as a secret named NPM_TOKEN in your GitHub repository settings
 #    (Settings > Secrets and variables > Actions > New repository secret)
 

@@ -9,6 +9,7 @@
     "package": "electron-forge package",
     "make": "electron-forge make",
     "publish": "electron-forge publish",
+    "publish:npm": "npm run package && npm publish",
     "lint": "eslint . --max-warnings=0",
     "format": "prettier --write .",
     "debug": "DEBUG=electron-forge:* electron-forge start",

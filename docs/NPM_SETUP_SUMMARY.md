@@ -47,9 +47,20 @@ A GitHub Actions workflow that:
 - **README.md**: Added "Publishing" section with link to NPM publishing guide
 - **frontend/README.md**: Added tip box with link to NPM publishing guide
 
+### 6. Added Convenience Script
+
+Added `publish:npm` script to `package.json` that automatically builds and publishes in one command.
+
 ## How to Publish
 
-### Option 1: Manual Publishing
+### Option 1: Quick Publish (Recommended)
+
+1. Navigate to the frontend directory: `cd frontend`
+2. Login to npm: `npm login`
+3. Update version: `npm version patch/minor/major`
+4. Build and publish: `npm run publish:npm`
+
+### Option 2: Manual Publishing
 
 1. Navigate to the frontend directory: `cd frontend`
 2. Login to npm: `npm login`

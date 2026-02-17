@@ -71,13 +71,30 @@ npm install /path/to/ibex-0.1.0.tgz
 
 ### 5. Publish to npm
 
-#### For Public Package
+**Important**: The package build artifacts (`.webpack/` and `out/`) must exist before publishing. 
+If you haven't run `npm run package` yet, the publish will fail.
+
+#### Quick Method (Recommended)
+
+Use the combined script that builds and publishes:
+
+```bash
+npm run publish:npm
+```
+
+This runs `npm run package` followed by `npm publish`.
+
+#### Manual Method
+
+Or do it step by step:
+
+**For Public Package**
 
 ```bash
 npm publish
 ```
 
-#### For Scoped Package
+**For Scoped Package**
 
 If you're using a scoped package (e.g., `@yourorg/ibex`), update the name in `package.json` first:
 
@@ -171,7 +188,7 @@ jobs:
 ```
 
 To use this workflow:
-1. Generate an npm access token from https://www.npmjs.com/settings/YOUR_USERNAME/tokens (replace YOUR_USERNAME with your actual npm username)
+1. Generate an npm access token from https://www.npmjs.com/settings/<your-username>/tokens (replace `<your-username>` with your actual npm username)
 2. Add it as a secret named `NPM_TOKEN` in your GitHub repository settings
 
 ## Updating the Package
