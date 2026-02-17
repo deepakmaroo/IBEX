@@ -1,0 +1,52 @@
+# Development files
+node_modules/
+.vscode/
+.idea/
+
+# Test files
+src/tests/
+*.spec.ts
+*.test.ts
+
+# Build artifacts (will be generated during prepublish)
+.webpack/
+
+# Development configs
+.eslintrc*
+.prettierrc*
+eslint.config.mjs
+
+# Environment files
+.env
+.env.*
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# CI/CD
+ci/
+.github/
+
+# Temporary files
+*.tmp
+*.temp
+tmp/
+temp/
+
+# Editor files
+*.swp
+*.swo
+*~
+
+# Config examples (keep these for documentation)
+!config.json.exemple

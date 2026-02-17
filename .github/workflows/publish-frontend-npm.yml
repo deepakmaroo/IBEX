@@ -1,0 +1,99 @@
+name: Publish Frontend to NPM
+
+# This workflow publishes the IBEX frontend as an npm package
+# It runs on releases and can also be triggered manually
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (leave empty to use package.json version)'
+        required: false
+        type: string
+      tag:
+        description: 'NPM tag (e.g., latest, beta, alpha)'
+        required: false
+        default: 'latest'
+        type: string
+
+jobs:
+  publish-npm:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          registry-url: 'https://registry.npmjs.org'
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install backend (for version sync)
+        run: |
+          cd backend
+          pip install .
+      
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          npm ci
+      
+      - name: Update version if specified
+        if: github.event.inputs.version != ''
+        run: |
+          cd frontend
+          npm version ${{ github.event.inputs.version }} --no-git-tag-version
+      
+      - name: Sync version with backend
+        if: github.event_name == 'release'
+        run: |
+          python3 .github/scripts/sync_version.py backend frontend
+      
+      - name: Build package
+        run: |
+          cd frontend
+          npm run package
+      
+      - name: Verify package contents
+        run: |
+          cd frontend
+          npm pack --dry-run
+      
+      - name: Publish to NPM
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          cd frontend
+          if [ "${{ github.event.inputs.tag }}" != "" ]; then
+            npm publish --access public --tag ${{ github.event.inputs.tag }}
+          else
+            npm publish --access public
+          fi
+      
+      - name: Create summary
+        run: |
+          cd frontend
+          VERSION=$(node -p "require('./package.json').version")
+          echo "## Published to NPM 📦" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Package:** @ibex/frontend" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** $VERSION" >> $GITHUB_STEP_SUMMARY
+          echo "**Tag:** ${{ github.event.inputs.tag || 'latest' }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Installation" >> $GITHUB_STEP_SUMMARY
+          echo '```bash' >> $GITHUB_STEP_SUMMARY
+          echo "npm install -g @ibex/frontend@$VERSION" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
