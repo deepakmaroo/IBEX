@@ -1,14 +1,46 @@
 {
-  "name": "ibex",
+  "name": "@ibex/frontend",
   "productName": "ibex",
-  "version": "dev",
-  "description": "My Electron application description",
+  "version": "0.1.0",
+  "description": "IBEX Frontend - Data visualization for IMAS IDS data",
   "main": ".webpack/main",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/iterorganization/IBEX.git",
+    "directory": "frontend"
+  },
+  "keywords": [
+    "ibex",
+    "imas",
+    "data-visualization",
+    "electron",
+    "react"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "bin": {
+    "ibex-frontend": "./bin/ibex-frontend"
+  },
+  "files": [
+    "bin/**/*",
+    "src/**/*",
+    "out/**/*",
+    ".webpack/**/*",
+    "package.json",
+    "README.md",
+    "LICENSE.txt",
+    "tsconfig.json",
+    "webpack.*.ts",
+    "forge.config.ts"
+  ],
   "scripts": {
     "start": "electron-forge start -- --remote-debugging-port=9222",
     "package": "electron-forge package",
     "make": "electron-forge make",
     "publish": "electron-forge publish",
+    "publish:npm": "npm publish --access public",
+    "prepublishOnly": "npm run package",
     "lint": "eslint . --max-warnings=0",
     "format": "prettier --write .",
     "debug": "DEBUG=electron-forge:* electron-forge start",
@@ -61,9 +93,10 @@
   },
   "keywords": [],
   "author": {
-    "name": "Epsyl-Alcen"
+    "name": "IBEX Developers",
+    "email": "olivier.hoenen@iter.org"
   },
-  "license": "MIT",
+  "license": "LGPL-3.0",
   "dependencies": {
     "@mantine/core": "7.17.7",
     "@mantine/form": "7.17.7",

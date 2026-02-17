@@ -1,0 +1,224 @@
+#!/usr/bin/env node
+
+/**
+ * IBEX Frontend CLI
+ * 
+ * This script serves as the entry point for the @ibex/frontend npm package.
+ * It provides commands to launch the Electron application with various configurations.
+ */
+
+const { spawn } = require('child_process');
+const path = require('path');
+const fs = require('fs');
+const os = require('os');
+
+// Parse command line arguments
+const args = process.argv.slice(2);
+const options = {
+  apiUrl: null,
+  port: null,
+  version: false,
+  help: false,
+  configPath: null,
+};
+
+// Parse arguments
+for (let i = 0; i < args.length; i++) {
+  const arg = args[i];
+  
+  if (arg === '--api-url' && i + 1 < args.length) {
+    options.apiUrl = args[++i];
+  } else if (arg === '--port' && i + 1 < args.length) {
+    options.port = parseInt(args[++i], 10);
+  } else if (arg === '--config' && i + 1 < args.length) {
+    options.configPath = args[++i];
+  } else if (arg === '--version' || arg === '-v') {
+    options.version = true;
+  } else if (arg === '--help' || arg === '-h') {
+    options.help = true;
+  }
+}
+
+// Show help
+if (options.help) {
+  console.log(`
+IBEX Frontend CLI
+
+Usage: ibex-frontend [options]
+
+Options:
+  --api-url <url>     Set the backend API URL (default: http://localhost:8000)
+  --port <port>       Set the webpack dev server port (development only)
+  --config <path>     Path to custom config.json file
+  --version, -v       Show version information
+  --help, -h          Show this help message
+
+Examples:
+  ibex-frontend
+  ibex-frontend --api-url http://localhost:9000
+  ibex-frontend --config /path/to/config.json
+
+Configuration:
+  The application reads configuration from ~/.config/ibex/config.json
+  You can override this with the --config option or environment variables.
+
+Environment Variables:
+  IBEX_API_URL        Backend API URL
+  IBEX_WEBPACK_PORT   Webpack dev server port
+  IBEX_LOGGER_PORT    Webpack logger port
+
+Documentation:
+  https://github.com/iterorganization/IBEX
+  `);
+  process.exit(0);
+}
+
+// Show version
+if (options.version) {
+  const packageJson = require(path.join(__dirname, '..', 'package.json'));
+  console.log(\`@ibex/frontend version \${packageJson.version}\`);
+  process.exit(0);
+}
+
+// Setup configuration
+function setupConfig() {
+  const configDir = path.join(os.homedir(), '.config', 'ibex');
+  const configPath = options.configPath || path.join(configDir, 'config.json');
+  
+  // Create config directory if it doesn't exist
+  if (!fs.existsSync(configDir)) {
+    fs.mkdirSync(configDir, { recursive: true });
+  }
+  
+  // Default configuration
+  const defaultConfig = {
+    API_URL: process.env.IBEX_API_URL || options.apiUrl || 'http://localhost:8000',
+    WEBPACK_PORT: process.env.IBEX_WEBPACK_PORT || options.port || 49152,
+    LOGGER_PORT: process.env.IBEX_LOGGER_PORT || 49153,
+  };
+  
+  // Read existing config or create new one
+  let config = defaultConfig;
+  if (fs.existsSync(configPath)) {
+    try {
+      const existingConfig = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+      config = { ...defaultConfig, ...existingConfig };
+    } catch (error) {
+      console.warn(\`Warning: Could not read config from \${configPath}, using defaults\`);
+    }
+  }
+  
+  // Override with command-line options
+  if (options.apiUrl) {
+    config.API_URL = options.apiUrl;
+  }
+  if (options.port) {
+    config.WEBPACK_PORT = options.port;
+  }
+  
+  // Write config back
+  try {
+    fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+    console.log(\`Configuration saved to \${configPath}\`);
+    console.log(\`API URL: \${config.API_URL}\`);
+  } catch (error) {
+    console.error(\`Error writing config: \${error.message}\`);
+  }
+  
+  return config;
+}
+
+// Check if backend is available
+async function checkBackend(apiUrl) {
+  const http = require('http');
+  const https = require('https');
+  
+  return new Promise((resolve) => {
+    const url = new URL(apiUrl);
+    const client = url.protocol === 'https:' ? https : http;
+    
+    const req = client.get(\`\${apiUrl}/info\`, { timeout: 5000 }, (res) => {
+      resolve(res.statusCode === 200);
+    });
+    
+    req.on('error', () => resolve(false));
+    req.on('timeout', () => {
+      req.destroy();
+      resolve(false);
+    });
+  });
+}
+
+// Launch Electron application
+async function launchElectron(config) {
+  console.log('Starting IBEX Frontend...');
+  
+  // Check backend availability
+  console.log(\`Checking backend at \${config.API_URL}...\`);
+  const backendAvailable = await checkBackend(config.API_URL);
+  
+  if (!backendAvailable) {
+    console.warn('Warning: Backend is not available. Please ensure the backend is running.');
+    console.warn(\`Expected backend at: \${config.API_URL}\`);
+    console.warn('You can start the backend with: run_ibex_service -p 8000');
+    console.warn('');
+  } else {
+    console.log('Backend is available ✓');
+  }
+  
+  // Find the Electron executable
+  const electronPath = require('electron');
+  const appPath = path.join(__dirname, '..');
+  
+  // Check if we're in a packaged application or development
+  const isPackaged = fs.existsSync(path.join(__dirname, '..', 'out', 'ibex-linux-x64', 'ibex'));
+  
+  if (isPackaged) {
+    // Use packaged application
+    const execPath = path.join(__dirname, '..', 'out', 'ibex-linux-x64', 'ibex');
+    console.log(\`Launching packaged application from: \${execPath}\`);
+    
+    const child = spawn(execPath, [], {
+      stdio: 'inherit',
+      detached: false,
+    });
+    
+    child.on('error', (error) => {
+      console.error(\`Failed to start application: \${error.message}\`);
+      process.exit(1);
+    });
+    
+    child.on('exit', (code) => {
+      process.exit(code || 0);
+    });
+  } else {
+    // Development mode - use electron directly
+    console.log('Launching in development mode...');
+    
+    const child = spawn(electronPath, [appPath], {
+      stdio: 'inherit',
+      detached: false,
+      env: { ...process.env, ...config },
+    });
+    
+    child.on('error', (error) => {
+      console.error(\`Failed to start application: \${error.message}\`);
+      process.exit(1);
+    });
+    
+    child.on('exit', (code) => {
+      process.exit(code || 0);
+    });
+  }
+}
+
+// Main execution
+(async function main() {
+  try {
+    const config = setupConfig();
+    await launchElectron(config);
+  } catch (error) {
+    console.error(\`Error: \${error.message}\`);
+    process.exit(1);
+  }
+})();
