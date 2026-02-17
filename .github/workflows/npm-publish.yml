@@ -1,0 +1,69 @@
+name: Publish to npm
+
+# This workflow publishes the IBEX frontend package to npm when a release is created
+# To use this workflow:
+# 1. Generate an npm access token from https://www.npmjs.com/settings/YOUR_USERNAME/tokens
+# 2. Add it as a secret named NPM_TOKEN in your GitHub repository settings
+#    (Settings > Secrets and variables > Actions > New repository secret)
+
+on:
+  release:
+    types: [created]
+  workflow_dispatch:  # Allows manual triggering from Actions tab
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          registry-url: 'https://registry.npmjs.org'
+      
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          npm ci
+      
+      - name: Lint frontend
+        run: |
+          cd frontend
+          npm run lint
+      
+      - name: Package frontend
+        run: |
+          cd frontend
+          npm run package
+      
+      - name: Check package name availability (optional)
+        run: |
+          cd frontend
+          # Check if package exists, but don't fail if it does (it might be our own package)
+          npm view $(node -p "require('./package.json').name") || echo "Package name is available or this is a new version"
+      
+      - name: Publish to npm
+        run: |
+          cd frontend
+          npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      
+      - name: Create summary
+        run: |
+          cd frontend
+          PACKAGE_NAME=$(node -p "require('./package.json').name")
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          echo "### 📦 Package Published Successfully!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Package**: [\`${PACKAGE_NAME}\`](https://www.npmjs.com/package/${PACKAGE_NAME})" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version**: \`${PACKAGE_VERSION}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Install with:" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+          echo "npm install ${PACKAGE_NAME}@${PACKAGE_VERSION}" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY

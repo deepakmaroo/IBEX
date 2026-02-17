@@ -10,6 +10,10 @@ IBEX (IMAS variaBles EXplorer) is a general purpose graphical tool for exploring
 
 [Backend readme](backend/README.md)
 
+## Publishing
+
+- [NPM Publishing Guide](docs/NPM_PUBLISHING.md) - Instructions for publishing the frontend package to npm
+
 ## Quick Start
 
 ### Prerequisites
