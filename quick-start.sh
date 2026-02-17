@@ -41,9 +41,20 @@ find_free_port() {
     local port_range_start=49152
     local port_range_end=65535
     
+    # Check if ss command is available, fallback to netstat
+    local check_cmd
+    if command -v ss &> /dev/null; then
+        check_cmd="ss -tuln"
+    elif command -v netstat &> /dev/null; then
+        check_cmd="netstat -tuln"
+    else
+        echo "Error: Neither 'ss' nor 'netstat' command found" >&2
+        exit 1
+    fi
+    
     while true; do
         port=$((RANDOM % (port_range_end - port_range_start + 1) + port_range_start))
-        if ! ss -tuln | grep -q ":$port "; then
+        if ! $check_cmd | grep -q ":$port "; then
             echo "$port"
             return
         fi

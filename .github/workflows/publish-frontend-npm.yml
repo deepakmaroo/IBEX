@@ -58,23 +58,7 @@ jobs:
       - name: Sync version with backend
         if: github.event_name == 'release'
         run: |
-          cd frontend
-          python3 << EOF
-          import json
-          import sys
-          sys.path.insert(0, '../backend')
-          try:
-              import ibex
-              backend_version = ibex.__version__
-              with open('package.json', 'r') as f:
-                  data = json.load(f)
-              data['version'] = backend_version
-              with open('package.json', 'w') as f:
-                  json.dump(data, f, indent=2)
-              print(f"Updated frontend version to {backend_version}")
-          except Exception as e:
-              print(f"Warning: Could not sync version: {e}")
-          EOF
+          python3 .github/scripts/sync_version.py backend frontend
       
       - name: Build package
         run: |

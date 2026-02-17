@@ -91,7 +91,6 @@
     "typescript": "5.1",
     "typescript-eslint": "8.35.0"
   },
-  "keywords": [],
   "author": {
     "name": "IBEX Developers",
     "email": "olivier.hoenen@iter.org"

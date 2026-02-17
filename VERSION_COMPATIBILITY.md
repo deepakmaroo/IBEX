@@ -7,8 +7,12 @@ The IBEX frontend and backend can have independent version numbers since they ar
 ## Versioning Philosophy
 
 ### Independent Versions
-- **Frontend** (`@ibex/frontend`): Follows [Semantic Versioning](https://semver.org/)
-- **Backend** (`ibex`): Follows [PEP 440](https://www.python.org/dev/peps/pep-0440/) and Semantic Versioning
+- **Frontend** (`@ibex/frontend`): Follows [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH)
+- **Backend** (`ibex`): Follows [PEP 440](https://www.python.org/dev/peps/pep-0440/) 
+
+Note: Both follow semantic versioning in practice. PEP 440 is compatible with semver for release versions.
+For pre-releases, PEP 440 uses format like `1.0.0a1`, `1.0.0b1`, `1.0.0rc1` while npm semver uses `1.0.0-alpha.1`, `1.0.0-beta.1`, `1.0.0-rc.1`.
+For consistency, align pre-release naming between packages when possible.
 
 ### Version Synchronization (Optional)
 - Major releases can be synchronized (e.g., both at 1.0.0, 2.0.0)

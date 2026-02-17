@@ -19,13 +19,30 @@ from pathlib import Path
 
 def find_free_port(start=49152, end=65535):
     """Find a free port in the given range."""
-    for port in range(start, end):
+    import random
+    
+    # Try random ports for better performance
+    attempts = 100
+    ports_to_try = random.sample(range(start, end), min(attempts, end - start))
+    
+    for port in ports_to_try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             try:
                 s.bind(('', port))
                 return port
             except OSError:
                 continue
+    
+    # Fallback to sequential if random didn't work
+    for port in range(start, end):
+        if port not in ports_to_try:  # Skip already tried ports
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                try:
+                    s.bind(('', port))
+                    return port
+                except OSError:
+                    continue
+    
     raise RuntimeError("No free ports available")
 
 
