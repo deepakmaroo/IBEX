@@ -28,7 +28,8 @@ def find_free_port(start=49152, end=65535):
     for port in ports_to_try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             try:
-                s.bind(('', port))
+                # Bind to localhost only for security
+                s.bind(('127.0.0.1', port))
                 return port
             except OSError:
                 continue
@@ -38,7 +39,8 @@ def find_free_port(start=49152, end=65535):
         if port not in ports_to_try:  # Skip already tried ports
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 try:
-                    s.bind(('', port))
+                    # Bind to localhost only for security
+                    s.bind(('127.0.0.1', port))
                     return port
                 except OSError:
                     continue
