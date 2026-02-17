@@ -70,9 +70,9 @@ Added `publish:npm` script to `package.json` that automatically builds and publi
 
 See [docs/NPM_PUBLISHING.md](NPM_PUBLISHING.md) for detailed instructions.
 
-### Option 2: Automated Publishing (Recommended)
+### Option 3: Automated Publishing (Recommended)
 
-1. Generate an npm access token at https://www.npmjs.com/settings/YOUR_USERNAME/tokens
+1. Generate an npm access token at https://www.npmjs.com/settings/<your-username>/tokens (replace `<your-username>` with your actual npm username)
 2. Add it as a secret named `NPM_TOKEN` in GitHub repository settings
 3. Create a new release on GitHub
 4. The workflow will automatically publish to npm
