@@ -1,14 +1,15 @@
 {
   "name": "ibex",
   "productName": "ibex",
-  "version": "dev",
-  "description": "My Electron application description",
+  "version": "0.1.0",
+  "description": "IBEX (IMAS variaBles EXplorer) - A general purpose graphical tool for exploring IMAS structured data",
   "main": ".webpack/main",
   "scripts": {
     "start": "electron-forge start -- --remote-debugging-port=9222",
     "package": "electron-forge package",
     "make": "electron-forge make",
     "publish": "electron-forge publish",
+    "publish:npm": "npm run package && npm publish",
     "lint": "eslint . --max-warnings=0",
     "format": "prettier --write .",
     "debug": "DEBUG=electron-forge:* electron-forge start",
@@ -59,11 +60,38 @@
     "typescript": "5.1",
     "typescript-eslint": "8.35.0"
   },
-  "keywords": [],
+  "keywords": [
+    "electron",
+    "imas",
+    "data-visualization",
+    "hdf5",
+    "scientific-visualization",
+    "plotting",
+    "data-explorer"
+  ],
   "author": {
     "name": "Epsyl-Alcen"
   },
-  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deepakmaroo/IBEX.git"
+  },
+  "bugs": {
+    "url": "https://github.com/deepakmaroo/IBEX/issues"
+  },
+  "homepage": "https://github.com/deepakmaroo/IBEX#readme",
+  "license": "LGPL-3.0",
+  "files": [
+    ".webpack",
+    "out",
+    "resources",
+    "README.md",
+    "LICENSE.txt"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "dependencies": {
     "@mantine/core": "7.17.7",
     "@mantine/form": "7.17.7",

@@ -2,6 +2,9 @@
 
 Ibex frontend is an Electron application designed to deliver a rich and seamless user experience. Ibex is an application to create and manage configurations for visualizing **HDF5 (H5)** data files from IDS imaspy. It enables users to generate a file tree structure, select data, and plot graphs based on the selected data.
 
+> [!TIP]
+> **Publishing to npm**: See [NPM Publishing Guide](../docs/NPM_PUBLISHING.md) for instructions on how to publish this package to npm.
+
 ## Key Features
 
 - **React** for building modular and responsive user interfaces.
